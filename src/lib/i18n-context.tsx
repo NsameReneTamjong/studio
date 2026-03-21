@@ -16,7 +16,7 @@ const translations: TranslationDict = {
   dashboard: { en: "Dashboard", fr: "Tableau de bord" },
   students: { en: "Students", fr: "Élèves" },
   staff: { en: "Staff", fr: "Personnel" },
-  courses: { en: "Courses", fr: "Cours" },
+  courses: { en: "My Subjects", fr: "Mes Matières" },
   grades: { en: "Report Card", fr: "Bulletin de Notes" },
   attendance: { en: "Attendance", fr: "Présences" },
   aiFeedback: { en: "AI Feedback", fr: "Feedback IA" },
@@ -71,6 +71,10 @@ const translations: TranslationDict = {
   updateProfile: { en: "Update Profile", fr: "Mettre à jour le profil" },
   changesSaved: { en: "Changes Saved", fr: "Changements Enregistrés" },
   profileUpdateSuccess: { en: "Your profile has been updated successfully.", fr: "Votre profil a été mis à jour avec succès." },
+  addSubject: { en: "Add Optional Subject", fr: "Ajouter une Matière Facultative" },
+  viewMaterials: { en: "View Materials", fr: "Voir les Supports" },
+  materials: { en: "Course Materials", fr: "Supports de Cours" },
+  availableSubjects: { en: "Available Optional Subjects", fr: "Matières Facultatives Disponibles" },
 };
 
 interface I18nContextType {
