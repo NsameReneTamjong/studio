@@ -57,6 +57,7 @@ export default function AnnouncementsPage() {
   const [formData, setFormData] = useState({ title: "", content: "", target: "all" });
 
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
+  const canPost = ["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER"].includes(user?.role || "");
 
   const handleSend = () => {
     if (!formData.title || !formData.content) return;
@@ -114,7 +115,7 @@ export default function AnnouncementsPage() {
     </Card>
   );
 
-  if (!isSuperAdmin) {
+  if (!canPost) {
     return (
       <div className="space-y-6">
         <div>
@@ -152,7 +153,11 @@ export default function AnnouncementsPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t("allSchools")}</SelectItem>
+                  {isSuperAdmin ? (
+                    <SelectItem value="all">{t("allSchools")}</SelectItem>
+                  ) : (
+                    <SelectItem value="school">My School</SelectItem>
+                  )}
                   <SelectItem value="S001">Lycée de Joss</SelectItem>
                   <SelectItem value="S002">GBHS Yaoundé</SelectItem>
                 </SelectContent>

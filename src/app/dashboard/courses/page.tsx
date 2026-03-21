@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -75,10 +76,13 @@ const OPTIONAL_SUBJECTS = [
 ];
 
 export default function MySubjectsPage() {
+  const { user } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
   const [selectedSubject, setSelectedSubject] = useState<any>(null);
   const [isAddingSubject, setIsAddingSubject] = useState(false);
+
+  const isStudent = user?.role === "STUDENT";
 
   const handleAddSubject = (subjectName: string) => {
     toast({
@@ -97,8 +101,6 @@ export default function MySubjectsPage() {
   };
 
   const handleDownloadFile = (url: string, title: string) => {
-    // In a real app, this would trigger a direct download
-    // For this demo, we'll open it in a new tab which simulates the access
     window.open(url, '_blank');
     toast({
       title: language === 'en' ? "Downloading" : "Téléchargement",
@@ -124,36 +126,41 @@ export default function MySubjectsPage() {
         <div>
           <h1 className="text-3xl font-bold text-primary font-headline">{t("courses")}</h1>
           <p className="text-muted-foreground mt-1">
-            {language === 'en' ? "Manage your class subjects and access learning materials." : "Gérez vos matières et accédez aux supports de cours."}
+            {user?.role === 'TEACHER' 
+              ? (language === 'en' ? "View your assigned subjects and manage course materials." : "Consultez vos matières assignées et gérez les supports de cours.")
+              : (language === 'en' ? "Manage your class subjects and access learning materials." : "Gérez vos matières et accédez aux supports de cours.")
+            }
           </p>
         </div>
         
-        <Dialog open={isAddingSubject} onOpenChange={setIsAddingSubject}>
-          <DialogTrigger asChild>
-            <Button className="gap-2 shadow-lg h-11">
-              <Plus className="w-4 h-4" /> {t("addSubject")}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>{t("availableSubjects")}</DialogTitle>
-              <DialogDescription>
-                {language === 'en' ? "Choose an optional subject to add to your class register." : "Choisissez une matière facultative à ajouter à votre registre."}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-3 mt-4">
-              {OPTIONAL_SUBJECTS.map((sub) => (
-                <div key={sub.id} className="flex items-center justify-between p-4 rounded-xl border border-accent bg-accent/10">
-                  <div>
-                    <p className="font-bold text-sm">{sub.name}</p>
-                    <p className="text-xs text-muted-foreground">Instructor: {sub.instructor} • Coeff: {sub.coeff}</p>
+        {isStudent && (
+          <Dialog open={isAddingSubject} onOpenChange={setIsAddingSubject}>
+            <DialogTrigger asChild>
+              <Button className="gap-2 shadow-lg h-11">
+                <Plus className="w-4 h-4" /> {t("addSubject")}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>{t("availableSubjects")}</DialogTitle>
+                <DialogDescription>
+                  {language === 'en' ? "Choose an optional subject to add to your class register." : "Choisissez une matière facultative à ajouter à votre registre."}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-3 mt-4">
+                {OPTIONAL_SUBJECTS.map((sub) => (
+                  <div key={sub.id} className="flex items-center justify-between p-4 rounded-xl border border-accent bg-accent/10">
+                    <div>
+                      <p className="font-bold text-sm">{sub.name}</p>
+                      <p className="text-xs text-muted-foreground">Instructor: {sub.instructor} • Coeff: {sub.coeff}</p>
+                    </div>
+                    <Button size="sm" onClick={() => handleAddSubject(sub.name)}>{language === 'en' ? 'Add' : 'Ajouter'}</Button>
                   </div>
-                  <Button size="sm" onClick={() => handleAddSubject(sub.name)}>{language === 'en' ? 'Add' : 'Ajouter'}</Button>
-                </div>
-              ))}
-            </div>
-          </DialogContent>
-        </Dialog>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">

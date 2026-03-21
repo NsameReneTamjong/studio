@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "@/lib/auth-context";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -26,9 +27,11 @@ const MOCK_STUDENTS = [
 ];
 
 export default function StudentsPage() {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
 
   const filtered = MOCK_STUDENTS.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  const canAdd = ["SUPER_ADMIN", "SCHOOL_ADMIN"].includes(user?.role || "");
 
   return (
     <div className="space-y-6">
@@ -37,9 +40,11 @@ export default function StudentsPage() {
           <h1 className="text-3xl font-bold text-primary font-headline">Student Management</h1>
           <p className="text-muted-foreground mt-1">Manage and view all enrolled student records.</p>
         </div>
-        <Button className="gap-2 shadow-lg">
-          <Plus className="w-4 h-4" /> Add New Student
-        </Button>
+        {canAdd && (
+          <Button className="gap-2 shadow-lg">
+            <Plus className="w-4 h-4" /> Add New Student
+          </Button>
+        )}
       </div>
 
       <Card className="border-none shadow-sm">
