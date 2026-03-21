@@ -32,7 +32,8 @@ import {
   Receipt,
   UsersRound,
   CreditCard,
-  Settings2
+  Settings2,
+  Crown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -58,6 +59,12 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: t("platformOverview"),
       icon: LayoutDashboard,
       href: "/dashboard",
+      roles: ["SUPER_ADMIN"],
+    },
+    {
+      label: t("founders"),
+      icon: Crown,
+      href: "/dashboard/founders",
       roles: ["SUPER_ADMIN"],
     },
     {

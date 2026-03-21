@@ -108,6 +108,7 @@ const translations: TranslationDict = {
   collectionReceipt: { en: "Collection Receipt", fr: "Reçu de Collection" },
   collectionCode: { en: "Collection Code", fr: "Code de Collection" },
   settings: { en: "School Settings", fr: "Paramètres de l'École" },
+  founders: { en: "Founders", fr: "Fondateurs" },
 };
 
 interface I18nContextType {
