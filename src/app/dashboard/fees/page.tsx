@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
 import { 
   Coins, 
   Plus, 
@@ -33,7 +34,9 @@ import {
   QrCode,
   Loader2,
   Settings2,
-  Trash2
+  Trash2,
+  AlertCircle,
+  FileDown
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -56,9 +59,9 @@ const RECENT_PAYMENTS = [
 ];
 
 const MOCK_STUDENTS_LIST = [
-  { id: "S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", balance: "100,000 XAF" },
-  { id: "S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", balance: "0 XAF" },
-  { id: "S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", balance: "45,000 XAF" },
+  { id: "S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", balance: 100000, status: "partial" },
+  { id: "S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", balance: 0, status: "cleared" },
+  { id: "S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", balance: 45000, status: "owing" },
 ];
 
 export default function BursarFeesPage() {
@@ -95,7 +98,8 @@ export default function BursarFeesPage() {
         date: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         method: "Cash",
         collector: user?.name,
-        schoolName: user?.school?.name || "EduIgnite Institution"
+        schoolName: user?.school?.name || "EduNexus Institution",
+        verificationCode: Math.random().toString(36).substr(2, 12).toUpperCase()
       };
       
       setPreviewReceipt(receiptData);
@@ -173,7 +177,7 @@ export default function BursarFeesPage() {
               </div>
               <div>
                 <p className="text-[10px] uppercase font-black text-muted-foreground leading-none">Today's Revenue</p>
-                <p className="text-lg font-black text-primary leading-tight">85,000 XAF</p>
+                <p className="text-lg font-black text-primary leading-tight">125,000 XAF</p>
               </div>
            </div>
         </div>
@@ -192,7 +196,6 @@ export default function BursarFeesPage() {
           </TabsTrigger>
         </TabsList>
 
-        {/* COLLECT PAYMENT TAB */}
         <TabsContent value="collect" className="mt-8 animate-in fade-in slide-in-from-bottom-4">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <Card className="lg:col-span-7 border-none shadow-xl bg-white overflow-hidden rounded-3xl">
@@ -220,9 +223,13 @@ export default function BursarFeesPage() {
                           </Avatar>
                           <div className="flex-1 overflow-hidden">
                             <p className="text-sm font-bold text-primary truncate leading-tight">{student.name}</p>
-                            <p className="text-[10px] font-mono text-muted-foreground uppercase">{student.id} • Bal: {student.balance}</p>
+                            <p className="text-[10px] font-mono text-muted-foreground uppercase">{student.id} • {student.balance.toLocaleString()} XAF Left</p>
                           </div>
-                          {selectedStudent?.id === student.id && <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />}
+                          {student.status === 'cleared' ? (
+                            <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+                          ) : (
+                            selectedStudent?.id === student.id && <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                          )}
                         </button>
                       ))}
                     </div>
@@ -295,21 +302,27 @@ export default function BursarFeesPage() {
               <Card className="border-none shadow-lg bg-secondary text-primary overflow-hidden">
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5" /> Summary
+                    <TrendingUp className="w-5 h-5" /> Collection Target
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between items-center text-sm border-b border-primary/10 pb-2">
-                    <span className="opacity-70">Total Collected Today</span>
-                    <span className="font-black">85,000 XAF</span>
+                <CardContent className="space-y-6">
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs font-bold">
+                      <span className="uppercase tracking-widest opacity-70">Tuition Recovery</span>
+                      <span>68%</span>
+                    </div>
+                    <Progress value={68} className="h-2 bg-white/20" />
                   </div>
-                  <div className="flex justify-between items-center text-sm border-b border-primary/10 pb-2">
-                    <span className="opacity-70">Transactions Processed</span>
-                    <span className="font-black">12</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="opacity-70">Avg. Per Transaction</span>
-                    <span className="font-black">7,083 XAF</span>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-[10px] uppercase font-black opacity-60">Today's Intake</p>
+                      <p className="text-xl font-black">125,000 XAF</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] uppercase font-black opacity-60">Pending (Term)</p>
+                      <p className="text-xl font-black text-red-600">1.8M XAF</p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -319,25 +332,48 @@ export default function BursarFeesPage() {
                     <Receipt className="w-8 h-8 text-primary opacity-20" />
                  </div>
                  <div>
-                    <h4 className="font-bold text-primary">Pending Receipt</h4>
-                    <p className="text-xs text-muted-foreground max-w-[200px]">Confirm a payment to generate and download an official institutional receipt.</p>
+                    <h4 className="font-bold text-primary">Secure Receipt Generation</h4>
+                    <p className="text-xs text-muted-foreground max-w-[200px]">Confirm a payment to generate a unique, cryptographically signed receipt for the student.</p>
                  </div>
               </div>
+              
+              <Card className="border-none shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2"><AlertCircle className="w-4 h-4 text-amber-500" /> Recent Activity</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {[
+                    { name: "Alice Thompson", amt: "50,000", time: "10:30 AM" },
+                    { name: "Bob Richards", amt: "25,000", time: "09:15 AM" },
+                  ].map((act, i) => (
+                    <div key={i} className="flex justify-between items-center text-xs p-2 rounded-lg bg-accent/20">
+                      <span className="font-medium">{act.name}</span>
+                      <div className="text-right">
+                        <p className="font-bold text-primary">{act.amt} XAF</p>
+                        <p className="text-[9px] opacity-60">{act.time}</p>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
             </div>
           </div>
         </TabsContent>
 
-        {/* PAYMENT LEDGER TAB */}
         <TabsContent value="ledger" className="mt-8 animate-in fade-in slide-in-from-bottom-4">
           <Card className="border-none shadow-sm overflow-hidden">
-            <CardHeader className="bg-white border-b flex flex-row items-center justify-between">
+            <CardHeader className="bg-white border-b flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <CardTitle>Institutional Ledger</CardTitle>
+                <CardTitle>Institutional Financial Ledger</CardTitle>
                 <CardDescription>Real-time audit log of all financial transactions.</CardDescription>
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="gap-2"><Filter className="w-4 h-4" /> Filter</Button>
-                <Button variant="outline" size="sm" className="gap-2"><Download className="w-4 h-4" /> Export CSV</Button>
+              <div className="flex flex-wrap gap-2">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                  <Input placeholder="Search records..." className="pl-8 h-9 text-xs w-[200px] bg-accent/10 border-none" />
+                </div>
+                <Button variant="outline" size="sm" className="gap-2 h-9"><Filter className="w-4 h-4" /> Filter</Button>
+                <Button variant="outline" size="sm" className="gap-2 h-9"><FileDown className="w-4 h-4" /> Export CSV</Button>
               </div>
             </CardHeader>
             <CardContent className="p-0">
@@ -349,7 +385,7 @@ export default function BursarFeesPage() {
                     <TableHead>Fee Type</TableHead>
                     <TableHead className="text-center">Method</TableHead>
                     <TableHead className="text-center">Amount</TableHead>
-                    <TableHead className="text-right pr-6">Date</TableHead>
+                    <TableHead className="text-right pr-6">Timestamp</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -371,7 +407,7 @@ export default function BursarFeesPage() {
                         <div className="flex flex-col items-end">
                           <span className="text-xs font-bold">{pay.date}</span>
                           <Button variant="ghost" size="sm" className="h-6 text-[9px] gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Receipt className="w-3 h-3" /> Re-print
+                            <Printer className="w-3 h-3" /> Re-print Receipt
                           </Button>
                         </div>
                       </TableCell>
@@ -383,7 +419,6 @@ export default function BursarFeesPage() {
           </Card>
         </TabsContent>
 
-        {/* FEE STRUCTURE TAB */}
         <TabsContent value="structure" className="mt-8 animate-in fade-in slide-in-from-bottom-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Card 
@@ -398,7 +433,7 @@ export default function BursarFeesPage() {
             </Card>
             
             {feeTypes.map((type) => (
-              <Card key={type.id} className="border-none shadow-sm relative overflow-hidden group flex flex-col">
+              <Card key={type.id} className="border-none shadow-sm relative overflow-hidden group flex flex-col bg-white">
                 <CardHeader className="bg-accent/30 pb-4">
                   <div className="flex items-center justify-between">
                     <Badge variant="outline" className="w-fit text-[9px] font-black tracking-widest border-primary/10 text-primary/60">ID: {type.id}</Badge>
@@ -418,7 +453,7 @@ export default function BursarFeesPage() {
                     className="flex-1 h-9 text-xs font-bold gap-2"
                     onClick={() => openFeeModal(type)}
                   >
-                    <Settings2 className="w-3 h-3" /> Edit
+                    <Settings2 className="w-3 h-3" /> Edit Structure
                   </Button>
                   <Button 
                     variant="ghost" 
@@ -481,7 +516,7 @@ export default function BursarFeesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* RECEIPT PREVIEW DIALOG */}
+      {/* ENHANCED RECEIPT PREVIEW DIALOG */}
       <Dialog open={!!previewReceipt} onOpenChange={() => setPreviewReceipt(null)}>
         <DialogContent className="sm:max-w-md p-0 border-none shadow-2xl overflow-hidden bg-[#F0F2F5]">
           <DialogHeader className="p-6 bg-primary text-white border-b border-white/10 shrink-0">
@@ -569,15 +604,20 @@ export default function BursarFeesPage() {
                      <div className="w-16 h-16 opacity-20">
                         <QrCode className="w-full h-full" />
                      </div>
-                     <p className="text-[8px] font-black uppercase tracking-widest opacity-40">Digital Check ID: {Math.random().toString(36).substr(2, 12).toUpperCase()}</p>
+                     <p className="text-[8px] font-black uppercase tracking-widest opacity-40">Digital Check ID: {previewReceipt?.verificationCode}</p>
                   </div>
                </div>
 
                <div className="absolute bottom-4 left-0 right-0 px-8 flex items-center justify-between opacity-30 text-[8px] font-black uppercase tracking-[0.3em]">
-                  <span>EduIgnite Finance</span>
+                  <span>EduNexus Finance</span>
                   <span>Institutional Portal</span>
                </div>
             </div>
+          </div>
+
+          <div className="p-6 bg-amber-50 border-t border-amber-100 mx-6 mb-6 rounded-2xl flex gap-3">
+             <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+             <p className="text-[10px] text-amber-800 leading-tight">This receipt is a temporal legal document. Final term clearance requires validation from the registrar's office after full payment.</p>
           </div>
 
           <DialogFooter className="p-6 bg-white border-t gap-3 sm:gap-0 shrink-0">
