@@ -1,47 +1,40 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   FileEdit, 
   Clock, 
   CheckCircle2, 
   Plus, 
   ChevronRight, 
-  Save,
-  User,
   Eye,
   Trash2,
   Inbox,
-  Award
+  Award,
+  Settings,
+  ArrowUpRight,
+  TrendingUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-// Mock Data for Assignments
-const MOCK_ASSIGNMENTS = [
-  { id: "A1", title: "Thermodynamics Problems Set", subject: "Physics", teacher: "Dr. Tesla", dueDate: "2024-05-30T23:59:59Z", status: "due", maxMarks: 20 },
-  { id: "A2", title: "Poetry Analysis Essay", subject: "English", teacher: "Ms. Bennet", dueDate: "2024-05-28T23:59:59Z", status: "submitted", maxMarks: 10 },
-  { id: "A3", title: "Matrix Multiplication Lab", subject: "Maths", teacher: "Prof. Smith", dueDate: "2024-05-20T23:59:59Z", status: "graded", score: 18, maxMarks: 20 },
-];
-
-// Mock Submissions for Teacher View
-const INITIAL_SUBMISSIONS = [
-  { id: "SUB001", studentName: "Alice Thompson", studentAvatar: "https://picsum.photos/seed/s1/100/100", assignmentTitle: "Thermodynamics", subject: "Physics", submittedAt: "2h ago", status: "pending" },
-  { id: "SUB002", studentName: "Bob Richards", studentAvatar: "https://picsum.photos/seed/s2/100/100", assignmentTitle: "Kinematics Prep", subject: "Physics", submittedAt: "5h ago", status: "pending" },
-  { id: "SUB003", studentName: "Diana Prince", studentAvatar: "https://picsum.photos/seed/s4/100/100", assignmentTitle: "Energy Lab", subject: "Physics", submittedAt: "Yesterday", status: "pending" },
+// Mock Data for Assignments with States
+const INITIAL_ASSIGNMENTS = [
+  { id: "A1", title: "Thermodynamics Problems Set", subject: "Physics", dueDate: "2024-06-15T23:59:59Z", status: "upcoming", submissions: 0, maxMarks: 20 },
+  { id: "A2", title: "Poetry Analysis Essay", subject: "English", dueDate: "2024-05-28T23:59:59Z", status: "submitted", submissions: 42, maxMarks: 10 },
+  { id: "A3", title: "Matrix Multiplication Lab", subject: "Maths", dueDate: "2024-05-20T23:59:59Z", status: "graded", submissions: 38, maxMarks: 20 },
+  { id: "A4", title: "Chemical Bonds Basic", subject: "Chemistry", dueDate: "2024-06-10T23:59:59Z", status: "upcoming", submissions: 0, maxMarks: 20 },
 ];
 
 export default function AssignmentsPage() {
@@ -50,254 +43,240 @@ export default function AssignmentsPage() {
   const { toast } = useToast();
   
   const [isCreating, setIsCreating] = useState(false);
-  const [activeSubmissions, setActiveSubmissions] = useState(INITIAL_SUBMISSIONS);
-  const [recordedMarks, setRecordedMarks] = useState<any[]>([]);
-  const [gradeInputs, setGradeInputs] = useState<Record<string, string>>({});
+  const [assignments, setAssignments] = useState(INITIAL_ASSIGNMENTS);
 
   const isTeacher = user?.role === "TEACHER" || user?.role === "SCHOOL_ADMIN";
 
-  const handleRecordGrade = (submissionId: string) => {
-    const grade = gradeInputs[submissionId];
-    if (!grade) {
-      toast({ variant: "destructive", title: "Error", description: "Please enter a grade first." });
-      return;
-    }
-
-    const submission = activeSubmissions.find(s => s.id === submissionId);
-    if (!submission) return;
-
-    // Record the mark
-    const newRecord = { ...submission, grade, recordedAt: new Date().toLocaleTimeString() };
-    setRecordedMarks([newRecord, ...recordedMarks]);
-
-    // Wipe out from active queue
-    setActiveSubmissions(prev => prev.filter(s => s.id !== submissionId));
-    
-    toast({
-      title: "Grade Recorded",
-      description: `${submission.studentName}'s mark has been added to the register.`,
-    });
+  const handleCreateAssignment = () => {
+    toast({ title: "Task Published", description: "The assignment is now visible to students." });
+    setIsCreating(false);
   };
 
-  const handleClearHistory = () => {
-    setRecordedMarks([]);
-    toast({ description: "Recent records cleared." });
-  };
+  const upcoming = assignments.filter(a => a.status === 'upcoming');
+  const submitted = assignments.filter(a => a.status === 'submitted');
+  const graded = assignments.filter(a => a.status === 'graded');
 
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+  if (!isTeacher) {
+    return (
+      <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-2">
             <FileEdit className="w-8 h-8 text-secondary" />
             {t("assignments")}
           </h1>
-          <p className="text-muted-foreground mt-1">
-            {isTeacher 
-              ? "Manage grading queue and student submissions."
-              : "Track your homework and project deadlines."
-            }
-          </p>
+          <p className="text-muted-foreground mt-1">Track your homework and project deadlines.</p>
         </div>
-
-        {isTeacher && (
-          <Button className="gap-2 shadow-lg h-11" onClick={() => setIsCreating(true)}>
-            <Plus className="w-4 h-4" /> {language === 'en' ? 'New Assignment' : 'Nouveau Devoir'}
-          </Button>
-        )}
-      </div>
-
-      {isTeacher ? (
-        <Tabs defaultValue="queue" className="space-y-6">
-          <TabsList className="bg-white border shadow-sm p-1 rounded-xl h-auto">
-            <TabsTrigger value="queue" className="gap-2 py-2">
-              <Inbox className="w-4 h-4" /> Submission Queue 
-              {activeSubmissions.length > 0 && (
-                <Badge className="ml-1 bg-secondary text-primary border-none text-[10px] h-5">{activeSubmissions.length}</Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="recorded" className="gap-2 py-2">
-              <CheckCircle2 className="w-4 h-4" /> Recently Recorded
-            </TabsTrigger>
-            <TabsTrigger value="manage" className="gap-2 py-2">
-              <FileEdit className="w-4 h-4" /> Manage Tasks
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="queue" className="mt-0">
-            <Card className="border-none shadow-sm overflow-hidden">
-              <CardHeader className="bg-accent/30 border-b">
-                <CardTitle className="text-lg">Grading Queue</CardTitle>
-                <CardDescription>View and grade pending student submissions. Items are wiped once recorded.</CardDescription>
-              </CardHeader>
-              <CardContent className="p-0">
-                {activeSubmissions.length > 0 ? (
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-muted/50 text-[10px] uppercase font-bold">
-                        <TableHead className="pl-6">Student</TableHead>
-                        <TableHead>Assignment</TableHead>
-                        <TableHead>Submitted</TableHead>
-                        <TableHead className="text-center">Grade / 20</TableHead>
-                        <TableHead className="text-right pr-6">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {activeSubmissions.map((sub) => (
-                        <TableRow key={sub.id} className="group hover:bg-accent/5 transition-colors">
-                          <TableCell className="pl-6">
-                            <div className="flex items-center gap-3">
-                              <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
-                                <AvatarImage src={sub.studentAvatar} />
-                                <AvatarFallback><User className="w-4 h-4"/></AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="font-bold text-sm text-primary">{sub.studentName}</p>
-                                <p className="text-[10px] text-muted-foreground uppercase">{sub.subject}</p>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-medium text-sm">{sub.assignmentTitle}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="text-[10px] gap-1 font-medium border-primary/10">
-                              <Clock className="w-3 h-3" /> {sub.submittedAt}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Input 
-                              type="number" 
-                              placeholder="0.0" 
-                              className="w-16 h-9 mx-auto text-center font-bold"
-                              value={gradeInputs[sub.id] || ""}
-                              onChange={(e) => setGradeInputs({...gradeInputs, [sub.id]: e.target.value})}
-                            />
-                          </TableCell>
-                          <TableCell className="text-right pr-6 space-x-2">
-                            <Button variant="ghost" size="sm" className="h-9 gap-2 text-primary hover:bg-primary/5">
-                              <Eye className="w-4 h-4" /> View
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              className="h-9 gap-2 shadow-sm bg-green-600 hover:bg-green-700"
-                              onClick={() => handleRecordGrade(sub.id)}
-                            >
-                              <Save className="w-4 h-4" /> Record
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                ) : (
-                  <div className="py-20 text-center space-y-4">
-                    <div className="w-16 h-16 bg-accent/50 rounded-full flex items-center justify-center mx-auto">
-                      <CheckCircle2 className="w-8 h-8 text-primary/30" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-primary">All caught up!</p>
-                      <p className="text-sm text-muted-foreground">No pending submissions to grade.</p>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="recorded" className="mt-0">
-            <Card className="border-none shadow-sm overflow-hidden">
-              <CardHeader className="bg-accent/30 border-b flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle className="text-lg">Recent Records</CardTitle>
-                  <CardDescription>These marks have been sent to the permanent register.</CardDescription>
-                </div>
-                <Button variant="ghost" size="sm" className="text-destructive gap-2" onClick={handleClearHistory}>
-                  <Trash2 className="w-4 h-4" /> Clear View
-                </Button>
-              </CardHeader>
-              <CardContent className="p-0">
-                {recordedMarks.length > 0 ? (
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-muted/50 text-[10px] uppercase font-bold">
-                        <TableHead className="pl-6">Student</TableHead>
-                        <TableHead>Assignment</TableHead>
-                        <TableHead className="text-center">Mark</TableHead>
-                        <TableHead className="text-right pr-6">Recorded At</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {recordedMarks.map((rec, idx) => (
-                        <TableRow key={idx}>
-                          <TableCell className="pl-6 font-bold">{rec.studentName}</TableCell>
-                          <TableCell className="text-sm">{rec.assignmentTitle}</TableCell>
-                          <TableCell className="text-center">
-                            <Badge className="bg-primary text-white border-none">{rec.grade} / 20</Badge>
-                          </TableCell>
-                          <TableCell className="text-right pr-6 text-xs text-muted-foreground">{rec.recordedAt}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                ) : (
-                  <div className="py-12 text-center text-muted-foreground text-sm">
-                    No recent records to display.
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="manage" className="mt-0">
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {MOCK_ASSIGNMENTS.map((assignment) => (
-                <AssignmentCard key={assignment.id} assignment={assignment} isTeacher={true} />
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
-      ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {MOCK_ASSIGNMENTS.map((assignment) => (
-            <AssignmentCard key={assignment.id} assignment={assignment} isTeacher={false} />
+          {assignments.map((assignment) => (
+            <StudentAssignmentCard key={assignment.id} assignment={assignment} />
           ))}
         </div>
-      )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
+            <div className="p-2 bg-primary rounded-xl shadow-lg">
+              <FileEdit className="w-6 h-6 text-secondary" />
+            </div>
+            {t("assignments")}
+          </h1>
+          <p className="text-muted-foreground mt-1">Manage institutional tasks and grading workflows.</p>
+        </div>
+        <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl" onClick={() => setIsCreating(true)}>
+          <Plus className="w-5 h-5" /> {language === 'en' ? 'Create Assignment' : 'Créer un Devoir'}
+        </Button>
+      </div>
+
+      {/* Main Teacher Interface: 4 Categories */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+        
+        {/* CARD 1: UPCOMING (EDIT) */}
+        <Card className="border-none shadow-xl bg-white overflow-hidden flex flex-col h-[500px]">
+          <CardHeader className="bg-blue-50 border-b border-blue-100 flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-blue-700 text-lg flex items-center gap-2">
+                <Clock className="w-5 h-5" /> {language === 'en' ? 'Upcoming' : 'À venir'}
+              </CardTitle>
+              <CardDescription className="text-blue-600/60">Open for submissions</CardDescription>
+            </div>
+            <Badge className="bg-blue-600 text-white border-none">{upcoming.length}</Badge>
+          </CardHeader>
+          <CardContent className="flex-1 p-0">
+            <ScrollArea className="h-full p-4">
+              <div className="space-y-4">
+                {upcoming.map((task) => (
+                  <div key={task.id} className="p-4 rounded-xl border border-blue-100 bg-blue-50/30 group hover:bg-blue-50 transition-colors">
+                    <h4 className="font-bold text-primary leading-tight mb-1">{task.title}</h4>
+                    <p className="text-[10px] text-muted-foreground uppercase font-bold mb-3">{task.subject}</p>
+                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-blue-100/50">
+                      <span className="text-[10px] font-medium text-muted-foreground flex items-center gap-1">
+                        <Clock className="w-3 h-3"/> Due: {new Date(task.dueDate).toLocaleDateString()}
+                      </span>
+                      <Button variant="ghost" size="sm" className="h-7 text-xs text-blue-600 hover:bg-white gap-1">
+                        <Settings className="w-3 h-3" /> Edit
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                {upcoming.length === 0 && <EmptyPlaceholder text="No upcoming tasks" />}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+
+        {/* CARD 2: SUBMITTED (GRADE) */}
+        <Card className="border-none shadow-xl bg-white overflow-hidden flex flex-col h-[500px]">
+          <CardHeader className="bg-amber-50 border-b border-amber-100 flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-amber-700 text-lg flex items-center gap-2">
+                <Inbox className="w-5 h-5" /> {language === 'en' ? 'Submitted' : 'Rendus'}
+              </CardTitle>
+              <CardDescription className="text-amber-600/60">Deadline reached / Pending</CardDescription>
+            </div>
+            <Badge className="bg-amber-600 text-white border-none">{submitted.length}</Badge>
+          </CardHeader>
+          <CardContent className="flex-1 p-0">
+            <ScrollArea className="h-full p-4">
+              <div className="space-y-4">
+                {submitted.map((task) => (
+                  <div key={task.id} className="p-4 rounded-xl border border-amber-100 bg-amber-50/30 group hover:bg-amber-50 transition-colors">
+                    <h4 className="font-bold text-primary leading-tight mb-1">{task.title}</h4>
+                    <p className="text-[10px] text-muted-foreground uppercase font-bold mb-3">{task.subject}</p>
+                    <div className="bg-white/50 p-2 rounded-lg mb-3 flex items-center justify-between text-[10px]">
+                      <span className="font-medium">Submissions:</span>
+                      <span className="font-black text-amber-700">{task.submissions} students</span>
+                    </div>
+                    <Button className="w-full h-8 text-xs bg-amber-600 hover:bg-amber-700 gap-2 shadow-sm">
+                      <FileEdit className="w-3 h-3" /> Grade Assignment
+                    </Button>
+                  </div>
+                ))}
+                {submitted.length === 0 && <EmptyPlaceholder text="No submissions to grade" />}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+
+        {/* CARD 3: GRADED (VIEW MARKS) */}
+        <Card className="border-none shadow-xl bg-white overflow-hidden flex flex-col h-[500px]">
+          <CardHeader className="bg-green-50 border-b border-green-100 flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-green-700 text-lg flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5" /> {language === 'en' ? 'Graded' : 'Notés'}
+              </CardTitle>
+              <CardDescription className="text-green-600/60">Marks recorded</CardDescription>
+            </div>
+            <Badge className="bg-green-600 text-white border-none">{graded.length}</Badge>
+          </CardHeader>
+          <CardContent className="flex-1 p-0">
+            <ScrollArea className="h-full p-4">
+              <div className="space-y-4">
+                {graded.map((task) => (
+                  <div key={task.id} className="p-4 rounded-xl border border-green-100 bg-green-50/30 group hover:bg-green-50 transition-colors">
+                    <div className="flex items-start justify-between">
+                      <h4 className="font-bold text-primary leading-tight mb-1">{task.title}</h4>
+                      <Award className="w-4 h-4 text-green-600" />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground uppercase font-bold mb-3">{task.subject}</p>
+                    <Button variant="outline" className="w-full h-8 text-xs border-green-200 text-green-700 hover:bg-white gap-2">
+                      <Eye className="w-3 h-3" /> View Marks
+                    </Button>
+                  </div>
+                ))}
+                {graded.length === 0 && <EmptyPlaceholder text="No graded tasks yet" />}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+
+        {/* CARD 4: SUMMARY / ARCHIVE */}
+        <Card className="border-none shadow-xl bg-primary text-white overflow-hidden flex flex-col h-[500px]">
+          <CardHeader className="border-b border-white/10">
+            <CardTitle className="text-white text-lg flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-secondary" /> {language === 'en' ? 'Insights' : 'Aperçus'}
+            </CardTitle>
+            <CardDescription className="text-white/60">Performance & Archiving</CardDescription>
+          </CardHeader>
+          <CardContent className="flex-1 p-6 space-y-6">
+            <div className="space-y-2">
+              <p className="text-[10px] uppercase font-black tracking-widest text-white/40">Efficiency Rate</p>
+              <div className="text-3xl font-black text-secondary">92%</div>
+              <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <div className="h-full bg-secondary w-[92%]" />
+              </div>
+            </div>
+
+            <div className="space-y-4 pt-4 border-t border-white/10">
+              <Button variant="ghost" className="w-full justify-between text-white hover:bg-white/10 h-12 rounded-xl group px-4">
+                <div className="flex items-center gap-3">
+                  <Plus className="w-4 h-4 text-secondary" />
+                  <span className="text-sm font-bold">New Assignment</span>
+                </div>
+                <ChevronRight className="w-4 h-4 opacity-40 group-hover:opacity-100 transition-opacity" />
+              </Button>
+              <Button variant="ghost" className="w-full justify-between text-white hover:bg-white/10 h-12 rounded-xl group px-4">
+                <div className="flex items-center gap-3">
+                  <Trash2 className="w-4 h-4 text-red-400" />
+                  <span className="text-sm font-bold">Clear Recent View</span>
+                </div>
+                <ChevronRight className="w-4 h-4 opacity-40 group-hover:opacity-100 transition-opacity" />
+              </Button>
+              <Button variant="ghost" className="w-full justify-between text-white hover:bg-white/10 h-12 rounded-xl group px-4">
+                <div className="flex items-center gap-3">
+                  <ArrowUpRight className="w-4 h-4 text-blue-400" />
+                  <span className="text-sm font-bold">Export All Records</span>
+                </div>
+                <ChevronRight className="w-4 h-4 opacity-40 group-hover:opacity-100 transition-opacity" />
+              </Button>
+            </div>
+          </CardContent>
+          <CardFooter className="p-6 pt-0 mt-auto">
+             <div className="bg-white/5 p-4 rounded-2xl w-full text-center italic text-[10px] text-white/40 border border-white/5">
+               "Great teachers focus on growth, not just grades."
+             </div>
+          </CardFooter>
+        </Card>
+      </div>
 
       {/* Creation Dialog */}
       <Dialog open={isCreating} onOpenChange={setIsCreating}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{language === 'en' ? 'Create Assignment' : 'Créer un Devoir'}</DialogTitle>
-            <CardDescription>Post a new task for your students.</CardDescription>
+        <DialogContent className="sm:max-w-2xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="bg-primary p-8 text-white">
+            <DialogTitle className="text-2xl font-black tracking-tight">{language === 'en' ? 'Setup New Task' : 'Créer un Devoir'}</DialogTitle>
+            <DialogDescription className="text-white/60">Configure an academic assignment for your class.</DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-4 py-4">
-            <div className="col-span-2 space-y-2">
-              <Label>{language === 'en' ? 'Title' : 'Titre'}</Label>
-              <Input placeholder="e.g. Chapter 4 Exercises" />
-            </div>
-            <div className="space-y-2">
-              <Label>{language === 'en' ? 'Subject' : 'Matière'}</Label>
-              <Input placeholder="e.g. Physics" />
-            </div>
-            <div className="space-y-2">
-              <Label>{t("dueDate")}</Label>
-              <Input type="datetime-local" />
-            </div>
-            <div className="space-y-2">
-              <Label>{language === 'en' ? 'Max Marks' : 'Note Max'}</Label>
-              <Input type="number" placeholder="20" />
-            </div>
-            <div className="col-span-2 space-y-2">
-              <Label>{language === 'en' ? 'Description' : 'Description'}</Label>
-              <Textarea placeholder="Instructions for students..." className="min-h-[100px]" />
+          <div className="p-8 space-y-6">
+            <div className="grid grid-cols-2 gap-6">
+              <div className="col-span-2 space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{language === 'en' ? 'Task Title' : 'Titre'}</Label>
+                <Input placeholder="e.g. Chapter 4 Exercises" className="bg-accent/30 border-none h-12 rounded-xl focus-visible:ring-primary" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{language === 'en' ? 'Subject' : 'Matière'}</Label>
+                <Input placeholder="e.g. Physics" className="bg-accent/30 border-none h-12 rounded-xl" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("dueDate")}</Label>
+                <Input type="datetime-local" className="bg-accent/30 border-none h-12 rounded-xl" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{language === 'en' ? 'Max Marks' : 'Note Max'}</Label>
+                <Input type="number" placeholder="20" className="bg-accent/30 border-none h-12 rounded-xl" />
+              </div>
+              <div className="col-span-2 space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Instructions</Label>
+                <Textarea placeholder="Instructions for students..." className="min-h-[120px] bg-accent/30 border-none rounded-xl" />
+              </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreating(false)}>{t("cancel")}</Button>
-            <Button onClick={() => {
-              setIsCreating(false);
-              toast({ title: "Task Published", description: "The assignment is now visible to students." });
-            }}>{t("save")}</Button>
+          <DialogFooter className="bg-accent/20 p-6 border-t border-accent flex sm:flex-row gap-3">
+            <Button variant="ghost" className="flex-1 rounded-xl h-12" onClick={() => setIsCreating(false)}>{t("cancel")}</Button>
+            <Button onClick={handleCreateAssignment} className="flex-1 rounded-xl h-12 shadow-lg font-bold">{t("save")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -305,52 +284,53 @@ export default function AssignmentsPage() {
   );
 }
 
-function AssignmentCard({ assignment, isTeacher }: { assignment: any, isTeacher: boolean }) {
-  const { t, language } = useI18n();
-  
-  const getStatusIcon = (status: string) => {
+function StudentAssignmentCard({ assignment }: { assignment: any }) {
+  const { t } = useI18n();
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case "due": return <Clock className="w-5 h-5 text-amber-500" />;
-      case "submitted": return <CheckCircle2 className="w-5 h-5 text-green-500" />;
-      case "graded": return <Award className="w-5 h-5 text-primary" />;
-      default: return <FileEdit className="w-5 h-5 text-muted-foreground" />;
+      case "upcoming": return "bg-blue-500";
+      case "submitted": return "bg-green-500";
+      case "graded": return "bg-primary";
+      default: return "bg-gray-500";
     }
   };
 
   return (
-    <Card className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-shadow">
-      <CardHeader className="pb-4">
+    <Card className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-all">
+      <div className={cn("h-1.5", getStatusColor(assignment.status))} />
+      <CardHeader>
         <div className="flex justify-between items-start mb-2">
-          <div className="flex items-center gap-2">
-             {getStatusIcon(assignment.status)}
-             <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-widest">{assignment.status}</Badge>
-          </div>
+          <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-widest">{assignment.status}</Badge>
           {assignment.status === 'graded' && (
-            <Badge className="bg-primary text-white border-none font-bold">
-              {assignment.score}/{assignment.maxMarks}
-            </Badge>
+            <Badge className="bg-primary text-white border-none font-bold">GRADED</Badge>
           )}
         </div>
         <CardTitle className="text-xl group-hover:text-primary transition-colors">{assignment.title}</CardTitle>
-        <CardDescription>{assignment.subject} • {assignment.teacher}</CardDescription>
+        <CardDescription>{assignment.subject}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="bg-accent/30 p-3 rounded-lg flex items-center justify-between text-xs">
-           <div className="flex items-center gap-2 text-muted-foreground">
-              <Clock className="w-4 h-4" />
-              <span className="font-bold uppercase tracking-wider">{t("dueDate")}</span>
-           </div>
-           <span className="font-bold text-primary">
-              {new Date(assignment.dueDate).toLocaleDateString(language === 'en' ? 'en-US' : 'fr-FR', { day: 'numeric', month: 'short' })}
-           </span>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground bg-accent/20 p-3 rounded-lg">
+          <Clock className="w-4 h-4" />
+          <span className="font-bold">DUE: {new Date(assignment.dueDate).toLocaleDateString()}</span>
         </div>
       </CardContent>
-      <CardFooter className="bg-accent/30 border-t border-accent/50 pt-4">
-        <Button variant="ghost" className="w-full justify-between hover:bg-white text-primary">
-          {isTeacher ? "Manage Task" : "View Details"}
-          <ChevronRight className="w-4 h-4" />
+      <CardFooter className="pt-0 pb-6 px-6">
+        <Button variant="outline" className="w-full justify-between hover:bg-primary hover:text-white transition-all group/btn">
+          View Details
+          <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
         </Button>
       </CardFooter>
     </Card>
+  );
+}
+
+function EmptyPlaceholder({ text }: { text: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-12 text-center space-y-2 opacity-30 grayscale">
+      <div className="w-12 h-12 rounded-full border-2 border-dashed border-primary flex items-center justify-center">
+        <FileEdit className="w-6 h-6" />
+      </div>
+      <p className="text-xs font-bold uppercase tracking-widest">{text}</p>
+    </div>
   );
 }
