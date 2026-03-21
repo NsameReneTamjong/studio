@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -5,26 +6,49 @@ import { useAuth } from "@/lib/auth-context";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { 
   Plus, 
   Search, 
-  Filter, 
   User, 
   FileDown, 
   FileType, 
   Coins, 
-  Download, 
   Users,
   Calendar,
   Layers,
-  VenetianMask
+  VenetianMask,
+  UserPlus,
+  Building2,
+  FileCheck,
+  Printer,
+  Signature,
+  Phone,
+  Mail,
+  MapPin,
+  GraduationCap,
+  Info,
+  Heart,
+  QrCode,
+  ShieldCheck,
+  CheckCircle2
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription, 
+  DialogFooter,
+  DialogTrigger
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 
 const MOCK_STUDENTS = [
   { 
@@ -102,6 +126,23 @@ export default function StudentsPage() {
   const [yearFilter, setYearFilter] = useState("all");
   const [feeType, setFeeType] = useState("tuition");
 
+  // Add Student State
+  const [isAdmissionOpen, setIsAdmissionOpen] = useState(false);
+  const [admissionSuccess, setAdmissionSuccess] = useState<any>(null);
+  const [admissionForm, setAdmissionForm] = useState({
+    name: "",
+    gender: "Female",
+    dob: "",
+    email: "",
+    phone: "",
+    address: "",
+    parentName: "",
+    parentPhone: "",
+    class: "Form 5 / 2nde",
+    section: "A",
+    enrolmentYear: "2024"
+  });
+
   const filtered = MOCK_STUDENTS.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          s.id.toLowerCase().includes(searchTerm.toLowerCase());
@@ -119,6 +160,28 @@ export default function StudentsPage() {
     toast({
       title: `Exporting Registry`,
       description: `The list of ${filtered.length} students is being generated as ${type}.`,
+    });
+  };
+
+  const handleAdmission = () => {
+    if (!admissionForm.name || !admissionForm.parentName) {
+      toast({ variant: "destructive", title: "Missing Information", description: "Student Name and Parent Name are required." });
+      return;
+    }
+
+    const newStudent = {
+      id: `S-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
+      ...admissionForm,
+      avatar: `https://picsum.photos/seed/${admissionForm.name}/100/100`,
+      paid: 0,
+      left: 150000
+    };
+
+    setIsAdmissionOpen(false);
+    setAdmissionSuccess(newStudent);
+    toast({
+      title: "Student Admitted",
+      description: `Admission record created for ${admissionForm.name}.`,
     });
   };
 
@@ -140,9 +203,127 @@ export default function StudentsPage() {
         </div>
         <div className="flex gap-2">
           {isAdmin && (
-            <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl">
-              <Plus className="w-5 h-5" /> Add New Student
-            </Button>
+            <Dialog open={isAdmissionOpen} onOpenChange={setIsAdmissionOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl">
+                  <UserPlus className="w-5 h-5" /> Add New Student
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-3xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+                <DialogHeader className="bg-primary p-8 text-white">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-white/10 rounded-2xl">
+                      <GraduationCap className="w-8 h-8 text-secondary" />
+                    </div>
+                    <div>
+                      <DialogTitle className="text-2xl font-black">Student Admission Suite</DialogTitle>
+                      <DialogDescription className="text-white/60">Onboard a new student into the institutional registry.</DialogDescription>
+                    </div>
+                  </div>
+                </DialogHeader>
+                <Tabs defaultValue="profile" className="w-full">
+                  <TabsList className="grid grid-cols-3 w-full rounded-none bg-accent/30 h-12">
+                    <TabsTrigger value="profile">Student Profile</TabsTrigger>
+                    <TabsTrigger value="parent">Guardian Details</TabsTrigger>
+                    <TabsTrigger value="academic">Academic Class</TabsTrigger>
+                  </TabsList>
+                  
+                  <div className="p-8 max-h-[60vh] overflow-y-auto">
+                    <TabsContent value="profile" className="space-y-6 mt-0">
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="col-span-2 space-y-2">
+                          <Label>Full Name</Label>
+                          <Input value={admissionForm.name} onChange={(e) => setAdmissionForm({...admissionForm, name: e.target.value})} placeholder="e.g. Alice Thompson" className="h-11 rounded-xl" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Gender</Label>
+                          <Select value={admissionForm.gender} onValueChange={(v) => setAdmissionForm({...admissionForm, gender: v})}>
+                            <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Male">Male</SelectItem>
+                              <SelectItem value="Female">Female</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Date of Birth</Label>
+                          <Input type="date" value={admissionForm.dob} onChange={(e) => setAdmissionForm({...admissionForm, dob: e.target.value})} className="h-11 rounded-xl" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Email (Optional)</Label>
+                          <Input value={admissionForm.email} onChange={(e) => setAdmissionForm({...admissionForm, email: e.target.value})} placeholder="student@school.edu" className="h-11 rounded-xl" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Student Phone</Label>
+                          <Input value={admissionForm.phone} onChange={(e) => setAdmissionForm({...admissionForm, phone: e.target.value})} placeholder="+237 ..." className="h-11 rounded-xl" />
+                        </div>
+                        <div className="col-span-2 space-y-2">
+                          <Label>Residential Address</Label>
+                          <Input value={admissionForm.address} onChange={(e) => setAdmissionForm({...admissionForm, address: e.target.value})} placeholder="City, Quarter" className="h-11 rounded-xl" />
+                        </div>
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="parent" className="space-y-6 mt-0">
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="col-span-2 space-y-2">
+                          <Label>Parent / Guardian Full Name</Label>
+                          <Input value={admissionForm.parentName} onChange={(e) => setAdmissionForm({...admissionForm, parentName: e.target.value})} placeholder="e.g. Mr. Robert Thompson" className="h-11 rounded-xl" />
+                        </div>
+                        <div className="col-span-2 space-y-2">
+                          <Label>Guardian Primary Contact</Label>
+                          <Input value={admissionForm.parentPhone} onChange={(e) => setAdmissionForm({...admissionForm, parentPhone: e.target.value})} placeholder="+237 ..." className="h-11 rounded-xl" />
+                        </div>
+                        <div className="col-span-2 p-4 bg-blue-50 rounded-xl border border-blue-100 flex gap-3">
+                          <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+                          <p className="text-xs text-blue-800 leading-relaxed">
+                            A parent portal account will be automatically generated and linked to this student profile using the guardian's contact information.
+                          </p>
+                        </div>
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="academic" className="space-y-6 mt-0">
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="col-span-2 space-y-2">
+                          <Label>Target Academic Class</Label>
+                          <Select value={admissionForm.class} onValueChange={(v) => setAdmissionForm({...admissionForm, class: v})}>
+                            <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Assigned Section</Label>
+                          <Select value={admissionForm.section} onValueChange={(v) => setAdmissionForm({...admissionForm, section: v})}>
+                            <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="A">Section A</SelectItem>
+                              <SelectItem value="B">Section B</SelectItem>
+                              <SelectItem value="C">Section C</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Enrolment Year</Label>
+                          <Select value={admissionForm.enrolmentYear} onValueChange={(v) => setAdmissionForm({...admissionForm, enrolmentYear: v})}>
+                            <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {YEARS.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </TabsContent>
+                  </div>
+                </Tabs>
+                <DialogFooter className="bg-accent/20 p-6 border-t border-accent flex sm:flex-row gap-3">
+                  <Button variant="ghost" className="flex-1 rounded-xl h-12" onClick={() => setIsAdmissionOpen(false)}>Cancel</Button>
+                  <Button onClick={handleAdmission} className="flex-1 rounded-xl h-12 shadow-lg font-bold">Validate Admission</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           )}
         </div>
       </div>
@@ -359,6 +540,143 @@ export default function StudentsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* SUCCESS & PRINTABLE ADMISSION FORM */}
+      <Dialog open={!!admissionSuccess} onOpenChange={() => setAdmissionSuccess(null)}>
+        <DialogContent className="sm:max-w-5xl max-h-[95vh] overflow-y-auto p-0 border-none shadow-2xl rounded-3xl">
+          <DialogHeader className="bg-green-600 p-8 text-white no-print">
+            <div className="flex items-center gap-4">
+              <div className="bg-white/20 p-3 rounded-2xl">
+                <FileCheck className="w-8 h-8" />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-black">Admission Confirmed!</DialogTitle>
+                <DialogDescription className="text-white/80">The student has been successfully enrolled. Print the formal admission letter below.</DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div id="printable-admission-form" className="p-12 bg-white font-serif text-black min-h-[1000px] relative overflow-hidden print:p-0">
+            {/* Form Header */}
+            <div className="flex flex-col items-center text-center space-y-4 border-b-2 border-black pb-8 mb-8">
+              <Building2 className="w-16 h-16 text-primary/20 absolute top-12 right-12 opacity-50" />
+              <div className="space-y-1 uppercase tracking-tight text-[10px] font-bold">
+                <p>Republic of Cameroon</p>
+                <p>Peace - Work - Fatherland</p>
+                <div className="h-px bg-black w-12 mx-auto my-1" />
+                <p>{user?.school?.name || "Lycée de Joss"}</p>
+                <p>{user?.school?.location || "Douala, Littoral"}</p>
+              </div>
+              <h1 className="text-2xl font-black uppercase underline decoration-2 underline-offset-8 mt-4">
+                Official Student Admission & Enrollment Form
+              </h1>
+            </div>
+
+            {/* Main Content Sections */}
+            <div className="grid grid-cols-12 gap-8">
+              {/* Profile Side */}
+              <div className="col-span-3 space-y-6">
+                <div className="w-full aspect-square border-2 border-black rounded-lg overflow-hidden bg-accent/10 flex items-center justify-center">
+                  <img src={admissionSuccess?.avatar} alt="Student" className="w-full h-full object-cover" />
+                </div>
+                <div className="p-3 bg-black/5 text-center rounded border border-black/10">
+                  <p className="text-[9px] uppercase font-bold opacity-60">Admission No. (Matricule)</p>
+                  <p className="text-sm font-mono font-black">{admissionSuccess?.id}</p>
+                </div>
+                <div className="space-y-4 text-[11px]">
+                  <h4 className="font-black uppercase border-b border-black/20 pb-1">Academic Assignment</h4>
+                  <div className="space-y-2">
+                    <p><span className="font-bold">Class Level:</span> {admissionSuccess?.class}</p>
+                    <p><span className="font-bold">Section:</span> {admissionSuccess?.section}</p>
+                    <p><span className="font-bold">Enrolment Year:</span> {admissionSuccess?.enrolmentYear}</p>
+                    <p><span className="font-bold">Campus:</span> Main Campus</p>
+                  </div>
+                </div>
+                <div className="pt-4 flex flex-col items-center">
+                   <QrCode className="w-24 h-24 opacity-20" />
+                   <p className="text-[8px] font-bold uppercase mt-2 opacity-40">Scan for Verification</p>
+                </div>
+              </div>
+
+              {/* Data Side */}
+              <div className="col-span-9 space-y-8">
+                {/* Personal Section */}
+                <section className="space-y-3">
+                  <h3 className="bg-black text-white text-[10px] font-black uppercase px-3 py-1 flex items-center gap-2">
+                    <User className="w-3 h-3" /> Section I: Student Profile
+                  </h3>
+                  <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-[12px]">
+                    <p><span className="font-bold uppercase opacity-50 text-[9px] block">Full Legal Name</span> {admissionSuccess?.name}</p>
+                    <p><span className="font-bold uppercase opacity-50 text-[9px] block">Gender</span> {admissionSuccess?.gender}</p>
+                    <p><span className="font-bold uppercase opacity-50 text-[9px] block">Date of Birth</span> {admissionSuccess?.dob}</p>
+                    <p><span className="font-bold uppercase opacity-50 text-[9px] block">Contact Number</span> {admissionSuccess?.phone || 'N/A'}</p>
+                    <p className="col-span-2"><span className="font-bold uppercase opacity-50 text-[9px] block">Home Address</span> {admissionSuccess?.address}</p>
+                  </div>
+                </section>
+
+                {/* Guardian Section */}
+                <section className="space-y-3">
+                  <h3 className="bg-black text-white text-[10px] font-black uppercase px-3 py-1 flex items-center gap-2">
+                    <Heart className="w-3 h-3" /> Section II: Guardian Information
+                  </h3>
+                  <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-[12px]">
+                    <p><span className="font-bold uppercase opacity-50 text-[9px] block">Parent / Guardian Name</span> {admissionSuccess?.parentName}</p>
+                    <p><span className="font-bold uppercase opacity-50 text-[9px] block">Primary Phone</span> {admissionSuccess?.parentPhone}</p>
+                  </div>
+                </section>
+
+                {/* Status Section */}
+                <section className="space-y-3">
+                  <h3 className="bg-black text-white text-[10px] font-black uppercase px-3 py-1 flex items-center gap-2">
+                    <ShieldCheck className="w-3 h-3" /> Section III: Enrolment Terms
+                  </h3>
+                  <div className="p-4 border-2 border-black/10 rounded bg-accent/5">
+                    <p className="text-[11px] leading-relaxed italic">
+                      The student named above is hereby admitted to <strong>{user?.school?.name || 'this institution'}</strong> for the 2024/2025 academic session. This admission is subject to the validation of original birth certificates and previous academic transcripts. The student and guardian agree to abide by the institutional code of conduct and financial policies.
+                    </p>
+                  </div>
+                </section>
+              </div>
+            </div>
+
+            {/* Signature Section */}
+            <div className="mt-16 grid grid-cols-2 gap-20">
+              <div className="space-y-10">
+                <div className="h-px bg-black w-full" />
+                <div className="text-center">
+                  <p className="font-bold text-[10px] uppercase">Parent / Guardian Signature</p>
+                  <p className="text-[8px] opacity-40 italic">Acceptance of Terms & Admission</p>
+                </div>
+              </div>
+              <div className="space-y-10 relative">
+                <div className="absolute top-[-60px] left-1/2 -translate-x-1/2 opacity-10">
+                   <Signature className="w-16 h-16 -rotate-12" />
+                </div>
+                <div className="h-px bg-black w-full" />
+                <div className="text-center">
+                  <p className="font-bold text-[10px] uppercase">Registrar / Principal</p>
+                  <p className="text-[10px] font-black">EduIgnite Institutional Verification</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="absolute bottom-8 inset-x-0 text-center">
+               <p className="text-[9px] uppercase font-black opacity-20 tracking-[0.3em]">
+                 OFFICIAL ENROLLMENT DOSSIER • EduIgnite SaaS Admission Suite
+               </p>
+            </div>
+          </div>
+
+          <DialogFooter className="bg-accent/10 p-6 border-t no-print flex sm:flex-row gap-3">
+            <Button variant="outline" className="flex-1 gap-2 rounded-xl h-12" onClick={() => setAdmissionSuccess(null)}>
+              Dismiss
+            </Button>
+            <Button className="flex-1 gap-2 rounded-xl h-12 shadow-lg" onClick={() => window.print()}>
+              <Printer className="w-5 h-5" /> Print Admission Letter
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
