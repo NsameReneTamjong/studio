@@ -130,8 +130,10 @@ export default function DashboardPage() {
                       <h4 className="font-semibold text-primary">{item.subject}</h4>
                       <p className="text-xs text-muted-foreground">{item.room} • {item.teacher}</p>
                     </div>
-                    <Button size="sm" variant="outline" className="text-xs">
-                      {language === "en" ? "Details" : "Détails"}
+                    <Button size="sm" variant="outline" className="text-xs" asChild>
+                      <Link href="/dashboard/schedule">
+                        {language === "en" ? "Details" : "Détails"}
+                      </Link>
                     </Button>
                   </div>
                 ))
@@ -147,17 +149,17 @@ export default function DashboardPage() {
           <CardContent>
             <div className="space-y-4">
               {[
-                { title: language === "en" ? "New Assignment" : "Nouveau Devoir", time: "2h ago", type: "academic" },
-                { title: language === "en" ? "Attendance Updated" : "Présence Mise à Jour", time: "4h ago", type: "system" },
-                { title: language === "en" ? "Campus News" : "Actualités du Campus", time: "Yesterday", type: "info" },
+                { title: language === "en" ? "New Assignment" : "Nouveau Devoir", time: "2h ago", type: "academic", href: "/dashboard/assignments" },
+                { title: language === "en" ? "Attendance Updated" : "Présence Mise à Jour", time: "4h ago", type: "system", href: "/dashboard/attendance" },
+                { title: language === "en" ? "Campus News" : "Actualités du Campus", time: "Yesterday", type: "info", href: "/dashboard/announcements" },
               ].map((notif, idx) => (
-                <div key={idx} className="flex gap-3 items-start">
-                  <div className={`w-2 h-2 mt-1.5 rounded-full ${notif.type === 'academic' ? 'bg-blue-500' : 'bg-green-500'}`} />
+                <Link key={idx} href={notif.href} className="flex gap-3 items-start group">
+                  <div className={`w-2 h-2 mt-1.5 rounded-full shrink-0 ${notif.type === 'academic' ? 'bg-blue-500' : 'bg-green-500'}`} />
                   <div>
-                    <p className="text-sm font-medium">{notif.title}</p>
+                    <p className="text-sm font-medium group-hover:text-primary transition-colors">{notif.title}</p>
                     <p className="text-[10px] text-muted-foreground uppercase">{notif.time}</p>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </CardContent>
