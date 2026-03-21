@@ -26,7 +26,8 @@ import {
   QrCode,
   Loader2,
   Bookmark,
-  Info
+  Info,
+  BookOpen
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -219,11 +220,11 @@ export default function LibraryPage() {
                 <CardContent className="space-y-6">
                   <div className="grid grid-cols-2 gap-6 bg-accent/10 p-4 rounded-2xl border border-accent">
                     <div className="space-y-1">
-                      <p className="text-[10px] uppercase text-muted-foreground font-black tracking-widest">{language === 'en' ? 'Borrowed' : 'Emprunté'}</p>
+                      <p className="text-[10px] uppercase font-black tracking-widest">{language === 'en' ? 'Borrowed' : 'Emprunté'}</p>
                       <p className="text-sm font-bold text-primary">{loan.borrowDate}</p>
                     </div>
                     <div className="space-y-1 text-right">
-                      <p className="text-[10px] uppercase text-muted-foreground font-black tracking-widest">{t("returnDate")}</p>
+                      <p className="text-[10px] uppercase font-black tracking-widest">{t("returnDate")}</p>
                       <p className="text-sm font-bold text-secondary">{loan.returnDate}</p>
                     </div>
                   </div>
