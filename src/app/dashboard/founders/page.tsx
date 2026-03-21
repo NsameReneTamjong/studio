@@ -122,6 +122,8 @@ export default function FoundersManagementPage() {
       return;
     }
 
+    if (!editingFounder) return;
+
     setIsProcessing(true);
     setTimeout(() => {
       setFounders(prev => prev.map(f => 
@@ -155,12 +157,12 @@ export default function FoundersManagementPage() {
   };
 
   const openEditModal = (founder: any) => {
-    setEditingFounder(founder);
     setEditFormData({
       name: founder.name,
       email: founder.email,
       role: founder.role
     });
+    setEditingFounder(founder);
   };
 
   return (
@@ -361,7 +363,10 @@ export default function FoundersManagementPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-xl border-accent">
                           <DropdownMenuLabel className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Administrative</DropdownMenuLabel>
-                          <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => openEditModal(founder)}>
+                          <DropdownMenuItem 
+                            className="gap-2 cursor-pointer" 
+                            onSelect={(e) => { e.preventDefault(); openEditModal(founder); }}
+                          >
                             <Pencil className="w-4 h-4 text-primary" /> Edit Designation
                           </DropdownMenuItem>
                           <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => handleToggleStatus(founder.id)}>
