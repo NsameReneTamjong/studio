@@ -20,7 +20,10 @@ import {
   Wallet,
   PieChart as PieChartIcon,
   BarChart3,
-  CalendarDays
+  CalendarDays,
+  Library,
+  Book,
+  ArrowUpRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -60,6 +63,21 @@ export default function DashboardPage() {
     { name: 'Exams', amount: 300000 },
   ];
 
+  // Mock data for Librarian Charts
+  const circulationData = [
+    { name: 'Available', value: 1200, color: '#10b981' },
+    { name: 'Borrowed', value: 450, color: '#264D73' },
+    { name: 'Overdue', value: 85, color: '#ef4444' },
+  ];
+
+  const bookCategoryPopularity = [
+    { name: 'Science', loans: 320 },
+    { name: 'Literature', loans: 280 },
+    { name: 'Math', loans: 150 },
+    { name: 'Tech', loans: 120 },
+    { name: 'Arts', loans: 90 },
+  ];
+
   // Statistics tailored by role
   const stats = user?.role === "SUPER_ADMIN" ? [
     { label: language === "en" ? "Active Schools" : "Écoles Actives", value: "24", icon: Users, color: "text-blue-600" },
@@ -81,6 +99,11 @@ export default function DashboardPage() {
     { label: language === "en" ? "Students Paid" : "Élèves en Règle", value: "842", icon: Users, color: "text-blue-600" },
     { label: language === "en" ? "Debt Outstanding" : "Dettes en Attente", value: "1.8M XAF", icon: TrendingUp, color: "text-red-600" },
     { label: language === "en" ? "Today's Intake" : "Recette du Jour", value: "125k XAF", icon: Wallet, color: "text-amber-600" },
+  ] : user?.role === "LIBRARIAN" ? [
+    { label: language === "en" ? "Total Books" : "Total Livres", value: "1,735", icon: Library, color: "text-blue-600" },
+    { label: language === "en" ? "Active Loans" : "Emprunts Actifs", value: "450", icon: Book, color: "text-purple-600" },
+    { label: language === "en" ? "Overdue Items" : "Retards", value: "85", icon: Clock, color: "text-red-600" },
+    { label: language === "en" ? "Active Members" : "Membres Actifs", value: "1,120", icon: Users, color: "text-green-600" },
   ] : user?.role === "PARENT" ? [
     { label: language === "en" ? "Children Registered" : "Enfants Inscrits", value: "2", icon: Heart, color: "text-red-600" },
     { label: language === "en" ? "Avg. Performance" : "Performance Moyenne", value: "16.8/20", icon: AwardIcon, color: "text-amber-600" },
@@ -104,12 +127,14 @@ export default function DashboardPage() {
               ? (language === "en" ? "Manage institutional financial health and fee tracking." : "Gérez la santé financière et le suivi des frais.")
               : user?.role === "PARENT" 
               ? (language === "en" ? "Monitor your children's academic journey here." : "Suivez le parcours académique de vos enfants ici.")
+              : user?.role === "LIBRARIAN"
+              ? (language === "en" ? "Oversee library collection and circulation analytics." : "Supervisez la collection et les analyses de circulation de la bibliothèque.")
               : (language === "en" ? "Here's what's happening in EduIgnite today." : "Voici ce qui se passe dans EduIgnite aujourd'hui.")}
           </p>
         </div>
       </div>
 
-      {/* Global Fee Deadline Banner - Visible to all institutional roles */}
+      {/* Global Fee Deadline Banner - Visible to all institutional roles except Super Admin */}
       {(user?.role !== "SUPER_ADMIN") && (
         <Card className="border-none bg-primary text-white overflow-hidden relative shadow-lg">
           <div className="absolute top-0 right-0 p-8 opacity-10">
@@ -158,6 +183,8 @@ export default function DashboardPage() {
                 ? (language === "en" ? "Revenue Distribution" : "Répartition des Revenus")
                 : user?.role === "PARENT" 
                 ? (language === "en" ? "Children Summary" : "Résumé des Enfants")
+                : user?.role === "LIBRARIAN"
+                ? (language === "en" ? "Borrowing Trends by Category" : "Tendances d'Emprunt par Catégorie")
                 : (language === "en" ? "Upcoming Schedule" : "Emploi du Temps à Venir")}
             </CardTitle>
             <CardDescription>
@@ -165,6 +192,8 @@ export default function DashboardPage() {
                 ? (language === "en" ? "Revenue breakdown by institutional cost centers" : "Répartition par centres de coûts")
                 : user?.role === "PARENT"
                 ? (language === "en" ? "Quick view of your children's status." : "Vue rapide du statut de vos enfants.")
+                : user?.role === "LIBRARIAN"
+                ? (language === "en" ? "Most active academic sections in the library." : "Sections académiques les plus actives de la bibliothèque.")
                 : (language === "en" ? "Your classes for the next 24 hours" : "Vos cours pour les prochaines 24 heures")}
             </CardDescription>
           </CardHeader>
@@ -180,6 +209,18 @@ export default function DashboardPage() {
                     formatter={(value: number) => [`${value.toLocaleString()} XAF`, 'Amount']}
                   />
                   <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} barSize={40} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : user?.role === "LIBRARIAN" ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={bookCategoryPopularity}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
+                  <RechartsTooltip 
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                  />
+                  <Bar dataKey="loans" fill="hsl(var(--secondary))" radius={[8, 8, 0, 0]} barSize={40} />
                 </BarChart>
               </ResponsiveContainer>
             ) : user?.role === "PARENT" ? (
@@ -244,10 +285,12 @@ export default function DashboardPage() {
             <CardTitle>
               {user?.role === "BURSAR" 
                 ? (language === "en" ? "Payment Status" : "Statut des Paiements")
+                : user?.role === "LIBRARIAN"
+                ? (language === "en" ? "Circulation Health" : "Santé de la Circulation")
                 : (language === "en" ? "Recent Notifications" : "Notifications Récentes")}
             </CardTitle>
           </CardHeader>
-          <CardContent className={user?.role === "BURSAR" ? "h-[300px]" : ""}>
+          <CardContent className={(user?.role === "BURSAR" || user?.role === "LIBRARIAN") ? "h-[300px]" : ""}>
             {user?.role === "BURSAR" ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -261,6 +304,26 @@ export default function DashboardPage() {
                     dataKey="value"
                   >
                     {paymentStatusData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip />
+                  <Legend verticalAlign="bottom" align="center" iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '20px' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : user?.role === "LIBRARIAN" ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={circulationData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {circulationData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
