@@ -6,77 +6,149 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Building2, Plus, Search, Users, ShieldCheck, Globe, MoreVertical, MapPin, X } from "lucide-react";
+import { 
+  Building2, 
+  Plus, 
+  Search, 
+  Users, 
+  ShieldCheck, 
+  Globe, 
+  MoreVertical, 
+  MapPin, 
+  X, 
+  FileCheck, 
+  Printer, 
+  Download, 
+  QrCode, 
+  Signature, 
+  Info,
+  CheckCircle2
+} from "lucide-react";
 import { useI18n } from "@/lib/i18n-context";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 const MOCK_SCHOOLS = [
-  { id: "S001", name: "Lycée de Joss", domain: "joss.cm", admins: 3, students: 1200, status: "Active", address: "Douala, Littoral", lat: 4.0435, lng: 9.7085 },
-  { id: "S002", name: "GBHS Yaoundé", domain: "gbhs.yaounde.edu", admins: 5, students: 2850, status: "Active", address: "Yaoundé, Centre", lat: 3.8480, lng: 11.5021 },
-  { id: "S003", name: "BUEA University", domain: "ubuea.cm", admins: 12, students: 4500, status: "Active", address: "Buea, South West", lat: 4.1550, lng: 9.2435 },
-  { id: "S004", name: "Lycée de Maroua", domain: "maroua.edu", admins: 2, students: 900, status: "Suspended", address: "Maroua, Far North", lat: 10.5916, lng: 14.3155 },
+  { id: "EDU-JOSS-01", name: "Lycée de Joss", domain: "joss.cm", admins: 3, students: 1200, status: "Active", address: "Douala, Littoral", lat: 4.0435, lng: 9.7085, logo: "https://picsum.photos/seed/joss-logo/200/200" },
+  { id: "EDU-GBHS-02", name: "GBHS Yaoundé", domain: "gbhs.yaounde.edu", admins: 5, students: 2850, status: "Active", address: "Yaoundé, Centre", lat: 3.8480, lng: 11.5021, logo: "https://picsum.photos/seed/gbhs-logo/200/200" },
+  { id: "EDU-BUEA-03", name: "BUEA University", domain: "ubuea.cm", admins: 12, students: 4500, status: "Active", address: "Buea, South West", lat: 4.1550, lng: 9.2435, logo: "https://picsum.photos/seed/buea-logo/200/200" },
+  { id: "EDU-MAR-04", name: "Lycée de Maroua", domain: "maroua.edu", admins: 2, students: 900, status: "Suspended", address: "Maroua, Far North", lat: 10.5916, lng: 14.3155, logo: "https://picsum.photos/seed/maroua-logo/200/200" },
 ];
 
 export default function SchoolsManagementPage() {
   const { t, language } = useI18n();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedMapSchool, setSelectedMapSchool] = useState<any>(null);
+  
+  // Success & Onboarding Letter State
+  const [onboardingSuccess, setOnboardingSuccess] = useState<any>(null);
+  const [newSchoolData, setNewSchoolData] = useState({
+    name: "",
+    domain: "",
+    address: "",
+    logo: "https://picsum.photos/seed/newschool/200/200"
+  });
 
   const filteredSchools = MOCK_SCHOOLS.filter(s => 
     s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     s.domain.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleSaveSchool = () => {
+    if (!newSchoolData.name || !newSchoolData.domain) {
+      toast({ variant: "destructive", title: "Missing Info", description: "School name and domain are required." });
+      return;
+    }
+
+    // Generate a unique institutional matricule
+    const generatedId = `EDU-${newSchoolData.name.substring(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    
+    const createdSchool = {
+      ...newSchoolData,
+      id: generatedId,
+      status: "Active",
+      admins: 1,
+      students: 0,
+      createdAt: new Date().toLocaleDateString()
+    };
+
+    setIsAddModalOpen(false);
+    setOnboardingSuccess(createdSchool);
+    toast({ title: "School Onboarded", description: `Activation credentials generated for ${newSchoolData.name}.` });
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-primary font-headline">
-            {language === 'en' ? "SaaS School Management" : "Gestion SaaS des Écoles"}
+          <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
+            <div className="p-2 bg-primary rounded-xl shadow-lg text-white">
+              <Building2 className="w-6 h-6 text-secondary" />
+            </div>
+            {language === 'en' ? "Institutional Nodes" : "Gestion des Nœuds"}
           </h1>
           <p className="text-muted-foreground mt-1">
-            {language === 'en' ? "Onboard and manage educational institutions across the platform." : "Embarquez et gérez les institutions éducatives sur la plateforme."}
+            {language === 'en' ? "Onboard and monitor educational instances across the SaaS network." : "Embarquez et surveillez les instances éducatives sur le réseau SaaS."}
           </p>
         </div>
         
         <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2 shadow-lg">
-              <Plus className="w-4 h-4" /> {t("addSchool")}
+            <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl">
+              <Plus className="w-5 h-5" /> {t("addSchool")}
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>{t("addSchool")}</DialogTitle>
+          <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+            <DialogHeader className="bg-primary p-8 text-white">
+              <DialogTitle className="text-2xl font-black">{t("addSchool")}</DialogTitle>
+              <DialogDescription className="text-white/60">Initialize a new institutional instance on the platform.</DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="name">{language === 'en' ? "School Name" : "Nom de l'École"}</Label>
-                <Input id="name" placeholder="e.g. Lycée de Joss" />
+            <div className="p-8 space-y-6">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Institution Name</Label>
+                <Input 
+                  placeholder="e.g. Lycée de Joss" 
+                  className="h-12 bg-accent/30 border-none rounded-xl"
+                  value={newSchoolData.name}
+                  onChange={(e) => setNewSchoolData({...newSchoolData, name: e.target.value})}
+                />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="domain">Domain</Label>
-                <Input id="domain" placeholder="school.edu" />
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Primary Domain</Label>
+                <Input 
+                  placeholder="school.edu" 
+                  className="h-12 bg-accent/30 border-none rounded-xl"
+                  value={newSchoolData.domain}
+                  onChange={(e) => setNewSchoolData({...newSchoolData, domain: e.target.value})}
+                />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="address">{language === 'en' ? "Address" : "Adresse"}</Label>
-                <Input id="address" placeholder="City, Region" />
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Geographic Location</Label>
+                <Input 
+                  placeholder="City, Region" 
+                  className="h-12 bg-accent/30 border-none rounded-xl"
+                  value={newSchoolData.address}
+                  onChange={(e) => setNewSchoolData({...newSchoolData, address: e.target.value})}
+                />
               </div>
             </div>
-            <div className="flex justify-end">
-              <Button onClick={() => setIsAddModalOpen(false)}>{t("save")}</Button>
-            </div>
+            <DialogFooter className="bg-accent/20 p-6 border-t border-accent flex sm:flex-row gap-3">
+              <Button variant="ghost" className="flex-1 h-12 rounded-xl" onClick={() => setIsAddModalOpen(false)}>{t("cancel")}</Button>
+              <Button className="flex-1 h-12 rounded-xl shadow-lg font-bold" onClick={handleSaveSchool}>Onboard Institution</Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="flex items-center gap-4 bg-white p-4 rounded-xl shadow-sm border">
+      <div className="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input 
-            placeholder={language === 'en' ? "Search institutions by name or domain..." : "Chercher par nom ou domaine..."}
+            placeholder={language === 'en' ? "Search institutions by name, domain or matricule..." : "Chercher par nom, domaine ou matricule..."}
             className="pl-10 border-none bg-transparent focus-visible:ring-0"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -109,13 +181,13 @@ export default function SchoolsManagementPage() {
             <CardContent className="py-4 border-y border-accent/50 space-y-4 bg-accent/5">
               <div className="flex justify-between items-center text-sm">
                 <div className="flex items-center gap-2 text-muted-foreground">
-                  <ShieldCheck className="w-4 h-4" /> Admins
+                  <ShieldCheck className="w-4 h-4" /> Matricule
                 </div>
-                <span className="font-bold">{school.admins}</span>
+                <span className="font-mono font-bold text-primary">{school.id}</span>
               </div>
               <div className="flex justify-between items-center text-sm">
                 <div className="flex items-center gap-2 text-muted-foreground">
-                  <Users className="w-4 h-4" /> Students
+                  <Users className="w-4 h-4" /> Enrolled
                 </div>
                 <span className="font-bold">{school.students.toLocaleString()}</span>
               </div>
@@ -127,11 +199,11 @@ export default function SchoolsManagementPage() {
               </div>
             </CardContent>
             <CardFooter className="pt-4 gap-2">
-              <Button variant="outline" size="sm" className="flex-1">Manage</Button>
+              <Button variant="outline" size="sm" className="flex-1 font-bold">Manage</Button>
               <Button 
                 variant="secondary" 
                 size="sm" 
-                className="gap-1 flex-1"
+                className="gap-1 flex-1 font-bold"
                 onClick={() => setSelectedMapSchool(school)}
               >
                 <MapPin className="w-3 h-3" /> {t("viewMap")}
@@ -141,9 +213,150 @@ export default function SchoolsManagementPage() {
         ))}
       </div>
 
+      {/* Institutional Activation Letter Dialog */}
+      <Dialog open={!!onboardingSuccess} onOpenChange={() => setOnboardingSuccess(null)}>
+        <DialogContent className="sm:max-w-5xl max-h-[95vh] overflow-y-auto p-0 border-none shadow-2xl rounded-3xl">
+          <DialogHeader className="bg-green-600 p-8 text-white no-print">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="bg-white/20 p-3 rounded-2xl">
+                  <FileCheck className="w-8 h-8 text-white" />
+                </div>
+                <div>
+                  <DialogTitle className="text-2xl font-black">Activation Credentials Generated</DialogTitle>
+                  <DialogDescription className="text-white/80">The institution has been registered. Print this activation notice for the school admin.</DialogDescription>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setOnboardingSuccess(null)} className="text-white">
+                <X className="w-6 h-6" />
+              </Button>
+            </div>
+          </DialogHeader>
+
+          <div className="p-12 bg-white font-serif text-black min-h-[900px] relative overflow-hidden print:p-0">
+            {/* National/Platform Header */}
+            <div className="flex items-center justify-between border-b-2 border-black pb-8 mb-10">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-primary rounded-2xl shadow-lg">
+                  <Building2 className="w-10 h-10 text-white" />
+                </div>
+                <div className="space-y-0.5">
+                  <h2 className="text-2xl font-black tracking-tight text-primary">EduIgnite SaaS</h2>
+                  <p className="text-[10px] uppercase font-bold tracking-widest opacity-60">Global Academic Network</p>
+                </div>
+              </div>
+              <div className="text-right space-y-1">
+                <p className="text-xs font-bold uppercase">Activation ID: {onboardingSuccess?.id}</p>
+                <p className="text-xs opacity-60">Date: {new Date().toLocaleDateString()}</p>
+              </div>
+            </div>
+
+            <div className="text-center space-y-4 mb-12">
+              <h1 className="text-3xl font-black uppercase underline decoration-2 underline-offset-8">
+                Institutional Onboarding & Activation Notice
+              </h1>
+              <p className="text-lg font-medium italic opacity-70">Official Confirmation of Platform Registration</p>
+            </div>
+
+            <div className="grid grid-cols-12 gap-12">
+              <div className="col-span-4 space-y-8">
+                <div className="w-full aspect-square border-4 border-accent bg-accent/5 rounded-3xl overflow-hidden flex items-center justify-center p-4">
+                  <img src={onboardingSuccess?.logo} alt="School Logo" className="w-full h-full object-contain" />
+                </div>
+                
+                <div className="p-6 bg-primary/5 rounded-2xl border-2 border-primary/10 text-center space-y-2">
+                  <p className="text-[10px] font-black uppercase text-primary opacity-60 tracking-widest">School Matricule</p>
+                  <p className="text-2xl font-mono font-black text-primary select-all">{onboardingSuccess?.id}</p>
+                  <p className="text-[9px] font-bold text-muted-foreground italic">Use this ID for initial administrative setup.</p>
+                </div>
+
+                <div className="flex flex-col items-center gap-2 pt-4">
+                  <QrCode className="w-32 h-32 opacity-20" />
+                  <p className="text-[8px] font-black uppercase opacity-40">Scan to Verify Institutional Node</p>
+                </div>
+              </div>
+
+              <div className="col-span-8 space-y-8">
+                <section className="space-y-4">
+                  <h3 className="bg-primary text-white text-[10px] font-black uppercase px-4 py-1.5 flex items-center gap-2 rounded">
+                    <CheckCircle2 className="w-3 h-3" /> Section I: Institutional Identity
+                  </h3>
+                  <div className="grid grid-cols-2 gap-y-6 text-sm">
+                    <div>
+                      <p className="font-bold uppercase opacity-40 text-[9px] block mb-1">Official Institution Name</p>
+                      <p className="font-black text-lg uppercase text-primary leading-none">{onboardingSuccess?.name}</p>
+                    </div>
+                    <div>
+                      <p className="font-bold uppercase opacity-40 text-[9px] block mb-1">Assigned Domain</p>
+                      <p className="font-bold text-base text-primary">{onboardingSuccess?.domain}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="font-bold uppercase opacity-40 text-[9px] block mb-1">Operational Physical Location</p>
+                      <p className="font-medium flex items-center gap-2"><MapPin className="w-4 h-4 text-primary opacity-40" /> {onboardingSuccess?.address}</p>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="space-y-4">
+                  <h3 className="bg-primary text-white text-[10px] font-black uppercase px-4 py-1.5 flex items-center gap-2 rounded">
+                    <ShieldCheck className="w-3 h-3" /> Section II: Administrative Authorization
+                  </h3>
+                  <div className="p-6 border-2 border-primary/10 rounded-2xl bg-accent/5 space-y-4">
+                    <p className="text-xs leading-relaxed italic text-muted-foreground">
+                      This document authorizes the school administration of <strong>{onboardingSuccess?.name}</strong> to initialize their pedagogical and financial modules on the EduIgnite SaaS Platform. Access is granted under the terms of the master service agreement. The <strong>Institutional Matricule</strong> provided herein is confidential and must be kept secure.
+                    </p>
+                    <div className="flex gap-4">
+                       <div className="flex-1 p-3 bg-white border rounded-xl flex items-center gap-3">
+                          <Info className="w-5 h-5 text-primary opacity-40" />
+                          <p className="text-[10px] leading-tight">Admin Portal: <strong>app.eduignite.io/admin</strong></p>
+                       </div>
+                    </div>
+                  </div>
+                </section>
+
+                <div className="mt-12 grid grid-cols-2 gap-16 pt-12">
+                  <div className="text-center space-y-10">
+                    <div className="h-px bg-black/20 w-full" />
+                    <div>
+                      <p className="font-bold text-[10px] uppercase">Regional Registrar</p>
+                      <p className="text-[8px] opacity-40 italic">Signature & Date</p>
+                    </div>
+                  </div>
+                  <div className="text-center space-y-10 relative">
+                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 opacity-10">
+                       <Signature className="w-16 h-16 -rotate-12" />
+                    </div>
+                    <div className="h-px bg-black/20 w-full" />
+                    <div>
+                      <p className="font-bold text-[10px] uppercase">SaaS System Administrator</p>
+                      <p className="text-[10px] font-black text-primary">EduIgnite Platform Seal</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="absolute bottom-8 inset-x-0 text-center">
+               <p className="text-[9px] uppercase font-black opacity-20 tracking-[0.4em]">
+                 OFFICIAL ACTIVATION DOSSIER • SECURE INSTITUTIONAL CREDENTIALS
+               </p>
+            </div>
+          </div>
+
+          <DialogFooter className="bg-accent/10 p-6 border-t no-print flex sm:flex-row gap-3">
+            <Button variant="outline" className="flex-1 gap-2 rounded-xl h-12" onClick={() => setOnboardingSuccess(null)}>
+              Dismiss
+            </Button>
+            <Button className="flex-1 gap-2 rounded-xl h-12 shadow-lg font-bold" onClick={() => window.print()}>
+              <Printer className="w-5 h-5" /> Print Activation Letter
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Mock Google Maps Dialog */}
       <Dialog open={!!selectedMapSchool} onOpenChange={() => setSelectedMapSchool(null)}>
-        <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden">
+        <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden rounded-3xl border-none">
           <div className="bg-primary p-4 flex items-center justify-between text-white">
             <div className="flex items-center gap-3">
               <MapPin className="w-5 h-5 text-secondary" />
@@ -157,8 +370,6 @@ export default function SchoolsManagementPage() {
             </Button>
           </div>
           <div className="aspect-video bg-accent/20 relative flex items-center justify-center overflow-hidden">
-            {/* Real Google Maps would go here in an iframe or SDK. 
-                Using a placeholder with a distinct hint for AI image substitution if needed. */}
             <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-secondary/20 via-transparent to-transparent"></div>
             <div className="z-10 text-center space-y-4">
               <div className="bg-white p-4 rounded-full shadow-2xl inline-block animate-bounce">
