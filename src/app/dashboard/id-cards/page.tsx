@@ -28,7 +28,9 @@ import {
   FileCheck,
   ChevronRight,
   Plus,
-  Info
+  Info,
+  Phone,
+  Signature
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -37,11 +39,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 const MOCK_STUDENTS = [
-  { id: "S001", name: "Alice Thompson", class: "Form 5 / 2nde", avatar: "https://picsum.photos/seed/s1/200/200", status: "Active" },
-  { id: "S002", name: "Bob Richards", class: "Upper Sixth / Terminale", avatar: "https://picsum.photos/seed/s2/200/200", status: "Active" },
-  { id: "S003", name: "Charlie Davis", class: "Lower Sixth / 1ère", avatar: "https://picsum.photos/seed/s3/200/200", status: "Active" },
-  { id: "S004", name: "Diana Prince", class: "Form 5 / 2nde", avatar: "https://picsum.photos/seed/s4/200/200", status: "Active" },
-  { id: "S005", name: "Ethan Hunt", class: "Upper Sixth / Terminale", avatar: "https://picsum.photos/seed/s5/200/200", status: "Active" },
+  { id: "S001", name: "Alice Thompson", class: "Form 5 / 2nde", avatar: "https://picsum.photos/seed/s1/200/200", dob: "15/05/2008", guardian: "Mr. Robert Thompson", guardianPhone: "+237 677 00 11 22", address: "Bonapriso, Douala", status: "Active" },
+  { id: "S002", name: "Bob Richards", class: "Upper Sixth / Terminale", avatar: "https://picsum.photos/seed/s2/200/200", dob: "22/11/2006", guardian: "Mrs. Sarah Richards", guardianPhone: "+237 699 33 44 55", address: "Akwa, Douala", status: "Active" },
+  { id: "S003", name: "Charlie Davis", class: "Lower Sixth / 1ère", avatar: "https://picsum.photos/seed/s3/200/200", dob: "10/03/2007", guardian: "M. Paul Davis", guardianPhone: "+237 655 66 77 88", address: "Deido, Douala", status: "Active" },
+  { id: "S004", name: "Diana Prince", class: "Form 5 / 2nde", avatar: "https://picsum.photos/seed/s4/200/200", dob: "05/01/2008", guardian: "Mrs. Prince", guardianPhone: "+237 6XX XX XX XX", address: "Logbessou, Douala", status: "Active" },
+  { id: "S005", name: "Ethan Hunt", class: "Upper Sixth / Terminale", avatar: "https://picsum.photos/seed/s5/200/200", dob: "30/09/2006", guardian: "Mr. Hunt", guardianPhone: "+237 6YY YY YY YY", address: "Bonamoussadi, Douala", status: "Active" },
 ];
 
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
@@ -100,7 +102,7 @@ export default function IdCardsPage() {
             {language === 'en' ? 'Institutional ID Cards' : 'Cartes d\'Identité'}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Generate and manage official digital ID cards for the student body.
+            Generate and manage official dual-sided ID cards for the student body.
           </p>
         </div>
         
@@ -240,8 +242,8 @@ export default function IdCardsPage() {
                   <CreditCard className="w-8 h-8 text-secondary" />
                 </div>
                 <div>
-                  <DialogTitle className="text-2xl font-black">ID Card Preview Queue</DialogTitle>
-                  <DialogDescription className="text-white/60">Review {selectedStudents.length} institutional cards before printing.</DialogDescription>
+                  <DialogTitle className="text-2xl font-black">Professional ID Card Suite</DialogTitle>
+                  <DialogDescription className="text-white/60">Dual-sided Cameroonian standard cards for {selectedStudents.length} students.</DialogDescription>
                 </div>
               </div>
               <Button variant="ghost" size="icon" onClick={() => setIsPreviewing(false)} className="text-white">
@@ -251,70 +253,150 @@ export default function IdCardsPage() {
           </DialogHeader>
 
           <div className="bg-muted p-8 print:p-0 print:bg-white min-h-[60vh]">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-items-center print:grid-cols-2">
+            <div className="flex flex-col gap-12 items-center print:gap-8">
               {selectedStudents.map(id => {
                 const s = MOCK_STUDENTS.find(item => item.id === id);
                 if (!s) return null;
                 return (
-                  <div key={s.id} className="relative group card-container">
-                    <Card className="w-[400px] h-[250px] border shadow-xl bg-gradient-to-br from-primary to-primary/90 text-white overflow-hidden relative break-inside-avoid">
-                      <div className="absolute top-0 right-0 p-8 opacity-10">
-                        <GraduationCap className="w-48 h-48" />
-                      </div>
-                      
-                      <CardHeader className="border-b border-white/10 pb-3 p-4">
-                        <div className="flex items-center gap-3">
-                          <Building2 className="w-6 h-6 text-secondary" />
-                          <div>
-                            <CardTitle className="text-xs font-black tracking-tight uppercase">{user?.school?.name || "Lycée de Joss"}</CardTitle>
-                            <CardDescription className="text-white/60 text-[8px] uppercase font-bold tracking-[0.2em]">Institutional Student ID</CardDescription>
+                  <div key={s.id} className="flex flex-col lg:flex-row gap-8 items-center print:flex-row print:gap-4 print:page-break-after-always">
+                    
+                    {/* FRONT SIDE */}
+                    <div className="relative group card-container">
+                      <Card className="w-[450px] h-[280px] border shadow-xl bg-white overflow-hidden relative border-primary/20 flex flex-col">
+                        {/* Cameroon National Header */}
+                        <div className="bg-primary p-2 flex items-center justify-between text-white text-[7px] font-black uppercase tracking-tighter shrink-0 border-b border-white/10">
+                          <div className="text-left leading-none space-y-0.5">
+                            <p>Republic of Cameroon</p>
+                            <p>Peace - Work - Fatherland</p>
+                          </div>
+                          <div className="flex gap-1 h-3">
+                            <div className="w-2 h-full bg-[#007a5e]" />
+                            <div className="w-2 h-full bg-[#ce1126] flex items-center justify-center"><div className="w-0.5 h-0.5 bg-yellow-400 rounded-full" /></div>
+                            <div className="w-2 h-full bg-[#fcd116]" />
+                          </div>
+                          <div className="text-right leading-none space-y-0.5">
+                            <p>République du Cameroun</p>
+                            <p>Paix - Travail - Patrie</p>
                           </div>
                         </div>
-                      </CardHeader>
 
-                      <CardContent className="pt-4 p-4 space-y-4">
-                        <div className="flex gap-6">
-                          <div className="w-24 h-24 rounded-lg overflow-hidden border-2 border-white/20 shadow-lg shrink-0 bg-white">
+                        {/* Ministry & School Header */}
+                        <div className="p-3 border-b border-accent flex items-center gap-3 bg-accent/5 shrink-0">
+                          <Building2 className="w-8 h-8 text-primary opacity-20 absolute top-8 right-4" />
+                          <div className="w-12 h-12 bg-white rounded-lg p-1 border shadow-sm flex items-center justify-center shrink-0">
+                            <img src={user?.school?.logo || "https://picsum.photos/seed/edu1/100/100"} alt="Logo" className="w-full h-full object-contain" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-[8px] font-black uppercase text-muted-foreground leading-none mb-0.5">Ministry of Secondary Education</p>
+                            <h3 className="text-xs font-black uppercase text-primary leading-tight">{user?.school?.name || "Lycée de Joss"}</h3>
+                            <p className="text-[7px] font-bold text-muted-foreground italic">"Discipline - Work - Success"</p>
+                          </div>
+                        </div>
+
+                        <div className="flex-1 p-4 flex gap-6 relative">
+                          <div className="w-28 h-28 rounded-xl border-2 border-primary/10 overflow-hidden shadow-lg shrink-0 bg-accent/5">
                             <img src={s.avatar} alt={s.name} className="w-full h-full object-cover" />
                           </div>
-                          <div className="space-y-3 flex-1">
-                            <div>
-                              <p className="text-[8px] text-white/50 uppercase font-black tracking-widest">Student Name</p>
-                              <p className="font-bold text-base leading-tight uppercase">{s.name}</p>
+                          <div className="flex-1 flex flex-col justify-center gap-3">
+                            <div className="space-y-0.5">
+                              <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Full Name / Nom Complet</p>
+                              <p className="text-sm font-black text-primary uppercase leading-tight">{s.name}</p>
                             </div>
-                            <div>
-                              <p className="text-[8px] text-white/50 uppercase font-black tracking-widest">Matricule ID</p>
-                              <p className="font-mono font-bold text-secondary text-lg">{s.id}</p>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-0.5">
+                                <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Matricule</p>
+                                <p className="text-sm font-mono font-black text-secondary">{s.id}</p>
+                              </div>
+                              <div className="space-y-0.5">
+                                <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Class / Classe</p>
+                                <p className="text-xs font-black text-primary">{s.class}</p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="text-[8px] text-white/50 uppercase font-black tracking-widest">Academic Level</p>
-                              <p className="font-bold text-xs">{s.class}</p>
+                          </div>
+                          
+                          <div className="absolute top-4 right-4 rotate-12 opacity-[0.03]">
+                            <GraduationCap className="w-24 h-24" />
+                          </div>
+                        </div>
+
+                        <div className="bg-primary/5 p-2 flex justify-between items-center border-t border-accent shrink-0">
+                          <div className="px-3 py-1 bg-primary text-white rounded-md text-[9px] font-black tracking-widest">
+                            STUDENT ID CARD
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[8px] font-black text-muted-foreground uppercase">Academic Year</span>
+                            <Badge className="bg-secondary text-primary border-none text-[9px] font-black h-5">2023 - 2024</Badge>
+                          </div>
+                        </div>
+                      </Card>
+                      <div className="absolute -top-3 -right-3 no-print">
+                         <Button size="icon" variant="destructive" className="h-6 w-6 rounded-full shadow-lg" onClick={() => toggleSelect(s.id)}>
+                           <X className="w-3 h-3" />
+                         </Button>
+                      </div>
+                      <p className="text-center text-[10px] font-black uppercase text-muted-foreground mt-2 no-print tracking-[0.2em]">Front / Recto</p>
+                    </div>
+
+                    {/* BACK SIDE */}
+                    <div className="relative card-container">
+                      <Card className="w-[450px] h-[280px] border shadow-xl bg-white overflow-hidden relative border-primary/20 flex flex-col">
+                        <div className="bg-primary h-1 w-full shrink-0" />
+                        
+                        <div className="flex-1 p-6 flex flex-col gap-6">
+                          <div className="grid grid-cols-2 gap-8">
+                            <div className="space-y-4">
+                              <div className="space-y-1">
+                                <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Guardian / Tuteur</p>
+                                <p className="text-[10px] font-bold text-primary">{s.guardian}</p>
+                                <p className="text-[10px] font-black text-secondary flex items-center gap-1"><Phone className="w-2.5 h-2.5" /> {s.guardianPhone}</p>
+                              </div>
+                              <div className="space-y-1">
+                                <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Date of Birth / Né(e) le</p>
+                                <p className="text-[10px] font-bold text-primary">{s.dob}</p>
+                              </div>
+                              <div className="space-y-1">
+                                <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Residential Address / Adresse</p>
+                                <p className="text-[9px] font-medium text-muted-foreground leading-tight">{s.address}</p>
+                              </div>
+                            </div>
+                            
+                            <div className="flex flex-col items-center justify-center gap-4 text-center border-l border-accent pl-8">
+                              <div className="p-2 bg-white border-2 border-accent rounded-xl shadow-inner">
+                                <QrCode className="w-20 h-20 text-primary" />
+                              </div>
+                              <p className="text-[7px] font-black text-muted-foreground uppercase leading-tight tracking-widest">
+                                Scannez pour vérifier l'authenticité<br/>Scan to verify authenticity
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="mt-auto flex justify-between items-end border-t border-accent/50 pt-4">
+                            <div className="space-y-4">
+                              <div className="text-[8px] max-w-[200px] leading-relaxed text-muted-foreground font-medium">
+                                <p className="font-black text-[7px] uppercase text-primary mb-1">Notice / Avertissement</p>
+                                This card is strictly personal. If found, please return to the school administration or nearest police station.
+                              </div>
+                            </div>
+                            <div className="text-center space-y-1 relative">
+                              <div className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-10">
+                                <Signature className="w-12 h-12 -rotate-12" />
+                              </div>
+                              <div className="h-px bg-primary/20 w-24 mx-auto mb-1" />
+                              <p className="text-[8px] font-black text-primary uppercase">The Principal</p>
+                              <Badge variant="outline" className="text-[7px] border-primary/20 text-primary font-black uppercase">Official Seal</Badge>
                             </div>
                           </div>
                         </div>
-                      </CardContent>
 
-                      <CardFooter className="bg-white/5 py-3 p-4 flex justify-between items-center mt-auto border-t border-white/10">
-                        <div className="flex items-center gap-2">
-                           <MapPin className="w-3 h-3 opacity-40" />
-                           <span className="text-[8px] font-bold opacity-60 uppercase">{user?.school?.location || "Douala, Littoral"}</span>
+                        <div className="bg-accent/20 p-2 text-center shrink-0">
+                          <p className="text-[7px] font-black text-primary uppercase tracking-[0.3em]">
+                            EduIgnite SaaS Academic Registry System
+                          </p>
                         </div>
-                        <div className="flex items-center gap-3">
-                           <div className="text-right">
-                              <p className="text-[7px] uppercase font-black opacity-40">Verified</p>
-                              <Badge className="bg-secondary text-primary border-none text-[8px] h-4 font-black">VALID 2023-24</Badge>
-                           </div>
-                           <div className="p-1 bg-white rounded shadow-sm">
-                              <QrCode className="w-8 h-8 text-primary" />
-                           </div>
-                        </div>
-                      </CardFooter>
-                    </Card>
-                    <div className="absolute -top-3 -right-3 no-print">
-                       <Button size="icon" variant="destructive" className="h-6 w-6 rounded-full shadow-lg" onClick={() => toggleSelect(s.id)}>
-                         <X className="w-3 h-3" />
-                       </Button>
+                      </Card>
+                      <p className="text-center text-[10px] font-black uppercase text-muted-foreground mt-2 no-print tracking-[0.2em]">Back / Verso</p>
                     </div>
+
                   </div>
                 );
               })}
@@ -324,7 +406,7 @@ export default function IdCardsPage() {
           <DialogFooter className="bg-accent/10 p-6 border-t no-print flex sm:flex-row gap-3">
             <div className="flex-1 flex items-center gap-2 text-muted-foreground italic">
                <Info className="w-4 h-4" />
-               <p className="text-[10px]">Cards are optimized for 85.6mm x 54mm standard PVC printing.</p>
+               <p className="text-[10px]">Optimized for standard 85.60 × 53.98 mm (CR80) PVC cards.</p>
             </div>
             <div className="flex gap-3">
               <Button variant="outline" className="rounded-xl h-12 px-8" onClick={() => setIsPreviewing(false)}>Back to List</Button>
