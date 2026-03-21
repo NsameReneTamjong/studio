@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
-import { Megaphone, Send, Globe, Building2, Clock, Trash2, User, Users, GraduationCap, ShieldCheck } from "lucide-react";
+import { Megaphone, Send, Globe, Building2, Clock, Trash2, User, Users, GraduationCap, ShieldCheck, BookCopy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -46,6 +46,16 @@ const MOCK_ANNOUNCEMENTS = [
     senderRole: "Bursar",
     senderAvatar: "https://picsum.photos/seed/bursar/100/100"
   },
+  { 
+    id: "A004", 
+    title: "New Science Encyclopedia", 
+    target: "Everyone", 
+    content: "The library has received 10 copies of the latest British Science Encyclopedia. Visit the resource center to borrow.", 
+    date: "2 days ago",
+    senderName: "Mrs. Ebong",
+    senderRole: "Librarian",
+    senderAvatar: "https://picsum.photos/seed/lib/100/100"
+  },
 ];
 
 export default function AnnouncementsPage() {
@@ -57,13 +67,14 @@ export default function AnnouncementsPage() {
   const [formData, setFormData] = useState({ title: "", content: "", target: "everyone" });
 
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
-  const canPost = ["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER", "BURSAR"].includes(user?.role || "");
+  // Updated canPost to include Librarian
+  const canPost = ["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER", "BURSAR", "LIBRARIAN"].includes(user?.role || "");
 
   const handleSend = () => {
     if (!formData.title || !formData.content) return;
     setIsSending(true);
     setTimeout(() => {
-      toast({ title: "Announcement Published", description: `The message has been broadcasted to ${formData.target}.` });
+      toast({ title: "Announcement Published", description: `The message has been broadcasted to ${formData.target.replace('_', ' ')}.` });
       setFormData({ title: "", content: "", target: "everyone" });
       setIsSending(false);
     }, 1200);
