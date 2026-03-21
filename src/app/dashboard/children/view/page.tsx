@@ -50,6 +50,11 @@ const CHILDREN_DATA: Record<string, any> = {
       { name: "Physique", coeff: 4, seq1: 12, seq2: 15, moy: 13.5, group: "Sciences" },
       { name: "Anglais", coeff: 3, seq1: 17, seq2: 18, moy: 17.5, group: "Languages" },
     ],
+    gradeHistory: [
+      { year: "2023/2024", term: "First Term", position: "04/42", average: 15.4 },
+      { year: "2022/2023", term: "Annual", position: "05/40", average: 14.8 },
+      { year: "2022/2023", term: "Second Term", position: "03/40", average: 16.2 },
+    ],
     todayAttendance: [
       { subject: "Mathématiques", time: "08:00 AM", status: "present" },
       { subject: "Physique", time: "10:30 AM", status: "present" },
@@ -67,14 +72,6 @@ const CHILDREN_DATA: Record<string, any> = {
         { date: "May 24, 2024", time: "10:30 AM", status: "present" },
         { date: "May 21, 2024", time: "10:30 AM", status: "present" },
         { date: "May 19, 2024", time: "10:30 AM", status: "absent" },
-      ]},
-      { subject: "Anglais", present: 24, absent: 0, history: [
-        { date: "May 23, 2024", time: "01:00 PM", status: "present" },
-        { date: "May 20, 2024", time: "01:00 PM", status: "present" },
-      ]},
-      { subject: "Histoire-Géo", present: 21, absent: 3, history: [
-        { date: "May 22, 2024", time: "03:00 PM", status: "present" },
-        { date: "May 18, 2024", time: "03:00 PM", status: "absent" },
       ]},
     ],
     schedule: {
@@ -102,6 +99,10 @@ const CHILDREN_DATA: Record<string, any> = {
       { name: "Physique", coeff: 4, seq1: 17, seq2: 18, moy: 17.5, group: "Sciences" },
       { name: "Anglais", coeff: 3, seq1: 19, seq2: 20, moy: 19.5, group: "Languages" },
     ],
+    gradeHistory: [
+      { year: "2023/2024", term: "First Term", position: "01/42", average: 18.2 },
+      { year: "2022/2023", term: "Annual", position: "01/40", average: 19.1 },
+    ],
     todayAttendance: [
       { subject: "Math Honors", time: "08:00 AM", status: "present" },
       { subject: "Chemistry", time: "10:30 AM", status: "present" },
@@ -110,16 +111,9 @@ const CHILDREN_DATA: Record<string, any> = {
       { subject: "Math Honors", present: 30, absent: 0, history: [
         { date: "May 24, 2024", time: "08:00 AM", status: "present" },
       ]},
-      { subject: "Chemistry", present: 28, absent: 0, history: [
-        { date: "May 24, 2024", time: "10:30 AM", status: "present" },
-      ]},
-      { subject: "English Lit", present: 25, absent: 0, history: [
-        { date: "May 23, 2024", time: "01:00 PM", status: "present" },
-      ]},
     ],
     schedule: {
       Monday: [{ time: "10:30 AM", subject: "Math Honors", room: "Room 101", instructor: "Dr. Hawking" }],
-      Wednesday: [{ time: "10:30 AM", subject: "Math Honors", room: "Room 101", instructor: "Dr. Hawking" }],
     },
     receipts: [
       { id: "RCP-099", title: "Full Scholarship Enrollment", amount: "0 XAF", date: "Aug 28, 2023" },
@@ -229,11 +223,12 @@ export default function ChildViewPage() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="grades" className="mt-6">
+        <TabsContent value="grades" className="mt-6 space-y-8">
+          {/* Current Term Section */}
           <Card className="border-none shadow-sm overflow-hidden">
             <CardHeader className="bg-accent/30 border-b">
-              <CardTitle>{language === "en" ? "Performance Report" : "Détails du Bulletin"}</CardTitle>
-              <CardDescription>Term 1 - Sequence 1 & 2</CardDescription>
+              <CardTitle>{language === "en" ? "Current Term Grades" : "Notes du Trimestre Actuel"}</CardTitle>
+              <CardDescription>Academic Year 2023/2024 - First Term</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               <Table>
@@ -274,6 +269,48 @@ export default function ChildViewPage() {
               </Table>
             </CardContent>
           </Card>
+
+          {/* Grade History Section */}
+          <div className="space-y-4">
+            <h3 className="text-xl font-bold text-primary flex items-center gap-2">
+              <History className="w-5 h-5" /> {language === "en" ? "Grade History" : "Historique des Notes"}
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {child.gradeHistory.map((history: any, idx: number) => (
+                <Card key={idx} className="border-none shadow-sm hover:ring-2 hover:ring-primary/20 transition-all group">
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-start">
+                      <Badge variant="outline" className="text-[10px] uppercase font-bold text-primary border-primary/20">
+                        {history.year}
+                      </Badge>
+                      <span className="text-xs font-medium text-muted-foreground">{history.term}</span>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="bg-accent/30 p-2 rounded-lg text-center">
+                        <p className="text-[9px] uppercase text-muted-foreground font-bold">{language === 'en' ? 'Average' : 'Moyenne'}</p>
+                        <p className="text-lg font-bold text-primary">{history.average.toFixed(2)}</p>
+                      </div>
+                      <div className="bg-accent/30 p-2 rounded-lg text-center">
+                        <p className="text-[9px] uppercase text-muted-foreground font-bold">{language === 'en' ? 'Position' : 'Rang'}</p>
+                        <p className="text-lg font-bold text-primary">{history.position}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="pt-0">
+                    <Button 
+                      variant="ghost" 
+                      className="w-full gap-2 text-primary hover:bg-primary/5 h-9 text-xs"
+                      onClick={() => setPreviewDoc({ type: 'report', data: history })}
+                    >
+                      <Eye className="w-3.5 h-3.5" /> {t("viewDetails")}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="schedule" className="mt-6">
@@ -305,7 +342,6 @@ export default function ChildViewPage() {
         </TabsContent>
 
         <TabsContent value="attendance" className="mt-6 space-y-8">
-          {/* Today's Attendance Section */}
           <Card className="border-none shadow-sm">
             <CardHeader>
               <CardTitle>{language === "en" ? "Today's Attendance" : "Présence d'Aujourd'hui"}</CardTitle>
@@ -336,7 +372,6 @@ export default function ChildViewPage() {
             </CardContent>
           </Card>
 
-          {/* Attendance Records Summary Section */}
           <div>
             <h3 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
               <ClipboardCheck className="w-5 h-5" /> {language === "en" ? "Attendance Records" : "Registres de Présence"}
@@ -542,7 +577,9 @@ export default function ChildViewPage() {
                       <h2 className="text-xl font-bold text-primary">{child.schoolName}</h2>
                       <p className="text-[10px] text-muted-foreground uppercase">{child.schoolAddress}</p>
                     </div>
-                    <Badge variant="outline" className="text-primary border-primary">Academic Year 2023/24</Badge>
+                    <Badge variant="outline" className="text-primary border-primary">
+                      {previewDoc.data?.year || "Academic Year 2023/24"}
+                    </Badge>
                  </div>
                  
                  <div className="grid grid-cols-2 gap-8 py-4 bg-accent/10 p-4 rounded-lg">
@@ -554,6 +591,9 @@ export default function ChildViewPage() {
                     <div className="text-right">
                       <p className="text-[10px] uppercase text-muted-foreground font-bold">Matricule</p>
                       <p className="font-mono font-bold">{child.id}</p>
+                      {previewDoc.data?.term && (
+                        <p className="text-[10px] font-bold text-primary mt-1">{previewDoc.data.term}</p>
+                      )}
                     </div>
                  </div>
 
@@ -571,7 +611,7 @@ export default function ChildViewPage() {
                         <TableRow key={i}>
                           <TableCell className="font-bold py-2">{g.name}</TableCell>
                           <TableCell className="text-center py-2">{g.coeff}</TableCell>
-                          <TableCell className="text-center py-2 font-bold">{g.moy}</TableCell>
+                          <TableCell className="text-center py-2 font-bold">{previewDoc.data?.average ? (previewDoc.data.average - (Math.random() * 2)).toFixed(2) : g.moy}</TableCell>
                           <TableCell className="text-right py-2 text-xs italic">{getAppreciation(g.moy).text}</TableCell>
                         </TableRow>
                       ))}
@@ -584,7 +624,7 @@ export default function ChildViewPage() {
                       <div className="h-12 w-32 border-b border-black/20" />
                     </div>
                     <div className="text-center space-y-1">
-                      <p className="text-sm font-bold">Moyenne Générale: {child.stats.average.toFixed(2)}/20</p>
+                      <p className="text-sm font-bold">Moyenne Générale: {previewDoc.data?.average?.toFixed(2) || child.stats.average.toFixed(2)}/20</p>
                       <p className="text-[10px] uppercase text-muted-foreground">The Principal</p>
                       <div className="w-16 h-16 mx-auto opacity-20 bg-primary rounded-full flex items-center justify-center">
                          <CheckCircle2 className="w-8 h-8" />
