@@ -13,7 +13,9 @@ import {
   Calendar as CalendarIcon,
   Award,
   Heart,
-  ChevronRight
+  ChevronRight,
+  Clock,
+  MapPin
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -124,15 +126,25 @@ export default function DashboardPage() {
                   { time: "11:30 AM", subject: language === "en" ? "English Literature" : "Littérature Anglaise", room: "Room 201", teacher: "Ms. Bennet" },
                   { time: "02:00 PM", subject: language === "en" ? "Physics Lab" : "Laboratoire de Physique", room: "Lab C", teacher: "Mr. Tesla" },
                 ].map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-4 p-3 rounded-lg bg-accent/50 border border-accent">
-                    <div className="bg-white px-3 py-1 rounded text-sm font-bold text-primary shadow-sm">{item.time}</div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-primary">{item.subject}</h4>
-                      <p className="text-xs text-muted-foreground">{item.room} • {item.teacher}</p>
+                  <div key={idx} className="flex items-center gap-4 p-4 rounded-xl bg-accent/30 border border-accent hover:bg-accent/50 transition-all group">
+                    <div className="bg-white px-4 py-2 rounded-lg flex flex-col items-center justify-center shadow-sm border border-primary/10 shrink-0">
+                      <Clock className="w-3 h-3 text-primary mb-1" />
+                      <span className="text-xs font-bold text-primary">{item.time}</span>
                     </div>
-                    <Button size="sm" variant="outline" className="text-xs" asChild>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-primary group-hover:text-primary/80 transition-colors">{item.subject}</h4>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                          <MapPin className="w-3 h-3" /> {item.room}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                          <Users className="w-3 h-3" /> {item.teacher}
+                        </span>
+                      </div>
+                    </div>
+                    <Button size="sm" variant="ghost" className="text-xs gap-1 text-primary hover:bg-primary hover:text-white" asChild>
                       <Link href="/dashboard/schedule">
-                        {language === "en" ? "Details" : "Détails"}
+                        {language === "en" ? "Details" : "Détails"} <ChevronRight className="w-3 h-3" />
                       </Link>
                     </Button>
                   </div>
@@ -153,12 +165,13 @@ export default function DashboardPage() {
                 { title: language === "en" ? "Attendance Updated" : "Présence Mise à Jour", time: "4h ago", type: "system", href: "/dashboard/attendance" },
                 { title: language === "en" ? "Campus News" : "Actualités du Campus", time: "Yesterday", type: "info", href: "/dashboard/announcements" },
               ].map((notif, idx) => (
-                <Link key={idx} href={notif.href} className="flex gap-3 items-start group">
+                <Link key={idx} href={notif.href} className="flex gap-3 items-start group p-2 rounded-lg hover:bg-accent/30 transition-colors">
                   <div className={`w-2 h-2 mt-1.5 rounded-full shrink-0 ${notif.type === 'academic' ? 'bg-blue-500' : 'bg-green-500'}`} />
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm font-medium group-hover:text-primary transition-colors">{notif.title}</p>
                     <p className="text-[10px] text-muted-foreground uppercase">{notif.time}</p>
                   </div>
+                  <ChevronRight className="w-3 h-3 text-muted-foreground/30 group-hover:text-primary transition-colors mt-1" />
                 </Link>
               ))}
             </div>
