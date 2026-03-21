@@ -3,15 +3,29 @@
 
 import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useI18n } from "@/lib/i18n-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, CheckCircle2, XCircle, Clock, MoreVertical, Users, Info, AlertCircle } from "lucide-react";
+import { 
+  CalendarIcon, 
+  CheckCircle2, 
+  XCircle, 
+  Clock, 
+  MoreVertical, 
+  Users, 
+  Info, 
+  AlertCircle,
+  FileText,
+  ChevronRight,
+  BookOpen
+} from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const MOCK_STUDENTS = [
   { id: "S001", name: "Alice Thompson", status: "present" },
@@ -21,8 +35,16 @@ const MOCK_STUDENTS = [
   { id: "S005", name: "Ethan Hunt", status: "present" },
 ];
 
+const MOCK_SUBJECT_RECORDS = [
+  { subject: "Mathématiques", present: 22, absent: 2, late: 1 },
+  { subject: "Physique", present: 18, absent: 4, late: 2 },
+  { subject: "Anglais", present: 24, absent: 0, late: 1 },
+  { subject: "Français", present: 21, absent: 3, late: 0 },
+];
+
 export default function AttendancePage() {
   const { user } = useAuth();
+  const { t, language } = useI18n();
   const [date, setDate] = useState<Date>(new Date());
   const [students, setStudents] = useState(MOCK_STUDENTS);
 
@@ -53,9 +75,48 @@ export default function AttendancePage() {
   if (!isTeacher) {
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-primary font-headline">My Attendance</h1>
-          <p className="text-muted-foreground mt-1">Review your presence and punctuality records.</p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-primary font-headline">{t("attendance")}</h1>
+            <p className="text-muted-foreground mt-1">Review your presence and punctuality records.</p>
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="gap-2 shadow-lg">
+                <FileText className="w-4 h-4" /> {t("attendanceRecords")}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>{t("attendanceRecords")} - Summary</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 mt-4">
+                {MOCK_SUBJECT_RECORDS.map((rec, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-4 rounded-xl border border-accent bg-accent/5">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                        <BookOpen className="w-5 h-5" />
+                      </div>
+                      <span className="font-bold">{rec.subject}</span>
+                    </div>
+                    <div className="flex items-center gap-6">
+                      <div className="text-center">
+                        <p className="text-[10px] uppercase text-muted-foreground font-bold">{t("present")}</p>
+                        <p className="text-lg font-bold text-green-600">{rec.present}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[10px] uppercase text-muted-foreground font-bold">{t("absent")}</p>
+                        <p className="text-lg font-bold text-red-600">{rec.absent}</p>
+                      </div>
+                      <Button variant="ghost" size="sm" className="gap-1 text-primary">
+                        {t("viewDetails")} <ChevronRight className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -90,15 +151,14 @@ export default function AttendancePage() {
 
         <Card className="border-none shadow-sm">
           <CardHeader>
-            <CardTitle>Recent History</CardTitle>
+            <CardTitle>Today's Attendance</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {[
-                { date: "May 24, 2024", subject: "Physics 101", status: "present" },
-                { date: "May 23, 2024", subject: "Calculus II", status: "present" },
-                { date: "May 22, 2024", subject: "Physics 101", status: "late" },
-                { date: "May 21, 2024", subject: "Gen Chem", status: "present" },
+                { date: "May 24, 2024", subject: "Mathématiques", status: "present" },
+                { date: "May 24, 2024", subject: "Physique", status: "present" },
+                { date: "May 24, 2024", subject: "Anglais", status: "late" },
               ].map((item, idx) => (
                 <div key={idx} className="flex items-center justify-between p-4 rounded-lg border border-accent">
                   <div>

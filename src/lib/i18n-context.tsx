@@ -47,6 +47,14 @@ const translations: TranslationDict = {
   receipt: { en: "Receipt", fr: "Reçu de Paiement" },
   academicYear: { en: "Academic Year", fr: "Année Académique" },
   fees: { en: "Fees & Receipts", fr: "Frais & Reçus" },
+  chat: { en: "Live Chat", fr: "Chat en direct" },
+  noConversations: { en: "No conversations yet", fr: "Aucune conversation pour le moment" },
+  selectContact: { en: "Select a contact to start chatting", fr: "Sélectionnez un contact pour commencer à discuter" },
+  attendanceRecords: { en: "Attendance Records", fr: "Registres de présence" },
+  present: { en: "Present", fr: "Présent" },
+  absent: { en: "Absent", fr: "Absent" },
+  late: { en: "Late", fr: "Retard" },
+  viewDetails: { en: "View Details", fr: "Voir Détails" },
 };
 
 interface I18nContextType {

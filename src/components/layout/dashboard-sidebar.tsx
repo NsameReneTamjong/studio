@@ -21,7 +21,8 @@ import {
   Globe,
   Languages,
   MessageSquare,
-  Megaphone
+  Megaphone,
+  MessageCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -54,6 +55,12 @@ export function DashboardSidebar() {
       icon: MessageSquare,
       href: "/dashboard/feedback",
       roles: ["SUPER_ADMIN", "SCHOOL_ADMIN"],
+    },
+    {
+      label: t("chat"),
+      icon: MessageCircle,
+      href: "/dashboard/chat",
+      roles: ["SCHOOL_ADMIN", "TEACHER", "STUDENT", "PARENT"],
     },
     {
       label: t("announcements"),
