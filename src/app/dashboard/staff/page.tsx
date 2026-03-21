@@ -26,7 +26,13 @@ import {
   Ban,
   CheckCircle2,
   Eye,
-  Building2
+  Building2,
+  Award,
+  BookOpen,
+  Clock,
+  MapPin,
+  History,
+  GraduationCap
 } from "lucide-react";
 import { 
   Dialog, 
@@ -58,10 +64,88 @@ import { cn } from "@/lib/utils";
 
 // Mock Staff Data
 const INITIAL_STAFF = [
-  { id: "T001", name: "Dr. Aris Tesla", role: "TEACHER", email: "aris.tesla@school.edu", department: "Science", status: "active", joined: "Sept 2020", avatar: "https://picsum.photos/seed/t1/100/100" },
-  { id: "T002", name: "Prof. Sarah Smith", role: "TEACHER", email: "sarah.s@school.edu", department: "Mathematics", status: "active", joined: "Oct 2021", avatar: "https://picsum.photos/seed/t2/100/100" },
-  { id: "B001", name: "Mme. Ngono Celine", role: "BURSAR", email: "celine.n@school.edu", department: "Finance", status: "active", joined: "Aug 2019", avatar: "https://picsum.photos/seed/b1/100/100" },
-  { id: "L001", name: "Mr. Ebong", role: "LIBRARIAN", email: "ebong.lib@school.edu", department: "Resources", status: "suspended", joined: "Jan 2022", avatar: "https://picsum.photos/seed/l1/100/100" },
+  { 
+    id: "T001", 
+    name: "Dr. Aris Tesla", 
+    role: "TEACHER", 
+    email: "aris.tesla@school.edu", 
+    department: "Science", 
+    status: "active", 
+    joined: "Sept 2020", 
+    avatar: "https://picsum.photos/seed/t1/100/100",
+    portfolio: {
+      bio: "Dedicated Physics educator with 15 years of experience in experimental research and thermodynamics.",
+      education: "Ph.D. in Applied Physics - University of Buea",
+      awards: ["Teacher of the Year 2022", "Innovation in STEM Award"],
+      stats: { sessions: 142, students: 124, avgMark: "14.5/20" }
+    },
+    schedule: {
+      Monday: [{ time: "08:00 AM", subject: "Physics Form 5A", room: "Lab 1" }],
+      Tuesday: [{ time: "10:30 AM", subject: "Science Lower 6", room: "Room 402" }],
+      Wednesday: [{ time: "08:00 AM", subject: "Physics Form 5A", room: "Lab 1" }],
+      Thursday: [{ time: "11:30 AM", subject: "General Science", room: "Hall B" }],
+      Friday: [{ time: "09:00 AM", subject: "Dept. Meeting", room: "Conference" }]
+    }
+  },
+  { 
+    id: "T002", 
+    name: "Prof. Sarah Smith", 
+    role: "TEACHER", 
+    email: "sarah.s@school.edu", 
+    department: "Mathematics", 
+    status: "active", 
+    joined: "Oct 2021", 
+    avatar: "https://picsum.photos/seed/t2/100/100",
+    portfolio: {
+      bio: "Passionate mathematician focused on making complex calculus intuitive for high school students.",
+      education: "M.Sc. Pure Mathematics - Sorbonne University",
+      awards: ["Excellence in Bilingual Teaching"],
+      stats: { sessions: 98, students: 85, avgMark: "15.2/20" }
+    },
+    schedule: {
+      Monday: [{ time: "10:00 AM", subject: "Pure Maths", room: "Room 301" }],
+      Wednesday: [{ time: "10:00 AM", subject: "Pure Maths", room: "Room 301" }],
+      Friday: [{ time: "11:00 AM", subject: "Calculus Workshop", room: "Library" }]
+    }
+  },
+  { 
+    id: "B001", 
+    name: "Mme. Ngono Celine", 
+    role: "BURSAR", 
+    email: "celine.n@school.edu", 
+    department: "Finance", 
+    status: "active", 
+    joined: "Aug 2019", 
+    avatar: "https://picsum.photos/seed/b1/100/100",
+    portfolio: {
+      bio: "Certified public accountant specializing in institutional financial management and audit compliance.",
+      education: "MBA in Finance - ESSEC Douala",
+      awards: ["Financial Integrity Ribbon"],
+      stats: { transactions: "1.2k", auditsPassed: 4, compliance: "100%" }
+    },
+    schedule: {
+      Daily: [{ time: "08:00 AM - 04:00 PM", subject: "Fee Collection & Accounting", room: "Bursary Office" }]
+    }
+  },
+  { 
+    id: "L001", 
+    name: "Mr. Ebong", 
+    role: "LIBRARIAN", 
+    email: "ebong.lib@school.edu", 
+    department: "Resources", 
+    status: "suspended", 
+    joined: "Jan 2022", 
+    avatar: "https://picsum.photos/seed/l1/100/100",
+    portfolio: {
+      bio: "Resource management expert with a passion for promoting literacy and archival science.",
+      education: "B.A. Library & Information Science",
+      awards: ["Digital Archiving Certificate"],
+      stats: { booksManaged: "1.7k", activeMembers: "1.1k", circulation: "85%" }
+    },
+    schedule: {
+      Daily: [{ time: "07:30 AM - 03:30 PM", subject: "Library Operations", room: "Resource Center" }]
+    }
+  },
 ];
 
 export default function StaffManagementPage() {
@@ -72,6 +156,10 @@ export default function StaffManagementPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [staff, setStaff] = useState(INITIAL_STAFF);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  
+  // New States for Detail Dialogs
+  const [selectedStaffForPortfolio, setSelectedStaffForPortfolio] = useState<any>(null);
+  const [selectedStaffForSchedule, setSelectedStaffForSchedule] = useState<any>(null);
 
   const filteredStaff = staff.filter(s => 
     s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -270,10 +358,10 @@ export default function StaffManagementPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl border-accent/50">
                         <DropdownMenuLabel className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Management</DropdownMenuLabel>
-                        <DropdownMenuItem className="gap-2 cursor-pointer">
+                        <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => setSelectedStaffForPortfolio(s)}>
                           <Eye className="w-4 h-4 text-primary" /> View Professional Portfolio
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="gap-2 cursor-pointer">
+                        <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => setSelectedStaffForSchedule(s)}>
                           <Calendar className="w-4 h-4 text-primary" /> View Work Schedule
                         </DropdownMenuItem>
                         <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => handleStatusToggle(s.id)}>
@@ -303,6 +391,129 @@ export default function StaffManagementPage() {
           <span className="font-bold">Total Staff: {staff.length}</span>
         </CardFooter>
       </Card>
+
+      {/* Portfolio Dialog */}
+      <Dialog open={!!selectedStaffForPortfolio} onOpenChange={() => setSelectedStaffForPortfolio(null)}>
+        <DialogContent className="sm:max-w-3xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="bg-primary p-8 text-white">
+            <div className="flex items-center gap-6">
+              <Avatar className="h-24 w-24 border-4 border-white shadow-xl">
+                <AvatarImage src={selectedStaffForPortfolio?.avatar} />
+                <AvatarFallback className="text-3xl text-primary bg-white">{selectedStaffForPortfolio?.name?.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div className="space-y-1">
+                <DialogTitle className="text-3xl font-black">{selectedStaffForPortfolio?.name}</DialogTitle>
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-secondary text-primary border-none">{selectedStaffForPortfolio?.role}</Badge>
+                  <span className="text-white/60 text-sm font-mono">{selectedStaffForPortfolio?.id}</span>
+                </div>
+              </div>
+            </div>
+          </DialogHeader>
+          <div className="p-8 space-y-8">
+            <div className="space-y-4">
+              <h3 className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
+                <Award className="w-4 h-4" /> Professional Background
+              </h3>
+              <div className="bg-accent/20 p-6 rounded-2xl border border-accent">
+                <p className="text-sm italic leading-relaxed text-muted-foreground">"{selectedStaffForPortfolio?.portfolio?.bio}"</p>
+                <div className="mt-4 pt-4 border-t border-accent grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground">Education</p>
+                    <p className="text-sm font-bold text-primary">{selectedStaffForPortfolio?.portfolio?.education}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground">Department</p>
+                    <p className="text-sm font-bold text-primary">{selectedStaffForPortfolio?.department}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              {Object.entries(selectedStaffForPortfolio?.portfolio?.stats || {}).map(([key, val]: [string, any]) => (
+                <div key={key} className="bg-white p-4 rounded-xl shadow-sm border border-accent text-center">
+                  <p className="text-[10px] uppercase font-black text-muted-foreground mb-1">{key}</p>
+                  <p className="text-xl font-black text-primary">{val}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
+                <History className="w-4 h-4" /> Key Achievements
+              </h3>
+              <div className="space-y-2">
+                {selectedStaffForPortfolio?.portfolio?.awards?.map((award: string, idx: number) => (
+                  <div key={idx} className="flex items-center gap-3 p-3 bg-primary/5 rounded-lg border border-primary/10">
+                    <CheckCircle2 className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-medium">{award}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="bg-accent/10 p-6 border-t">
+            <Button onClick={() => setSelectedStaffForPortfolio(null)} className="rounded-xl w-full h-12 shadow-lg">Close Portfolio</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Schedule Dialog */}
+      <Dialog open={!!selectedStaffForSchedule} onOpenChange={() => setSelectedStaffForSchedule(null)}>
+        <DialogContent className="sm:max-w-2xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="bg-secondary p-8 text-primary">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/50 rounded-xl">
+                <Calendar className="w-8 h-8" />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-black uppercase tracking-tighter">Duty Timetable</DialogTitle>
+                <DialogDescription className="text-primary/60 font-bold">{selectedStaffForSchedule?.name} • Weekly Workload</DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+          <div className="p-0">
+            <ScrollArea className="max-h-[60vh]">
+              <div className="p-8 space-y-6">
+                {selectedStaffForSchedule?.schedule && Object.keys(selectedStaffForSchedule.schedule).map((day) => (
+                  <div key={day} className="space-y-3">
+                    <h4 className="text-xs font-black uppercase tracking-widest text-primary border-b pb-2 flex items-center justify-between">
+                      {day}
+                      <Badge variant="outline" className="text-[9px] h-5 border-primary/20">{selectedStaffForSchedule.schedule[day].length} slots</Badge>
+                    </h4>
+                    <div className="space-y-2">
+                      {selectedStaffForSchedule.schedule[day].map((slot: any, idx: number) => (
+                        <div key={idx} className="flex items-center justify-between p-4 bg-white rounded-xl border shadow-sm group hover:ring-2 hover:ring-primary/10 transition-all">
+                          <div className="flex items-center gap-4">
+                            <div className="bg-accent/30 p-2 rounded-lg text-primary">
+                              <Clock className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-black text-primary">{slot.subject}</p>
+                              <p className="text-[10px] text-muted-foreground uppercase font-bold">{slot.time}</p>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end">
+                            <span className="text-[10px] font-black text-primary/40 uppercase">Room</span>
+                            <span className="text-xs font-bold flex items-center gap-1"><MapPin className="w-3 h-3"/> {slot.room}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
+          <DialogFooter className="bg-accent/10 p-6 border-t flex justify-between items-center">
+            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest italic flex items-center gap-2">
+              <ShieldCheck className="w-3.5 h-3.5" /> Official Workload Registry
+            </p>
+            <Button variant="ghost" onClick={() => setSelectedStaffForSchedule(null)}>Close Schedule</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
