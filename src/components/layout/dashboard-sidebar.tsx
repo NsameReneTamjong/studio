@@ -1,7 +1,7 @@
 
 "use client";
 
-import Link from "relative/link";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
