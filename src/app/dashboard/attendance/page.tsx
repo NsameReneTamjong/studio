@@ -4,49 +4,59 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   CalendarIcon, 
   CheckCircle2, 
   XCircle, 
   Clock, 
-  MoreVertical, 
   Users, 
-  Info, 
-  AlertCircle,
   FileText,
   ChevronRight,
-  BookOpen
+  BookOpen,
+  User,
+  History,
+  Pencil,
+  Save,
+  AlertCircle,
+  MoreVertical
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useToast } from "@/hooks/use-toast";
 
 const MOCK_STUDENTS = [
-  { id: "S001", name: "Alice Thompson", status: "present" },
-  { id: "S002", name: "Bob Richards", status: "present" },
-  { id: "S003", name: "Charlie Davis", status: "absent" },
-  { id: "S004", name: "Diana Prince", status: "late" },
-  { id: "S005", name: "Ethan Hunt", status: "present" },
+  { id: "S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", status: "present", presentCount: 22, absentCount: 2 },
+  { id: "S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", status: "present", presentCount: 18, absentCount: 6 },
+  { id: "S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", status: "absent", presentCount: 15, absentCount: 9 },
+  { id: "S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100", status: "late", presentCount: 24, absentCount: 0 },
+  { id: "S005", name: "Ethan Hunt", avatar: "https://picsum.photos/seed/s5/100/100", status: "present", presentCount: 12, absentCount: 12 },
 ];
 
-const MOCK_SUBJECT_RECORDS = [
-  { subject: "Mathématiques", present: 22, absent: 2, late: 1 },
-  { subject: "Physique", present: 18, absent: 4, late: 2 },
-  { subject: "Anglais", present: 24, absent: 0, late: 1 },
-  { subject: "Français", present: 21, absent: 3, late: 0 },
+const TEACHER_SUBJECTS = [
+  { id: "math", name: "Mathematics" },
+  { id: "physics", name: "Physics" }
 ];
 
 export default function AttendancePage() {
   const { user } = useAuth();
   const { t, language } = useI18n();
+  const { toast } = useToast();
+  
   const [date, setDate] = useState<Date>(new Date());
   const [students, setStudents] = useState(MOCK_STUDENTS);
+  const [selectedSubject, setSelectedSubject] = useState(TEACHER_SUBJECTS[0].id);
+  const [editingStudent, setEditingHistoryStudent] = useState<any>(null);
 
   const isTeacher = user?.role === "TEACHER" || user?.role === "SCHOOL_ADMIN";
   const isParent = user?.role === "PARENT";
@@ -72,7 +82,16 @@ export default function AttendancePage() {
     setStudents(prev => prev.map(s => s.id === id ? { ...s, status } : s));
   };
 
+  const handleSaveHistoryEdit = () => {
+    toast({
+      title: "History Updated",
+      description: "Student attendance record has been modified in the registry.",
+    });
+    setEditingHistoryStudent(null);
+  };
+
   if (!isTeacher) {
+    // Student View (Simplified)
     return (
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -80,43 +99,6 @@ export default function AttendancePage() {
             <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline">{t("attendance")}</h1>
             <p className="text-sm text-muted-foreground mt-1">Review your presence and punctuality records.</p>
           </div>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button className="gap-2 shadow-lg w-full md:w-auto">
-                <FileText className="w-4 h-4" /> {t("attendanceRecords")}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>{t("attendanceRecords")} - Summary</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 mt-4">
-                {MOCK_SUBJECT_RECORDS.map((rec, idx) => (
-                  <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-accent bg-accent/5 gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                        <BookOpen className="w-5 h-5" />
-                      </div>
-                      <span className="font-bold">{rec.subject}</span>
-                    </div>
-                    <div className="flex items-center justify-between sm:justify-end gap-4 md:gap-6">
-                      <div className="text-center">
-                        <p className="text-[10px] uppercase text-muted-foreground font-bold">{t("present")}</p>
-                        <p className="text-base md:text-lg font-bold text-green-600">{rec.present}</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-[10px] uppercase text-muted-foreground font-bold">{t("absent")}</p>
-                        <p className="text-base md:text-lg font-bold text-red-600">{rec.absent}</p>
-                      </div>
-                      <Button variant="ghost" size="sm" className="gap-1 text-primary p-0 sm:p-2">
-                        <span className="hidden sm:inline">{t("viewDetails")}</span> <ChevronRight className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </DialogContent>
-          </Dialog>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
@@ -126,7 +108,6 @@ export default function AttendancePage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl md:text-3xl font-bold text-green-700">96.4%</div>
-              <p className="text-xs text-green-600 mt-1">Exceeds class average</p>
             </CardContent>
           </Card>
           <Card className="border-none shadow-sm bg-amber-50">
@@ -135,7 +116,6 @@ export default function AttendancePage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl md:text-3xl font-bold text-amber-700">2</div>
-              <p className="text-xs text-amber-600 mt-1">This semester</p>
             </CardContent>
           </Card>
           <Card className="border-none shadow-sm bg-red-50">
@@ -144,31 +124,27 @@ export default function AttendancePage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl md:text-3xl font-bold text-red-700">1</div>
-              <p className="text-xs text-red-600 mt-1">Excused</p>
             </CardContent>
           </Card>
         </div>
 
         <Card className="border-none shadow-sm">
           <CardHeader>
-            <CardTitle>Today's Attendance</CardTitle>
+            <CardTitle>Today's Presence</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {[
-                { date: "May 24, 2024", subject: "Mathématiques", status: "present" },
-                { date: "May 24, 2024", subject: "Physique", status: "present" },
-                { date: "May 24, 2024", subject: "Anglais", status: "late" },
+                { date: "May 24, 2024", subject: "Mathematics", status: "present" },
+                { date: "May 24, 2024", subject: "Physics", status: "present" },
               ].map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between p-3 md:p-4 rounded-lg border border-accent">
-                  <div className="flex-1">
-                    <p className="font-semibold text-sm md:text-base">{item.subject}</p>
+                <div key={idx} className="flex items-center justify-between p-4 rounded-xl border border-accent">
+                  <div>
+                    <p className="font-semibold">{item.subject}</p>
                     <p className="text-xs text-muted-foreground">{item.date}</p>
                   </div>
-                  <Badge variant={item.status === 'present' ? 'default' : item.status === 'late' ? 'secondary' : 'destructive'} className={cn(
-                    "text-[10px] md:text-xs px-2 py-0.5 md:px-3 md:py-1",
-                    item.status === 'present' && "bg-green-600",
-                    item.status === 'late' && "bg-amber-600"
+                  <Badge className={cn(
+                    item.status === 'present' ? "bg-green-600" : "bg-amber-600"
                   )}>
                     {item.status.toUpperCase()}
                   </Badge>
@@ -181,17 +157,30 @@ export default function AttendancePage() {
     );
   }
 
+  // Teacher View
   return (
     <div className="space-y-6">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline">Attendance Tracker</h1>
-          <p className="text-sm text-muted-foreground mt-1">Mark and track student presence for each session.</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline">Institutional Attendance</h1>
+          <p className="text-sm text-muted-foreground mt-1">Manage session registers and historical presence records.</p>
         </div>
         <div className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="w-full sm:w-[200px]">
+            <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+              <SelectTrigger className="bg-white">
+                <SelectValue placeholder="Select Subject" />
+              </SelectTrigger>
+              <SelectContent>
+                {TEACHER_SUBJECTS.map(s => (
+                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className={cn("w-full sm:w-[240px] justify-start text-left font-normal", !date && "text-muted-foreground")}>
+              <Button variant="outline" className={cn("w-full sm:w-[200px] justify-start text-left font-normal bg-white", !date && "text-muted-foreground")}>
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {date ? format(date, "PPP") : <span>Pick a date</span>}
               </Button>
@@ -200,111 +189,247 @@ export default function AttendancePage() {
               <Calendar mode="single" selected={date} onSelect={(d) => d && setDate(d)} initialFocus />
             </PopoverContent>
           </Popover>
-          <Button className="shadow-lg w-full sm:w-auto">Submit Register</Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <Card className="border-none shadow-sm h-fit">
-          <CardHeader>
-            <CardTitle className="text-base">Session Overview</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 md:space-y-6">
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Present</span>
-                <span className="font-bold text-green-600">{students.filter(s => s.status === 'present').length}</span>
-              </div>
-              <div className="h-2 bg-accent rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-green-500 transition-all duration-500" 
-                  style={{ width: `${(students.filter(s => s.status === 'present').length / students.length) * 100}%` }} 
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Late</span>
-                <span className="font-bold text-amber-600">{students.filter(s => s.status === 'late').length}</span>
-              </div>
-              <div className="h-2 bg-accent rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-amber-500 transition-all duration-500" 
-                  style={{ width: `${(students.filter(s => s.status === 'late').length / students.length) * 100}%` }} 
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Absent</span>
-                <span className="font-bold text-red-600">{students.filter(s => s.status === 'absent').length}</span>
-              </div>
-              <div className="h-2 bg-accent rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-red-500 transition-all duration-500" 
-                  style={{ width: `${(students.filter(s => s.status === 'absent').length / students.length) * 100}%` }} 
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <Tabs defaultValue="register" className="w-full">
+        <TabsList className="grid grid-cols-2 w-full md:w-[400px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-xl">
+          <TabsTrigger value="register" className="gap-2 py-2">
+            <CheckCircle2 className="w-4 h-4" /> Take Register
+          </TabsTrigger>
+          <TabsTrigger value="records" className="gap-2 py-2">
+            <History className="w-4 h-4" /> Subject Records
+          </TabsTrigger>
+        </TabsList>
 
-        <Card className="lg:col-span-3 border-none shadow-sm">
-          <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <CardTitle>Attendance Register</CardTitle>
-              <CardDescription>Class: Physics 101 - Sec A</CardDescription>
-            </div>
-            <Button variant="ghost" size="sm" onClick={() => setStudents(prev => prev.map(s => ({...s, status: 'present'})))}>
-              Mark All Present
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {students.map((student) => (
-                <div key={student.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 md:p-4 rounded-xl border border-accent hover:bg-accent/20 transition-colors gap-4">
-                  <div className="flex items-center gap-3 md:gap-4">
-                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm md:text-base">
-                      {student.name.charAt(0)}
+        <TabsContent value="register" className="animate-in fade-in slide-in-from-bottom-2">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <Card className="border-none shadow-sm h-fit">
+              <CardHeader>
+                <CardTitle className="text-base">Session Analytics</CardTitle>
+                <CardDescription>{TEACHER_SUBJECTS.find(s => s.id === selectedSubject)?.name}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {[
+                  { label: "Present", color: "bg-green-500", count: students.filter(s => s.status === 'present').length },
+                  { label: "Late", color: "bg-amber-500", count: students.filter(s => s.status === 'late').length },
+                  { label: "Absent", color: "bg-red-500", count: students.filter(s => s.status === 'absent').length },
+                ].map((stat) => (
+                  <div key={stat.label} className="space-y-2">
+                    <div className="flex justify-between text-xs font-bold uppercase">
+                      <span className="text-muted-foreground">{stat.label}</span>
+                      <span>{stat.count} / {students.length}</span>
                     </div>
-                    <div>
-                      <p className="font-medium text-sm md:text-base leading-none">{student.name}</p>
-                      <p className="text-[10px] md:text-xs text-muted-foreground font-mono mt-1">{student.id}</p>
+                    <div className="h-2 bg-accent rounded-full overflow-hidden">
+                      <div 
+                        className={cn("h-full transition-all duration-500", stat.color)} 
+                        style={{ width: `${(stat.count / students.length) * 100}%` }} 
+                      />
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
-                    <Button 
-                      size="sm" 
-                      variant={student.status === 'present' ? 'default' : 'outline'}
-                      className={cn("gap-1 px-2 md:px-4 text-[10px] md:text-xs h-8 md:h-9", student.status === 'present' && "bg-green-600 hover:bg-green-700")}
-                      onClick={() => setStatus(student.id, 'present')}
-                    >
-                      <CheckCircle2 className="w-3 h-3 md:w-4 md:h-4" /> Present
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant={student.status === 'late' ? 'default' : 'outline'}
-                      className={cn("gap-1 px-2 md:px-4 text-[10px] md:text-xs h-8 md:h-9", student.status === 'late' && "bg-amber-600 hover:bg-amber-700")}
-                      onClick={() => setStatus(student.id, 'late')}
-                    >
-                      <Clock className="w-3 h-3 md:w-4 md:h-4" /> Late
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant={student.status === 'absent' ? 'default' : 'outline'}
-                      className={cn("gap-1 px-2 md:px-4 text-[10px] md:text-xs h-8 md:h-9", student.status === 'absent' && "bg-red-600 hover:bg-red-700")}
-                      onClick={() => setStatus(student.id, 'absent')}
-                    >
-                      <XCircle className="w-3 h-3 md:w-4 md:h-4" /> Absent
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0"><MoreVertical className="w-4 h-4 text-muted-foreground"/></Button>
-                  </div>
+                ))}
+              </CardContent>
+              <CardFooter className="border-t bg-accent/10">
+                <Button className="w-full shadow-lg" onClick={() => toast({ title: "Register Submitted", description: "Attendance session has been synced with the institutional server." })}>
+                  Submit Final Register
+                </Button>
+              </CardFooter>
+            </Card>
+
+            <Card className="lg:col-span-3 border-none shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Attendance List</CardTitle>
+                  <CardDescription>Target: Section A • {format(date, "PPP")}</CardDescription>
                 </div>
-              ))}
+                <Button variant="ghost" size="sm" onClick={() => setStudents(prev => prev.map(s => ({...s, status: 'present'})))}>
+                  Mark All Present
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {students.map((student) => (
+                    <div key={student.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-accent hover:bg-accent/10 transition-colors gap-4">
+                      <div className="flex items-center gap-4">
+                        <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent">
+                          <AvatarImage src={student.avatar} alt={student.name} />
+                          <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-bold text-sm text-primary leading-none">{student.name}</p>
+                          <p className="text-[10px] text-muted-foreground font-mono mt-1 uppercase">ID: {student.id}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          size="sm" 
+                          variant={student.status === 'present' ? 'default' : 'outline'}
+                          className={cn("h-8 px-3 text-[10px] uppercase font-black", student.status === 'present' && "bg-green-600 hover:bg-green-700")}
+                          onClick={() => setStatus(student.id, 'present')}
+                        >
+                          Present
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant={student.status === 'late' ? 'default' : 'outline'}
+                          className={cn("h-8 px-3 text-[10px] uppercase font-black", student.status === 'late' && "bg-amber-600 hover:bg-amber-700")}
+                          onClick={() => setStatus(student.id, 'late')}
+                        >
+                          Late
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant={student.status === 'absent' ? 'default' : 'outline'}
+                          className={cn("h-8 px-3 text-[10px] uppercase font-black", student.status === 'absent' && "bg-red-600 hover:bg-red-700")}
+                          onClick={() => setStatus(student.id, 'absent')}
+                        >
+                          Absent
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="records" className="animate-in fade-in slide-in-from-bottom-2">
+          <Card className="border-none shadow-sm overflow-hidden">
+            <CardHeader className="bg-primary text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2 text-white">
+                    <History className="w-5 h-5 text-secondary" />
+                    {TEACHER_SUBJECTS.find(s => s.id === selectedSubject)?.name} - Attendance Registry
+                  </CardTitle>
+                  <CardDescription className="text-white/60">Aggregated historical presence records for current academic year.</CardDescription>
+                </div>
+                <Badge className="bg-white/20 text-white border-none">Active Term</Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0 overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50 uppercase text-[10px] font-black tracking-widest">
+                    <TableHead className="pl-6 py-4">Student Profile</TableHead>
+                    <TableHead>Matricule</TableHead>
+                    <TableHead className="text-center">Times Present</TableHead>
+                    <TableHead className="text-center">Times Absent</TableHead>
+                    <TableHead className="text-center">Attendance %</TableHead>
+                    <TableHead className="text-right pr-6">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {students.map((student) => (
+                    <TableRow key={student.id} className="hover:bg-accent/5">
+                      <TableCell className="pl-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-9 w-9 border-2 border-white shadow-sm">
+                            <AvatarImage src={student.avatar} alt={student.name} />
+                            <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
+                          </Avatar>
+                          <span className="font-bold text-sm text-primary">{student.name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs font-bold text-muted-foreground">{student.id}</TableCell>
+                      <TableCell className="text-center">
+                        <Badge className="bg-green-100 text-green-700 border-none font-bold">{student.presentCount}</Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge className="bg-red-100 text-red-700 border-none font-bold">{student.absentCount}</Badge>
+                      </TableCell>
+                      <TableCell className="text-center font-mono font-black text-primary">
+                        {Math.round((student.presentCount / (student.presentCount + student.absentCount)) * 100)}%
+                      </TableCell>
+                      <TableCell className="text-right pr-6">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="gap-2 text-primary hover:bg-primary/10"
+                          onClick={() => setEditingHistoryStudent(student)}
+                        >
+                          <Pencil className="w-3.5 h-3.5" /> Edit Record
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* History Edit Dialog */}
+      <Dialog open={!!editingStudent} onOpenChange={() => setEditingHistoryStudent(null)}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="p-6 bg-primary text-white">
+            <div className="flex items-center gap-4">
+              <Avatar className="h-12 w-12 border-2 border-white/20">
+                <AvatarImage src={editingStudent?.avatar} />
+                <AvatarFallback><User className="w-6 h-6" /></AvatarFallback>
+              </Avatar>
+              <div>
+                <DialogTitle className="text-xl text-white font-headline">Audit Records: {editingStudent?.name}</DialogTitle>
+                <DialogDescription className="text-white/60 uppercase text-[10px] font-bold tracking-widest">
+                  Subject: {TEACHER_SUBJECTS.find(s => s.id === selectedSubject)?.name} • {editingStudent?.id}
+                </DialogDescription>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            <div className="bg-accent/20 p-4 rounded-xl flex items-center gap-3 text-sm text-primary">
+              <AlertCircle className="w-5 h-5" />
+              <p>Modifying historical data affects general averages. Use with caution.</p>
+            </div>
+
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date & Session</TableHead>
+                  <TableHead className="text-right">Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {[
+                  { date: "May 20, 2024", time: "08:00 AM", status: "present" },
+                  { date: "May 18, 2024", time: "08:00 AM", status: "absent" },
+                  { date: "May 15, 2024", time: "08:00 AM", status: "present" },
+                  { date: "May 12, 2024", time: "08:00 AM", status: "late" },
+                ].map((session, i) => (
+                  <TableRow key={i}>
+                    <TableCell>
+                      <p className="font-bold text-sm">{session.date}</p>
+                      <p className="text-[10px] text-muted-foreground">{session.time}</p>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Select defaultValue={session.status}>
+                        <SelectTrigger className="w-[120px] ml-auto h-8 text-[10px] font-black uppercase">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="present">Present</SelectItem>
+                          <SelectItem value="late">Late</SelectItem>
+                          <SelectItem value="absent">Absent</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          <DialogFooter className="p-6 bg-accent/30 border-t flex sm:flex-row gap-3">
+            <Button variant="ghost" className="flex-1" onClick={() => setEditingHistoryStudent(null)}>Cancel</Button>
+            <Button className="flex-1 gap-2 shadow-lg font-bold" onClick={handleSaveHistoryEdit}>
+              <Save className="w-4 h-4" /> Save Corrections
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
