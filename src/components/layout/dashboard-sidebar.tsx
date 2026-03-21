@@ -27,8 +27,8 @@ import {
   X,
   PenTool,
   FileEdit,
-  Coins,
-  Library
+  Library,
+  Coins
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -107,6 +107,12 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       icon: BookOpen,
       href: "/dashboard/courses",
       roles: ["SCHOOL_ADMIN", "STUDENT", "TEACHER"],
+    },
+    {
+      label: t("library"),
+      icon: Library,
+      href: "/dashboard/library",
+      roles: ["STUDENT", "LIBRARIAN"],
     },
     {
       label: t("assignments"),

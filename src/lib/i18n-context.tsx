@@ -98,6 +98,14 @@ const translations: TranslationDict = {
   dueDate: { en: "Due Date", fr: "Date limite" },
   bursar: { en: "Bursar", fr: "Économe" },
   librarian: { en: "Librarian", fr: "Bibliothécaire" },
+  library: { en: "Library", fr: "Bibliothèque" },
+  borrow: { en: "Borrow Book", fr: "Emprunter" },
+  borrowed: { en: "My Borrowed Books", fr: "Mes Emprunts" },
+  returnDate: { en: "Return Date", fr: "Date de Retour" },
+  available: { en: "Available", fr: "Disponible" },
+  searchBooks: { en: "Search for books...", fr: "Rechercher un livre..." },
+  collectionReceipt: { en: "Collection Receipt", fr: "Reçu de Collection" },
+  collectionCode: { en: "Collection Code", fr: "Code de Collection" },
 };
 
 interface I18nContextType {
