@@ -29,7 +29,12 @@ import {
   Calendar,
   MapPin,
   Fingerprint,
-  Building2
+  Building2,
+  BookOpen,
+  PenTool,
+  GraduationCap,
+  BarChart3,
+  Presentation
 } from "lucide-react";
 import { 
   DropdownMenu, 
@@ -50,7 +55,10 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip as RechartsTooltip, 
-  ResponsiveContainer 
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  Cell
 } from "recharts";
 
 // Mock Community Data
@@ -78,6 +86,12 @@ const MOCK_CHART_DATA = [
   { day: 'Fri', engagement: 75 },
   { day: 'Sat', engagement: 20 },
   { day: 'Sun', engagement: 10 },
+];
+
+const MOCK_TEACHER_SUBJECT_PERFORMANCE = [
+  { subject: 'Maths', score: 15.2 },
+  { subject: 'Physics', score: 13.8 },
+  { subject: 'Science', score: 14.5 },
 ];
 
 export default function CommunityPage() {
@@ -279,74 +293,172 @@ export default function CommunityPage() {
           </DialogHeader>
           
           <div className="p-8 space-y-10">
-            {/* Participation Analytics */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              <div className="lg:col-span-4 grid grid-cols-2 lg:grid-cols-1 gap-4">
-                <Card className="border-none bg-accent/30 p-6 rounded-3xl flex flex-col justify-between">
-                  <div className="space-y-1">
-                    <div className="p-2 bg-primary/10 rounded-xl w-fit text-primary">
-                      <Activity className="w-5 h-5" />
+            {/* Role-Specific Overview Section */}
+            {viewingUser?.role === 'TEACHER' ? (
+              <div className="space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Card className="border-none bg-purple-50 p-6 rounded-2xl">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 bg-purple-100 rounded-lg text-purple-600">
+                        <Presentation className="w-5 h-5" />
+                      </div>
+                      <p className="text-[10px] font-black uppercase text-purple-600 tracking-widest">Sessions Taught</p>
                     </div>
-                    <p className="text-xs font-black uppercase text-muted-foreground tracking-widest pt-2">Engagement</p>
-                  </div>
-                  <div className="pt-4">
-                    <p className="text-4xl font-black text-primary">84%</p>
-                    <p className="text-[10px] text-green-600 font-bold flex items-center gap-1">
-                      <TrendingUp className="w-3 h-3" /> +12% this week
-                    </p>
-                  </div>
-                </Card>
-                <Card className="border-none bg-accent/30 p-6 rounded-3xl flex flex-col justify-between">
-                  <div className="space-y-1">
-                    <div className="p-2 bg-primary/10 rounded-xl w-fit text-primary">
-                      <Clock className="w-5 h-5" />
+                    <p className="text-3xl font-black text-purple-900">142</p>
+                    <p className="text-[10px] text-purple-600/60 font-bold mt-1">This Academic Year</p>
+                  </Card>
+                  <Card className="border-none bg-blue-50 p-6 rounded-2xl">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                        <PenTool className="w-5 h-5" />
+                      </div>
+                      <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Assessments</p>
                     </div>
-                    <p className="text-xs font-black uppercase text-muted-foreground tracking-widest pt-2">Online Presence</p>
-                  </div>
-                  <div className="pt-4">
-                    <p className="text-4xl font-black text-primary">42h</p>
-                    <p className="text-[10px] text-muted-foreground font-bold italic">Total login duration</p>
-                  </div>
-                </Card>
-              </div>
+                    <div className="flex gap-4 items-baseline">
+                      <p className="text-3xl font-black text-blue-900">24 <span className="text-sm font-medium opacity-40">Tasks</span></p>
+                      <p className="text-3xl font-black text-blue-900">8 <span className="text-sm font-medium opacity-40">Exams</span></p>
+                    </div>
+                  </Card>
+                  <Card className="border-none bg-emerald-50 p-6 rounded-2xl">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600">
+                        <GraduationCap className="w-5 h-5" />
+                      </div>
+                      <p className="text-[10px] font-black uppercase text-emerald-600 tracking-widest">Avg. Student Mark</p>
+                    </div>
+                    <p className="text-3xl font-black text-emerald-900">14.2/20</p>
+                    <p className="text-[10px] text-emerald-600/60 font-bold mt-1">Across all domains</p>
+                  </Card>
+                </div>
 
-              <div className="lg:col-span-8">
-                <Card className="border-none shadow-sm p-6 rounded-3xl">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-sm font-black uppercase tracking-widest text-primary">Weekly Participation Intensity</h3>
-                    <Badge variant="outline" className="text-[10px]">REAL-TIME TELEMETRY</Badge>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                  <div className="lg:col-span-7">
+                    <Card className="border-none shadow-sm p-6 rounded-3xl">
+                      <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-sm font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                          <BarChart3 className="w-4 h-4" /> Average Student Outcome by Subject
+                        </h3>
+                        <Badge variant="outline" className="text-[10px]">PEDAGOGICAL INSIGHT</Badge>
+                      </div>
+                      <div className="h-[250px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={MOCK_TEACHER_SUBJECT_PERFORMANCE}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
+                            <XAxis dataKey="subject" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                            <YAxis domain={[0, 20]} axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
+                            <RechartsTooltip 
+                              contentStyle={{ borderRadius: '12px', border: 'none', shadow: 'none' }}
+                              cursor={{ fill: 'rgba(0,0,0,0.05)' }}
+                            />
+                            <Bar dataKey="score" radius={[6, 6, 0, 0]} barSize={40}>
+                              {MOCK_TEACHER_SUBJECT_PERFORMANCE.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={index === 0 ? 'hsl(var(--primary))' : 'hsl(var(--secondary))'} />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </Card>
                   </div>
-                  <div className="h-[200px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={MOCK_CHART_DATA}>
-                        <defs>
-                          <linearGradient id="colorEngagement" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.1}/>
-                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
-                        <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
-                        <YAxis hide />
-                        <RechartsTooltip 
-                          contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
-                        />
-                        <Area 
-                          type="monotone" 
-                          dataKey="engagement" 
-                          stroke="hsl(var(--primary))" 
-                          strokeWidth={3} 
-                          fillOpacity={1} 
-                          fill="url(#colorEngagement)" 
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
+                  <div className="lg:col-span-5">
+                    <Card className="border-none shadow-sm overflow-hidden rounded-3xl h-full">
+                      <CardHeader className="bg-accent/30 p-4 border-b">
+                        <CardTitle className="text-xs uppercase font-black tracking-widest">Instructional Domains</CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        <Table>
+                          <TableBody>
+                            {[
+                              { class: 'Form 5 A', students: 42, avg: 15.5, syllabus: '85%' },
+                              { class: 'Form 4 B', students: 38, avg: 12.8, syllabus: '72%' },
+                              { class: 'Upper 6', students: 25, avg: 14.2, syllabus: '92%' },
+                            ].map((row, i) => (
+                              <TableRow key={i} className="hover:bg-accent/10 border-b border-accent/20">
+                                <TableCell className="font-bold text-xs">{row.class}</TableCell>
+                                <TableCell className="text-[10px] text-muted-foreground">{row.students} Students</TableCell>
+                                <TableCell className="text-right font-black text-primary text-xs">{row.avg}/20</TableCell>
+                                <TableCell className="text-right">
+                                  <Badge className="bg-secondary/20 text-primary border-none text-[9px] h-5">{row.syllabus}</Badge>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </CardContent>
+                    </Card>
                   </div>
-                </Card>
+                </div>
               </div>
-            </div>
+            ) : (
+              /* Generic Engagement Analytics for other roles */
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div className="lg:col-span-4 grid grid-cols-2 lg:grid-cols-1 gap-4">
+                  <Card className="border-none bg-accent/30 p-6 rounded-3xl flex flex-col justify-between">
+                    <div className="space-y-1">
+                      <div className="p-2 bg-primary/10 rounded-xl w-fit text-primary">
+                        <Activity className="w-5 h-5" />
+                      </div>
+                      <p className="text-xs font-black uppercase text-muted-foreground tracking-widest pt-2">Engagement</p>
+                    </div>
+                    <div className="pt-4">
+                      <p className="text-4xl font-black text-primary">84%</p>
+                      <p className="text-[10px] text-green-600 font-bold flex items-center gap-1">
+                        <TrendingUp className="w-3 h-3" /> +12% this week
+                      </p>
+                    </div>
+                  </Card>
+                  <Card className="border-none bg-accent/30 p-6 rounded-3xl flex flex-col justify-between">
+                    <div className="space-y-1">
+                      <div className="p-2 bg-primary/10 rounded-xl w-fit text-primary">
+                        <Clock className="w-5 h-5" />
+                      </div>
+                      <p className="text-xs font-black uppercase text-muted-foreground tracking-widest pt-2">Online Presence</p>
+                    </div>
+                    <div className="pt-4">
+                      <p className="text-4xl font-black text-primary">42h</p>
+                      <p className="text-[10px] text-muted-foreground font-bold italic">Total login duration</p>
+                    </div>
+                  </Card>
+                </div>
 
-            {/* Detailed Activity Log Table */}
+                <div className="lg:col-span-8">
+                  <Card className="border-none shadow-sm p-6 rounded-3xl">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-sm font-black uppercase tracking-widest text-primary">Weekly Participation Intensity</h3>
+                      <Badge variant="outline" className="text-[10px]">REAL-TIME TELEMETRY</Badge>
+                    </div>
+                    <div className="h-[200px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={MOCK_CHART_DATA}>
+                          <defs>
+                            <linearGradient id="colorEngagement" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.1}/>
+                              <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
+                          <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                          <YAxis hide />
+                          <RechartsTooltip 
+                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                          />
+                          <Area 
+                            type="monotone" 
+                            dataKey="engagement" 
+                            stroke="hsl(var(--primary))" 
+                            strokeWidth={3} 
+                            fillOpacity={1} 
+                            fill="url(#colorEngagement)" 
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </Card>
+                </div>
+              </div>
+            )}
+
+            {/* Detailed Activity Log Table - Universal */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-black text-primary uppercase tracking-widest flex items-center gap-2">
