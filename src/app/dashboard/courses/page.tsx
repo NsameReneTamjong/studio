@@ -18,13 +18,13 @@ import {
   FileCode,
   Search,
   Eye,
-  Avatar,
+  X
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n-context";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { AvatarImage, AvatarFallback, Avatar } from "@/components/ui/avatar";
 
 const ENROLLED_SUBJECTS = [
   {
@@ -36,9 +36,9 @@ const ENROLLED_SUBJECTS = [
     progress: 75,
     color: "bg-blue-500",
     materials: [
-      { id: "M1", title: "Thermodynamics Lecture Notes", type: "PDF", date: "Oct 12, 2023", size: "2.4 MB" },
-      { id: "M2", title: "Kinematics Practice Sheet", type: "DOCX", date: "Oct 15, 2023", size: "1.1 MB" },
-      { id: "M3", title: "Lab Safety Poster", type: "PNG", date: "Oct 20, 2023", size: "3.2 MB" },
+      { id: "M1", title: "Thermodynamics Lecture Notes", type: "PDF", date: "Oct 12, 2023", size: "2.4 MB", url: "https://picsum.photos/seed/pdf1/800/1200" },
+      { id: "M2", title: "Kinematics Practice Sheet", type: "DOCX", date: "Oct 15, 2023", size: "1.1 MB", url: "https://picsum.photos/seed/docx1/800/1200" },
+      { id: "M3", title: "Lab Safety Poster", type: "PNG", date: "Oct 20, 2023", size: "3.2 MB", url: "https://picsum.photos/seed/png1/800/1200" },
     ]
   },
   {
@@ -50,8 +50,8 @@ const ENROLLED_SUBJECTS = [
     progress: 45,
     color: "bg-purple-500",
     materials: [
-      { id: "M4", title: "Integration by Parts", type: "PDF", date: "Oct 10, 2023", size: "3.1 MB" },
-      { id: "M5", title: "Reading List", type: "TXT", date: "Oct 18, 2023", size: "12 KB" },
+      { id: "M4", title: "Integration by Parts", type: "PDF", date: "Oct 10, 2023", size: "3.1 MB", url: "https://picsum.photos/seed/pdf2/800/1200" },
+      { id: "M5", title: "Reading List", type: "TXT", date: "Oct 18, 2023", size: "12 KB", url: "https://picsum.photos/seed/txt1/800/1200" },
     ]
   },
   {
@@ -63,7 +63,7 @@ const ENROLLED_SUBJECTS = [
     progress: 90,
     color: "bg-emerald-500",
     materials: [
-      { id: "M6", title: "Poetry Analysis Guide", type: "PDF", date: "Oct 05, 2023", size: "1.5 MB" },
+      { id: "M6", title: "Poetry Analysis Guide", type: "PDF", date: "Oct 05, 2023", size: "1.5 MB", url: "https://picsum.photos/seed/pdf3/800/1200" },
     ]
   },
 ];
@@ -86,6 +86,24 @@ export default function MySubjectsPage() {
       description: `${subjectName} ${language === 'en' ? 'has been added to your optional courses.' : 'a été ajoutée à vos cours facultatifs.'}`,
     });
     setIsAddingSubject(false);
+  };
+
+  const handleViewFile = (url: string, title: string) => {
+    window.open(url, '_blank');
+    toast({
+      title: language === 'en' ? "Opening File" : "Ouverture du fichier",
+      description: title,
+    });
+  };
+
+  const handleDownloadFile = (url: string, title: string) => {
+    // In a real app, this would trigger a direct download
+    // For this demo, we'll open it in a new tab which simulates the access
+    window.open(url, '_blank');
+    toast({
+      title: language === 'en' ? "Downloading" : "Téléchargement",
+      description: `${title} is being prepared.`,
+    });
   };
 
   const getFileIcon = (type: string) => {
@@ -230,20 +248,30 @@ export default function MySubjectsPage() {
                       
                       {/* Teacher Attribution */}
                       <div className="flex items-center gap-2 mt-2">
-                        <div className="w-5 h-5 rounded-full overflow-hidden border">
-                          <img src={selectedSubject.instructorAvatar} alt={selectedSubject.instructor} className="w-full h-full object-cover" />
-                        </div>
+                        <Avatar className="w-5 h-5 border">
+                          <AvatarImage src={selectedSubject.instructorAvatar} alt={selectedSubject.instructor} />
+                          <AvatarFallback><User className="w-3 h-3" /></AvatarFallback>
+                        </Avatar>
                         <span className="text-[10px] font-medium text-primary/70">{selectedSubject.instructor}</span>
                       </div>
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <Button variant="outline" size="sm" className="flex-1 sm:flex-none h-8 gap-1.5 text-xs">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1 sm:flex-none h-8 gap-1.5 text-xs"
+                      onClick={() => handleViewFile(file.url, file.title)}
+                    >
                       <Eye className="w-3.5 h-3.5" />
                       {language === 'en' ? 'View' : 'Voir'}
                     </Button>
-                    <Button size="sm" className="flex-1 sm:flex-none h-8 gap-1.5 text-xs shadow-sm">
+                    <Button 
+                      size="sm" 
+                      className="flex-1 sm:flex-none h-8 gap-1.5 text-xs shadow-sm"
+                      onClick={() => handleDownloadFile(file.url, file.title)}
+                    >
                       <Download className="w-3.5 h-3.5" />
                       {language === 'en' ? 'Download' : 'Télécharger'}
                     </Button>
