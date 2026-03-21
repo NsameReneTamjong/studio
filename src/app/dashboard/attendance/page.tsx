@@ -2,15 +2,15 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, CheckCircle2, XCircle, Clock, MoreVertical, Users } from "lucide-react";
+import { CalendarIcon, CheckCircle2, XCircle, Clock, MoreVertical, Users, Info } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { Checkbox } from "@/components/ui/checkbox";
 
 const MOCK_STUDENTS = [
   { id: "S001", name: "Alice Thompson", status: "present" },
@@ -21,12 +21,85 @@ const MOCK_STUDENTS = [
 ];
 
 export default function AttendancePage() {
+  const { user } = useAuth();
   const [date, setDate] = useState<Date>(new Date());
   const [students, setStudents] = useState(MOCK_STUDENTS);
+
+  const isTeacher = user?.role === "TEACHER" || user?.role === "ADMIN";
 
   const setStatus = (id: string, status: string) => {
     setStudents(prev => prev.map(s => s.id === id ? { ...s, status } : s));
   };
+
+  if (!isTeacher) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-primary font-headline">My Attendance</h1>
+          <p className="text-muted-foreground mt-1">Review your presence and punctuality records.</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="border-none shadow-sm bg-green-50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-green-800">Present Rate</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-green-700">96.4%</div>
+              <p className="text-xs text-green-600 mt-1">Exceeds class average</p>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-sm bg-amber-50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-amber-800">Late Arrivals</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-amber-700">2</div>
+              <p className="text-xs text-amber-600 mt-1">This semester</p>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-sm bg-red-50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-red-800">Absences</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-red-700">1</div>
+              <p className="text-xs text-red-600 mt-1">Excused</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card className="border-none shadow-sm">
+          <CardHeader>
+            <CardTitle>Recent History</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[
+                { date: "May 24, 2024", subject: "Physics 101", status: "present" },
+                { date: "May 23, 2024", subject: "Calculus II", status: "present" },
+                { date: "May 22, 2024", subject: "Physics 101", status: "late" },
+                { date: "May 21, 2024", subject: "Gen Chem", status: "present" },
+              ].map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between p-4 rounded-lg border border-accent">
+                  <div>
+                    <p className="font-semibold">{item.subject}</p>
+                    <p className="text-sm text-muted-foreground">{item.date}</p>
+                  </div>
+                  <Badge variant={item.status === 'present' ? 'default' : item.status === 'late' ? 'secondary' : 'destructive'} className={cn(
+                    item.status === 'present' && "bg-green-600",
+                    item.status === 'late' && "bg-amber-600"
+                  )}>
+                    {item.status.toUpperCase()}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

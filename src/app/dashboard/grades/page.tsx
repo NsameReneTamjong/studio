@@ -2,13 +2,14 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "@/lib/auth-context";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Save, RefreshCcw, Search, Download } from "lucide-react";
+import { Save, RefreshCcw, Search, Download, TrendingUp, BookOpen, Award } from "lucide-react";
 
 const MOCK_GRADES = [
   { id: "S001", name: "Alice Thompson", quiz: 85, midterm: 92, project: 95, final: 0, grade: "A" },
@@ -18,8 +19,101 @@ const MOCK_GRADES = [
   { id: "S005", name: "Ethan Hunt", quiz: 55, midterm: 60, project: 65, final: 0, grade: "D" },
 ];
 
+const STUDENT_GRADES = [
+  { course: "Physics 101", credits: 4, score: 92, grade: "A", status: "Completed" },
+  { course: "Calculus II", credits: 4, score: 88, grade: "B+", status: "Ongoing" },
+  { course: "English Literature", credits: 3, score: 95, grade: "A", status: "Ongoing" },
+  { course: "General Chemistry", credits: 4, score: 78, grade: "C+", status: "Ongoing" },
+];
+
 export default function GradeBookPage() {
+  const { user } = useAuth();
   const [course, setCourse] = useState("physics");
+
+  const isTeacher = user?.role === "TEACHER" || user?.role === "ADMIN";
+
+  if (!isTeacher) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold text-primary font-headline">My Report Card</h1>
+            <p className="text-muted-foreground mt-1">Review your academic performance across all subjects.</p>
+          </div>
+          <Button variant="outline" className="gap-2"><Download className="w-4 h-4"/> Download PDF</Button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="border-none shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-sm font-medium">Semester GPA</CardTitle>
+              <TrendingUp className="w-4 h-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">3.84</div>
+              <p className="text-xs text-muted-foreground">+0.2 from last term</p>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-sm font-medium">Credits Earned</CardTitle>
+              <BookOpen className="w-4 h-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">15 / 18</div>
+              <p className="text-xs text-muted-foreground">Spring 2024 Semester</p>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-sm font-medium">Academic Standing</CardTitle>
+              <Award className="w-4 h-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">Honor Roll</div>
+              <p className="text-xs text-muted-foreground">Top 10% of class</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card className="border-none shadow-sm">
+          <CardHeader>
+            <CardTitle>Course Grades</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Course Name</TableHead>
+                  <TableHead className="text-center">Credits</TableHead>
+                  <TableHead className="text-center">Score</TableHead>
+                  <TableHead className="text-center">Grade</TableHead>
+                  <TableHead className="text-right">Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {STUDENT_GRADES.map((item, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell className="font-medium">{item.course}</TableCell>
+                    <TableCell className="text-center">{item.credits}</TableCell>
+                    <TableCell className="text-center font-mono">{item.score}%</TableCell>
+                    <TableCell className="text-center">
+                      <Badge variant={item.grade.startsWith('A') ? 'default' : 'secondary'}>
+                        {item.grade}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <span className="text-xs font-medium text-muted-foreground">{item.status}</span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
