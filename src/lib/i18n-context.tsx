@@ -76,7 +76,7 @@ const translations: TranslationDict = {
   viewMaterials: { en: "View Materials", fr: "Voir les Supports" },
   materials: { en: "Course Materials", fr: "Supports de Cours" },
   availableSubjects: { en: "Available Optional Subjects", fr: "Matières Facultatives Disponibles" },
-  exams: { en: "Online Exams", fr: "Examens en Ligne" },
+  exams: { en: "Exams & Schedules", fr: "Examens & Calendrier" },
   takeExam: { en: "Take Exam", fr: "Passer l'Examen" },
   createExam: { en: "Create Exam", fr: "Créer un Examen" },
   examResults: { en: "Exam Results", fr: "Résultats d'Examen" },
