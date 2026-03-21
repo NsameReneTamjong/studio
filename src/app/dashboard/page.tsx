@@ -64,21 +64,6 @@ export default function DashboardPage() {
     { name: 'Exams', amount: 300000 },
   ];
 
-  // Mock data for Librarian/Admin Library Charts
-  const circulationData = [
-    { name: 'Available', value: 1200, color: '#10b981' },
-    { name: 'Borrowed', value: 450, color: '#264D73' },
-    { name: 'Overdue', value: 85, color: '#ef4444' },
-  ];
-
-  const bookCategoryPopularity = [
-    { name: 'Science', loans: 320 },
-    { name: 'Literature', loans: 280 },
-    { name: 'Math', loans: 150 },
-    { name: 'Tech', loans: 120 },
-    { name: 'Arts', loans: 90 },
-  ];
-
   // Statistics tailored by role
   const stats = user?.role === "SUPER_ADMIN" ? [
     { label: language === "en" ? "Active Schools" : "Écoles Actives", value: "24", icon: Users, color: "text-blue-600" },
@@ -203,18 +188,6 @@ export default function DashboardPage() {
                     formatter={(value: number) => [`${value.toLocaleString()} XAF`, 'Amount']}
                   />
                   <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} barSize={40} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : user?.role === "LIBRARIAN" ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={bookCategoryPopularity}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
-                  <RechartsTooltip 
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
-                  />
-                  <Bar dataKey="loans" fill="hsl(var(--secondary))" radius={[8, 8, 0, 0]} barSize={40} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
