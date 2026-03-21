@@ -34,7 +34,10 @@ import {
   PenTool,
   GraduationCap,
   BarChart3,
-  Presentation
+  Presentation,
+  Award,
+  History,
+  CheckCircle
 } from "lucide-react";
 import { 
   DropdownMenu, 
@@ -92,6 +95,14 @@ const MOCK_TEACHER_SUBJECT_PERFORMANCE = [
   { subject: 'Maths', score: 15.2 },
   { subject: 'Physics', score: 13.8 },
   { subject: 'Science', score: 14.5 },
+];
+
+const MOCK_STUDENT_SUBJECT_PERFORMANCE = [
+  { subject: 'Maths', score: 14.5 },
+  { subject: 'Physics', score: 12.0 },
+  { subject: 'English', score: 17.5 },
+  { subject: 'French', score: 11.0 },
+  { subject: 'History', score: 14.0 },
 ];
 
 export default function CommunityPage() {
@@ -386,6 +397,139 @@ export default function CommunityPage() {
                         </Table>
                       </CardContent>
                     </Card>
+                  </div>
+                </div>
+              </div>
+            ) : viewingUser?.role === 'STUDENT' ? (
+              <div className="space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Card className="border-none bg-blue-50 p-6 rounded-2xl">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                        <CheckCircle className="w-5 h-5" />
+                      </div>
+                      <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Overall Attendance</p>
+                    </div>
+                    <p className="text-3xl font-black text-blue-900">98.2%</p>
+                    <p className="text-[10px] text-blue-600/60 font-bold mt-1">Institutional Leader</p>
+                  </Card>
+                  <Card className="border-none bg-amber-50 p-6 rounded-2xl">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 bg-amber-100 rounded-lg text-amber-600">
+                        <Award className="w-5 h-5" />
+                      </div>
+                      <p className="text-[10px] font-black uppercase text-amber-600 tracking-widest">General Average</p>
+                    </div>
+                    <p className="text-3xl font-black text-amber-900">15.40/20</p>
+                    <p className="text-[10px] text-amber-600/60 font-bold mt-1">Current Term Ranking: 04/42</p>
+                  </Card>
+                  <Card className="border-none bg-emerald-50 p-6 rounded-2xl">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600">
+                        <PenTool className="w-5 h-5" />
+                      </div>
+                      <p className="text-[10px] font-black uppercase text-emerald-600 tracking-widest">Task Compliance</p>
+                    </div>
+                    <p className="text-3xl font-black text-emerald-900">100%</p>
+                    <p className="text-[10px] text-emerald-600/60 font-bold mt-1">12/12 Assignments Submitted</p>
+                  </Card>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                  <div className="lg:col-span-7">
+                    <Card className="border-none shadow-sm p-6 rounded-3xl h-full">
+                      <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-sm font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                          <BarChart3 className="w-4 h-4" /> Academic Performance Index
+                        </h3>
+                        <Badge variant="outline" className="text-[10px]">CURRENT TERM BULLENTIN</Badge>
+                      </div>
+                      <div className="h-[250px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={MOCK_STUDENT_SUBJECT_PERFORMANCE}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
+                            <XAxis dataKey="subject" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                            <YAxis domain={[0, 20]} axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
+                            <RechartsTooltip 
+                              contentStyle={{ borderRadius: '12px', border: 'none', shadow: 'none' }}
+                              cursor={{ fill: 'rgba(0,0,0,0.05)' }}
+                            />
+                            <Bar dataKey="score" radius={[6, 6, 0, 0]} barSize={40}>
+                              {MOCK_STUDENT_SUBJECT_PERFORMANCE.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.score >= 12 ? 'hsl(var(--primary))' : '#ef4444'} />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </Card>
+                  </div>
+                  <div className="lg:col-span-5">
+                    <Card className="border-none shadow-sm overflow-hidden rounded-3xl h-full">
+                      <CardHeader className="bg-accent/30 p-4 border-b">
+                        <CardTitle className="text-xs uppercase font-black tracking-widest">Enrolled Courses</CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        <Table>
+                          <TableBody>
+                            {[
+                              { name: 'Mathematics', teacher: 'Prof. Smith', attendance: '100%' },
+                              { name: 'Physics', teacher: 'Dr. Tesla', attendance: '95%' },
+                              { name: 'English', teacher: 'Ms. Bennet', attendance: '100%' },
+                              { name: 'Chemistry', teacher: 'Dr. White', attendance: '98%' },
+                              { name: 'History', teacher: 'Mr. Jones', attendance: '100%' },
+                            ].map((course, i) => (
+                              <TableRow key={i} className="hover:bg-accent/10 border-b border-accent/20">
+                                <TableCell className="font-bold text-xs">{course.name}</TableCell>
+                                <TableCell className="text-[10px] text-muted-foreground">{course.teacher}</TableCell>
+                                <TableCell className="text-right">
+                                  <Badge variant="ghost" className="text-green-600 text-[9px] h-5 font-black">{course.attendance}</Badge>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-sm font-black text-primary uppercase tracking-widest flex items-center gap-2">
+                    <History className="w-4 h-4" /> Recent Online Exam Results
+                  </h3>
+                  <div className="border rounded-3xl overflow-hidden bg-white shadow-sm">
+                    <Table>
+                      <TableHeader className="bg-accent/30">
+                        <TableRow>
+                          <TableHead className="pl-6 py-4 uppercase text-[10px] font-black">Exam Title</TableHead>
+                          <TableHead className="uppercase text-[10px] font-black">Subject</TableHead>
+                          <TableHead className="text-center uppercase text-[10px] font-black">Score Card</TableHead>
+                          <TableHead className="text-center uppercase text-[10px] font-black">Percentage</TableHead>
+                          <TableHead className="pr-6 text-right uppercase text-[10px] font-black">Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {[
+                          { title: 'Mid-Term Physics MCQ', subject: 'Physics', score: '18/20', percent: '90%', status: 'PASSED', date: 'May 14' },
+                          { title: 'Calculus Quiz 1', subject: 'Mathematics', score: '15/20', percent: '75%', status: 'PASSED', date: 'May 10' },
+                          { title: 'Unit 1: English Poetry', subject: 'English', score: '19/20', percent: '95%', status: 'PASSED', date: 'May 05' },
+                        ].map((res, i) => (
+                          <TableRow key={i} className="hover:bg-accent/5">
+                            <TableCell className="pl-6 py-4">
+                              <span className="font-bold text-sm text-primary">{res.title}</span>
+                              <p className="text-[10px] text-muted-foreground uppercase">{res.date}</p>
+                            </TableCell>
+                            <TableCell className="text-xs font-medium text-muted-foreground">{res.subject}</TableCell>
+                            <TableCell className="text-center font-black text-primary">{res.score}</TableCell>
+                            <TableCell className="text-center font-mono font-bold text-primary">{res.percent}</TableCell>
+                            <TableCell className="pr-6 text-right">
+                              <Badge className="bg-green-100 text-green-700 border-none text-[9px] font-black px-3">{res.status}</Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
                 </div>
               </div>
