@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Label } from "@/components/ui/label";
 import { 
   Library, 
   Search, 
@@ -27,7 +27,12 @@ import {
   Loader2,
   Bookmark,
   Info,
-  BookOpen
+  BookOpen,
+  Settings2,
+  Coins,
+  AlertCircle,
+  Save,
+  Users
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -66,6 +71,16 @@ export default function LibraryPage() {
   const [loans, setLoans] = useState(MOCK_LOANS);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Librarian Settings State
+  const [librarySettings, setLibrarySettings] = useState({
+    loanDuration: "14",
+    overdueFine: "500",
+    maxBooks: "3",
+    reservationBuffer: "48"
+  });
+
+  const isLibrarian = user?.role === "LIBRARIAN";
+
   const filteredBooks = MOCK_BOOKS.filter(b => 
     b.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
     b.author.toLowerCase().includes(searchTerm.toLowerCase())
@@ -81,7 +96,7 @@ export default function LibraryPage() {
         bookTitle: borrowingBook.title,
         author: borrowingBook.author,
         borrowDate: new Date().toLocaleDateString(),
-        returnDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+        returnDate: new Date(Date.now() + parseInt(librarySettings.loanDuration) * 24 * 60 * 60 * 1000).toLocaleDateString(),
         status: "Active",
         collectionCode: `IGN-${Math.floor(100 + Math.random() * 899)}-${String.fromCharCode(65 + Math.floor(Math.random() * 26))}`
       };
@@ -98,6 +113,17 @@ export default function LibraryPage() {
     }, 1500);
   };
 
+  const handleSaveSettings = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      setIsProcessing(false);
+      toast({
+        title: "Policy Updated",
+        description: "Library borrowing and fine rules have been synchronized school-wide.",
+      });
+    }, 1000);
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -109,25 +135,36 @@ export default function LibraryPage() {
             {t("library")}
           </h1>
           <p className="text-muted-foreground mt-1">
-            {language === 'en' ? "Browse books, borrow resources, and manage your academic reading." : "Parcourez les livres, empruntez des ressources et gérez vos lectures."}
+            {isLibrarian 
+              ? (language === 'en' ? "Manage collection policies, circulation, and book catalog." : "Gérez les politiques de collection, la circulation et le catalogue.")
+              : (language === 'en' ? "Browse books, borrow resources, and manage your academic reading." : "Parcourez les livres, empruntez des ressources et gérez vos lectures.")
+            }
           </p>
         </div>
       </div>
 
       <Tabs defaultValue="catalog" className="w-full">
-        <TabsList className="grid grid-cols-2 w-full md:w-[400px] bg-white shadow-sm border h-auto p-1 rounded-2xl">
+        <TabsList className={cn(
+          "grid w-full bg-white shadow-sm border h-auto p-1 rounded-2xl",
+          isLibrarian ? "grid-cols-3 md:w-[600px]" : "grid-cols-2 md:w-[400px]"
+        )}>
           <TabsTrigger value="catalog" className="gap-2 py-3 rounded-xl transition-all">
             <Book className="w-4 h-4" /> {language === 'en' ? 'Catalog' : 'Catalogue'}
           </TabsTrigger>
           <TabsTrigger value="borrowed" className="gap-2 py-3 rounded-xl transition-all relative">
             <Clock className="w-4 h-4" /> 
-            {t("borrowed")}
+            {isLibrarian ? (language === 'en' ? 'Circulation' : 'Circulation') : t("borrowed")}
             {loans.length > 0 && (
               <span className="absolute -top-1 -right-1 w-5 h-5 bg-secondary text-primary text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white shadow-sm">
                 {loans.length}
               </span>
             )}
           </TabsTrigger>
+          {isLibrarian && (
+            <TabsTrigger value="settings" className="gap-2 py-3 rounded-xl transition-all">
+              <Settings2 className="w-4 h-4" /> {language === 'en' ? 'Settings' : 'Paramètres'}
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="catalog" className="mt-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -269,6 +306,125 @@ export default function LibraryPage() {
             )}
           </div>
         </TabsContent>
+
+        {isLibrarian && (
+          <TabsContent value="settings" className="mt-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              <div className="lg:col-span-7 space-y-6">
+                <Card className="border-none shadow-xl rounded-3xl overflow-hidden bg-white">
+                  <CardHeader className="bg-primary text-white p-8">
+                    <CardTitle className="text-2xl font-black tracking-tight">Library Policy Configuration</CardTitle>
+                    <CardDescription className="text-white/60">Define global rules for book circulation and institutional fines.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-8 space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Standard Loan Duration (Days)</Label>
+                        <div className="relative">
+                          <Input 
+                            type="number" 
+                            className="h-12 bg-accent/30 border-none rounded-xl pl-12 text-lg font-bold"
+                            value={librarySettings.loanDuration}
+                            onChange={(e) => setLibrarySettings({...librarySettings, loanDuration: e.target.value})}
+                          />
+                          <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary opacity-40" />
+                        </div>
+                        <p className="text-[10px] text-muted-foreground">Default time allowed before a book is marked as overdue.</p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Overdue Fine Rate (XAF/Day)</Label>
+                        <div className="relative">
+                          <Input 
+                            type="number" 
+                            className="h-12 bg-accent/30 border-none rounded-xl pl-12 text-lg font-bold text-red-600"
+                            value={librarySettings.overdueFine}
+                            onChange={(e) => setLibrarySettings({...librarySettings, overdueFine: e.target.value})}
+                          />
+                          <Coins className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-red-600 opacity-40" />
+                        </div>
+                        <p className="text-[10px] text-muted-foreground">Penalty charged daily for each day past the return date.</p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Max Books per Student</Label>
+                        <div className="relative">
+                          <Input 
+                            type="number" 
+                            className="h-12 bg-accent/30 border-none rounded-xl pl-12 text-lg font-bold"
+                            value={librarySettings.maxBooks}
+                            onChange={(e) => setLibrarySettings({...librarySettings, maxBooks: e.target.value})}
+                          />
+                          <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary opacity-40" />
+                        </div>
+                        <p className="text-[10px] text-muted-foreground">Limit the number of active loans per user ID.</p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Hold Buffer (Hours)</Label>
+                        <div className="relative">
+                          <Input 
+                            type="number" 
+                            className="h-12 bg-accent/30 border-none rounded-xl pl-12 text-lg font-bold"
+                            value={librarySettings.reservationBuffer}
+                            onChange={(e) => setLibrarySettings({...librarySettings, reservationBuffer: e.target.value})}
+                          />
+                          <Bookmark className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary opacity-40" />
+                        </div>
+                        <p className="text-[10px] text-muted-foreground">How long a reserved book is kept on the shelf.</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="p-8 pt-0 flex justify-end">
+                    <Button 
+                      onClick={handleSaveSettings} 
+                      disabled={isProcessing}
+                      className="h-12 px-8 rounded-xl shadow-xl font-black uppercase tracking-widest gap-2"
+                    >
+                      {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                      Update Library Policy
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </div>
+
+              <div className="lg:col-span-5 space-y-6">
+                <Card className="border-none shadow-lg bg-secondary text-primary overflow-hidden">
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <ShieldCheck className="w-5 h-5" /> Enforcement Summary
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="bg-white/20 p-4 rounded-2xl space-y-3">
+                      <div className="flex justify-between items-center text-xs font-bold">
+                        <span className="uppercase tracking-widest opacity-70">Current Penalty Load</span>
+                        <span className="text-red-600">Active</span>
+                      </div>
+                      <p className="text-2xl font-black tracking-tight">12,500 XAF</p>
+                      <p className="text-[10px] opacity-60">Total outstanding fines across all student accounts.</p>
+                    </div>
+                    
+                    <div className="pt-2">
+                       <Button variant="ghost" className="w-full justify-between text-primary/70 hover:bg-white/10 h-10 px-4 rounded-xl">
+                          <span className="text-xs font-bold">Download Fine Reports</span>
+                          <Download className="w-4 h-4" />
+                       </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <div className="p-6 bg-amber-50 rounded-3xl border border-amber-100 flex gap-4">
+                   <AlertCircle className="w-6 h-6 text-amber-600 shrink-0" />
+                   <div className="space-y-1">
+                      <h4 className="font-bold text-amber-900 text-sm">Policy Governance</h4>
+                      <p className="text-[11px] text-amber-800 leading-relaxed">Changes to these settings affect future loans immediately. Students with existing overdue books will be notified of any changes to the fine rate via the dashboard alert system.</p>
+                   </div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+        )}
       </Tabs>
 
       {/* Borrow Confirmation Dialog */}
@@ -297,7 +453,7 @@ export default function LibraryPage() {
                   <p className="text-xs font-bold text-muted-foreground uppercase">{borrowingBook.author}</p>
                   <div className="flex items-center gap-2 mt-3 text-secondary bg-secondary/10 w-fit px-3 py-1 rounded-full">
                     <Clock className="w-3.5 h-3.5" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">14 Day Loan</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest">{librarySettings.loanDuration} Day Loan</span>
                   </div>
                 </div>
               </div>
@@ -305,7 +461,7 @@ export default function LibraryPage() {
 
             <div className="bg-primary/5 p-4 rounded-xl text-[11px] text-muted-foreground italic flex gap-3 items-start">
                <ShieldCheck className="w-4 h-4 shrink-0 text-primary mt-0.5" />
-               <p>By confirming, you agree to return the resource in good condition by the specified deadline.</p>
+               <p>By confirming, you agree to return the resource in good condition by the specified deadline of {librarySettings.loanDuration} days.</p>
             </div>
           </div>
           <DialogFooter className="p-6 bg-accent/30 flex sm:flex-row gap-3 pt-0">
