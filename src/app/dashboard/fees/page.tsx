@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   Coins, 
   Plus, 
@@ -30,7 +31,8 @@ import {
   History,
   ShieldCheck,
   QrCode,
-  Loader2
+  Loader2,
+  Settings2
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -38,8 +40,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
-// Mock Data
-const FEE_TYPES = [
+// Initial Mock Data
+const INITIAL_FEE_TYPES = [
   { id: "FT1", name: "Tuition Fee", amount: 150000, description: "Main academic fees for current term." },
   { id: "FT2", name: "Uniform Package", amount: 25000, description: "Mandatory school uniform and gym kit." },
   { id: "FT3", name: "Exam Registration", amount: 10000, description: "Sequence evaluation processing fee." },
@@ -65,10 +67,18 @@ export default function BursarFeesPage() {
   
   const [activeTab, setActiveTab] = useState("collect");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [feeTypes, setFeeTypes] = useState(INITIAL_FEE_TYPES);
+  
+  // Payment Collection State
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [selectedFeeType, setSelectedFeeType] = useState<any>(null);
   const [paymentAmount, setPaymentAmount] = useState("");
   const [previewReceipt, setPreviewReceipt] = useState<any>(null);
+
+  // Fee Type Management State
+  const [isFeeModalOpen, setIsFeeModalOpen] = useState(false);
+  const [editingFee, setEditingFee] = useState<any>(null);
+  const [feeFormData, setFeeFormData] = useState({ name: "", amount: "", description: "" });
 
   const handleCollectPayment = () => {
     if (!selectedStudent || !selectedFeeType || !paymentAmount) return;
@@ -95,11 +105,43 @@ export default function BursarFeesPage() {
         description: `Successfully processed ${receiptData.amount} for ${receiptData.studentName}.`,
       });
       
-      // Reset form
       setSelectedStudent(null);
       setSelectedFeeType(null);
       setPaymentAmount("");
     }, 1500);
+  };
+
+  const openFeeModal = (fee?: any) => {
+    if (fee) {
+      setEditingFee(fee);
+      setFeeFormData({ name: fee.name, amount: fee.amount.toString(), description: fee.description });
+    } else {
+      setEditingFee(null);
+      setFeeFormData({ name: "", amount: "", description: "" });
+    }
+    setIsFeeModalOpen(true);
+  };
+
+  const handleSaveFee = () => {
+    if (!feeFormData.name || !feeFormData.amount) {
+      toast({ variant: "destructive", title: "Missing Data", description: "Please fill in the fee name and amount." });
+      return;
+    }
+
+    if (editingFee) {
+      setFeeTypes(prev => prev.map(f => f.id === editingFee.id ? { ...f, ...feeFormData, amount: parseInt(feeFormData.amount) } : f));
+      toast({ title: "Structure Updated", description: `${feeFormData.name} has been modified.` });
+    } else {
+      const newFee = {
+        id: `FT${feeTypes.length + 1}`,
+        name: feeFormData.name,
+        amount: parseInt(feeFormData.amount),
+        description: feeFormData.description
+      };
+      setFeeTypes(prev => [...prev, newFee]);
+      toast({ title: "New Fee Added", description: `${feeFormData.name} is now available for collection.` });
+    }
+    setIsFeeModalOpen(false);
   };
 
   return (
@@ -179,12 +221,12 @@ export default function BursarFeesPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Fee Type</Label>
-                      <Select onValueChange={(val) => setSelectedFeeType(FEE_TYPES.find(f => f.id === val))}>
+                      <Select onValueChange={(val) => setSelectedFeeType(feeTypes.find(f => f.id === val))}>
                         <SelectTrigger className="h-12 rounded-xl bg-accent/30 border-none">
                           <SelectValue placeholder="Select cost center" />
                         </SelectTrigger>
                         <SelectContent>
-                          {FEE_TYPES.map(f => (
+                          {feeTypes.map(f => (
                             <SelectItem key={f.id} value={f.id}>{f.name} ({f.amount.toLocaleString()} XAF)</SelectItem>
                           ))}
                         </SelectContent>
@@ -334,7 +376,10 @@ export default function BursarFeesPage() {
         {/* FEE STRUCTURE TAB */}
         <TabsContent value="structure" className="mt-8 animate-in fade-in slide-in-from-bottom-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card className="border-2 border-dashed border-accent bg-accent/5 hover:bg-accent/10 transition-colors flex flex-col items-center justify-center p-8 text-center cursor-pointer group">
+            <Card 
+              className="border-2 border-dashed border-accent bg-accent/5 hover:bg-accent/10 transition-colors flex flex-col items-center justify-center p-8 text-center cursor-pointer group h-full"
+              onClick={() => openFeeModal()}
+            >
                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform mb-4">
                   <Plus className="w-6 h-6 text-primary" />
                </div>
@@ -342,16 +387,13 @@ export default function BursarFeesPage() {
                <p className="text-xs text-muted-foreground mt-1">Define a new cost center for the institution.</p>
             </Card>
             
-            {FEE_TYPES.map((type) => (
-              <Card key={type.id} className="border-none shadow-sm relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                   <Button variant="ghost" size="icon" className="h-8 w-8"><ArrowUpRight className="w-4 h-4"/></Button>
-                </div>
+            {feeTypes.map((type) => (
+              <Card key={type.id} className="border-none shadow-sm relative overflow-hidden group flex flex-col">
                 <CardHeader className="bg-accent/30 pb-4">
                   <Badge variant="outline" className="w-fit text-[9px] font-black tracking-widest border-primary/10 text-primary/60 mb-2">ID: {type.id}</Badge>
                   <CardTitle className="text-lg">{type.name}</CardTitle>
                 </CardHeader>
-                <CardContent className="pt-4 space-y-4">
+                <CardContent className="pt-4 space-y-4 flex-1">
                   <p className="text-xs text-muted-foreground leading-relaxed">{type.description}</p>
                   <div className="pt-2 border-t border-accent flex justify-between items-center">
                     <span className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Base Amount</span>
@@ -359,13 +401,65 @@ export default function BursarFeesPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="pt-0">
-                  <Button variant="outline" className="w-full h-9 text-xs font-bold gap-2">Edit Structure</Button>
+                  <Button 
+                    variant="outline" 
+                    className="w-full h-9 text-xs font-bold gap-2"
+                    onClick={() => openFeeModal(type)}
+                  >
+                    <Settings2 className="w-3 h-3" /> Edit Structure
+                  </Button>
                 </CardFooter>
               </Card>
             ))}
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* FEE MODAL (Add/Edit) */}
+      <Dialog open={isFeeModalOpen} onOpenChange={setIsFeeModalOpen}>
+        <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="bg-primary p-6 text-white">
+            <DialogTitle className="text-xl font-black tracking-tight">
+              {editingFee ? 'Modify Fee Structure' : 'New Institutional Fee'}
+            </DialogTitle>
+            <DialogDescription className="text-white/60">Define parameters for this institutional cost center.</DialogDescription>
+          </DialogHeader>
+          <div className="p-6 space-y-4">
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Fee Name</Label>
+              <Input 
+                placeholder="e.g. Laboratory Package" 
+                className="h-11 bg-accent/30 border-none rounded-xl"
+                value={feeFormData.name}
+                onChange={(e) => setFeeFormData({...feeFormData, name: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Base Amount (XAF)</Label>
+              <Input 
+                type="number" 
+                placeholder="0" 
+                className="h-11 bg-accent/30 border-none rounded-xl font-bold"
+                value={feeFormData.amount}
+                onChange={(e) => setFeeFormData({...feeFormData, amount: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Description</Label>
+              <Textarea 
+                placeholder="Brief purpose of this fee..." 
+                className="min-h-[100px] bg-accent/30 border-none rounded-xl"
+                value={feeFormData.description}
+                onChange={(e) => setFeeFormData({...feeFormData, description: e.target.value})}
+              />
+            </div>
+          </div>
+          <DialogFooter className="p-6 bg-accent/30 border-t border-accent flex sm:flex-row gap-3">
+            <Button variant="ghost" className="flex-1 rounded-xl h-11" onClick={() => setIsFeeModalOpen(false)}>Cancel</Button>
+            <Button className="flex-1 rounded-xl h-11 shadow-lg font-bold" onClick={handleSaveFee}>Save Structure</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* RECEIPT PREVIEW DIALOG */}
       <Dialog open={!!previewReceipt} onOpenChange={() => setPreviewReceipt(null)}>
