@@ -29,7 +29,8 @@ import {
   FileEdit,
   Library,
   Coins,
-  Receipt
+  Receipt,
+  UsersRound
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -66,6 +67,12 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       icon: MessageSquare,
       href: "/dashboard/feedback",
       roles: ["SUPER_ADMIN", "SCHOOL_ADMIN"],
+    },
+    {
+      label: language === 'en' ? 'Community' : 'Communauté',
+      icon: UsersRound,
+      href: "/dashboard/community",
+      roles: ["SCHOOL_ADMIN"],
     },
     {
       label: t("chat"),
