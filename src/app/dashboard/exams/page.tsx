@@ -21,12 +21,19 @@ import {
   Timer,
   BookOpen,
   FileText,
-  Printer
+  Printer,
+  Users,
+  TrendingUp,
+  User,
+  XCircle,
+  BarChart3
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 // Mock Data
 const MOCK_EXAMS = [
@@ -59,7 +66,9 @@ const MOCK_SUBMISSIONS = [
     score: 18, 
     total: 20, 
     passed: true, 
-    date: "May 12, 2024" 
+    date: "May 12, 2024",
+    studentName: "Alice Thompson",
+    studentAvatar: "https://picsum.photos/seed/s1/100/100"
   },
   { 
     id: "S2", 
@@ -67,7 +76,29 @@ const MOCK_SUBMISSIONS = [
     score: 12, 
     total: 20, 
     passed: false, 
-    date: "May 08, 2024" 
+    date: "May 08, 2024",
+    studentName: "Bob Richards",
+    studentAvatar: "https://picsum.photos/seed/s2/100/100"
+  },
+  { 
+    id: "S3", 
+    examTitle: "Unit 1: English Poetry", 
+    score: 15, 
+    total: 20, 
+    passed: true, 
+    date: "May 12, 2024",
+    studentName: "Diana Prince",
+    studentAvatar: "https://picsum.photos/seed/s4/100/100"
+  },
+  { 
+    id: "S4", 
+    examTitle: "Mid-Term Physics MCQ", 
+    score: 19, 
+    total: 20, 
+    passed: true, 
+    date: "May 14, 2024",
+    studentName: "Charlie Davis",
+    studentAvatar: "https://picsum.photos/seed/s3/100/100"
   }
 ];
 
@@ -269,51 +300,155 @@ export default function ExamsPage() {
         </TabsContent>
 
         <TabsContent value="results" className="mt-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {MOCK_SUBMISSIONS.filter(s => s.passed).map((sub) => (
-              <CertificateCard key={sub.id} submission={sub} />
-            ))}
-            
-            <Card className="md:col-span-full border-none bg-accent/20 border border-accent">
-               <CardHeader>
-                 <CardTitle className="text-lg">Recent Scorecard</CardTitle>
-                 <CardDescription>View performance for all attempts.</CardDescription>
-               </CardHeader>
-               <CardContent className="p-0">
-                  <div className="space-y-1">
-                    {MOCK_SUBMISSIONS.map((sub) => (
-                      <div key={sub.id} className="flex items-center justify-between p-4 bg-white border-b last:border-0">
-                        <div className="flex items-center gap-4">
-                          <div className={cn(
-                            "p-2 rounded-lg",
-                            sub.passed ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                          )}>
-                            {sub.passed ? <CheckCircle2 className="w-5 h-5" /> : <Award className="w-5 h-5 opacity-40" />}
-                          </div>
-                          <div>
-                            <p className="font-bold text-sm">{sub.examTitle}</p>
-                            <p className="text-[10px] text-muted-foreground uppercase">{sub.date}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <div className="text-right">
-                            <p className="font-bold text-primary">{sub.score}/{sub.total}</p>
-                            <Badge variant={sub.passed ? "default" : "destructive"} className="text-[9px] h-4">
-                              {sub.passed ? t("passed") : t("failed")}
-                            </Badge>
-                          </div>
-                          <Button variant="ghost" size="icon" asChild>
-                             <Link href={`/dashboard/exams/results?id=${sub.id}`}>
-                                <ChevronRight className="w-4 h-4" />
-                             </Link>
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+          {isTeacher ? (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card className="border-none shadow-sm bg-primary text-white">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xs uppercase font-bold text-white/60 tracking-widest">Avg. Performance</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-black">84.5%</div>
+                    <p className="text-[10px] opacity-60 flex items-center gap-1 mt-1"><TrendingUp className="w-3 h-3"/> +2.4% from last period</p>
+                  </CardContent>
+                </Card>
+                <Card className="border-none shadow-sm">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xs uppercase font-bold text-muted-foreground tracking-widest">Passing Rate</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-black text-green-600">92%</div>
+                    <p className="text-[10px] text-muted-foreground mt-1">Institutional target met</p>
+                  </CardContent>
+                </Card>
+                <Card className="border-none shadow-sm">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xs uppercase font-bold text-muted-foreground tracking-widest">Total Attempts</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-black text-primary">124</div>
+                    <p className="text-[10px] text-muted-foreground mt-1">Across 5 exams</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Card className="border-none shadow-xl overflow-hidden">
+                <CardHeader className="bg-accent/30 border-b flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <BarChart3 className="w-5 h-5 text-primary" />
+                      Student Performance Registry
+                    </CardTitle>
+                    <CardDescription>Academic Year 2023/2024 - Sequence 1 & 2 Results</CardDescription>
                   </div>
-               </CardContent>
-            </Card>
-          </div>
+                  <Button variant="outline" className="gap-2 shadow-sm">
+                    <Printer className="w-4 h-4" /> Export Report
+                  </Button>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50 uppercase text-[10px] font-black tracking-widest">
+                        <TableHead className="pl-6 py-4">Student Profile</TableHead>
+                        <TableHead>Exam Title</TableHead>
+                        <TableHead className="text-center">Score Card</TableHead>
+                        <TableHead className="text-center">Status</TableHead>
+                        <TableHead className="text-right pr-6">Date Recorded</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {MOCK_SUBMISSIONS.map((sub) => (
+                        <TableRow key={sub.id} className="hover:bg-accent/5">
+                          <TableCell className="pl-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-9 w-9 border-2 border-white shadow-sm">
+                                <AvatarImage src={sub.studentAvatar} />
+                                <AvatarFallback className="bg-primary/5 text-primary text-[10px] font-bold">
+                                  {sub.studentName.charAt(0)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-bold text-sm text-primary leading-none mb-1">{sub.studentName}</p>
+                                <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter">Matricule: {sub.id}</p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-medium text-xs text-muted-foreground bg-accent/20 px-2 py-1 rounded-md border">
+                              {sub.examTitle}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="inline-flex items-baseline gap-1">
+                              <span className="text-base font-black text-primary">{sub.score}</span>
+                              <span className="text-[10px] font-bold text-muted-foreground">/ {sub.total}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge className={cn(
+                              "text-[9px] font-black uppercase tracking-tighter border-none px-3",
+                              sub.passed ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                            )}>
+                              {sub.passed ? 'PASSED' : 'FAILED'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right pr-6 font-mono text-[10px] text-muted-foreground uppercase font-bold">
+                            {sub.date}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {MOCK_SUBMISSIONS.filter(s => s.passed).map((sub) => (
+                <CertificateCard key={sub.id} submission={sub} />
+              ))}
+              
+              <Card className="md:col-span-full border-none bg-accent/20 border border-accent">
+                 <CardHeader>
+                   <CardTitle className="text-lg">Recent Scorecard</CardTitle>
+                   <CardDescription>View performance for all attempts.</CardDescription>
+                 </CardHeader>
+                 <CardContent className="p-0">
+                    <div className="space-y-1">
+                      {MOCK_SUBMISSIONS.map((sub) => (
+                        <div key={sub.id} className="flex items-center justify-between p-4 bg-white border-b last:border-0">
+                          <div className="flex items-center gap-4">
+                            <div className={cn(
+                              "p-2 rounded-lg",
+                              sub.passed ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                            )}>
+                              {sub.passed ? <CheckCircle2 className="w-5 h-5" /> : <XCircle className="w-5 h-5 opacity-40" />}
+                            </div>
+                            <div>
+                              <p className="font-bold text-sm">{sub.examTitle}</p>
+                              <p className="text-[10px] text-muted-foreground uppercase">{sub.date}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <div className="text-right">
+                              <p className="font-bold text-primary">{sub.score}/{sub.total}</p>
+                              <Badge variant={sub.passed ? "default" : "destructive"} className="text-[9px] h-4">
+                                {sub.passed ? t("passed") : t("failed")}
+                              </Badge>
+                            </div>
+                            <Button variant="ghost" size="icon" asChild>
+                               <Link href={`/dashboard/exams/results?id=${sub.id}`}>
+                                  <ChevronRight className="w-4 h-4" />
+                               </Link>
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                 </CardContent>
+              </Card>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>
