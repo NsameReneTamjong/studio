@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth, type SchoolInfo } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Building2, Save, Loader2, Image as ImageIcon, MapPin, Quote, FileText, Globe, Upload, Phone, Mail, Hash, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Building2, Save, Loader2, Image as ImageIcon, MapPin, Quote, FileText, Globe, Upload, Phone, Mail, Hash, ShieldCheck, CheckCircle2, Map } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function SchoolSettingsPage() {
@@ -22,7 +22,10 @@ export default function SchoolSettingsPage() {
     name: user?.school?.name || "",
     motto: user?.school?.motto || "",
     description: user?.school?.description || "",
-    location: user?.school?.location || "",
+    region: user?.school?.region || "",
+    division: user?.school?.division || "",
+    subDivision: user?.school?.subDivision || "",
+    cityVillage: user?.school?.cityVillage || "",
     address: user?.school?.address || "",
     postalCode: user?.school?.postalCode || "",
     phone: user?.school?.phone || "",
@@ -71,7 +74,9 @@ export default function SchoolSettingsPage() {
     setLoading(true);
     // Simulated update delay
     setTimeout(() => {
-      updateSchool(formData);
+      // Create a combined location string for display components
+      const location = `${formData.cityVillage}, ${formData.region}`;
+      updateSchool({ ...formData, location } as Partial<SchoolInfo>);
       setLoading(false);
       toast({
         title: t("changesSaved"),
@@ -161,23 +166,39 @@ export default function SchoolSettingsPage() {
             <CardContent className="space-y-6 pt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">City / Region</Label>
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Region</Label>
                   <Input 
-                    value={formData.location} 
-                    onChange={(e) => setFormData({...formData, location: e.target.value})}
+                    value={formData.region} 
+                    onChange={(e) => setFormData({...formData, region: e.target.value})}
                     className="bg-accent/30 border-none h-11 rounded-xl"
-                    placeholder="e.g. Douala, Littoral"
+                    placeholder="e.g. Littoral"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                    <Hash className="w-3 h-3" /> Postal Code / B.P.
-                  </Label>
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Division</Label>
                   <Input 
-                    value={formData.postalCode} 
-                    onChange={(e) => setFormData({...formData, postalCode: e.target.value})}
+                    value={formData.division} 
+                    onChange={(e) => setFormData({...formData, division: e.target.value})}
                     className="bg-accent/30 border-none h-11 rounded-xl"
-                    placeholder="e.g. B.P. 1234"
+                    placeholder="e.g. Wouri"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Sub-division</Label>
+                  <Input 
+                    value={formData.subDivision} 
+                    onChange={(e) => setFormData({...formData, subDivision: e.target.value})}
+                    className="bg-accent/30 border-none h-11 rounded-xl"
+                    placeholder="e.g. Douala I"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">City / Village</Label>
+                  <Input 
+                    value={formData.cityVillage} 
+                    onChange={(e) => setFormData({...formData, cityVillage: e.target.value})}
+                    className="bg-accent/30 border-none h-11 rounded-xl"
+                    placeholder="e.g. Douala"
                   />
                 </div>
                 <div className="col-span-2 space-y-2">
@@ -191,6 +212,17 @@ export default function SchoolSettingsPage() {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <Hash className="w-3 h-3" /> Postal Code / B.P.
+                  </Label>
+                  <Input 
+                    value={formData.postalCode} 
+                    onChange={(e) => setFormData({...formData, postalCode: e.target.value})}
+                    className="bg-accent/30 border-none h-11 rounded-xl"
+                    placeholder="e.g. B.P. 1234"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                     <Phone className="w-3 h-3" /> Official Phone Number
                   </Label>
                   <Input 
@@ -200,7 +232,7 @@ export default function SchoolSettingsPage() {
                     placeholder="+237 ..."
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="col-span-2 space-y-2">
                   <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                     <Mail className="w-3 h-3" /> Official Email
                   </Label>

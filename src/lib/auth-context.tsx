@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
@@ -13,7 +12,11 @@ export interface SchoolInfo {
   logo: string;
   banner: string;
   description: string;
-  location: string;
+  location: string; // Combined display location
+  region: string;
+  division: string;
+  subDivision: string;
+  cityVillage: string;
   address: string;
   postalCode?: string;
   phone: string;
@@ -50,6 +53,10 @@ const MOCK_SCHOOLS: Record<string, SchoolInfo> = {
     banner: "https://picsum.photos/seed/joss-banner/1200/600",
     description: "One of the most prestigious secondary institutions in Douala, committed to academic excellence since 1950.",
     location: "Douala, Littoral",
+    region: "Littoral",
+    division: "Wouri",
+    subDivision: "Douala I",
+    cityVillage: "Douala",
     address: "Rue de Joss, Bonanjo",
     postalCode: "B.P. 4015",
     phone: "+237 233 42 10 15",
@@ -63,6 +70,10 @@ const MOCK_SCHOOLS: Record<string, SchoolInfo> = {
     banner: "https://picsum.photos/seed/gbhs-banner/1200/600",
     description: "A leading bilingual institution in the heart of the capital city, shaping the future of Cameroonian youth.",
     location: "Yaoundé, Centre",
+    region: "Centre",
+    division: "Mfoundi",
+    subDivision: "Yaoundé I",
+    cityVillage: "Yaoundé",
     address: "Essos, Avenue de l'Indépendance",
     postalCode: "B.P. 1105",
     phone: "+237 222 30 45 60",
