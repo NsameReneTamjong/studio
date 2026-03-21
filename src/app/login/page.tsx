@@ -55,7 +55,7 @@ export default function LoginPage() {
               <Building2 className="w-8 h-8 text-white" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-primary font-headline">EduNexus</h1>
+          <h1 className="text-3xl font-bold text-primary font-headline">EduIgnite</h1>
           <p className="text-muted-foreground">SaaS Institutional Portal</p>
         </div>
 

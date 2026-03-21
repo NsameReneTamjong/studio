@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -32,8 +33,8 @@ export default function AiAssistantPage() {
       id: "initial",
       role: "assistant",
       content: language === 'en' 
-        ? `Hello ${user?.name}! I'm your EduNexus AI. How can I assist you in your role as a ${user?.role?.replace('_', ' ')} today?`
-        : `Bonjour ${user?.name} ! Je suis votre IA EduNexus. Comment puis-je vous aider dans votre rôle de ${user?.role?.replace('_', ' ')} aujourd'hui ?`,
+        ? `Hello ${user?.name}! I'm your EduIgnite AI. How can I assist you in your role as a ${user?.role?.replace('_', ' ')} today?`
+        : `Bonjour ${user?.name} ! Je suis votre IA EduIgnite. Comment puis-je vous aider dans votre rôle de ${user?.role?.replace('_', ' ')} aujourd'hui ?`,
       timestamp: new Date(),
     }
   ]);
@@ -112,8 +113,8 @@ export default function AiAssistantPage() {
           </h1>
           <p className="text-muted-foreground mt-1">
             {language === 'en' 
-              ? `Your dedicated helper for everything in EduNexus.` 
-              : `Votre aide dédiée pour tout ce qui concerne EduNexus.`}
+              ? `Your dedicated helper for everything in EduIgnite.` 
+              : `Votre aide dédiée pour tout ce qui concerne EduIgnite.`}
           </p>
         </div>
       </div>
@@ -223,7 +224,7 @@ export default function AiAssistantPage() {
               </Button>
             </div>
             <p className="text-[9px] text-center text-muted-foreground opacity-60">
-              EduNexus AI can make mistakes. Check important information.
+              EduIgnite AI can make mistakes. Check important information.
             </p>
           </div>
         </Card>

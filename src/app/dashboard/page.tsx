@@ -62,7 +62,7 @@ export default function DashboardPage() {
         <p className="text-muted-foreground mt-1">
           {user?.role === "PARENT" 
             ? (language === "en" ? "Monitor your children's academic journey here." : "Suivez le parcours académique de vos enfants ici.")
-            : (language === "en" ? "Here's what's happening in EduNexus today." : "Voici ce qui se passe dans EduNexus aujourd'hui.")}
+            : (language === "en" ? "Here's what's happening in EduIgnite today." : "Voici ce qui se passe dans EduIgnite aujourd'hui.")}
         </p>
       </div>
 

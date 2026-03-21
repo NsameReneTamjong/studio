@@ -6,7 +6,7 @@ import { I18nProvider } from '@/lib/i18n-context';
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: 'EduNexus | School Management System',
+  title: 'EduIgnite | School Management System',
   description: 'The future of institutional management',
 };
 

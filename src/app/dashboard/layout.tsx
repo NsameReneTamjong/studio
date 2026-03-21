@@ -34,7 +34,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <header className="md:hidden flex items-center justify-between px-4 py-3 bg-primary text-white shrink-0">
           <div className="flex items-center gap-2">
             <Building2 className="w-6 h-6 text-secondary" />
-            <span className="font-bold tracking-tight">EduNexus</span>
+            <span className="font-bold tracking-tight">EduIgnite</span>
           </div>
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>

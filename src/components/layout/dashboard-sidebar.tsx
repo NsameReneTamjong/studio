@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -165,7 +166,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
             <div className="bg-secondary p-1.5 rounded-lg">
               <Building2 className="w-6 h-6 text-primary" />
             </div>
-            <span className="text-xl font-bold tracking-tight font-headline">EduNexus</span>
+            <span className="text-xl font-bold tracking-tight font-headline">EduIgnite</span>
           </div>
           <div className="flex items-center gap-2">
             <DropdownMenu>

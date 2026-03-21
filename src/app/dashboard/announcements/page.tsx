@@ -40,7 +40,7 @@ const MOCK_ANNOUNCEMENTS = [
     id: "A003", 
     title: "System Infrastructure Update", 
     target: "All Schools", 
-    content: "EduNexus will undergo a scheduled maintenance on Sunday to improve report card generation speed.", 
+    content: "EduIgnite will undergo a scheduled maintenance on Sunday to improve report card generation speed.", 
     date: "1 day ago",
     senderName: "SaaS Support",
     senderRole: "Super Admin",

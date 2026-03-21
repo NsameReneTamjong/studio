@@ -1,6 +1,7 @@
+
 'use server';
 /**
- * @fileOverview A general-purpose AI assistant for all EduNexus users.
+ * @fileOverview A general-purpose AI assistant for all EduIgnite users.
  *
  * - getAiAssistantResponse - A function that handles general AI queries.
  * - AssistantInput - The input type for the assistant.
@@ -32,7 +33,7 @@ const assistantPrompt = ai.definePrompt({
   name: 'assistantPrompt',
   input: {schema: AssistantInputSchema},
   output: {schema: AssistantOutputSchema},
-  prompt: `You are the EduNexus AI, a highly intelligent and supportive educational assistant integrated into a SaaS school management platform.
+  prompt: `You are the EduIgnite AI, a highly intelligent and supportive educational assistant integrated into a SaaS school management platform.
 
 User Identity:
 - Name: {{{userName}}}

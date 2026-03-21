@@ -174,7 +174,7 @@ export default function ExamResultsPage() {
           </div>
 
           <div className="text-center pt-8">
-             <p className="text-[10px] uppercase font-bold opacity-30 italic">Generated via EduNexus SaaS Platform - Official Digital Document</p>
+             <p className="text-[10px] uppercase font-bold opacity-30 italic">Generated via EduIgnite SaaS Platform - Official Digital Document</p>
           </div>
         </div>
       </div>

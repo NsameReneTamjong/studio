@@ -691,7 +691,7 @@ export default function ChildViewPage() {
                  </div>
                  
                  <div className="text-[9px] text-center italic opacity-60 absolute bottom-4 left-0 right-0">
-                    Document généré via EduNexus SaaS Platform - Portail Institutionnel Camerounais / Cameroon Institutional Portal
+                    Document généré via EduIgnite SaaS Platform - Portail Institutionnel Camerounais / Cameroon Institutional Portal
                  </div>
               </div>
             )}
