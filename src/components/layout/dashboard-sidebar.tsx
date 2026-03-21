@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -129,6 +128,12 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       icon: ClipboardCheck,
       href: "/dashboard/attendance",
       roles: ["TEACHER", "STUDENT"],
+    },
+    {
+      label: t("aiAssistant"),
+      icon: Sparkles,
+      href: "/dashboard/ai-assistant",
+      roles: ["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER", "STUDENT", "PARENT"],
     },
     {
       label: t("aiFeedback"),

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
@@ -19,6 +18,7 @@ const translations: TranslationDict = {
   courses: { en: "My Subjects", fr: "Mes Matières" },
   grades: { en: "Report Card", fr: "Bulletin de Notes" },
   attendance: { en: "Attendance", fr: "Présences" },
+  aiAssistant: { en: "AI Assistant", fr: "Assistant IA" },
   aiFeedback: { en: "AI Feedback", fr: "Feedback IA" },
   schedule: { en: "Schedule", fr: "Emploi du temps" },
   schools: { en: "Schools", fr: "Écoles" },
