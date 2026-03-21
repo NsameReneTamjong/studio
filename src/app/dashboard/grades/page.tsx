@@ -24,7 +24,9 @@ import {
   History,
   CheckCircle2,
   Lock,
-  ChevronRight
+  ChevronRight,
+  Eye,
+  ArrowLeft
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -60,9 +62,10 @@ const MOCK_GRADES_TEACHER = [
   { id: "S005", name: "Ethan Hunt", seq1: 7.5, seq2: 6, coeff: 5 },
 ];
 
-const MOCK_HISTORY_DATA = [
-  { id: "S001", name: "Alice Thompson", math: 15.5, physics: 14.0, english: 17.5, avg: 15.6, rank: "04/42" },
-  { id: "S004", name: "Diana Prince", math: 19.0, physics: 18.5, english: 19.5, avg: 19.0, rank: "01/42" },
+const MOCK_HISTORICAL_SUMMARIES = [
+  { id: "H1", year: "2023/2024", term: "1st Term", passed: 38, failed: 4, percentage: 90.4 },
+  { id: "H2", year: "2022/2023", term: "Annual", passed: 35, failed: 5, percentage: 87.5 },
+  { id: "H3", year: "2022/2023", term: "2nd Term", passed: 32, failed: 8, percentage: 80.0 },
 ];
 
 export default function GradeBookPage() {
@@ -73,6 +76,7 @@ export default function GradeBookPage() {
   const [selectedSubject, setSelectedSubject] = useState("mathématiques");
   const [selectedSequence, setSelectedSequence] = useState("seq1");
   const [isSaving, setIsSaving] = useState(false);
+  const [viewingHistoryDetails, setViewingHistoryDetails] = useState<any>(null);
 
   const isTeacher = user?.role === "TEACHER" || user?.role === "SCHOOL_ADMIN";
   const isParent = user?.role === "PARENT";
@@ -284,7 +288,7 @@ export default function GradeBookPage() {
                   <SelectValue placeholder="Période" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="seq1">Séquence 1</SelectItem>
+                  <SelectItem value="seq1">Séquence 1 (Locked)</SelectItem>
                   <SelectItem value="seq2">Séquence 2</SelectItem>
                   <SelectItem value="seq3">Séquence 3</SelectItem>
                   <SelectItem value="seq4">Séquence 4</SelectItem>
@@ -306,11 +310,18 @@ export default function GradeBookPage() {
                   <Award className="w-5 h-5 text-primary" />
                   Entry Sheet: {CAMEROON_SUBJECTS.find(s => s.name.toLowerCase() === selectedSubject)?.name}
                 </CardTitle>
-                <Badge variant="outline" className="gap-1 bg-secondary/10 text-secondary border-secondary/20">
-                  <TrendingUp className="w-3 h-3"/> Coeff {CAMEROON_SUBJECTS.find(s => s.name.toLowerCase() === selectedSubject)?.coeff || 5}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  {selectedSequence === 'seq1' && (
+                    <Badge variant="destructive" className="gap-1 bg-red-100 text-red-700 border-none">
+                      <Lock className="w-3 h-3"/> Locked
+                    </Badge>
+                  )}
+                  <Badge variant="outline" className="gap-1 bg-secondary/10 text-secondary border-secondary/20">
+                    <TrendingUp className="w-3 h-3"/> Coeff {CAMEROON_SUBJECTS.find(s => s.name.toLowerCase() === selectedSubject)?.coeff || 5}
+                  </Badge>
+                </div>
               </div>
-              <CardDescription className="text-xs md:text-sm">Enter marks out of 20 for {selectedSequence.toUpperCase()}. Calculations are automatic.</CardDescription>
+              <CardDescription className="text-xs md:text-sm">Enter marks out of 20 for {selectedSequence.toUpperCase()}. {selectedSequence === 'seq1' ? "This sequence is locked for modifications." : "Calculations are automatic."}</CardDescription>
             </CardHeader>
             <CardContent className="p-0 overflow-x-auto">
               <Table>
@@ -331,6 +342,7 @@ export default function GradeBookPage() {
                       <TableCell className="text-center">
                         <Input 
                           defaultValue={student.seq1} 
+                          disabled={selectedSequence === 'seq1'}
                           className="w-14 md:w-20 h-8 md:h-9 mx-auto text-center font-bold text-sm bg-accent/10 border-accent focus-visible:ring-primary" 
                           type="number" 
                           step="0.25"
@@ -353,9 +365,9 @@ export default function GradeBookPage() {
             </CardContent>
             <CardFooter className="bg-accent/10 p-4 border-t flex justify-between items-center">
                <p className="text-[10px] text-muted-foreground italic flex items-center gap-1">
-                 <AlertCircle className="w-3 h-3"/> {language === 'en' ? 'Ensure all marks are verified before final submission.' : 'Vérifiez toutes les notes avant la validation finale.'}
+                 <AlertCircle className="w-3 h-3"/> {selectedSequence === 'seq1' ? "Contact Administration to unlock this registry." : "Ensure all marks are verified before final submission."}
                </p>
-               <Button size="sm" className="gap-2 shadow-lg" onClick={handleSaveMarks} disabled={isSaving}>
+               <Button size="sm" className="gap-2 shadow-lg" onClick={handleSaveMarks} disabled={isSaving || selectedSequence === 'seq1'}>
                  <Save className="w-3.5 h-3.5" /> {language === 'en' ? 'Record Marks' : 'Valider'}
                </Button>
             </CardFooter>
@@ -363,66 +375,107 @@ export default function GradeBookPage() {
         </TabsContent>
 
         <TabsContent value="history" className="animate-in fade-in slide-in-from-bottom-2">
-          <div className="grid grid-cols-1 gap-6">
-            <Card className="border-none shadow-sm overflow-hidden">
-              <CardHeader className="bg-primary text-white flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2 text-white">
-                    <Lock className="w-5 h-5 text-secondary" />
-                    Locked Results Registry
-                  </CardTitle>
-                  <CardDescription className="text-white/60">Finalized performance records for past sequences.</CardDescription>
-                </div>
-                <Badge className="bg-white/20 text-white border-none">History View</Badge>
-              </CardHeader>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/50 uppercase text-[10px] font-black tracking-widest">
-                      <TableHead className="pl-6 py-4">Student Profile</TableHead>
-                      <TableHead className="text-center">Maths</TableHead>
-                      <TableHead className="text-center">Physics</TableHead>
-                      <TableHead className="text-center">English</TableHead>
-                      <TableHead className="text-center">Average</TableHead>
-                      <TableHead className="text-right pr-6">Position</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {MOCK_HISTORY_DATA.map((row) => (
-                      <TableRow key={row.id} className="hover:bg-accent/5">
-                        <TableCell className="pl-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary font-bold text-xs border border-primary/10">
-                              {row.name.charAt(0)}
-                            </div>
-                            <div>
-                              <p className="font-bold text-sm text-primary leading-none mb-1">{row.name}</p>
-                              <p className="text-[10px] text-muted-foreground font-mono">{row.id}</p>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center font-mono font-bold">{row.math.toFixed(1)}</TableCell>
-                        <TableCell className="text-center font-mono font-bold">{row.physics.toFixed(1)}</TableCell>
-                        <TableCell className="text-center font-mono font-bold">{row.english.toFixed(1)}</TableCell>
-                        <TableCell className="text-center">
-                          <Badge className="bg-primary text-white border-none font-mono">{row.avg.toFixed(2)}</Badge>
-                        </TableCell>
-                        <TableCell className="text-right pr-6 font-bold text-secondary">{row.rank}</TableCell>
+          {viewingHistoryDetails ? (
+            <div className="space-y-6">
+              <Button variant="ghost" className="gap-2" onClick={() => setViewingHistoryDetails(null)}>
+                <ArrowLeft className="w-4 h-4" /> Back to History Summary
+              </Button>
+              <Card className="border-none shadow-sm overflow-hidden">
+                <CardHeader className="bg-primary text-white">
+                  <CardTitle>Historical Record: {viewingHistoryDetails.year} - {viewingHistoryDetails.term}</CardTitle>
+                  <CardDescription className="text-white/60">Read-only institutional archive for {selectedSubject.toUpperCase()}.</CardDescription>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader className="bg-muted/50">
+                      <TableRow>
+                        <TableHead className="pl-6">Matricule</TableHead>
+                        <TableHead>Student Name</TableHead>
+                        <TableHead className="text-center">Final Mark / 20</TableHead>
+                        <TableHead className="text-right pr-6">Status</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-              <CardFooter className="p-4 bg-muted/20 border-t flex justify-between items-center">
-                <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest italic">These results are finalized and cannot be modified via this portal.</p>
-                <Button variant="ghost" size="sm" className="gap-2 text-primary" asChild>
-                  <Link href="/dashboard/students">
-                    Full Student Records <ChevronRight className="w-4 h-4" />
-                  </Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          </div>
+                    </TableHeader>
+                    <TableBody>
+                      {MOCK_GRADES_TEACHER.map((student) => (
+                        <TableRow key={student.id}>
+                          <TableCell className="pl-6 font-mono font-bold text-primary">{student.id}</TableCell>
+                          <TableCell className="font-medium">{student.name}</TableCell>
+                          <TableCell className="text-center font-black">{student.seq1.toFixed(1)}</TableCell>
+                          <TableCell className="text-right pr-6">
+                            <Badge className={student.seq1 >= 10 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}>
+                              {student.seq1 >= 10 ? "PASSED" : "FAILED"}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-6">
+              <Card className="border-none shadow-sm overflow-hidden">
+                <CardHeader className="bg-primary text-white flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2 text-white">
+                      <Lock className="w-5 h-5 text-secondary" />
+                      Locked Results History
+                    </CardTitle>
+                    <CardDescription className="text-white/60">Statistical summary of past term performance.</CardDescription>
+                  </div>
+                  <Badge className="bg-white/20 text-white border-none">Summary View</Badge>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50 uppercase text-[10px] font-black tracking-widest">
+                        <TableHead className="pl-6 py-4">Year</TableHead>
+                        <TableHead>Term</TableHead>
+                        <TableHead className="text-center">No. Passed</TableHead>
+                        <TableHead className="text-center">No. Failed</TableHead>
+                        <TableHead className="text-center">% Passed</TableHead>
+                        <TableHead className="text-right pr-6">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {MOCK_HISTORICAL_SUMMARIES.map((row) => (
+                        <TableRow key={row.id} className="hover:bg-accent/5">
+                          <TableCell className="pl-6 py-4 font-bold">{row.year}</TableCell>
+                          <TableCell className="font-medium text-primary">{row.term}</TableCell>
+                          <TableCell className="text-center">
+                            <Badge className="bg-green-100 text-green-700 border-none font-bold">{row.passed}</Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge className="bg-red-100 text-red-700 border-none font-bold">{row.failed}</Badge>
+                          </TableCell>
+                          <TableCell className="text-center font-mono font-black text-primary">
+                            {row.percentage.toFixed(1)}%
+                          </TableCell>
+                          <TableCell className="text-right pr-6">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="gap-2 text-primary hover:bg-primary/10"
+                              onClick={() => setViewingHistoryDetails(row)}
+                            >
+                              <Eye className="w-4 h-4" /> {language === 'en' ? 'View' : 'Voir'}
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+                <CardFooter className="p-4 bg-muted/20 border-t flex justify-between items-center">
+                  <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest italic">Historical records are finalized and cannot be modified.</p>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Download className="w-3.5 h-3.5" /> Export All History
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>
