@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Search, MoreHorizontal, Filter, GraduationCap } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Filter, GraduationCap, Eye, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -17,13 +17,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Link from "next/link";
 
 const MOCK_STUDENTS = [
-  { id: "S001", name: "Alice Thompson", grade: "10th", section: "A", gpa: "3.9", status: "Enrolled", email: "alice.t@school.edu" },
-  { id: "S002", name: "Bob Richards", grade: "12th", section: "C", gpa: "3.2", status: "Enrolled", email: "bob.r@school.edu" },
-  { id: "S003", name: "Charlie Davis", grade: "11th", section: "B", gpa: "3.5", status: "Leave", email: "charlie.d@school.edu" },
-  { id: "S004", name: "Diana Prince", grade: "10th", section: "A", gpa: "4.0", status: "Enrolled", email: "diana.p@school.edu" },
-  { id: "S005", name: "Ethan Hunt", grade: "12th", section: "B", gpa: "2.8", status: "Probation", email: "ethan.h@school.edu" },
+  { id: "S001", name: "Alice Thompson", grade: "10th", section: "A", gpa: "3.9", status: "Enrolled", email: "alice.t@school.edu", avatar: "https://picsum.photos/seed/s1/100/100" },
+  { id: "S002", name: "Bob Richards", grade: "12th", section: "C", gpa: "3.2", status: "Enrolled", email: "bob.r@school.edu", avatar: "https://picsum.photos/seed/s2/100/100" },
+  { id: "S003", name: "Charlie Davis", grade: "11th", section: "B", gpa: "3.5", status: "Leave", email: "charlie.d@school.edu", avatar: "https://picsum.photos/seed/s3/100/100" },
+  { id: "S004", name: "Diana Prince", grade: "10th", section: "A", gpa: "4.0", status: "Enrolled", email: "diana.p@school.edu", avatar: "https://picsum.photos/seed/s4/100/100" },
+  { id: "S005", name: "Ethan Hunt", grade: "12th", section: "B", gpa: "2.8", status: "Probation", email: "ethan.h@school.edu", avatar: "https://picsum.photos/seed/s5/100/100" },
 ];
 
 export default function StudentsPage() {
@@ -72,7 +74,7 @@ export default function StudentsPage() {
               <TableHeader>
                 <TableRow className="bg-accent/30 hover:bg-accent/30">
                   <TableHead className="w-[100px]">ID</TableHead>
-                  <TableHead>Name</TableHead>
+                  <TableHead>Student</TableHead>
                   <TableHead>Grade</TableHead>
                   <TableHead>Section</TableHead>
                   <TableHead>GPA</TableHead>
@@ -82,37 +84,56 @@ export default function StudentsPage() {
               </TableHeader>
               <TableBody>
                 {filtered.map((student) => (
-                  <TableRow key={student.id}>
+                  <TableRow key={student.id} className="group hover:bg-accent/5 transition-colors">
                     <TableCell className="font-mono text-xs font-semibold">{student.id}</TableCell>
                     <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{student.name}</span>
-                        <span className="text-xs text-muted-foreground">{student.email}</span>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10 border border-accent">
+                          <AvatarImage src={student.avatar} alt={student.name} />
+                          <AvatarFallback className="bg-primary/5 text-primary text-xs">
+                            <User className="w-4 h-4" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-sm text-primary">{student.name}</span>
+                          <span className="text-xs text-muted-foreground">{student.email}</span>
+                        </div>
                       </div>
                     </TableCell>
-                    <TableCell>{student.grade}</TableCell>
-                    <TableCell>{student.section}</TableCell>
-                    <TableCell className="font-semibold">{student.gpa}</TableCell>
+                    <TableCell className="text-sm font-medium">{student.grade}</TableCell>
+                    <TableCell className="text-sm">{student.section}</TableCell>
+                    <TableCell className="font-bold text-primary">{student.gpa}</TableCell>
                     <TableCell>
-                      <Badge variant={student.status === "Enrolled" ? "default" : student.status === "Leave" ? "secondary" : "destructive"}>
+                      <Badge variant={student.status === "Enrolled" ? "default" : student.status === "Leave" ? "secondary" : "destructive"} className="text-[10px] h-5">
                         {student.status}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem>View Profile</DropdownMenuItem>
-                          <DropdownMenuItem>Edit Details</DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive">Archive Student</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="flex items-center justify-end gap-2">
+                        <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs font-bold" asChild>
+                          <Link href={`/dashboard/children/view?id=${student.id}`}>
+                            <Eye className="w-3.5 h-3.5" />
+                            View Details
+                          </Link>
+                        </Button>
+                        
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Institutional Actions</DropdownMenuLabel>
+                            <DropdownMenuItem asChild>
+                              <Link href={`/dashboard/children/view?id=${student.id}`}>View Report Card</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>Edit Record</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive">Archive Student</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
