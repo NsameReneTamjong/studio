@@ -28,7 +28,8 @@ import {
   Printer,
   ChevronRight,
   XCircle,
-  History
+  History,
+  ShieldCheck
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -39,16 +40,18 @@ import { useToast } from "@/hooks/use-toast";
 const CHILDREN_DATA: Record<string, any> = {
   "S001": {
     name: "Alice Thompson",
-    grade: "10th",
+    grade: "10th (2nde C)",
     id: "S001",
     avatar: "https://picsum.photos/seed/alice/200/200",
     stats: { average: 15.4, rank: "04/42", attendance: "98%" },
     schoolName: "Lycée de Joss",
-    schoolAddress: "Douala, Cameroon",
+    schoolAddress: "Douala, Littoral, Cameroon",
     grades: [
       { name: "Mathématiques", coeff: 5, seq1: 14, seq2: 16, moy: 15, group: "Sciences" },
       { name: "Physique", coeff: 4, seq1: 12, seq2: 15, moy: 13.5, group: "Sciences" },
       { name: "Anglais", coeff: 3, seq1: 17, seq2: 18, moy: 17.5, group: "Languages" },
+      { name: "Français", coeff: 3, seq1: 11, seq2: 13, moy: 12, group: "Languages" },
+      { name: "Histoire-Géo", coeff: 2, seq1: 14, seq2: 14, moy: 14, group: "Arts" },
     ],
     gradeHistory: [
       { year: "2023/2024", term: "First Term", position: "04/42", average: 15.4 },
@@ -88,12 +91,12 @@ const CHILDREN_DATA: Record<string, any> = {
   },
   "S004": {
     name: "Diana Prince",
-    grade: "10th",
+    grade: "10th (2nde C)",
     id: "S004",
     avatar: "https://picsum.photos/seed/diana/200/200",
     stats: { average: 18.2, rank: "01/42", attendance: "100%" },
     schoolName: "Lycée de Joss",
-    schoolAddress: "Douala, Cameroon",
+    schoolAddress: "Douala, Littoral, Cameroon",
     grades: [
       { name: "Mathématiques", coeff: 5, seq1: 18, seq2: 19, moy: 18.5, group: "Sciences" },
       { name: "Physique", coeff: 4, seq1: 17, seq2: 18, moy: 17.5, group: "Sciences" },
@@ -224,11 +227,15 @@ export default function ChildViewPage() {
         </TabsList>
 
         <TabsContent value="grades" className="mt-6 space-y-8">
-          {/* Current Term Section */}
           <Card className="border-none shadow-sm overflow-hidden">
-            <CardHeader className="bg-accent/30 border-b">
-              <CardTitle>{language === "en" ? "Current Term Grades" : "Notes du Trimestre Actuel"}</CardTitle>
-              <CardDescription>Academic Year 2023/2024 - First Term</CardDescription>
+            <CardHeader className="bg-accent/30 border-b flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>{language === "en" ? "Current Term Grades" : "Notes du Trimestre Actuel"}</CardTitle>
+                <CardDescription>Academic Year 2023/2024 - First Term</CardDescription>
+              </div>
+              <Button onClick={() => setPreviewDoc({ type: 'report' })} className="gap-2">
+                <Eye className="w-4 h-4" /> {language === 'en' ? 'View Official Bulletin' : 'Voir Bulletin Officiel'}
+              </Button>
             </CardHeader>
             <CardContent className="p-0">
               <Table>
@@ -270,7 +277,6 @@ export default function ChildViewPage() {
             </CardContent>
           </Card>
 
-          {/* Grade History Section */}
           <div className="space-y-4">
             <h3 className="text-xl font-bold text-primary flex items-center gap-2">
               <History className="w-5 h-5" /> {language === "en" ? "Grade History" : "Historique des Notes"}
@@ -556,80 +562,136 @@ export default function ChildViewPage() {
 
       {/* Document Preview Dialog */}
       <Dialog open={!!previewDoc} onOpenChange={() => setPreviewDoc(null)}>
-        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Eye className="w-5 h-5 text-primary" />
+        <DialogContent className="sm:max-w-4xl max-h-[95vh] overflow-y-auto p-0 border-none shadow-2xl">
+          <DialogHeader className="p-6 bg-primary text-white">
+            <DialogTitle className="flex items-center gap-2 text-white">
+              <Eye className="w-5 h-5" />
               {previewDoc?.type === 'report' ? t("reportCard") : 
                previewDoc?.type === 'receipt' ? t("receipt") : t("idCard")}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-white/70">
               {language === 'en' ? 'Official document preview. Review before downloading.' : 'Aperçu du document officiel. Examinez avant de télécharger.'}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="bg-muted p-4 md:p-8 rounded-lg">
-            {/* REPORT CARD PREVIEW */}
+          <div className="bg-muted p-4 md:p-8">
+            {/* REPORT CARD PREVIEW - CAMEROONIAN SYSTEM STYLE */}
             {previewDoc?.type === 'report' && (
-              <div className="bg-white p-8 shadow-sm border border-border min-h-[500px] flex flex-col space-y-6">
-                 <div className="flex justify-between items-start border-b-2 border-primary pb-4">
-                    <div className="space-y-1">
-                      <h2 className="text-xl font-bold text-primary">{child.schoolName}</h2>
-                      <p className="text-[10px] text-muted-foreground uppercase">{child.schoolAddress}</p>
+              <div className="bg-white p-6 md:p-10 shadow-sm border border-border min-h-[700px] flex flex-col space-y-6 font-serif text-black relative">
+                 {/* OFFICIAL HEADER */}
+                 <div className="grid grid-cols-3 gap-4 items-start text-center border-b-2 border-black pb-6">
+                    <div className="space-y-1 text-[9px] uppercase font-bold">
+                      <p>Republic of Cameroon</p>
+                      <p>Peace - Work - Fatherland</p>
+                      <div className="h-px bg-black w-8 mx-auto my-1" />
+                      <p>Ministry of Secondary Education</p>
+                      <p>{child.schoolName}</p>
                     </div>
-                    <Badge variant="outline" className="text-primary border-primary">
-                      {previewDoc.data?.year || "Academic Year 2023/24"}
-                    </Badge>
-                 </div>
-                 
-                 <div className="grid grid-cols-2 gap-8 py-4 bg-accent/10 p-4 rounded-lg">
-                    <div>
-                      <p className="text-[10px] uppercase text-muted-foreground font-bold">Student</p>
-                      <p className="font-bold">{child.name}</p>
-                      <p className="text-xs">{child.grade} Grade</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[10px] uppercase text-muted-foreground font-bold">Matricule</p>
-                      <p className="font-mono font-bold">{child.id}</p>
-                      {previewDoc.data?.term && (
-                        <p className="text-[10px] font-bold text-primary mt-1">{previewDoc.data.term}</p>
-                      )}
-                    </div>
-                 </div>
-
-                 <Table className="border">
-                    <TableHeader className="bg-muted/50">
-                      <TableRow>
-                        <TableHead className="text-[10px] uppercase">Subject</TableHead>
-                        <TableHead className="text-center text-[10px] uppercase">Coeff</TableHead>
-                        <TableHead className="text-center text-[10px] uppercase">Moy/20</TableHead>
-                        <TableHead className="text-right text-[10px] uppercase">Appreciation</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {child.grades.map((g: any, i: number) => (
-                        <TableRow key={i}>
-                          <TableCell className="font-bold py-2">{g.name}</TableCell>
-                          <TableCell className="text-center py-2">{g.coeff}</TableCell>
-                          <TableCell className="text-center py-2 font-bold">{previewDoc.data?.average ? (previewDoc.data.average - (Math.random() * 2)).toFixed(2) : g.moy}</TableCell>
-                          <TableCell className="text-right py-2 text-xs italic">{getAppreciation(g.moy).text}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                 </Table>
-
-                 <div className="mt-auto pt-8 flex justify-between items-end border-t border-dashed">
-                    <div className="space-y-1">
-                      <p className="text-[10px] uppercase font-bold text-muted-foreground underline">Parent's Signature</p>
-                      <div className="h-12 w-32 border-b border-black/20" />
-                    </div>
-                    <div className="text-center space-y-1">
-                      <p className="text-sm font-bold">Moyenne Générale: {previewDoc.data?.average?.toFixed(2) || child.stats.average.toFixed(2)}/20</p>
-                      <p className="text-[10px] uppercase text-muted-foreground">The Principal</p>
-                      <div className="w-16 h-16 mx-auto opacity-20 bg-primary rounded-full flex items-center justify-center">
-                         <CheckCircle2 className="w-8 h-8" />
+                    <div className="flex justify-center">
+                      <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center p-2 border-2 border-primary/20">
+                         <Building2 className="w-12 h-12 text-primary opacity-50" />
                       </div>
                     </div>
+                    <div className="space-y-1 text-[9px] uppercase font-bold">
+                      <p>République du Cameroun</p>
+                      <p>Paix - Travail - Patrie</p>
+                      <div className="h-px bg-black w-8 mx-auto my-1" />
+                      <p>Min. des Enseignements Secondaires</p>
+                      <p>{child.schoolAddress.split(',')[0]}</p>
+                    </div>
+                 </div>
+                 
+                 <div className="text-center space-y-2">
+                    <h2 className="text-2xl font-black uppercase underline tracking-tighter">
+                      {previewDoc.data?.term?.toUpperCase() || "FIRST TERM REPORT CARD"}
+                    </h2>
+                    <p className="font-bold text-sm italic">Academic Year: {previewDoc.data?.year || "2023/2024"}</p>
+                 </div>
+
+                 <div className="grid grid-cols-12 gap-6 bg-accent/10 p-4 border border-accent rounded-lg items-center">
+                    <div className="col-span-3">
+                       <div className="w-24 h-24 border-2 border-black/10 rounded bg-white overflow-hidden shadow-inner">
+                          <img src={child.avatar} alt={child.name} className="w-full h-full object-cover" />
+                       </div>
+                    </div>
+                    <div className="col-span-9 space-y-2">
+                       <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                          <span className="font-bold uppercase opacity-60">Name of Student:</span>
+                          <span className="font-black uppercase">{child.name}</span>
+                          <span className="font-bold uppercase opacity-60">Matricule:</span>
+                          <span className="font-mono font-bold text-primary">{child.id}</span>
+                          <span className="font-bold uppercase opacity-60">Class / Grade:</span>
+                          <span className="font-bold">{child.grade}</span>
+                          <span className="font-bold uppercase opacity-60">Number of Pupils:</span>
+                          <span className="font-bold">42</span>
+                       </div>
+                    </div>
+                 </div>
+
+                 <div className="overflow-x-auto">
+                   <Table className="border border-black">
+                      <TableHeader className="bg-black/5">
+                        <TableRow className="border-black">
+                          <TableHead className="text-[10px] uppercase font-bold text-black border-r border-black">Matières / Subjects</TableHead>
+                          <TableHead className="text-center text-[10px] uppercase font-bold text-black border-r border-black">Coeff</TableHead>
+                          <TableHead className="text-center text-[10px] uppercase font-bold text-black border-r border-black">Seq 1</TableHead>
+                          <TableHead className="text-center text-[10px] uppercase font-bold text-black border-r border-black">Seq 2</TableHead>
+                          <TableHead className="text-center text-[10px] uppercase font-bold text-black border-r border-black">Moy/20</TableHead>
+                          <TableHead className="text-right text-[10px] uppercase font-bold text-black">Appreciation</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {child.grades.map((g: any, i: number) => (
+                          <TableRow key={i} className="border-black">
+                            <TableCell className="font-bold py-1.5 border-r border-black">{g.name}</TableCell>
+                            <TableCell className="text-center py-1.5 border-r border-black font-black">{g.coeff}</TableCell>
+                            <TableCell className="text-center py-1.5 border-r border-black font-mono">{(previewDoc.data?.average ? (g.seq1 - 0.5) : g.seq1).toFixed(2)}</TableCell>
+                            <TableCell className="text-center py-1.5 border-r border-black font-mono">{(previewDoc.data?.average ? (g.seq2 - 0.5) : g.seq2).toFixed(2)}</TableCell>
+                            <TableCell className="text-center py-1.5 border-r border-black font-black text-primary">{(previewDoc.data?.average ? (g.moy - 0.5) : g.moy).toFixed(2)}</TableCell>
+                            <TableCell className="text-right py-1.5 text-[10px] uppercase font-medium italic">{getAppreciation(g.moy).text}</TableCell>
+                          </TableRow>
+                        ))}
+                        {/* TOTAL ROW */}
+                        <TableRow className="border-black bg-black/5 font-bold">
+                           <TableCell className="border-r border-black text-right uppercase" colSpan={4}>General Summary</TableCell>
+                           <TableCell className="text-center border-r border-black text-lg font-black text-primary" colSpan={1}>
+                             {previewDoc.data?.average?.toFixed(2) || child.stats.average.toFixed(2)}
+                           </TableCell>
+                           <TableCell className="text-right uppercase text-[10px]" colSpan={1}>
+                             Rank: {previewDoc.data?.position || child.stats.rank}
+                           </TableCell>
+                        </TableRow>
+                      </TableBody>
+                   </Table>
+                 </div>
+
+                 <div className="grid grid-cols-3 gap-6 pt-6 border-t-2 border-black border-dashed">
+                    <div className="space-y-4 text-center">
+                       <p className="text-[10px] uppercase font-black underline">The Parent</p>
+                       <div className="h-16 w-full border border-black/10 rounded bg-accent/5 italic text-[10px] flex items-center justify-center opacity-30">
+                          (Signature)
+                       </div>
+                    </div>
+                    <div className="space-y-2 text-center flex flex-col items-center justify-center">
+                       <div className="p-3 border-4 border-double border-primary/20 rounded-full">
+                          <ShieldCheck className="w-10 h-10 text-primary opacity-20" />
+                       </div>
+                       <p className="text-[10px] font-black uppercase mt-1">School Seal</p>
+                    </div>
+                    <div className="space-y-4 text-center relative">
+                       <p className="text-[10px] uppercase font-black underline">The Principal</p>
+                       <div className="mt-2 space-y-0">
+                         <p className="font-bold text-xs uppercase">{child.schoolName}</p>
+                         <div className="h-20 flex flex-col items-center justify-center">
+                            <div className="w-32 h-16 border-b border-black/20" />
+                            <p className="text-[9px] italic mt-1 font-serif">Official Stamp Required</p>
+                         </div>
+                       </div>
+                    </div>
+                 </div>
+                 
+                 <div className="text-[9px] text-center italic opacity-60 absolute bottom-4 left-0 right-0">
+                    Document generated via EduNexus SaaS Platform - Cameroon Institutional Portal
                  </div>
               </div>
             )}
@@ -722,11 +784,11 @@ export default function ChildViewPage() {
             )}
           </div>
 
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter className="p-6 bg-white border-t gap-3 sm:gap-0">
             <Button variant="outline" onClick={() => setPreviewDoc(null)} className="gap-2">
-              <Printer className="w-4 h-4" /> {language === 'en' ? 'Print' : 'Imprimer'}
+              <Printer className="w-4 h-4" /> {language === 'en' ? 'Print Document' : 'Imprimer le Document'}
             </Button>
-            <Button onClick={() => { handleDownload(previewDoc?.type === 'report' ? 'Report Card' : 'Document'); setPreviewDoc(null); }} className="gap-2">
+            <Button onClick={() => { handleDownload(previewDoc?.type === 'report' ? 'Official Report Card' : 'Academic Document'); setPreviewDoc(null); }} className="gap-2 shadow-lg">
               <Download className="w-4 h-4" /> {t("download")}
             </Button>
           </DialogFooter>
