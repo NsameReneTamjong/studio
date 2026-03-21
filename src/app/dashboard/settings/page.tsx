@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef } from "react";
@@ -10,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Building2, Save, Loader2, Image as ImageIcon, MapPin, Quote, FileText, Globe, Upload, Phone, Mail, Hash } from "lucide-react";
+import { Building2, Save, Loader2, Image as ImageIcon, MapPin, Quote, FileText, Globe, Upload, Phone, Mail, Hash, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function SchoolSettingsPage() {
