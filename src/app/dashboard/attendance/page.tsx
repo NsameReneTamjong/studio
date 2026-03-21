@@ -53,6 +53,8 @@ const MOCK_STUDENTS = [
   { id: "S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", status: "present", presentCount: 22, absentCount: 2 },
   { id: "S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", status: "present", presentCount: 18, absentCount: 6 },
   { id: "S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", status: "absent", presentCount: 15, absentCount: 9 },
+  { id: "S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100", status: "present", presentCount: 24, absentCount: 0 },
+  { id: "S005", name: "Ethan Hunt", avatar: "https://picsum.photos/seed/s5/100/100", status: "present", presentCount: 20, absentCount: 4 },
 ];
 
 const MOCK_SUBJECT_ATTENDANCE = [
@@ -451,68 +453,117 @@ export default function AttendancePage() {
 
       {/* Subject-Specific Detail Dialog */}
       <Dialog open={!!viewingSubjectLogs} onOpenChange={() => setViewingSubjectLogs(null)}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                <BookOpen className="w-5 h-5" />
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0 rounded-3xl border-none shadow-2xl">
+          <DialogHeader className="p-8 bg-primary text-white shrink-0">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/10 rounded-2xl text-secondary">
+                <BookOpen className="w-8 h-8" />
               </div>
-              <DialogTitle className="text-xl font-bold">
-                {viewingSubjectLogs?.name} - Detailed Records
-              </DialogTitle>
+              <div>
+                <DialogTitle className="text-2xl font-black">
+                  {viewingSubjectLogs?.name} - Granular Registry
+                </DialogTitle>
+                <DialogDescription className="text-white/60 font-medium">
+                  {viewingSubjectLogs?.instructor} • Detailed student-by-student presence report
+                </DialogDescription>
+              </div>
             </div>
-            <DialogDescription className="pt-2">
-              Viewing complete session history and student presence for this subject.
-            </DialogDescription>
           </DialogHeader>
           
-          <div className="mt-6 space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-accent/30 p-4 rounded-xl">
-                <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Lead Instructor</p>
-                <p className="text-sm font-bold text-primary">{viewingSubjectLogs?.instructor}</p>
-              </div>
-              <div className="bg-accent/30 p-4 rounded-xl">
-                <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Subject Average</p>
-                <p className="text-sm font-bold text-primary">{viewingSubjectLogs?.percentage}%</p>
-              </div>
-            </div>
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <Tabs defaultValue="students" className="flex-1 flex flex-col">
+              <TabsList className="px-8 border-b bg-accent/10 h-14 justify-start gap-8 rounded-none shrink-0">
+                <TabsTrigger value="students" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full bg-transparent shadow-none px-0 gap-2 font-bold uppercase text-[10px] tracking-widest">
+                  <Users className="w-4 h-4" /> Student Registry
+                </TabsTrigger>
+                <TabsTrigger value="sessions" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full bg-transparent shadow-none px-0 gap-2 font-bold uppercase text-[10px] tracking-widest">
+                  <History className="w-4 h-4" /> Session History
+                </TabsTrigger>
+              </TabsList>
 
-            <div className="max-h-[40vh] overflow-y-auto rounded-xl border border-accent">
-              <Table>
-                <TableHeader className="bg-accent/10">
-                  <TableRow>
-                    <TableHead className="text-[10px] font-black uppercase">Session Date</TableHead>
-                    <TableHead className="text-center text-[10px] font-black uppercase">Presence</TableHead>
-                    <TableHead className="text-right text-[10px] font-black uppercase pr-6">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {[
-                    { date: "May 24, 2024", time: "08:00 AM", present: 42, total: 45, status: "Closed" },
-                    { date: "May 22, 2024", time: "08:00 AM", present: 40, total: 45, status: "Closed" },
-                    { date: "May 20, 2024", time: "08:00 AM", present: 41, total: 45, status: "Closed" },
-                  ].map((log, idx) => (
-                    <TableRow key={idx}>
-                      <TableCell className="text-xs font-bold">
-                        {log.date}
-                        <p className="text-[9px] text-muted-foreground font-medium">{log.time}</p>
-                      </TableCell>
-                      <TableCell className="text-center font-mono text-xs font-black">
-                        {log.present} / {log.total}
-                      </TableCell>
-                      <TableCell className="text-right pr-6">
-                        <Badge className="bg-green-100 text-green-700 border-none text-[9px]">{log.status}</Badge>
-                      </TableCell>
+              <TabsContent value="students" className="flex-1 overflow-y-auto p-0 mt-0">
+                <Table>
+                  <TableHeader className="bg-accent/30 sticky top-0 z-10">
+                    <TableRow>
+                      <TableHead className="pl-8 py-4 font-black uppercase text-[10px] tracking-widest">Student Profile</TableHead>
+                      <TableHead className="text-center font-black uppercase text-[10px] tracking-widest">Matricule</TableHead>
+                      <TableHead className="text-center font-black uppercase text-[10px] tracking-widest text-green-600">Present</TableHead>
+                      <TableHead className="text-center font-black uppercase text-[10px] tracking-widest text-red-600">Absent</TableHead>
+                      <TableHead className="pr-8 text-right font-black uppercase text-[10px] tracking-widest">Aggregate</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {MOCK_STUDENTS.map((student) => (
+                      <TableRow key={student.id} className="hover:bg-accent/5">
+                        <TableCell className="pl-8 py-4">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent">
+                              <AvatarImage src={student.avatar} alt={student.name} />
+                              <AvatarFallback className="bg-primary/5 text-primary text-xs">{student.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <span className="font-bold text-sm text-primary">{student.name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center font-mono text-xs font-bold text-muted-foreground">{student.id}</TableCell>
+                        <TableCell className="text-center">
+                          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-100 font-bold text-xs">
+                            <CheckCircle2 className="w-3 h-3" /> {student.presentCount}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 text-red-700 border border-red-100 font-bold text-xs">
+                            <XCircle className="w-3 h-3" /> {student.absentCount}
+                          </div>
+                        </TableCell>
+                        <TableCell className="pr-8 text-right font-black text-primary">
+                          {Math.round((student.presentCount / (student.presentCount + student.absentCount)) * 100)}%
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TabsContent>
+
+              <TabsContent value="sessions" className="flex-1 overflow-y-auto p-0 mt-0">
+                <Table>
+                  <TableHeader className="bg-accent/30 sticky top-0 z-10">
+                    <TableRow>
+                      <TableHead className="pl-8 py-4 text-[10px] font-black uppercase">Session Date</TableHead>
+                      <TableHead className="text-center text-[10px] font-black uppercase">Time Window</TableHead>
+                      <TableHead className="text-center text-[10px] font-black uppercase">Presence Ratio</TableHead>
+                      <TableHead className="pr-8 text-right text-[10px] font-black uppercase">Integrity</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {[
+                      { date: "May 24, 2024", time: "08:00 AM - 10:00 AM", present: 42, total: 45, status: "Closed" },
+                      { date: "May 22, 2024", time: "08:00 AM - 10:00 AM", present: 40, total: 45, status: "Closed" },
+                      { date: "May 20, 2024", time: "08:00 AM - 10:00 AM", present: 41, total: 45, status: "Closed" },
+                      { date: "May 17, 2024", time: "08:00 AM - 10:00 AM", present: 38, total: 45, status: "Closed" },
+                    ].map((log, idx) => (
+                      <TableRow key={idx}>
+                        <TableCell className="pl-8 py-4 text-sm font-bold">{log.date}</TableCell>
+                        <TableCell className="text-center text-xs text-muted-foreground">{log.time}</TableCell>
+                        <TableCell className="text-center">
+                          <span className="font-mono text-xs font-black text-primary">{log.present} / {log.total}</span>
+                        </TableCell>
+                        <TableCell className="pr-8 text-right">
+                          <Badge className="bg-green-100 text-green-700 border-none text-[9px] font-black px-3">{log.status}</Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TabsContent>
+            </Tabs>
           </div>
           
-          <DialogFooter className="mt-6">
-            <Button variant="outline" className="w-full rounded-xl" onClick={() => setViewingSubjectLogs(null)}>
+          <DialogFooter className="p-6 bg-accent/10 border-t flex justify-between items-center shrink-0">
+            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest italic flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-primary" />
+              Automated institutional reporting active.
+            </p>
+            <Button variant="outline" className="rounded-xl h-10 px-8" onClick={() => setViewingSubjectLogs(null)}>
               Close Subject Logs
             </Button>
           </DialogFooter>
