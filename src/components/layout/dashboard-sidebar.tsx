@@ -23,6 +23,7 @@ import {
   MessageSquare,
   Megaphone,
   MessageCircle,
+  User,
   X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -127,6 +128,12 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       href: "/dashboard/schedule",
       roles: ["TEACHER", "STUDENT"],
     },
+    {
+      label: t("profile"),
+      icon: User,
+      href: "/dashboard/profile",
+      roles: ["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER", "STUDENT", "PARENT"],
+    },
   ];
 
   const filteredRoutes = routes.filter((route) => route.roles.includes(user?.role || ""));
@@ -184,15 +191,15 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       </div>
 
       <div className="p-4 border-t border-white/10 mt-auto bg-primary">
-        <div className="flex items-center gap-3 mb-4 px-2">
-          <div className="w-10 h-10 rounded-full bg-secondary overflow-hidden shrink-0">
+        <Link href="/dashboard/profile" className="flex items-center gap-3 mb-4 px-2 hover:bg-white/5 py-2 rounded-lg transition-colors group">
+          <div className="w-10 h-10 rounded-full bg-secondary overflow-hidden shrink-0 border-2 border-transparent group-hover:border-white/20">
             <img src={user?.avatar} alt={user?.name} className="w-full h-full object-cover" />
           </div>
           <div className="flex flex-col overflow-hidden">
-            <span className="text-sm font-semibold truncate">{user?.name}</span>
+            <span className="text-sm font-semibold truncate text-white">{user?.name}</span>
             <span className="text-[10px] text-white/50 uppercase font-bold tracking-widest">{user?.role}</span>
           </div>
-        </div>
+        </Link>
         <Button 
           variant="ghost" 
           className="w-full justify-start text-white/60 hover:text-white hover:bg-white/10 gap-3"

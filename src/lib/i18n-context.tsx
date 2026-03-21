@@ -61,6 +61,16 @@ const translations: TranslationDict = {
   alreadyHaveAccount: { en: "Already have an account?", fr: "Déjà un compte ?" },
   dontHaveAccount: { en: "Don't have an account?", fr: "Pas encore de compte ?" },
   register: { en: "Register", fr: "S'inscrire" },
+  profile: { en: "Profile", fr: "Profil" },
+  editProfile: { en: "Edit Profile", fr: "Modifier le Profil" },
+  personalInfo: { en: "Personal Information", fr: "Informations Personnelles" },
+  fullName: { en: "Full Name", fr: "Nom Complet" },
+  changePassword: { en: "Change Password", fr: "Changer le mot de passe" },
+  currentPassword: { en: "Current Password", fr: "Mot de passe actuel" },
+  newPassword: { en: "New Password", fr: "Nouveau mot de passe" },
+  updateProfile: { en: "Update Profile", fr: "Mettre à jour le profil" },
+  changesSaved: { en: "Changes Saved", fr: "Changements Enregistrés" },
+  profileUpdateSuccess: { en: "Your profile has been updated successfully.", fr: "Votre profil a été mis à jour avec succès." },
 };
 
 interface I18nContextType {
