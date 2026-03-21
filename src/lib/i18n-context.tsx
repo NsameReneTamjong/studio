@@ -45,6 +45,7 @@ const translations: TranslationDict = {
   download: { en: "Download", fr: "Télécharger" },
   reportCard: { en: "Report Card", fr: "Bulletin de Notes" },
   idCard: { en: "ID Card", fr: "Carte d'Identité" },
+  idCards: { en: "ID Cards", fr: "Cartes d'Identité" },
   receipt: { en: "Receipt", fr: "Reçu de Paiement" },
   academicYear: { en: "Academic Year", fr: "Année Académique" },
   fees: { en: "Fees & Receipts", fr: "Frais & Reçus" },

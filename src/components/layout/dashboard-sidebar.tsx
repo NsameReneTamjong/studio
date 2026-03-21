@@ -30,7 +30,8 @@ import {
   Library,
   Coins,
   Receipt,
-  UsersRound
+  UsersRound,
+  CreditCard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -99,6 +100,12 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       icon: GraduationCap,
       href: "/dashboard/students",
       roles: ["SCHOOL_ADMIN", "TEACHER", "BURSAR"],
+    },
+    {
+      label: t("idCards"),
+      icon: CreditCard,
+      href: "/dashboard/id-cards",
+      roles: ["SCHOOL_ADMIN"],
     },
     {
       label: language === 'en' ? "Fees & Finance" : "Frais & Finance",
