@@ -15,7 +15,8 @@ import {
   Building2, 
   UserCircle, 
   Briefcase,
-  Languages 
+  Languages,
+  UserPlus
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -28,6 +29,7 @@ export default function LoginPage() {
   const { login } = useAuth();
   const { t, setLanguage, language } = useI18n();
   const [role, setRole] = useState<UserRole>("STUDENT");
+  const [isCreateAccount, setIsCreateAccount] = useState(false);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 sm:p-8 relative">
@@ -59,8 +61,12 @@ export default function LoginPage() {
 
         <Card className="border-none shadow-xl">
           <CardHeader>
-            <CardTitle className="text-xl text-center">{t("login")}</CardTitle>
-            <CardDescription className="text-center">{t("selectRole")}</CardDescription>
+            <CardTitle className="text-xl text-center">
+              {isCreateAccount ? t("createAccount") : t("login")}
+            </CardTitle>
+            <CardDescription className="text-center">
+              {isCreateAccount ? t("selectRole") : t("selectRole")}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-3 gap-2">
@@ -107,20 +113,49 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">{t("email")}</Label>
-                <Input id="email" type="email" placeholder="name@domain.edu" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">{t("password")}</Label>
-                <Input id="password" type="password" />
-              </div>
+              {isCreateAccount ? (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="matricule">{t("matricule")}</Label>
+                    <Input id="matricule" placeholder="e.g. S001" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password">{t("password")}</Label>
+                    <Input id="password" type="password" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-password">{t("confirmPassword")}</Label>
+                    <Input id="confirm-password" type="password" />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">{t("email")}</Label>
+                    <Input id="email" type="email" placeholder="name@domain.edu" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password">{t("password")}</Label>
+                    <Input id="password" type="password" />
+                  </div>
+                </>
+              )}
             </div>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex flex-col gap-4">
             <Button className="w-full h-11 text-base font-semibold shadow-lg" onClick={() => login(role)}>
-              {t("signIn")} ({role.replace('_', ' ').toLowerCase()})
+              {isCreateAccount ? t("register") : t("signIn")} ({role.replace('_', ' ').toLowerCase()})
             </Button>
+            
+            <div className="text-center">
+              <Button 
+                variant="link" 
+                className="text-sm text-primary"
+                onClick={() => setIsCreateAccount(!isCreateAccount)}
+              >
+                {isCreateAccount ? t("alreadyHaveAccount") : t("dontHaveAccount")}
+              </Button>
+            </div>
           </CardFooter>
         </Card>
       </div>

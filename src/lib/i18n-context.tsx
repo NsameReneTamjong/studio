@@ -55,6 +55,12 @@ const translations: TranslationDict = {
   absent: { en: "Absent", fr: "Absent" },
   late: { en: "Late", fr: "Retard" },
   viewDetails: { en: "View Details", fr: "Voir Détails" },
+  createAccount: { en: "Create Account", fr: "Créer un Compte" },
+  matricule: { en: "Matricule / ID", fr: "Matricule / ID" },
+  confirmPassword: { en: "Confirm Password", fr: "Confirmer le mot de passe" },
+  alreadyHaveAccount: { en: "Already have an account?", fr: "Déjà un compte ?" },
+  dontHaveAccount: { en: "Don't have an account?", fr: "Pas encore de compte ?" },
+  register: { en: "Register", fr: "S'inscrire" },
 };
 
 interface I18nContextType {
