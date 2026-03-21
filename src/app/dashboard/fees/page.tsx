@@ -36,7 +36,8 @@ import {
   Settings2,
   Trash2,
   AlertCircle,
-  FileDown
+  FileDown,
+  Calendar
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -83,6 +84,10 @@ export default function BursarFeesPage() {
   const [isFeeModalOpen, setIsFeeModalOpen] = useState(false);
   const [editingFee, setEditingFee] = useState<any>(null);
   const [feeFormData, setFeeFormData] = useState({ name: "", amount: "", description: "" });
+
+  // Deadline State
+  const [isDeadlineModalOpen, setIsDeadlineModalOpen] = useState(false);
+  const [deadlineDate, setDeadlineDate] = useState("2024-06-30");
 
   const handleCollectPayment = () => {
     if (!selectedStudent || !selectedFeeType || !paymentAmount) return;
@@ -158,6 +163,14 @@ export default function BursarFeesPage() {
     });
   };
 
+  const handleSetDeadline = () => {
+    toast({
+      title: "Global Deadline Set",
+      description: `The new fee payment deadline is now ${new Date(deadlineDate).toLocaleDateString()}. This is now visible to all students and parents.`,
+    });
+    setIsDeadlineModalOpen(false);
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -171,6 +184,13 @@ export default function BursarFeesPage() {
           <p className="text-muted-foreground mt-1">Collect fees, manage structures, and generate institutional receipts.</p>
         </div>
         <div className="flex items-center gap-3">
+           <Button 
+             variant="outline" 
+             className="gap-2 border-primary/20 hover:bg-primary hover:text-white"
+             onClick={() => setIsDeadlineModalOpen(true)}
+           >
+             <Calendar className="w-4 h-4" /> Set Global Deadline
+           </Button>
            <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-accent flex items-center gap-3">
               <div className="p-2 bg-green-100 rounded-lg text-green-600">
                 <TrendingUp className="w-4 h-4" />
@@ -512,6 +532,35 @@ export default function BursarFeesPage() {
           <DialogFooter className="p-6 bg-accent/30 border-t border-accent flex sm:flex-row gap-3">
             <Button variant="ghost" className="flex-1 rounded-xl h-11" onClick={() => setIsFeeModalOpen(false)}>Cancel</Button>
             <Button className="flex-1 rounded-xl h-11 shadow-lg font-bold" onClick={handleSaveFee}>Save Structure</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* DEADLINE MODAL */}
+      <Dialog open={isDeadlineModalOpen} onOpenChange={setIsDeadlineModalOpen}>
+        <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="bg-primary p-6 text-white">
+            <DialogTitle className="text-xl font-black tracking-tight">Set Payment Deadline</DialogTitle>
+            <DialogDescription className="text-white/60">This date will be displayed to all students and parents.</DialogDescription>
+          </DialogHeader>
+          <div className="p-6 space-y-4">
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Effective Cut-off Date</Label>
+              <Input 
+                type="date" 
+                className="h-11 bg-accent/30 border-none rounded-xl"
+                value={deadlineDate}
+                onChange={(e) => setDeadlineDate(e.target.value)}
+              />
+            </div>
+            <p className="text-[10px] text-muted-foreground italic flex items-center gap-2">
+              <AlertCircle className="w-3 h-3" />
+              Users will receive an institutional dashboard notification upon saving.
+            </p>
+          </div>
+          <DialogFooter className="p-6 bg-accent/30 border-t border-accent flex sm:flex-row gap-3">
+            <Button variant="ghost" className="flex-1 rounded-xl h-11" onClick={() => setIsDeadlineModalOpen(false)}>Cancel</Button>
+            <Button className="flex-1 rounded-xl h-11 shadow-lg font-bold" onClick={handleSetDeadline}>Publish Deadline</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
