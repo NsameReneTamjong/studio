@@ -3,18 +3,49 @@
 
 import { useState } from "react";
 import { useAuth, UserRole } from "@/lib/auth-context";
+import { useI18n } from "@/lib/i18n-context";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { ShieldCheck, GraduationCap, Presentation, Building2, UserCircle, Briefcase } from "lucide-react";
+import { 
+  ShieldCheck, 
+  GraduationCap, 
+  Presentation, 
+  Building2, 
+  UserCircle, 
+  Briefcase,
+  Languages 
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const { t, setLanguage, language } = useI18n();
   const [role, setRole] = useState<UserRole>("STUDENT");
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 sm:p-8">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 sm:p-8 relative">
+      <div className="absolute top-8 right-8">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="gap-2">
+              <Languages className="w-4 h-4" />
+              {language === "en" ? "English" : "Français"}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setLanguage("en")}>English</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setLanguage("fr")}>Français</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
       <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-2">
           <div className="flex justify-center">
@@ -28,8 +59,8 @@ export default function LoginPage() {
 
         <Card className="border-none shadow-xl">
           <CardHeader>
-            <CardTitle className="text-xl text-center">Login to your Portal</CardTitle>
-            <CardDescription className="text-center">Select your role to access features</CardDescription>
+            <CardTitle className="text-xl text-center">{t("login")}</CardTitle>
+            <CardDescription className="text-center">{t("selectRole")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-3 gap-2">
@@ -39,7 +70,7 @@ export default function LoginPage() {
                 onClick={() => setRole("STUDENT")}
               >
                 <GraduationCap className="w-4 h-4" />
-                <span>Student</span>
+                <span>{language === "en" ? "Student" : "Élève"}</span>
               </Button>
               <Button 
                 variant={role === "TEACHER" ? "default" : "outline"} 
@@ -47,7 +78,7 @@ export default function LoginPage() {
                 onClick={() => setRole("TEACHER")}
               >
                 <Presentation className="w-4 h-4" />
-                <span>Teacher</span>
+                <span>{language === "en" ? "Teacher" : "Enseignant"}</span>
               </Button>
               <Button 
                 variant={role === "PARENT" ? "default" : "outline"} 
@@ -77,18 +108,18 @@ export default function LoginPage() {
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
+                <Label htmlFor="email">{t("email")}</Label>
                 <Input id="email" type="email" placeholder="name@domain.edu" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">{t("password")}</Label>
                 <Input id="password" type="password" />
               </div>
             </div>
           </CardContent>
           <CardFooter>
             <Button className="w-full h-11 text-base font-semibold shadow-lg" onClick={() => login(role)}>
-              Sign In as {role.replace('_', ' ').toLowerCase()}
+              {t("signIn")} ({role.replace('_', ' ').toLowerCase()})
             </Button>
           </CardFooter>
         </Card>

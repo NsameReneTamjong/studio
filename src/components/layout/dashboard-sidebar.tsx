@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { useI18n } from "@/lib/i18n-context";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -13,82 +14,89 @@ import {
   Calendar,
   ClipboardCheck,
   Award,
-  Settings,
   LogOut,
   Building2,
   Sparkles,
   Heart,
-  Globe
+  Globe,
+  Languages
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function DashboardSidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const { t, language, setLanguage } = useI18n();
 
   const routes = [
     {
-      label: "Platform Overview",
+      label: t("platformOverview"),
       icon: LayoutDashboard,
       href: "/dashboard",
       roles: ["SUPER_ADMIN"],
     },
     {
-      label: "Schools",
+      label: t("schools"),
       icon: Globe,
       href: "/dashboard/schools",
       roles: ["SUPER_ADMIN"],
     },
     {
-      label: "Overview",
+      label: t("overview"),
       icon: LayoutDashboard,
       href: "/dashboard",
       roles: ["SCHOOL_ADMIN", "TEACHER", "STUDENT", "PARENT"],
     },
     {
-      label: "Students",
+      label: t("students"),
       icon: GraduationCap,
       href: "/dashboard/students",
       roles: ["SCHOOL_ADMIN", "TEACHER"],
     },
     {
-      label: "Staff Directory",
+      label: t("staff"),
       icon: Users,
       href: "/dashboard/staff",
       roles: ["SCHOOL_ADMIN"],
     },
     {
-      label: "My Children",
+      label: t("myChildren"),
       icon: Heart,
       href: "/dashboard/children",
       roles: ["PARENT"],
     },
     {
-      label: "Courses",
+      label: t("courses"),
       icon: BookOpen,
       href: "/dashboard/courses",
       roles: ["SCHOOL_ADMIN", "STUDENT", "TEACHER"],
     },
     {
-      label: "Grade Book",
+      label: t("grades"),
       icon: Award,
       href: "/dashboard/grades",
       roles: ["TEACHER", "STUDENT", "PARENT"],
     },
     {
-      label: "Attendance",
+      label: t("attendance"),
       icon: ClipboardCheck,
       href: "/dashboard/attendance",
       roles: ["TEACHER", "STUDENT", "PARENT"],
     },
     {
-      label: "AI Feedback",
+      label: t("aiFeedback"),
       icon: Sparkles,
       href: "/dashboard/ai-feedback",
       roles: ["TEACHER"],
     },
     {
-      label: "Schedule",
+      label: t("schedule"),
       icon: Calendar,
       href: "/dashboard/schedule",
       roles: ["TEACHER", "STUDENT", "PARENT"],
@@ -100,11 +108,28 @@ export function DashboardSidebar() {
   return (
     <div className="flex flex-col h-full bg-primary text-white w-64 border-r border-white/10">
       <div className="p-6">
-        <div className="flex items-center gap-3">
-          <div className="bg-secondary p-1.5 rounded-lg">
-            <Building2 className="w-6 h-6 text-primary" />
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="bg-secondary p-1.5 rounded-lg">
+              <Building2 className="w-6 h-6 text-primary" />
+            </div>
+            <span className="text-xl font-bold tracking-tight font-headline">EduNexus</span>
           </div>
-          <span className="text-xl font-bold tracking-tight font-headline">EduNexus</span>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
+                <Languages className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setLanguage("en")} className={language === "en" ? "bg-accent" : ""}>
+                English
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setLanguage("fr")} className={language === "fr" ? "bg-accent" : ""}>
+                Français
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -140,7 +165,7 @@ export function DashboardSidebar() {
           onClick={logout}
         >
           <LogOut className="w-4 h-4" />
-          <span>Logout</span>
+          <span>{t("logout")}</span>
         </Button>
       </div>
     </div>
