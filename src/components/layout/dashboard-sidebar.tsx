@@ -112,7 +112,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: t("library"),
       icon: Library,
       href: "/dashboard/library",
-      roles: ["STUDENT", "LIBRARIAN"],
+      roles: ["STUDENT", "TEACHER", "LIBRARIAN"],
     },
     {
       label: t("assignments"),
