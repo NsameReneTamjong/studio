@@ -40,7 +40,9 @@ import {
   Trash2,
   Eye,
   FileText,
-  FileDown
+  FileDown,
+  ArrowUpRight,
+  CheckCircle
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -69,6 +71,36 @@ const MOCK_LOANS = [
   }
 ];
 
+const MOCK_REQUESTS = [
+  { 
+    id: "REQ-001", 
+    userName: "Alice Thompson", 
+    userRole: "STUDENT", 
+    userAvatar: "https://picsum.photos/seed/s1/100/100", 
+    bookTitle: "Things Fall Apart", 
+    bookAuthor: "Chinua Achebe",
+    requestDate: "Today, 11:00 AM"
+  },
+  { 
+    id: "REQ-002", 
+    userName: "Dr. Aris Tesla", 
+    userRole: "TEACHER", 
+    userAvatar: "https://picsum.photos/seed/t1/100/100", 
+    bookTitle: "Modern Computing", 
+    bookAuthor: "Ada Lovelace",
+    requestDate: "Today, 09:15 AM"
+  },
+  { 
+    id: "REQ-003", 
+    userName: "Charlie Davis", 
+    userRole: "STUDENT", 
+    userAvatar: "https://picsum.photos/seed/s3/100/100", 
+    bookTitle: "Calculus II", 
+    bookAuthor: "Prof. Smith",
+    requestDate: "Yesterday"
+  },
+];
+
 const MOCK_MEMBERS = [
   { id: "S001", name: "Alice Thompson", role: "STUDENT", avatar: "https://picsum.photos/seed/s1/100/100", borrowed: 2, overdue: 0, returned: 12 },
   { id: "S002", name: "Bob Richards", role: "STUDENT", avatar: "https://picsum.photos/seed/s2/100/100", borrowed: 1, overdue: 1, returned: 8 },
@@ -83,6 +115,7 @@ export default function LibraryPage() {
   
   const [searchTerm, setSearchTerm] = useState("");
   const [books, setBooks] = useState(INITIAL_BOOKS);
+  const [requests, setRequests] = useState(MOCK_REQUESTS);
   const [borrowingBook, setBorrowingBook] = useState<any>(null);
   const [previewReceipt, setPreviewReceipt] = useState<any>(null);
   const [loans, setLoans] = useState(MOCK_LOANS);
@@ -143,6 +176,21 @@ export default function LibraryPage() {
         description: language === 'en' ? "Download your receipt to collect the book at the office." : "Téléchargez votre reçu pour retirer le livre au bureau.",
       });
     }, 1500);
+  };
+
+  const handleIssueBook = (requestId: string) => {
+    const request = requests.find(r => r.id === requestId);
+    if (!request) return;
+
+    setIsProcessing(true);
+    setTimeout(() => {
+      setRequests(prev => prev.filter(r => r.id !== requestId));
+      setIsProcessing(false);
+      toast({
+        title: "Book Issued",
+        description: `"${request.bookTitle}" has been successfully issued to ${request.userName}.`,
+      });
+    }, 1000);
   };
 
   const openBookModal = (book?: any) => {
@@ -245,15 +293,26 @@ export default function LibraryPage() {
       <Tabs defaultValue="catalog" className="w-full">
         <TabsList className={cn(
           "grid w-full bg-white shadow-sm border h-auto p-1 rounded-2xl",
-          isLibrarian ? "grid-cols-4 md:w-[800px]" : "grid-cols-2 md:w-[400px]"
+          isLibrarian ? "grid-cols-5 md:w-[950px]" : "grid-cols-2 md:w-[400px]"
         )}>
           <TabsTrigger value="catalog" className="gap-2 py-3 rounded-xl transition-all">
             <Book className="w-4 h-4" /> {language === 'en' ? 'Catalog' : 'Catalogue'}
           </TabsTrigger>
+          {isLibrarian && (
+            <TabsTrigger value="issue" className="gap-2 py-3 rounded-xl transition-all relative">
+              <ArrowUpRight className="w-4 h-4" /> 
+              {language === 'en' ? 'Issue Requests' : 'Demandes d\'Émission'}
+              {requests.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white shadow-sm">
+                  {requests.length}
+                </span>
+              )}
+            </TabsTrigger>
+          )}
           <TabsTrigger value="borrowed" className="gap-2 py-3 rounded-xl transition-all relative">
             <Clock className="w-4 h-4" /> 
             {isLibrarian ? (language === 'en' ? 'Circulation' : 'Circulation') : t("borrowed")}
-            {loans.length > 0 && (
+            {!isLibrarian && loans.length > 0 && (
               <span className="absolute -top-1 -right-1 w-5 h-5 bg-secondary text-primary text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white shadow-sm">
                 {loans.length}
               </span>
@@ -359,62 +418,192 @@ export default function LibraryPage() {
           </div>
         </TabsContent>
 
+        {isLibrarian && (
+          <TabsContent value="issue" className="mt-8 animate-in fade-in slide-in-from-bottom-4">
+            <Card className="border-none shadow-sm overflow-hidden">
+              <CardHeader className="bg-white border-b">
+                <CardTitle>Pending Issue Requests</CardTitle>
+                <CardDescription>Confirm and issue books to students and staff after physical presentation.</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader className="bg-accent/30">
+                    <TableRow className="uppercase text-[10px] font-black tracking-widest">
+                      <TableHead className="pl-6 py-4">Requester Profile</TableHead>
+                      <TableHead>Requested Book</TableHead>
+                      <TableHead>Request Time</TableHead>
+                      <TableHead className="text-right pr-6">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {requests.map((req) => (
+                      <TableRow key={req.id} className="hover:bg-accent/5">
+                        <TableCell className="pl-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent">
+                              <AvatarImage src={req.userAvatar} alt={req.userName} />
+                              <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-bold text-sm text-primary leading-none">{req.userName}</p>
+                              <Badge variant="outline" className="text-[9px] mt-1 h-4 font-black uppercase bg-primary/5">{req.userRole}</Badge>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-0.5">
+                            <p className="font-bold text-sm text-primary">{req.bookTitle}</p>
+                            <p className="text-[10px] text-muted-foreground uppercase font-bold">{req.bookAuthor}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Clock className="w-3.5 h-3.5" />
+                            {req.requestDate}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right pr-6">
+                          <Button 
+                            size="sm" 
+                            className="gap-2 font-black uppercase tracking-tighter shadow-sm"
+                            onClick={() => handleIssueBook(req.id)}
+                            disabled={isProcessing}
+                          >
+                            {isProcessing ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
+                            Issue Book
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {requests.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-20 text-muted-foreground italic">
+                          No pending issue requests found in the institutional queue.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
+
         <TabsContent value="borrowed" className="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {loans.map((loan) => (
-              <Card key={loan.id} className="border-none shadow-xl relative overflow-hidden group bg-white">
-                <div className="absolute top-0 left-0 w-1.5 h-full bg-secondary" />
-                <CardHeader className="pb-4">
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-1">
-                      <Badge variant="outline" className="text-[10px] font-black bg-primary/5 text-primary border-primary/10 tracking-widest">
-                        ID: {loan.id}
-                      </Badge>
-                      <CardTitle className="text-xl mt-2 leading-tight">{loan.bookTitle}</CardTitle>
-                      <CardDescription className="font-medium">{loan.author}</CardDescription>
-                    </div>
-                    <Badge variant="default" className="bg-green-600 text-[10px] h-6 font-black uppercase tracking-tighter">
-                      {loan.status}
-                    </Badge>
+          <div className={cn(
+            "grid gap-8",
+            isLibrarian ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"
+          )}>
+            {isLibrarian ? (
+              <Card className="border-none shadow-sm overflow-hidden">
+                <CardHeader className="bg-white border-b flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <CardTitle>Active Institutional Circulation</CardTitle>
+                    <CardDescription>Comprehensive log of all resources currently held by members.</CardDescription>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="gap-2"><FileText className="w-4 h-4" /> Export Report</Button>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-2 gap-6 bg-accent/10 p-4 rounded-2xl border border-accent">
-                    <div className="space-y-1">
-                      <p className="text-[10px] uppercase font-black tracking-widest">{language === 'en' ? 'Borrowed' : 'Emprunté'}</p>
-                      <p className="text-sm font-bold text-primary">{loan.borrowDate}</p>
-                    </div>
-                    <div className="space-y-1 text-right">
-                      <p className="text-[10px] uppercase font-black tracking-widest">{t("returnDate")}</p>
-                      <p className="text-sm font-bold text-secondary">{loan.returnDate}</p>
-                    </div>
-                  </div>
-                  <div className="p-4 bg-primary text-white rounded-2xl flex items-center justify-between shadow-lg shadow-primary/20">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-white/10 p-2 rounded-xl backdrop-blur-sm">
-                        <QrCode className="w-6 h-6 text-secondary" />
-                      </div>
-                      <div>
-                        <p className="text-[10px] uppercase font-black tracking-widest opacity-60">{t("collectionCode")}</p>
-                        <p className="font-mono font-black text-xl tracking-tighter text-secondary">{loan.collectionCode}</p>
-                      </div>
-                    </div>
-                    <CheckCircle2 className="w-6 h-6 text-secondary opacity-40" />
-                  </div>
+                <CardContent className="p-0 overflow-x-auto">
+                  <Table>
+                    <TableHeader className="bg-accent/30">
+                      <TableRow className="uppercase text-[10px] font-black tracking-widest">
+                        <TableHead className="pl-6 py-4">Borrower</TableHead>
+                        <TableHead>Book Information</TableHead>
+                        <TableHead className="text-center">Issued On</TableHead>
+                        <TableHead className="text-center">Due Date</TableHead>
+                        <TableHead className="text-center">Status</TableHead>
+                        <TableHead className="text-right pr-6">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {loans.map((loan) => (
+                        <TableRow key={loan.id} className="hover:bg-accent/5">
+                          <TableCell className="pl-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-8 w-8">
+                                <AvatarFallback className="bg-primary/5 text-[10px] text-primary">ID</AvatarFallback>
+                              </Avatar>
+                              <span className="font-bold text-sm text-primary">Student S001</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col">
+                              <span className="font-bold text-sm">{loan.bookTitle}</span>
+                              <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{loan.id}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center font-mono text-xs">{loan.borrowDate}</TableCell>
+                          <TableCell className="text-center font-mono text-xs font-bold text-secondary">{loan.returnDate}</TableCell>
+                          <TableCell className="text-center">
+                            <Badge variant="outline" className="text-[9px] bg-green-50 text-green-700 border-green-200">Active</Badge>
+                          </TableCell>
+                          <TableCell className="text-right pr-6">
+                            <Button variant="ghost" size="sm" className="text-primary hover:bg-primary/10 font-bold h-8">Return Resource</Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </CardContent>
-                <CardFooter className="pt-0 pb-6 px-6">
-                  <Button 
-                    variant="outline" 
-                    className="w-full gap-2 text-primary border-primary/20 hover:bg-primary/5 h-11 font-bold"
-                    onClick={() => setPreviewReceipt(loan)}
-                  >
-                    <Download className="w-4 h-4" /> {t("collectionReceipt")}
-                  </Button>
-                </CardFooter>
               </Card>
-            ))}
+            ) : (
+              loans.map((loan) => (
+                <Card key={loan.id} className="border-none shadow-xl relative overflow-hidden group bg-white">
+                  <div className="absolute top-0 left-0 w-1.5 h-full bg-secondary" />
+                  <CardHeader className="pb-4">
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-1">
+                        <Badge variant="outline" className="text-[10px] font-black bg-primary/5 text-primary border-primary/10 tracking-widest">
+                          ID: {loan.id}
+                        </Badge>
+                        <CardTitle className="text-xl mt-2 leading-tight">{loan.bookTitle}</CardTitle>
+                        <CardDescription className="font-medium">{loan.author}</CardDescription>
+                      </div>
+                      <Badge variant="default" className="bg-green-600 text-[10px] h-6 font-black uppercase tracking-tighter">
+                        {loan.status}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="grid grid-cols-2 gap-6 bg-accent/10 p-4 rounded-2xl border border-accent">
+                      <div className="space-y-1">
+                        <p className="text-[10px] uppercase font-black tracking-widest">{language === 'en' ? 'Borrowed' : 'Emprunté'}</p>
+                        <p className="text-sm font-bold text-primary">{loan.borrowDate}</p>
+                      </div>
+                      <div className="space-y-1 text-right">
+                        <p className="text-[10px] uppercase font-black tracking-widest">{t("returnDate")}</p>
+                        <p className="text-sm font-bold text-secondary">{loan.returnDate}</p>
+                      </div>
+                    </div>
+                    <div className="p-4 bg-primary text-white rounded-2xl flex items-center justify-between shadow-lg shadow-primary/20">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-white/10 p-2 rounded-xl backdrop-blur-sm">
+                          <QrCode className="w-6 h-6 text-secondary" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] uppercase font-black tracking-widest opacity-60">{t("collectionCode")}</p>
+                          <p className="font-mono font-black text-xl tracking-tighter text-secondary">{loan.collectionCode}</p>
+                        </div>
+                      </div>
+                      <CheckCircle2 className="w-6 h-6 text-secondary opacity-40" />
+                    </div>
+                  </CardContent>
+                  <CardFooter className="pt-0 pb-6 px-6">
+                    <Button 
+                      variant="outline" 
+                      className="w-full gap-2 text-primary border-primary/20 hover:bg-primary/5 h-11 font-bold"
+                      onClick={() => setPreviewReceipt(loan)}
+                    >
+                      <Download className="w-4 h-4" /> {t("collectionReceipt")}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))
+            )}
             
-            {loans.length === 0 && (
+            {loans.length === 0 && !isLibrarian && (
               <div className="col-span-full py-20 text-center space-y-6 bg-accent/10 rounded-3xl border-2 border-dashed border-accent">
                 <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm">
                    <Book className="w-10 h-10 text-primary/20" />
