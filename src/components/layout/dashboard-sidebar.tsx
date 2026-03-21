@@ -81,13 +81,13 @@ export function DashboardSidebar() {
       label: t("grades"),
       icon: Award,
       href: "/dashboard/grades",
-      roles: ["TEACHER", "STUDENT", "PARENT"],
+      roles: ["TEACHER", "STUDENT"], // Parents view grades through the Child View
     },
     {
       label: t("attendance"),
       icon: ClipboardCheck,
       href: "/dashboard/attendance",
-      roles: ["TEACHER", "STUDENT", "PARENT"],
+      roles: ["TEACHER", "STUDENT"], // Parents view attendance through the Child View
     },
     {
       label: t("aiFeedback"),
@@ -99,7 +99,7 @@ export function DashboardSidebar() {
       label: t("schedule"),
       icon: Calendar,
       href: "/dashboard/schedule",
-      roles: ["TEACHER", "STUDENT", "PARENT"],
+      roles: ["TEACHER", "STUDENT"], // Parents view schedule through the Child View
     },
   ];
 
