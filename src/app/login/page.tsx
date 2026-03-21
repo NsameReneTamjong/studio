@@ -16,7 +16,9 @@ import {
   UserCircle, 
   Briefcase,
   Languages,
-  UserPlus
+  UserPlus,
+  Coins,
+  Library
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -69,10 +71,10 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-2">
               <Button 
                 variant={role === "STUDENT" ? "default" : "outline"} 
-                className="flex flex-col h-auto py-2 gap-1 text-[9px]"
+                className="flex flex-col h-auto py-2 gap-1 text-[8px]"
                 onClick={() => setRole("STUDENT")}
               >
                 <GraduationCap className="w-4 h-4" />
@@ -80,7 +82,7 @@ export default function LoginPage() {
               </Button>
               <Button 
                 variant={role === "TEACHER" ? "default" : "outline"} 
-                className="flex flex-col h-auto py-2 gap-1 text-[9px]"
+                className="flex flex-col h-auto py-2 gap-1 text-[8px]"
                 onClick={() => setRole("TEACHER")}
               >
                 <Presentation className="w-4 h-4" />
@@ -88,15 +90,31 @@ export default function LoginPage() {
               </Button>
               <Button 
                 variant={role === "PARENT" ? "default" : "outline"} 
-                className="flex flex-col h-auto py-2 gap-1 text-[9px]"
+                className="flex flex-col h-auto py-2 gap-1 text-[8px]"
                 onClick={() => setRole("PARENT")}
               >
                 <UserCircle className="w-4 h-4" />
                 <span>Parent</span>
               </Button>
               <Button 
+                variant={role === "BURSAR" ? "default" : "outline"} 
+                className="flex flex-col h-auto py-2 gap-1 text-[8px]"
+                onClick={() => setRole("BURSAR")}
+              >
+                <Coins className="w-4 h-4" />
+                <span>{t("bursar")}</span>
+              </Button>
+              <Button 
+                variant={role === "LIBRARIAN" ? "default" : "outline"} 
+                className="flex flex-col h-auto py-2 gap-1 text-[8px]"
+                onClick={() => setRole("LIBRARIAN")}
+              >
+                <Library className="w-4 h-4" />
+                <span>{t("librarian")}</span>
+              </Button>
+              <Button 
                 variant={role === "SCHOOL_ADMIN" ? "default" : "outline"} 
-                className="flex flex-col h-auto py-2 gap-1 text-[9px]"
+                className="flex flex-col h-auto py-2 gap-1 text-[8px]"
                 onClick={() => setRole("SCHOOL_ADMIN")}
               >
                 <ShieldCheck className="w-4 h-4" />
@@ -104,7 +122,7 @@ export default function LoginPage() {
               </Button>
               <Button 
                 variant={role === "SUPER_ADMIN" ? "default" : "outline"} 
-                className="flex flex-col h-auto py-2 gap-1 text-[9px]"
+                className="flex flex-col h-auto py-2 gap-1 text-[8px]"
                 onClick={() => setRole("SUPER_ADMIN")}
               >
                 <Briefcase className="w-4 h-4" />
@@ -132,7 +150,7 @@ export default function LoginPage() {
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="email">{t("email")}</Label>
-                    <Input id="email" type="email" placeholder="name@domain.edu" />
+                    <Input id="email" type="email" placeholder="name@eduignite.io" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="password">{t("password")}</Label>

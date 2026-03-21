@@ -1,7 +1,7 @@
 
 "use client";
 
-import Link from "next/link";
+import Link from "relative/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
@@ -26,7 +26,9 @@ import {
   User,
   X,
   PenTool,
-  FileEdit
+  FileEdit,
+  Coins,
+  Library
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -68,25 +70,25 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: t("chat"),
       icon: MessageCircle,
       href: "/dashboard/chat",
-      roles: ["SCHOOL_ADMIN", "TEACHER", "STUDENT", "PARENT"],
+      roles: ["SCHOOL_ADMIN", "TEACHER", "STUDENT", "PARENT", "BURSAR", "LIBRARIAN"],
     },
     {
       label: t("announcements"),
       icon: Megaphone,
       href: "/dashboard/announcements",
-      roles: ["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER", "STUDENT", "PARENT"],
+      roles: ["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER", "STUDENT", "PARENT", "BURSAR", "LIBRARIAN"],
     },
     {
       label: t("overview"),
       icon: LayoutDashboard,
       href: "/dashboard",
-      roles: ["SCHOOL_ADMIN", "TEACHER", "STUDENT", "PARENT"],
+      roles: ["SCHOOL_ADMIN", "TEACHER", "STUDENT", "PARENT", "BURSAR", "LIBRARIAN"],
     },
     {
       label: t("students"),
       icon: GraduationCap,
       href: "/dashboard/students",
-      roles: ["SCHOOL_ADMIN", "TEACHER"],
+      roles: ["SCHOOL_ADMIN", "TEACHER", "BURSAR"],
     },
     {
       label: t("staff"),
@@ -134,7 +136,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: t("aiAssistant"),
       icon: Sparkles,
       href: "/dashboard/ai-assistant",
-      roles: ["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER", "STUDENT", "PARENT"],
+      roles: ["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER", "STUDENT", "PARENT", "BURSAR", "LIBRARIAN"],
     },
     {
       label: t("aiFeedback"),
@@ -152,7 +154,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: t("profile"),
       icon: User,
       href: "/dashboard/profile",
-      roles: ["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER", "STUDENT", "PARENT"],
+      roles: ["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER", "STUDENT", "PARENT", "BURSAR", "LIBRARIAN"],
     },
   ];
 

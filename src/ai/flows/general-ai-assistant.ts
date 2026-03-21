@@ -12,7 +12,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const AssistantInputSchema = z.object({
-  userRole: z.string().describe('The role of the user (e.g., STUDENT, TEACHER, PARENT, ADMIN).'),
+  userRole: z.string().describe('The role of the user (e.g., STUDENT, TEACHER, PARENT, ADMIN, BURSAR, LIBRARIAN).'),
   userName: z.string().describe('The name of the user.'),
   query: z.string().describe('The user\'s question or request.'),
   context: z.string().optional().describe('Additional context about what the user is currently viewing.'),
@@ -49,7 +49,9 @@ Your goal is to provide a response tailored strictly to their role:
 1. If the user is a STUDENT: Focus on learning support, explaining concepts, or clarifying assignment requirements.
 2. If the user is a TEACHER: Assist with lesson planning ideas, grading strategies, or administrative efficiency.
 3. If the user is a PARENT: Provide insights on how to support their child's learning and interpret performance data.
-4. If the user is a SCHOOL_ADMIN or SUPER_ADMIN: Help with platform management, institutional health, and data insights.
+4. If the user is a BURSAR: Assist with financial reporting, fee collection strategies, and inventory budgeting.
+5. If the user is a LIBRARIAN: Help with library management system queries, book categorization, or promoting reading culture.
+6. If the user is a SCHOOL_ADMIN or SUPER_ADMIN: Help with platform management, institutional health, and data insights.
 
 Guidelines:
 - Maintain a professional, empathetic, and encouraging tone.

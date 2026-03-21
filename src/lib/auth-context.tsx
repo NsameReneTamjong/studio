@@ -4,7 +4,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-export type UserRole = "SUPER_ADMIN" | "SCHOOL_ADMIN" | "TEACHER" | "STUDENT" | "PARENT";
+export type UserRole = "SUPER_ADMIN" | "SCHOOL_ADMIN" | "TEACHER" | "STUDENT" | "PARENT" | "BURSAR" | "LIBRARIAN";
 
 interface User {
   id: string;
@@ -38,11 +38,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = (role: UserRole, schoolName: string = "Springfield High") => {
     const mockUser: User = {
       id: Math.random().toString(36).substr(2, 9),
-      name: role === "SUPER_ADMIN" ? "SaaS Overlord" : 
-            role === "SCHOOL_ADMIN" ? `${schoolName} Admin` :
+      name: role === "SUPER_ADMIN" ? "EduIgnite Super Admin" : 
+            role === "SCHOOL_ADMIN" ? `${schoolName} Principal` :
             role === "TEACHER" ? "Sarah Smith" : 
-            role === "PARENT" ? "Robert Parent" : "John Doe",
-      email: `${role.toLowerCase()}@edunexus.edu`,
+            role === "PARENT" ? "Robert Parent" : 
+            role === "BURSAR" ? "Finance Manager" :
+            role === "LIBRARIAN" ? "Resource Librarian" : "John Doe",
+      email: `${role.toLowerCase()}@eduignite.io`,
       role,
       schoolId: role === "SUPER_ADMIN" ? null : "school-123",
       avatar: `https://picsum.photos/seed/${role}/100/100`,

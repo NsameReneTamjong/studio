@@ -24,7 +24,7 @@
       "properties": {
         "id": { "type": "string" },
         "schoolId": { "type": "string", "description": "The ID of the school this user belongs to. Null for super admins." },
-        "role": { "type": "string", "enum": ["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER", "STUDENT", "PARENT"] },
+        "role": { "type": "string", "enum": ["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER", "STUDENT", "PARENT", "BURSAR", "LIBRARIAN"] },
         "name": { "type": "string" },
         "email": { "type": "string", "format": "email" },
         "avatar": { "type": "string" }

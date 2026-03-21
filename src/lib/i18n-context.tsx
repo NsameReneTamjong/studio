@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
@@ -95,6 +96,8 @@ const translations: TranslationDict = {
   graded: { en: "Graded", fr: "Noté" },
   submitAssignment: { en: "Submit Assignment", fr: "Rendre le Devoir" },
   dueDate: { en: "Due Date", fr: "Date limite" },
+  bursar: { en: "Bursar", fr: "Économe" },
+  librarian: { en: "Librarian", fr: "Bibliothécaire" },
 };
 
 interface I18nContextType {
