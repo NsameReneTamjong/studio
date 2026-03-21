@@ -23,7 +23,8 @@ import {
   CalendarDays,
   Library,
   Book,
-  ArrowUpRight
+  ArrowUpRight,
+  ShieldCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -49,7 +50,7 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const { t, language } = useI18n();
 
-  // Mock data for Bursar Charts
+  // Mock data for Bursar/Admin Finance Charts
   const paymentStatusData = [
     { name: 'Paid in Full', value: 450, color: '#10b981' },
     { name: 'Partial', value: 300, color: '#f59e0b' },
@@ -63,7 +64,7 @@ export default function DashboardPage() {
     { name: 'Exams', amount: 300000 },
   ];
 
-  // Mock data for Librarian Charts
+  // Mock data for Librarian/Admin Library Charts
   const circulationData = [
     { name: 'Available', value: 1200, color: '#10b981' },
     { name: 'Borrowed', value: 450, color: '#264D73' },
@@ -85,9 +86,9 @@ export default function DashboardPage() {
     { label: language === "en" ? "System Health" : "Santé Système", value: "99.9%", icon: TrendingUp, color: "text-green-600" },
     { label: language === "en" ? "Pending Support" : "Support en Attente", value: "12", icon: AlertCircle, color: "text-amber-600" },
   ] : user?.role === "SCHOOL_ADMIN" ? [
-    { label: language === "en" ? "Total Students" : "Total Élèves", value: "1,284", icon: GraduationCap, color: "text-blue-600" },
-    { label: language === "en" ? "Faculty Members" : "Membres du personnel", value: "86", icon: Users, color: "text-purple-600" },
-    { label: language === "en" ? "Active Courses" : "Cours Actifs", value: "42", icon: BookOpen, color: "text-green-600" },
+    { label: language === "en" ? "Total Revenue" : "Revenu Total", value: "4.2M XAF", icon: Coins, color: "text-green-600" },
+    { label: language === "en" ? "Library Loans" : "Emprunts Bibliothèque", value: "450", icon: Book, color: "text-blue-600" },
+    { label: language === "en" ? "Active Students" : "Élèves Actifs", value: "1,284", icon: GraduationCap, color: "text-purple-600" },
     { label: language === "en" ? "Attendance Rate" : "Taux de Présence", value: "94.2%", icon: TrendingUp, color: "text-amber-600" },
   ] : user?.role === "TEACHER" ? [
     { label: language === "en" ? "Assigned Students" : "Élèves Assignés", value: "124", icon: GraduationCap, color: "text-blue-600" },
@@ -123,12 +124,10 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-3xl font-bold text-primary font-headline">{t("welcome")}, {user?.name}</h1>
           <p className="text-muted-foreground mt-1">
-            {user?.role === "BURSAR" 
+            {user?.role === "SCHOOL_ADMIN" 
+              ? (language === "en" ? "Institutional Oversight: Monitor financial, library, and academic health." : "Supervision Institutionnelle : Surveillez la santé financière, bibliothécaire et académique.")
+              : user?.role === "BURSAR" 
               ? (language === "en" ? "Manage institutional financial health and fee tracking." : "Gérez la santé financière et le suivi des frais.")
-              : user?.role === "PARENT" 
-              ? (language === "en" ? "Monitor your children's academic journey here." : "Suivez le parcours académique de vos enfants ici.")
-              : user?.role === "LIBRARIAN"
-              ? (language === "en" ? "Oversee library collection and circulation analytics." : "Supervisez la collection et les analyses de circulation de la bibliothèque.")
               : (language === "en" ? "Here's what's happening in EduIgnite today." : "Voici ce qui se passe dans EduIgnite aujourd'hui.")}
           </p>
         </div>
@@ -176,29 +175,24 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main Observation Chart */}
         <Card className="lg:col-span-2 border-none shadow-sm overflow-hidden">
           <CardHeader>
             <CardTitle>
-              {user?.role === "BURSAR" 
+              {user?.role === "SCHOOL_ADMIN" 
+                ? (language === "en" ? "Revenue & Resource Analytics" : "Analyses des Revenus et Ressources")
+                : user?.role === "BURSAR" 
                 ? (language === "en" ? "Revenue Distribution" : "Répartition des Revenus")
-                : user?.role === "PARENT" 
-                ? (language === "en" ? "Children Summary" : "Résumé des Enfants")
-                : user?.role === "LIBRARIAN"
-                ? (language === "en" ? "Borrowing Trends by Category" : "Tendances d'Emprunt par Catégorie")
                 : (language === "en" ? "Upcoming Schedule" : "Emploi du Temps à Venir")}
             </CardTitle>
             <CardDescription>
-              {user?.role === "BURSAR"
-                ? (language === "en" ? "Revenue breakdown by institutional cost centers" : "Répartition par centres de coûts")
-                : user?.role === "PARENT"
-                ? (language === "en" ? "Quick view of your children's status." : "Vue rapide du statut de vos enfants.")
-                : user?.role === "LIBRARIAN"
-                ? (language === "en" ? "Most active academic sections in the library." : "Sections académiques les plus actives de la bibliothèque.")
-                : (language === "en" ? "Your classes for the next 24 hours" : "Vos cours pour les prochaines 24 heures")}
+              {user?.role === "SCHOOL_ADMIN"
+                ? (language === "en" ? "Comparison of institutional revenue and library activity." : "Comparaison des revenus et de l'activité bibliothèque.")
+                : (language === "en" ? "Your institutional metrics at a glance." : "Vos mesures institutionnelles en un coup d'œil.")}
             </CardDescription>
           </CardHeader>
           <CardContent className="h-[300px]">
-            {user?.role === "BURSAR" ? (
+            {(user?.role === "BURSAR" || user?.role === "SCHOOL_ADMIN") ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={revenueByCategory}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
@@ -223,56 +217,21 @@ export default function DashboardPage() {
                   <Bar dataKey="loans" fill="hsl(var(--secondary))" radius={[8, 8, 0, 0]} barSize={40} />
                 </BarChart>
               </ResponsiveContainer>
-            ) : user?.role === "PARENT" ? (
-              <div className="space-y-4">
-                {[
-                  { name: "Alice Thompson", grade: "10th", average: "15.4", status: "In Class" },
-                  { name: "Diana Prince", grade: "10th", average: "18.2", status: "In Class" },
-                ].map((child, idx) => (
-                  <div key={idx} className="flex items-center gap-4 p-4 rounded-xl bg-accent/30 border border-accent hover:bg-accent/50 transition-colors">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">
-                      {child.name.charAt(0)}
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-bold text-primary">{child.name}</h4>
-                      <p className="text-xs text-muted-foreground">{child.grade} Grade • Avg: {child.average}/20</p>
-                    </div>
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/dashboard/children/view?id=${idx === 0 ? 'S001' : 'S004'}`}>
-                        {language === "en" ? "View Full Report" : "Voir le Bulletin"}
-                      </Link>
-                    </Button>
-                  </div>
-                ))}
-              </div>
             ) : (
               <div className="space-y-4">
                 {[
                   { time: "09:00 AM", subject: language === "en" ? "Advanced Mathematics" : "Mathématiques Avancées", room: "Room 402", teacher: "Dr. Aris" },
                   { time: "11:30 AM", subject: language === "en" ? "English Literature" : "Littérature Anglaise", room: "Room 201", teacher: "Ms. Bennet" },
-                  { time: "02:00 PM", subject: language === "en" ? "Physics Lab" : "Laboratoire de Physique", room: "Lab C", teacher: "Mr. Tesla" },
                 ].map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-4 p-4 rounded-xl bg-accent/30 border border-accent hover:bg-accent/50 transition-all group">
-                    <div className="bg-white px-4 py-2 rounded-lg flex flex-col items-center justify-center shadow-sm border border-primary/10 shrink-0">
+                  <div key={idx} className="flex items-center gap-4 p-4 rounded-xl bg-accent/30 border border-accent">
+                    <div className="bg-white px-4 py-2 rounded-lg flex flex-col items-center justify-center shadow-sm">
                       <Clock className="w-3 h-3 text-primary mb-1" />
                       <span className="text-xs font-bold text-primary">{item.time}</span>
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-bold text-primary group-hover:text-primary/80 transition-colors">{item.subject}</h4>
-                      <div className="flex items-center gap-3 mt-1">
-                        <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                          <MapPin className="w-3 h-3" /> {item.room}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                          <Users className="w-3 h-3" /> {item.teacher}
-                        </span>
-                      </div>
+                      <h4 className="font-bold text-primary">{item.subject}</h4>
+                      <p className="text-[10px] text-muted-foreground">{item.room} • {item.teacher}</p>
                     </div>
-                    <Button size="sm" variant="ghost" className="text-xs gap-1 text-primary hover:bg-primary hover:text-white" asChild>
-                      <Link href="/dashboard/schedule">
-                        {language === "en" ? "Details" : "Détails"} <ChevronRight className="w-3 h-3" />
-                      </Link>
-                    </Button>
                   </div>
                 ))}
               </div>
@@ -280,18 +239,19 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
+        {/* Secondary Observation Chart */}
         <Card className="border-none shadow-sm overflow-hidden">
           <CardHeader>
             <CardTitle>
-              {user?.role === "BURSAR" 
+              {user?.role === "SCHOOL_ADMIN"
+                ? (language === "en" ? "Circulation Overview" : "Aperçu de la Circulation")
+                : user?.role === "BURSAR" 
                 ? (language === "en" ? "Payment Status" : "Statut des Paiements")
-                : user?.role === "LIBRARIAN"
-                ? (language === "en" ? "Circulation Health" : "Santé de la Circulation")
-                : (language === "en" ? "Recent Notifications" : "Notifications Récentes")}
+                : (language === "en" ? "Notifications" : "Notifications")}
             </CardTitle>
           </CardHeader>
-          <CardContent className={(user?.role === "BURSAR" || user?.role === "LIBRARIAN") ? "h-[300px]" : ""}>
-            {user?.role === "BURSAR" ? (
+          <CardContent className={(user?.role === "BURSAR" || user?.role === "LIBRARIAN" || user?.role === "SCHOOL_ADMIN") ? "h-[300px]" : ""}>
+            {(user?.role === "BURSAR" || user?.role === "SCHOOL_ADMIN") ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -311,42 +271,19 @@ export default function DashboardPage() {
                   <Legend verticalAlign="bottom" align="center" iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '20px' }} />
                 </PieChart>
               </ResponsiveContainer>
-            ) : user?.role === "LIBRARIAN" ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={circulationData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {circulationData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <RechartsTooltip />
-                  <Legend verticalAlign="bottom" align="center" iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '20px' }} />
-                </PieChart>
-              </ResponsiveContainer>
             ) : (
               <div className="space-y-4">
                 {[
-                  { title: "Fee Deadline Notice", time: "Just now", type: "system", href: "/dashboard/fees" },
-                  { title: language === "en" ? "New Assignment" : "Nouveau Devoir", time: "2h ago", type: "academic", href: "/dashboard/assignments" },
-                  { title: language === "en" ? "Attendance Updated" : "Présence Mise à Jour", time: "4h ago", type: "system", href: "/dashboard/attendance" },
-                  { title: language === "en" ? "Campus News" : "Actualités du Campus", time: "Yesterday", type: "info", href: "/dashboard/announcements" },
+                  { title: "Fee Deadline Published", time: "Just now", type: "system" },
+                  { title: "Library Report Generated", time: "2h ago", type: "info" },
                 ].map((notif, idx) => (
-                  <Link key={idx} href={notif.href} className="flex gap-3 items-start group p-2 rounded-lg hover:bg-accent/30 transition-colors">
-                    <div className={`w-2 h-2 mt-1.5 rounded-full shrink-0 ${notif.type === 'academic' ? 'bg-blue-500' : 'bg-green-500'}`} />
+                  <div key={idx} className="flex gap-3 items-start p-2 rounded-lg hover:bg-accent/30 transition-colors">
+                    <div className={`w-2 h-2 mt-1.5 rounded-full shrink-0 ${notif.type === 'system' ? 'bg-blue-500' : 'bg-green-500'}`} />
                     <div className="flex-1">
-                      <p className="text-sm font-medium group-hover:text-primary transition-colors">{notif.title}</p>
+                      <p className="text-sm font-medium">{notif.title}</p>
                       <p className="text-[10px] text-muted-foreground uppercase">{notif.time}</p>
                     </div>
-                    <ChevronRight className="w-3 h-3 text-muted-foreground/30 group-hover:text-primary transition-colors mt-1" />
-                  </Link>
+                  </div>
                 ))}
               </div>
             )}
