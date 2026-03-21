@@ -14,6 +14,10 @@ export interface SchoolInfo {
   banner: string;
   description: string;
   location: string;
+  address: string;
+  postalCode?: string;
+  phone: string;
+  email: string;
 }
 
 interface User {
@@ -45,7 +49,11 @@ const MOCK_SCHOOLS: Record<string, SchoolInfo> = {
     logo: "https://picsum.photos/seed/joss-logo/200/200",
     banner: "https://picsum.photos/seed/joss-banner/1200/600",
     description: "One of the most prestigious secondary institutions in Douala, committed to academic excellence since 1950.",
-    location: "Douala, Littoral"
+    location: "Douala, Littoral",
+    address: "Rue de Joss, Bonanjo",
+    postalCode: "B.P. 4015",
+    phone: "+237 233 42 10 15",
+    email: "contact@lyceedejoss.cm"
   },
   "S002": {
     id: "S002",
@@ -54,7 +62,11 @@ const MOCK_SCHOOLS: Record<string, SchoolInfo> = {
     logo: "https://picsum.photos/seed/gbhs-logo/200/200",
     banner: "https://picsum.photos/seed/gbhs-banner/1200/600",
     description: "A leading bilingual institution in the heart of the capital city, shaping the future of Cameroonian youth.",
-    location: "Yaoundé, Centre"
+    location: "Yaoundé, Centre",
+    address: "Essos, Avenue de l'Indépendance",
+    postalCode: "B.P. 1105",
+    phone: "+237 222 30 45 60",
+    email: "info@gbhsyaounde.edu"
   }
 };
 
@@ -89,7 +101,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(mockUser);
     localStorage.setItem("edu-nexus-user", JSON.stringify(mockUser));
     
-    // SaaS Flow: Redirect to school welcome page first, unless Super Admin
     if (role === "SUPER_ADMIN") {
       router.push("/dashboard");
     } else {
