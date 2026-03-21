@@ -25,7 +25,8 @@ import {
   Building2,
   Eye,
   CheckCircle2,
-  Printer
+  Printer,
+  ChevronRight
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -47,10 +48,16 @@ const CHILDREN_DATA: Record<string, any> = {
       { name: "Physique", coeff: 4, seq1: 12, seq2: 15, moy: 13.5, group: "Sciences" },
       { name: "Anglais", coeff: 3, seq1: 17, seq2: 18, moy: 17.5, group: "Languages" },
     ],
-    attendanceHistory: [
-      { date: "May 24, 2024", subject: "Physics 101", status: "present" },
-      { date: "May 23, 2024", subject: "Calculus II", status: "present" },
-      { date: "May 22, 2024", subject: "Physics 101", status: "late" },
+    todayAttendance: [
+      { subject: "Mathématiques", time: "08:00 AM", status: "present" },
+      { subject: "Physique", time: "10:30 AM", status: "present" },
+      { subject: "Informatique", time: "02:00 PM", status: "late" },
+    ],
+    attendanceSummary: [
+      { subject: "Mathématiques", present: 22, absent: 2 },
+      { subject: "Physique-Chimie", present: 18, absent: 4 },
+      { subject: "Anglais", present: 24, absent: 0 },
+      { subject: "Histoire-Géo", present: 21, absent: 3 },
     ],
     schedule: {
       Monday: [{ time: "09:00 AM", subject: "Advanced Physics", room: "Room 402", instructor: "Dr. Tesla" }],
@@ -77,10 +84,14 @@ const CHILDREN_DATA: Record<string, any> = {
       { name: "Physique", coeff: 4, seq1: 17, seq2: 18, moy: 17.5, group: "Sciences" },
       { name: "Anglais", coeff: 3, seq1: 19, seq2: 20, moy: 19.5, group: "Languages" },
     ],
-    attendanceHistory: [
-      { date: "May 24, 2024", subject: "Math Honors", status: "present" },
-      { date: "May 23, 2024", subject: "English Lit", status: "present" },
-      { date: "May 22, 2024", subject: "Chemistry", status: "present" },
+    todayAttendance: [
+      { subject: "Math Honors", time: "08:00 AM", status: "present" },
+      { subject: "Chemistry", time: "10:30 AM", status: "present" },
+    ],
+    attendanceSummary: [
+      { subject: "Math Honors", present: 30, absent: 0 },
+      { subject: "Chemistry", present: 28, absent: 0 },
+      { subject: "English Lit", present: 25, absent: 0 },
     ],
     schedule: {
       Monday: [{ time: "10:30 AM", subject: "Math Honors", room: "Room 101", instructor: "Dr. Hawking" }],
@@ -268,24 +279,26 @@ export default function ChildViewPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="attendance" className="mt-6">
+        <TabsContent value="attendance" className="mt-6 space-y-8">
+          {/* Today's Attendance Section */}
           <Card className="border-none shadow-sm">
             <CardHeader>
-              <CardTitle>{language === "en" ? "Recent Attendance History" : "Historique des Présences"}</CardTitle>
+              <CardTitle>{language === "en" ? "Today's Attendance" : "Présence d'Aujourd'hui"}</CardTitle>
+              <CardDescription>{new Date().toLocaleDateString(language === 'en' ? 'en-US' : 'fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {child.attendanceHistory.map((item: any, idx: number) => (
+              {child.todayAttendance.map((item: any, idx: number) => (
                 <div key={idx} className="flex items-center justify-between p-4 rounded-xl border border-accent">
                   <div className="flex items-center gap-4">
                     <div className={cn(
                       "p-2 rounded-lg",
                       item.status === 'present' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
                     )}>
-                      {item.status === 'present' ? <ClipboardCheck className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
+                      {item.status === 'present' ? <CheckCircle2 className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
                     </div>
                     <div>
                       <p className="font-bold text-sm">{item.subject}</p>
-                      <p className="text-xs text-muted-foreground">{item.date}</p>
+                      <p className="text-xs text-muted-foreground">{item.time}</p>
                     </div>
                   </div>
                   <Badge variant={item.status === 'present' ? 'default' : 'secondary'} className={cn(
@@ -297,6 +310,31 @@ export default function ChildViewPage() {
               ))}
             </CardContent>
           </Card>
+
+          {/* Attendance Records Summary Section */}
+          <div>
+            <h3 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
+              <ClipboardCheck className="w-5 h-5" /> {language === "en" ? "Attendance Records" : "Registres de Présence"}
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {child.attendanceSummary.map((summary: any, idx: number) => (
+                <Card key={idx} className="border-none shadow-sm group hover:ring-2 hover:ring-primary/20 transition-all">
+                  <CardContent className="p-6 flex items-center justify-between">
+                    <div className="space-y-1">
+                      <p className="font-bold text-base text-primary">{summary.subject}</p>
+                      <div className="flex items-center gap-3">
+                         <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-md border border-green-100">{summary.present} {t("present")}</span>
+                         <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded-md border border-red-100">{summary.absent} {t("absent")}</span>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="sm" className="gap-1 text-primary hover:bg-primary/5">
+                      {t("viewDetails")} <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="documents" className="mt-6">
