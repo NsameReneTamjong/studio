@@ -37,7 +37,10 @@ import {
   Presentation,
   Award,
   History,
-  CheckCircle
+  CheckCircle,
+  FileSpreadsheet,
+  Zap,
+  Target
 } from "lucide-react";
 import { 
   DropdownMenu, 
@@ -92,9 +95,9 @@ const MOCK_CHART_DATA = [
 ];
 
 const MOCK_TEACHER_SUBJECT_PERFORMANCE = [
-  { subject: 'Maths', score: 15.2 },
-  { subject: 'Physics', score: 13.8 },
-  { subject: 'Science', score: 14.5 },
+  { subject: 'Form 5 Physics', score: 15.2 },
+  { subject: 'Lower 6 Science', score: 13.8 },
+  { subject: 'Form 4 Science', score: 14.5 },
 ];
 
 const MOCK_STUDENT_SUBJECT_PERFORMANCE = [
@@ -307,38 +310,63 @@ export default function CommunityPage() {
             {/* Role-Specific Overview Section */}
             {viewingUser?.role === 'TEACHER' ? (
               <div className="space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Card className="border-none bg-purple-50 p-6 rounded-2xl">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <Card className="border-none bg-purple-50 p-6 rounded-2xl relative overflow-hidden">
+                    <div className="absolute -top-2 -right-2 opacity-5">
+                      <CheckCircle className="w-24 h-24" />
+                    </div>
                     <div className="flex items-center gap-3 mb-4">
                       <div className="p-2 bg-purple-100 rounded-lg text-purple-600">
-                        <Presentation className="w-5 h-5" />
+                        <CheckCircle className="w-5 h-5" />
                       </div>
-                      <p className="text-[10px] font-black uppercase text-purple-600 tracking-widest">Sessions Taught</p>
+                      <p className="text-[10px] font-black uppercase text-purple-600 tracking-widest leading-none">Instructional Compliance</p>
                     </div>
-                    <p className="text-3xl font-black text-purple-900">142</p>
-                    <p className="text-[10px] text-purple-600/60 font-bold mt-1">This Academic Year</p>
+                    <p className="text-3xl font-black text-purple-900">142 <span className="text-xs font-medium opacity-40">Registers</span></p>
+                    <p className="text-[10px] text-purple-600/60 font-bold mt-1 uppercase">Automatic presence taken</p>
                   </Card>
-                  <Card className="border-none bg-blue-50 p-6 rounded-2xl">
+                  
+                  <Card className="border-none bg-blue-50 p-6 rounded-2xl relative overflow-hidden">
+                    <div className="absolute -top-2 -right-2 opacity-5">
+                      <Target className="w-24 h-24" />
+                    </div>
                     <div className="flex items-center gap-3 mb-4">
                       <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
                         <PenTool className="w-5 h-5" />
                       </div>
-                      <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Assessments</p>
+                      <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest leading-none">Assessment Volume</p>
                     </div>
                     <div className="flex gap-4 items-baseline">
-                      <p className="text-3xl font-black text-blue-900">24 <span className="text-sm font-medium opacity-40">Tasks</span></p>
-                      <p className="text-3xl font-black text-blue-900">8 <span className="text-sm font-medium opacity-40">Exams</span></p>
+                      <p className="text-3xl font-black text-blue-900">24 <span className="text-xs font-medium opacity-40">Tasks</span></p>
+                      <p className="text-3xl font-black text-blue-900">8 <span className="text-xs font-medium opacity-40">Exams</span></p>
                     </div>
                   </Card>
-                  <Card className="border-none bg-emerald-50 p-6 rounded-2xl">
+
+                  <Card className="border-none bg-emerald-50 p-6 rounded-2xl relative overflow-hidden">
+                    <div className="absolute -top-2 -right-2 opacity-5">
+                      <Zap className="w-24 h-24" />
+                    </div>
                     <div className="flex items-center gap-3 mb-4">
                       <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600">
                         <GraduationCap className="w-5 h-5" />
                       </div>
-                      <p className="text-[10px] font-black uppercase text-emerald-600 tracking-widest">Avg. Student Mark</p>
+                      <p className="text-[10px] font-black uppercase text-emerald-600 tracking-widest leading-none">Pedagogical Impact</p>
                     </div>
                     <p className="text-3xl font-black text-emerald-900">14.2/20</p>
-                    <p className="text-[10px] text-emerald-600/60 font-bold mt-1">Across all domains</p>
+                    <p className="text-[10px] text-emerald-600/60 font-bold mt-1 uppercase">Avg Student Outcome</p>
+                  </Card>
+
+                  <Card className="border-none bg-amber-50 p-6 rounded-2xl relative overflow-hidden">
+                    <div className="absolute -top-2 -right-2 opacity-5">
+                      <FileSpreadsheet className="w-24 h-24" />
+                    </div>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 bg-amber-100 rounded-lg text-amber-600">
+                        <History className="w-5 h-5" />
+                      </div>
+                      <p className="text-[10px] font-black uppercase text-amber-600 tracking-widest leading-none">Resource Sharing</p>
+                    </div>
+                    <p className="text-3xl font-black text-amber-900">45 <span className="text-xs font-medium opacity-40">Shares</span></p>
+                    <p className="text-[10px] text-amber-600/60 font-bold mt-1 uppercase">Library Material Uploads</p>
                   </Card>
                 </div>
 
@@ -346,10 +374,13 @@ export default function CommunityPage() {
                   <div className="lg:col-span-7">
                     <Card className="border-none shadow-sm p-6 rounded-3xl">
                       <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-sm font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                          <BarChart3 className="w-4 h-4" /> Average Student Outcome by Subject
-                        </h3>
-                        <Badge variant="outline" className="text-[10px]">PEDAGOGICAL INSIGHT</Badge>
+                        <div className="space-y-1">
+                          <h3 className="text-sm font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                            <BarChart3 className="w-4 h-4" /> Average Student Performance by Course
+                          </h3>
+                          <p className="text-[10px] text-muted-foreground italic">Aggregate marks across all taught sections this term.</p>
+                        </div>
+                        <Badge variant="outline" className="text-[9px] h-5 border-primary/20">LIVE DATA</Badge>
                       </div>
                       <div className="h-[250px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
@@ -358,7 +389,7 @@ export default function CommunityPage() {
                             <XAxis dataKey="subject" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
                             <YAxis domain={[0, 20]} axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
                             <RechartsTooltip 
-                              contentStyle={{ borderRadius: '12px', border: 'none', shadow: 'none' }}
+                              contentStyle={{ borderRadius: '12px', border: 'none', shadow: 'none', backgroundColor: '#fff', fontSize: '10px' }}
                               cursor={{ fill: 'rgba(0,0,0,0.05)' }}
                             />
                             <Bar dataKey="score" radius={[6, 6, 0, 0]} barSize={40}>
@@ -371,25 +402,35 @@ export default function CommunityPage() {
                       </div>
                     </Card>
                   </div>
-                  <div className="lg:col-span-5">
-                    <Card className="border-none shadow-sm overflow-hidden rounded-3xl h-full">
+                  <div className="lg:col-span-5 space-y-4">
+                    <Card className="border-none shadow-sm overflow-hidden rounded-3xl">
                       <CardHeader className="bg-accent/30 p-4 border-b">
-                        <CardTitle className="text-xs uppercase font-black tracking-widest">Instructional Domains</CardTitle>
+                        <CardTitle className="text-xs uppercase font-black tracking-widest flex items-center gap-2">
+                          <Zap className="w-3.5 h-3.5" /> Organized Online Exams
+                        </CardTitle>
                       </CardHeader>
                       <CardContent className="p-0">
                         <Table>
                           <TableBody>
                             {[
-                              { class: 'Form 5 A', students: 42, avg: 15.5, syllabus: '85%' },
-                              { class: 'Form 4 B', students: 38, avg: 12.8, syllabus: '72%' },
-                              { class: 'Upper 6', students: 25, avg: 14.2, syllabus: '92%' },
+                              { title: 'Mid-Term Physics MCQ', date: 'May 14', participants: 42, status: 'Completed' },
+                              { title: 'Calculus Quiz 1', date: 'May 10', participants: 38, status: 'Completed' },
+                              { title: 'Thermodynamics Final', date: 'June 02', participants: 40, status: 'Scheduled' },
                             ].map((row, i) => (
                               <TableRow key={i} className="hover:bg-accent/10 border-b border-accent/20">
-                                <TableCell className="font-bold text-xs">{row.class}</TableCell>
-                                <TableCell className="text-[10px] text-muted-foreground">{row.students} Students</TableCell>
-                                <TableCell className="text-right font-black text-primary text-xs">{row.avg}/20</TableCell>
+                                <TableCell className="font-bold text-xs">
+                                  {row.title}
+                                  <p className="text-[9px] text-muted-foreground font-medium uppercase">{row.date}</p>
+                                </TableCell>
+                                <TableCell className="text-[10px] text-center">
+                                  <span className="font-black">{row.participants}</span>
+                                  <p className="opacity-40 uppercase font-bold">Students</p>
+                                </TableCell>
                                 <TableCell className="text-right">
-                                  <Badge className="bg-secondary/20 text-primary border-none text-[9px] h-5">{row.syllabus}</Badge>
+                                  <Badge className={cn(
+                                    "text-[8px] font-black uppercase h-4 px-2 border-none",
+                                    row.status === 'Completed' ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
+                                  )}>{row.status}</Badge>
                                 </TableCell>
                               </TableRow>
                             ))}
