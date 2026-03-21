@@ -32,7 +32,8 @@ import {
   Heart,
   QrCode,
   ShieldCheck,
-  CheckCircle2
+  CheckCircle2,
+  UserCheck
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
@@ -113,7 +114,13 @@ const MOCK_STUDENTS = [
   },
 ];
 
-const CLASSES = ["Form 5 / 2nde", "Lower Sixth / 1ère", "Upper Sixth / Terminale"];
+const MOCK_GUARDIANS = [
+  { id: "G001", name: "Mr. Robert Thompson", phone: "+237 677 00 11 22", email: "robert.t@gmail.com" },
+  { id: "G002", name: "Mrs. Sarah Richards", phone: "+237 699 33 44 55", email: "sarah.r@yahoo.fr" },
+  { id: "G003", name: "M. Paul Davis", phone: "+237 655 66 77 88", email: "paul.davis@work.com" },
+];
+
+const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
 const YEARS = ["2021", "2022", "2023", "2024"];
 
 export default function StudentsPage() {
@@ -129,6 +136,9 @@ export default function StudentsPage() {
   // Add Student State
   const [isAdmissionOpen, setIsAdmissionOpen] = useState(false);
   const [admissionSuccess, setAdmissionSuccess] = useState<any>(null);
+  const [isNewGuardian, setIsNewGuardian] = useState(false);
+  const [selectedGuardianId, setSelectedGuardianId] = useState("");
+  
   const [admissionForm, setAdmissionForm] = useState({
     name: "",
     gender: "Female",
@@ -138,7 +148,7 @@ export default function StudentsPage() {
     address: "",
     parentName: "",
     parentPhone: "",
-    class: "Form 5 / 2nde",
+    class: "2nde / Form 5",
     section: "A",
     enrolmentYear: "2024"
   });
@@ -185,6 +195,18 @@ export default function StudentsPage() {
     });
   };
 
+  const handleGuardianSelect = (id: string) => {
+    setSelectedGuardianId(id);
+    const guardian = MOCK_GUARDIANS.find(g => g.id === id);
+    if (guardian) {
+      setAdmissionForm({
+        ...admissionForm,
+        parentName: guardian.name,
+        parentPhone: guardian.phone
+      });
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -203,7 +225,13 @@ export default function StudentsPage() {
         </div>
         <div className="flex gap-2">
           {isAdmin && (
-            <Dialog open={isAdmissionOpen} onOpenChange={setIsAdmissionOpen}>
+            <Dialog open={isAdmissionOpen} onOpenChange={(open) => {
+              setIsAdmissionOpen(open);
+              if (!open) {
+                setIsNewGuardian(false);
+                setSelectedGuardianId("");
+              }
+            }}>
               <DialogTrigger asChild>
                 <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl">
                   <UserPlus className="w-5 h-5" /> Add New Student
@@ -265,19 +293,84 @@ export default function StudentsPage() {
                     </TabsContent>
 
                     <TabsContent value="parent" className="space-y-6 mt-0">
-                      <div className="grid grid-cols-2 gap-6">
-                        <div className="col-span-2 space-y-2">
-                          <Label>Parent / Guardian Full Name</Label>
-                          <Input value={admissionForm.parentName} onChange={(e) => setAdmissionForm({...admissionForm, parentName: e.target.value})} placeholder="e.g. Mr. Robert Thompson" className="h-11 rounded-xl" />
+                      <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-0.5">
+                            <Label className="text-base">Guardian Selection</Label>
+                            <p className="text-xs text-muted-foreground">Select an existing parent or add a new one.</p>
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => {
+                              setIsNewGuardian(!isNewGuardian);
+                              if (!isNewGuardian) {
+                                setSelectedGuardianId("");
+                                setAdmissionForm({...admissionForm, parentName: "", parentPhone: ""});
+                              }
+                            }}
+                            className={cn(
+                              "gap-2 rounded-lg border-primary/20",
+                              isNewGuardian && "bg-primary text-white hover:bg-primary/90"
+                            )}
+                          >
+                            {isNewGuardian ? <UserCheck className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                            {isNewGuardian ? "Existing Guardian" : "Register New"}
+                          </Button>
                         </div>
-                        <div className="col-span-2 space-y-2">
-                          <Label>Guardian Primary Contact</Label>
-                          <Input value={admissionForm.parentPhone} onChange={(e) => setAdmissionForm({...admissionForm, parentPhone: e.target.value})} placeholder="+237 ..." className="h-11 rounded-xl" />
-                        </div>
-                        <div className="col-span-2 p-4 bg-blue-50 rounded-xl border border-blue-100 flex gap-3">
+
+                        {!isNewGuardian ? (
+                          <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                            <div className="space-y-2">
+                              <Label className="flex items-center gap-2"><Search className="w-3 h-3"/> Search Institutional Database</Label>
+                              <Select value={selectedGuardianId} onValueChange={handleGuardianSelect}>
+                                <SelectTrigger className="h-12 rounded-xl bg-accent/30 border-none shadow-inner">
+                                  <SelectValue placeholder="Search by name or contact..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {MOCK_GUARDIANS.map(g => (
+                                    <SelectItem key={g.id} value={g.id} className="py-3">
+                                      <div className="flex flex-col">
+                                        <span className="font-bold">{g.name}</span>
+                                        <span className="text-[10px] text-muted-foreground">{g.phone} • {g.email}</span>
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            
+                            {selectedGuardianId && (
+                              <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 flex items-center gap-4">
+                                <div className="p-3 bg-primary rounded-full text-white">
+                                  <User className="w-5 h-5" />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-black text-primary">Guardian Linked</p>
+                                  <p className="text-xs text-muted-foreground">Selected: {admissionForm.parentName}</p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-2">
+                            <div className="col-span-2 space-y-2">
+                              <Label>Parent / Guardian Full Name</Label>
+                              <Input value={admissionForm.parentName} onChange={(e) => setAdmissionForm({...admissionForm, parentName: e.target.value})} placeholder="e.g. Mr. Robert Thompson" className="h-11 rounded-xl" />
+                            </div>
+                            <div className="col-span-2 space-y-2">
+                              <Label>Guardian Primary Contact</Label>
+                              <Input value={admissionForm.parentPhone} onChange={(e) => setAdmissionForm({...admissionForm, parentPhone: e.target.value})} placeholder="+237 ..." className="h-11 rounded-xl" />
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 flex gap-3">
                           <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
                           <p className="text-xs text-blue-800 leading-relaxed">
-                            A parent portal account will be automatically generated and linked to this student profile using the guardian's contact information.
+                            {isNewGuardian 
+                              ? "A new parent portal account will be automatically generated and linked to this student profile." 
+                              : "This student will be added to the selected guardian's existing family portal account."}
                           </p>
                         </div>
                       </div>
