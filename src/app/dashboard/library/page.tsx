@@ -42,7 +42,8 @@ import {
   FileText,
   FileDown,
   ArrowUpRight,
-  CheckCircle
+  CheckCircle,
+  ArrowLeftRight
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -59,11 +60,13 @@ const INITIAL_BOOKS = [
   { id: "B006", title: "The Old Man and the Sea", author: "Ernest Hemingway", category: "Literature", available: 8, total: 8, cover: "https://picsum.photos/seed/sea/400/600", description: "A powerful tale of human endurance and the struggle against nature." },
 ];
 
-const MOCK_LOANS = [
+const INITIAL_LOANS = [
   { 
     id: "LOAN-101", 
     bookTitle: "Organic Chemistry", 
     author: "Marie Curie", 
+    borrowerName: "Alice Thompson",
+    borrowerId: "S001",
     borrowDate: "May 15, 2024", 
     returnDate: "May 29, 2024", 
     status: "Active",
@@ -118,7 +121,8 @@ export default function LibraryPage() {
   const [requests, setRequests] = useState(MOCK_REQUESTS);
   const [borrowingBook, setBorrowingBook] = useState<any>(null);
   const [previewReceipt, setPreviewReceipt] = useState<any>(null);
-  const [loans, setLoans] = useState(MOCK_LOANS);
+  const [returnReceipt, setReturnReceipt] = useState<any>(null);
+  const [loans, setLoans] = useState(INITIAL_LOANS);
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Librarian Management State
@@ -160,6 +164,8 @@ export default function LibraryPage() {
         id: `LOAN-${Math.floor(Math.random() * 1000)}`,
         bookTitle: borrowingBook.title,
         author: borrowingBook.author,
+        borrowerName: user?.name || "Student",
+        borrowerId: user?.id || "SXXX",
         borrowDate: new Date().toLocaleDateString(),
         returnDate: new Date(Date.now() + parseInt(librarySettings.loanDuration) * 24 * 60 * 60 * 1000).toLocaleDateString(),
         status: "Active",
@@ -184,6 +190,19 @@ export default function LibraryPage() {
 
     setIsProcessing(true);
     setTimeout(() => {
+      const newLoan = {
+        id: `LOAN-${Math.floor(Math.random() * 1000)}`,
+        bookTitle: request.bookTitle,
+        author: request.bookAuthor,
+        borrowerName: request.userName,
+        borrowerId: "STUDENT_ID",
+        borrowDate: new Date().toLocaleDateString(),
+        returnDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+        status: "Active",
+        collectionCode: `IGN-${Math.floor(100 + Math.random() * 899)}-X`
+      };
+      
+      setLoans(prev => [newLoan, ...prev]);
       setRequests(prev => prev.filter(r => r.id !== requestId));
       setIsProcessing(false);
       toast({
@@ -191,6 +210,34 @@ export default function LibraryPage() {
         description: `"${request.bookTitle}" has been successfully issued to ${request.userName}.`,
       });
     }, 1000);
+  };
+
+  const handleReturnBook = (loanId: string) => {
+    const loan = loans.find(l => l.id === loanId);
+    if (!loan) return;
+
+    setIsProcessing(true);
+    setTimeout(() => {
+      const receipt = {
+        receiptId: `RET-${Math.floor(1000 + Math.random() * 9000)}`,
+        studentName: loan.borrowerName,
+        studentId: loan.borrowerId,
+        bookTitle: loan.bookTitle,
+        author: loan.author,
+        issueDate: loan.borrowDate,
+        returnDate: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        status: "Returned in Good Condition",
+        verificationCode: Math.random().toString(36).substr(2, 10).toUpperCase()
+      };
+
+      setReturnReceipt(receipt);
+      setLoans(prev => prev.filter(l => l.id !== loanId));
+      setIsProcessing(false);
+      toast({
+        title: "Book Returned",
+        description: `"${loan.bookTitle}" has been checked back into the system.`,
+      });
+    }, 1200);
   };
 
   const openBookModal = (book?: any) => {
@@ -499,7 +546,7 @@ export default function LibraryPage() {
                 <CardHeader className="bg-white border-b flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
                     <CardTitle>Active Institutional Circulation</CardTitle>
-                    <CardDescription>Comprehensive log of all resources currently held by members.</CardDescription>
+                    <CardDescription>Comprehensive log of all resources currently held by members. Collect books and process returns here.</CardDescription>
                   </div>
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm" className="gap-2"><FileText className="w-4 h-4" /> Export Report</Button>
@@ -519,13 +566,16 @@ export default function LibraryPage() {
                     </TableHeader>
                     <TableBody>
                       {loans.map((loan) => (
-                        <TableRow key={loan.id} className="hover:bg-accent/5">
+                        <TableRow key={loan.id} className="hover:bg-accent/5 group">
                           <TableCell className="pl-6 py-4">
                             <div className="flex items-center gap-3">
-                              <Avatar className="h-8 w-8">
+                              <Avatar className="h-8 w-8 border border-accent">
                                 <AvatarFallback className="bg-primary/5 text-[10px] text-primary">ID</AvatarFallback>
                               </Avatar>
-                              <span className="font-bold text-sm text-primary">Student S001</span>
+                              <div className="flex flex-col">
+                                <span className="font-bold text-sm text-primary">{loan.borrowerName}</span>
+                                <span className="text-[9px] text-muted-foreground font-mono">{loan.borrowerId}</span>
+                              </div>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -540,10 +590,26 @@ export default function LibraryPage() {
                             <Badge variant="outline" className="text-[9px] bg-green-50 text-green-700 border-green-200">Active</Badge>
                           </TableCell>
                           <TableCell className="text-right pr-6">
-                            <Button variant="ghost" size="sm" className="text-primary hover:bg-primary/10 font-bold h-8">Return Resource</Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="text-primary hover:bg-primary hover:text-white font-black uppercase text-[10px] tracking-tighter h-8 gap-2 shadow-sm transition-all"
+                              onClick={() => handleReturnBook(loan.id)}
+                              disabled={isProcessing}
+                            >
+                              {isProcessing ? <Loader2 className="w-3 h-3 animate-spin" /> : <ArrowLeftRight className="w-3.5 h-3.5" />}
+                              Return Resource
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))}
+                      {loans.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center py-20 text-muted-foreground italic">
+                            No active loans found in institutional circulation.
+                          </TableCell>
+                        </TableRow>
+                      )}
                     </TableBody>
                   </Table>
                 </CardContent>
@@ -957,7 +1023,7 @@ export default function LibraryPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Collection Receipt Dialog */}
+      {/* Collection Receipt Dialog (Borrowing) */}
       <Dialog open={!!previewReceipt} onOpenChange={() => setPreviewReceipt(null)}>
         <DialogContent className="sm:max-w-md p-0 border-none shadow-2xl overflow-hidden bg-[#F0F2F5]">
           <DialogHeader className="p-6 bg-primary text-white border-b border-white/10 shrink-0">
@@ -999,12 +1065,12 @@ export default function LibraryPage() {
                   <div className="grid grid-cols-2 gap-8">
                      <div className="space-y-1">
                         <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">{language === 'en' ? 'Borrower' : 'Emprunteur'}</p>
-                        <p className="text-sm font-black flex items-center gap-2 text-primary uppercase"><User className="w-4 h-4 text-secondary"/> {user?.name}</p>
-                        <p className="text-[9px] font-bold text-muted-foreground pl-6 uppercase tracking-wider">{user?.role}</p>
+                        <p className="text-sm font-black flex items-center gap-2 text-primary uppercase"><User className="w-4 h-4 text-secondary"/> {previewReceipt?.borrowerName || user?.name}</p>
+                        <p className="text-[9px] font-bold text-muted-foreground pl-6 uppercase tracking-wider">{previewReceipt?.borrowerId || user?.id}</p>
                      </div>
                      <div className="space-y-1 text-right">
-                        <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Matricule / ID</p>
-                        <p className="text-sm font-mono font-black text-primary bg-accent/30 px-3 py-1 rounded-lg inline-block">{user?.id}</p>
+                        <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Type</p>
+                        <p className="text-sm font-mono font-black text-primary bg-accent/30 px-3 py-1 rounded-lg inline-block">Borrowing</p>
                      </div>
                   </div>
 
@@ -1057,6 +1123,111 @@ export default function LibraryPage() {
             </Button>
             <Button onClick={() => setPreviewReceipt(null)} className="flex-1 h-12 gap-2 rounded-xl font-black uppercase tracking-widest shadow-xl">
               <CheckCircle2 className="w-4 h-4 text-secondary" /> {language === 'en' ? 'Done' : 'Terminé'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Return Receipt Dialog */}
+      <Dialog open={!!returnReceipt} onOpenChange={() => setReturnReceipt(null)}>
+        <DialogContent className="sm:max-w-md p-0 border-none shadow-2xl overflow-hidden bg-[#F0F2F5]">
+          <DialogHeader className="p-6 bg-green-600 text-white border-b border-white/10 shrink-0">
+            <div className="flex items-center justify-between w-full">
+              <DialogTitle className="flex items-center gap-3 text-xl font-headline tracking-tight">
+                <CheckCircle className="w-6 h-6 text-white" />
+                Return Confirmation
+              </DialogTitle>
+              <div className="bg-white/10 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-white/60">
+                Official Receipt
+              </div>
+            </div>
+          </DialogHeader>
+          
+          <div className="p-6 overflow-y-auto max-h-[70vh]">
+            <div className="bg-white p-8 space-y-8 rounded-3xl shadow-lg relative border border-border overflow-hidden">
+               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-[0.03]">
+                  <CheckCircle className="w-64 h-64 text-green-600 rotate-12" />
+               </div>
+
+               <div className="flex justify-between items-start border-b-2 border-dashed border-accent pb-6">
+                  <div className="flex items-center gap-3">
+                     <div className="bg-green-600 p-2 rounded-xl shadow-lg">
+                        <Building2 className="w-8 h-8 text-white" />
+                     </div>
+                     <div>
+                        <p className="font-black text-lg text-green-700 uppercase tracking-tighter leading-none">EduIgnite Institution</p>
+                        <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mt-1">Library Circulation Office</p>
+                     </div>
+                  </div>
+                  <div className="text-right">
+                     <Badge variant="outline" className="text-[10px] h-6 px-3 font-black bg-green-50 text-green-700 border-none shadow-inner">
+                       {returnReceipt?.receiptId}
+                     </Badge>
+                  </div>
+               </div>
+
+               <div className="space-y-6 relative z-10">
+                  <div className="grid grid-cols-2 gap-8">
+                     <div className="space-y-1">
+                        <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Student Name</p>
+                        <p className="text-sm font-black flex items-center gap-2 text-primary uppercase"><User className="w-4 h-4 text-green-600"/> {returnReceipt?.studentName}</p>
+                        <p className="text-[9px] font-bold text-muted-foreground pl-6 uppercase tracking-wider">ID: {returnReceipt?.studentId}</p>
+                     </div>
+                     <div className="space-y-1 text-right">
+                        <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Transaction</p>
+                        <p className="text-sm font-mono font-black text-green-600 bg-green-50 px-3 py-1 rounded-lg inline-block uppercase">Returned</p>
+                     </div>
+                  </div>
+
+                  <div className="bg-green-50/30 p-5 rounded-2xl border-2 border-green-100 space-y-3 relative shadow-inner">
+                     <div className="absolute -top-3 left-4 bg-white px-3 py-0.5 border border-green-100 rounded-full text-[9px] font-black text-green-700 uppercase tracking-widest shadow-sm">
+                        Resource Detail
+                     </div>
+                     <div className="space-y-1">
+                        <p className="font-black text-primary text-lg leading-tight uppercase tracking-tight">{returnReceipt?.bookTitle}</p>
+                        <p className="text-xs font-bold text-muted-foreground flex items-center gap-1"><BookOpen className="w-3 h-3" /> {returnReceipt?.author}</p>
+                     </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-8 border-t border-accent pt-6">
+                     <div className="space-y-1">
+                        <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Original Issue</p>
+                        <p className="text-sm font-bold text-muted-foreground">{returnReceipt?.issueDate}</p>
+                     </div>
+                     <div className="space-y-1 text-right">
+                        <p className="text-[10px] uppercase font-black text-green-700 tracking-widest">Return Processed</p>
+                        <p className="text-sm font-black text-green-600 uppercase">{returnReceipt?.returnDate}</p>
+                     </div>
+                  </div>
+               </div>
+
+               <div className="pt-8 border-t-4 border-double border-accent flex flex-col items-center gap-6 relative z-10">
+                  <div className="space-y-2 text-center w-full">
+                     <p className="text-[10px] uppercase font-black tracking-[0.2em] text-muted-foreground">Digital Confirmation ID</p>
+                     <div className="p-6 bg-[#1E293B] text-white rounded-3xl w-full text-center space-y-1 shadow-2xl relative overflow-hidden group">
+                        <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-transparent opacity-50" />
+                        <p className="text-4xl font-black font-mono tracking-widest relative z-10 text-green-400">{returnReceipt?.verificationCode}</p>
+                        <div className="flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest text-white/40 mt-3 relative z-10">
+                           <ShieldCheck className="w-3 h-3" />
+                           Resource Stock Restored
+                        </div>
+                     </div>
+                  </div>
+               </div>
+               
+               <div className="absolute bottom-4 left-0 right-0 px-8 flex items-center justify-between opacity-30 text-[8px] font-black uppercase tracking-[0.3em]">
+                  <span>Library Management</span>
+                  <span>Institutional Portal</span>
+               </div>
+            </div>
+          </div>
+
+          <DialogFooter className="p-6 bg-white border-t gap-3 sm:gap-0 shrink-0">
+            <Button variant="outline" onClick={() => window.print()} className="flex-1 h-12 gap-2 rounded-xl font-bold border-primary/10">
+              <Printer className="w-4 h-4 text-primary" /> Print Receipt
+            </Button>
+            <Button onClick={() => setReturnReceipt(null)} className="flex-1 h-12 gap-2 rounded-xl font-black uppercase tracking-widest shadow-xl bg-green-600 hover:bg-green-700">
+              <CheckCircle2 className="w-4 h-4 text-white" /> Complete Return
             </Button>
           </DialogFooter>
         </DialogContent>
