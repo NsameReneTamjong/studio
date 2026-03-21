@@ -10,15 +10,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { User, Camera, Lock, Save, Loader2 } from "lucide-react";
+import { User, Camera, Lock, Save, Loader2, Mail } from "lucide-react";
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
   
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState(user?.name || "");
+  const [email, setEmail] = useState(user?.email || "");
   const [passwords, setPasswords] = useState({
     current: "",
     new: "",
@@ -26,13 +27,53 @@ export default function ProfilePage() {
   });
 
   const handleUpdateProfile = () => {
+    if (!name || !email) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Name and email are required.",
+      });
+      return;
+    }
+
     setLoading(true);
     // Simulated update delay
     setTimeout(() => {
+      updateUser({ name, email });
       setLoading(false);
       toast({
         title: t("changesSaved"),
         description: t("profileUpdateSuccess"),
+      });
+    }, 1200);
+  };
+
+  const handleUpdatePassword = () => {
+    if (!passwords.current || !passwords.new || !passwords.confirm) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please fill in all password fields.",
+      });
+      return;
+    }
+
+    if (passwords.new !== passwords.confirm) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "New passwords do not match.",
+      });
+      return;
+    }
+
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      setPasswords({ current: "", new: "", confirm: "" });
+      toast({
+        title: t("changesSaved"),
+        description: language === 'en' ? "Password updated successfully." : "Le mot de passe a été mis à jour.",
       });
     }, 1200);
   };
@@ -103,10 +144,17 @@ export default function ProfilePage() {
                   className="bg-accent/30 border-none focus-visible:ring-primary"
                 />
               </div>
-              <div className="space-y-2 opacity-60">
-                <Label htmlFor="email">{t("email")}</Label>
-                <Input id="email" value={user?.email} disabled className="bg-accent/10 cursor-not-allowed border-none" />
-                <p className="text-[10px] italic">{language === 'en' ? "Email cannot be changed." : "L'email ne peut pas être modifié."}</p>
+              <div className="space-y-2">
+                <Label htmlFor="email" className="flex items-center gap-2">
+                  <Mail className="w-3 h-3" /> {t("email")}
+                </Label>
+                <Input 
+                  id="email" 
+                  type="email"
+                  value={email} 
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="bg-accent/30 border-none focus-visible:ring-primary"
+                />
               </div>
             </CardContent>
             <CardFooter className="border-t bg-accent/5 pt-6">
@@ -162,7 +210,7 @@ export default function ProfilePage() {
               </div>
             </CardContent>
             <CardFooter className="border-t bg-accent/5 pt-6">
-              <Button onClick={handleUpdateProfile} disabled={loading || !passwords.new} className="gap-2 ml-auto">
+              <Button onClick={handleUpdatePassword} disabled={loading || !passwords.new} className="gap-2 ml-auto">
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
                 {t("changePassword")}
               </Button>
