@@ -15,10 +15,27 @@ import {
   Heart,
   ChevronRight,
   Clock,
-  MapPin
+  MapPin,
+  Coins,
+  Wallet,
+  PieChart as PieChartIcon,
+  BarChart3
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip as RechartsTooltip, 
+  ResponsiveContainer, 
+  PieChart, 
+  Pie, 
+  Cell,
+  Legend
+} from "recharts";
 
 function AwardIcon({ className }: { className?: string }) {
   return <Award className={className} />;
@@ -27,6 +44,20 @@ function AwardIcon({ className }: { className?: string }) {
 export default function DashboardPage() {
   const { user } = useAuth();
   const { t, language } = useI18n();
+
+  // Mock data for Bursar Charts
+  const paymentStatusData = [
+    { name: 'Paid in Full', value: 450, color: '#10b981' },
+    { name: 'Partial', value: 300, color: '#f59e0b' },
+    { name: 'Not Paid', value: 150, color: '#ef4444' },
+  ];
+
+  const revenueByCategory = [
+    { name: 'Tuition', amount: 2500000 },
+    { name: 'Uniforms', amount: 850000 },
+    { name: 'Transport', amount: 450000 },
+    { name: 'Exams', amount: 300000 },
+  ];
 
   // Statistics tailored by role
   const stats = user?.role === "SUPER_ADMIN" ? [
@@ -44,6 +75,11 @@ export default function DashboardPage() {
     { label: language === "en" ? "Current Classes" : "Classes Actuelles", value: "5", icon: BookOpen, color: "text-purple-600" },
     { label: language === "en" ? "Pending Grades" : "Notes en Attente", value: "18", icon: AlertCircle, color: "text-red-600" },
     { label: language === "en" ? "Avg. Attendance" : "Présence Moyenne", value: "96%", icon: TrendingUp, color: "text-green-600" },
+  ] : user?.role === "BURSAR" ? [
+    { label: language === "en" ? "Total Revenue" : "Revenu Total", value: "4.2M XAF", icon: Coins, color: "text-green-600" },
+    { label: language === "en" ? "Students Paid" : "Élèves en Règle", value: "842", icon: Users, color: "text-blue-600" },
+    { label: language === "en" ? "Debt Outstanding" : "Dettes en Attente", value: "1.8M XAF", icon: TrendingUp, color: "text-red-600" },
+    { label: language === "en" ? "Today's Intake" : "Recette du Jour", value: "125k XAF", icon: Wallet, color: "text-amber-600" },
   ] : user?.role === "PARENT" ? [
     { label: language === "en" ? "Children Registered" : "Enfants Inscrits", value: "2", icon: Heart, color: "text-red-600" },
     { label: language === "en" ? "Avg. Performance" : "Performance Moyenne", value: "16.8/20", icon: AwardIcon, color: "text-amber-600" },
@@ -62,7 +98,9 @@ export default function DashboardPage() {
       <div>
         <h1 className="text-3xl font-bold text-primary font-headline">{t("welcome")}, {user?.name}</h1>
         <p className="text-muted-foreground mt-1">
-          {user?.role === "PARENT" 
+          {user?.role === "BURSAR" 
+            ? (language === "en" ? "Manage institutional financial health and fee tracking." : "Gérez la santé financière et le suivi des frais.")
+            : user?.role === "PARENT" 
             ? (language === "en" ? "Monitor your children's academic journey here." : "Suivez le parcours académique de vos enfants ici.")
             : (language === "en" ? "Here's what's happening in EduIgnite today." : "Voici ce qui se passe dans EduIgnite aujourd'hui.")}
         </p>
@@ -83,24 +121,40 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card className="lg:col-span-2 border-none shadow-sm">
+        <Card className="lg:col-span-2 border-none shadow-sm overflow-hidden">
           <CardHeader>
             <CardTitle>
-              {user?.role === "PARENT" 
+              {user?.role === "BURSAR" 
+                ? (language === "en" ? "Revenue Distribution" : "Répartition des Revenus")
+                : user?.role === "PARENT" 
                 ? (language === "en" ? "Children Summary" : "Résumé des Enfants")
                 : (language === "en" ? "Upcoming Schedule" : "Emploi du Temps à Venir")}
             </CardTitle>
             <CardDescription>
-              {user?.role === "PARENT"
+              {user?.role === "BURSAR"
+                ? (language === "en" ? "Revenue breakdown by institutional cost centers" : "Répartition par centres de coûts")
+                : user?.role === "PARENT"
                 ? (language === "en" ? "Quick view of your children's status." : "Vue rapide du statut de vos enfants.")
                 : (language === "en" ? "Your classes for the next 24 hours" : "Vos cours pour les prochaines 24 heures")}
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {user?.role === "PARENT" ? (
-                // PARENT VIEW: List of children
-                [
+          <CardContent className="h-[300px]">
+            {user?.role === "BURSAR" ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={revenueByCategory}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                  <YAxis hide />
+                  <RechartsTooltip 
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                    formatter={(value: number) => [`${value.toLocaleString()} XAF`, 'Amount']}
+                  />
+                  <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} barSize={40} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : user?.role === "PARENT" ? (
+              <div className="space-y-4">
+                {[
                   { name: "Alice Thompson", grade: "10th", average: "15.4", status: "In Class" },
                   { name: "Diana Prince", grade: "10th", average: "18.2", status: "In Class" },
                 ].map((child, idx) => (
@@ -118,10 +172,11 @@ export default function DashboardPage() {
                       </Link>
                     </Button>
                   </div>
-                ))
-              ) : (
-                // OTHER ROLES: Upcoming schedule
-                [
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {[
                   { time: "09:00 AM", subject: language === "en" ? "Advanced Mathematics" : "Mathématiques Avancées", room: "Room 402", teacher: "Dr. Aris" },
                   { time: "11:30 AM", subject: language === "en" ? "English Literature" : "Littérature Anglaise", room: "Room 201", teacher: "Ms. Bennet" },
                   { time: "02:00 PM", subject: language === "en" ? "Physics Lab" : "Laboratoire de Physique", room: "Lab C", teacher: "Mr. Tesla" },
@@ -148,33 +203,59 @@ export default function DashboardPage() {
                       </Link>
                     </Button>
                   </div>
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-sm">
+        <Card className="border-none shadow-sm overflow-hidden">
           <CardHeader>
-            <CardTitle>{language === "en" ? "Recent Notifications" : "Notifications Récentes"}</CardTitle>
+            <CardTitle>
+              {user?.role === "BURSAR" 
+                ? (language === "en" ? "Payment Status" : "Statut des Paiements")
+                : (language === "en" ? "Recent Notifications" : "Notifications Récentes")}
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[
-                { title: language === "en" ? "New Assignment" : "Nouveau Devoir", time: "2h ago", type: "academic", href: "/dashboard/assignments" },
-                { title: language === "en" ? "Attendance Updated" : "Présence Mise à Jour", time: "4h ago", type: "system", href: "/dashboard/attendance" },
-                { title: language === "en" ? "Campus News" : "Actualités du Campus", time: "Yesterday", type: "info", href: "/dashboard/announcements" },
-              ].map((notif, idx) => (
-                <Link key={idx} href={notif.href} className="flex gap-3 items-start group p-2 rounded-lg hover:bg-accent/30 transition-colors">
-                  <div className={`w-2 h-2 mt-1.5 rounded-full shrink-0 ${notif.type === 'academic' ? 'bg-blue-500' : 'bg-green-500'}`} />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium group-hover:text-primary transition-colors">{notif.title}</p>
-                    <p className="text-[10px] text-muted-foreground uppercase">{notif.time}</p>
-                  </div>
-                  <ChevronRight className="w-3 h-3 text-muted-foreground/30 group-hover:text-primary transition-colors mt-1" />
-                </Link>
-              ))}
-            </div>
+          <CardContent className={user?.role === "BURSAR" ? "h-[300px]" : ""}>
+            {user?.role === "BURSAR" ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={paymentStatusData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {paymentStatusData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip />
+                  <Legend verticalAlign="bottom" align="center" iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '20px' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="space-y-4">
+                {[
+                  { title: language === "en" ? "New Assignment" : "Nouveau Devoir", time: "2h ago", type: "academic", href: "/dashboard/assignments" },
+                  { title: language === "en" ? "Attendance Updated" : "Présence Mise à Jour", time: "4h ago", type: "system", href: "/dashboard/attendance" },
+                  { title: language === "en" ? "Campus News" : "Actualités du Campus", time: "Yesterday", type: "info", href: "/dashboard/announcements" },
+                ].map((notif, idx) => (
+                  <Link key={idx} href={notif.href} className="flex gap-3 items-start group p-2 rounded-lg hover:bg-accent/30 transition-colors">
+                    <div className={`w-2 h-2 mt-1.5 rounded-full shrink-0 ${notif.type === 'academic' ? 'bg-blue-500' : 'bg-green-500'}`} />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium group-hover:text-primary transition-colors">{notif.title}</p>
+                      <p className="text-[10px] text-muted-foreground uppercase">{notif.time}</p>
+                    </div>
+                    <ChevronRight className="w-3 h-3 text-muted-foreground/30 group-hover:text-primary transition-colors mt-1" />
+                  </Link>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
