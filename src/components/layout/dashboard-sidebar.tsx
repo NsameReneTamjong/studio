@@ -49,6 +49,8 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
   const { user, logout } = useAuth();
   const { t, language, setLanguage } = useI18n();
 
+  const isAdmin = user?.role === "SCHOOL_ADMIN";
+
   const routes = [
     {
       label: t("platformOverview"),
@@ -117,7 +119,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       roles: ["PARENT"],
     },
     {
-      label: t("courses"),
+      label: isAdmin ? (language === 'en' ? "Subjects" : "Matières") : t("courses"),
       icon: BookOpen,
       href: "/dashboard/courses",
       roles: ["SCHOOL_ADMIN", "STUDENT", "TEACHER"],
@@ -132,7 +134,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: t("assignments"),
       icon: FileEdit,
       href: "/dashboard/assignments",
-      roles: ["TEACHER", "STUDENT"], // Removed SCHOOL_ADMIN
+      roles: ["TEACHER", "STUDENT"],
     },
     {
       label: t("exams"),

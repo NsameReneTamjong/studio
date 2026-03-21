@@ -19,15 +19,25 @@ import {
   FileCode,
   Search,
   Eye,
-  X
+  X,
+  Users,
+  Award,
+  PenTool,
+  ClipboardCheck,
+  TrendingUp,
+  Settings2
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n-context";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { AvatarImage, AvatarFallback, Avatar } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 
-const ENROLLED_SUBJECTS = [
+// Comprehensive Mock Data for All School Subjects
+const ALL_SUBJECTS = [
   {
     id: "PHY101",
     name: "Advanced Physics",
@@ -35,11 +45,20 @@ const ENROLLED_SUBJECTS = [
     instructorAvatar: "https://picsum.photos/seed/t1/100/100",
     schedule: "Mon, Wed 09:00 AM",
     progress: 75,
+    studentCount: 42,
+    avgMark: "14.5/20",
     color: "bg-blue-500",
     materials: [
       { id: "M1", title: "Thermodynamics Lecture Notes", type: "PDF", date: "Oct 12, 2023", size: "2.4 MB", url: "https://picsum.photos/seed/pdf1/800/1200" },
       { id: "M2", title: "Kinematics Practice Sheet", type: "DOCX", date: "Oct 15, 2023", size: "1.1 MB", url: "https://picsum.photos/seed/docx1/800/1200" },
-      { id: "M3", title: "Lab Safety Poster", type: "PNG", date: "Oct 20, 2023", size: "3.2 MB", url: "https://picsum.photos/seed/png1/800/1200" },
+    ],
+    exams: [
+      { id: "E1", title: "Sequence 1 Physics", date: "Sept 24, 2023", submissions: 42 },
+      { id: "E2", title: "Mid-Term MCQ", date: "Oct 30, 2023", submissions: 40 },
+    ],
+    attendance: [
+      { date: "Oct 24", time: "09:00 AM", present: 40, absent: 2 },
+      { date: "Oct 22", time: "09:00 AM", present: 38, absent: 4 },
     ]
   },
   {
@@ -49,10 +68,17 @@ const ENROLLED_SUBJECTS = [
     instructorAvatar: "https://picsum.photos/seed/t2/100/100",
     schedule: "Tue, Thu 11:30 AM",
     progress: 45,
+    studentCount: 38,
+    avgMark: "15.2/20",
     color: "bg-purple-500",
     materials: [
       { id: "M4", title: "Integration by Parts", type: "PDF", date: "Oct 10, 2023", size: "3.1 MB", url: "https://picsum.photos/seed/pdf2/800/1200" },
-      { id: "M5", title: "Reading List", type: "TXT", date: "Oct 18, 2023", size: "12 KB", url: "https://picsum.photos/seed/txt1/800/1200" },
+    ],
+    exams: [
+      { id: "E3", title: "Calculus Quiz 1", date: "Oct 05, 2023", submissions: 38 },
+    ],
+    attendance: [
+      { date: "Oct 25", time: "11:30 AM", present: 35, absent: 3 },
     ]
   },
   {
@@ -62,35 +88,28 @@ const ENROLLED_SUBJECTS = [
     instructorAvatar: "https://picsum.photos/seed/t3/100/100",
     schedule: "Fri 10:00 AM",
     progress: 90,
+    studentCount: 45,
+    avgMark: "16.8/20",
     color: "bg-emerald-500",
     materials: [
       { id: "M6", title: "Poetry Analysis Guide", type: "PDF", date: "Oct 05, 2023", size: "1.5 MB", url: "https://picsum.photos/seed/pdf3/800/1200" },
-    ]
+    ],
+    exams: [],
+    attendance: []
   },
 ];
 
-const OPTIONAL_SUBJECTS = [
-  { id: "CS101", name: "Computer Science", instructor: "Mr. Babbage", coeff: 2 },
-  { id: "FM201", name: "Further Mathematics", instructor: "Mrs. Lovelace", coeff: 3 },
-  { id: "MUS101", name: "Music & Arts", instructor: "Mr. Mozart", coeff: 2 },
-];
-
-export default function MySubjectsPage() {
+export default function CoursesPage() {
   const { user } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
+  
   const [selectedSubject, setSelectedSubject] = useState<any>(null);
   const [isAddingSubject, setIsAddingSubject] = useState(false);
+  const [isEditingSubject, setIsEditingSubject] = useState(false);
 
+  const isAdmin = user?.role === "SCHOOL_ADMIN";
   const isStudent = user?.role === "STUDENT";
-
-  const handleAddSubject = (subjectName: string) => {
-    toast({
-      title: language === 'en' ? "Subject Added" : "Matière Ajoutée",
-      description: `${subjectName} ${language === 'en' ? 'has been added to your optional courses.' : 'a été ajoutée à vos cours facultatifs.'}`,
-    });
-    setIsAddingSubject(false);
-  };
 
   const handleViewFile = (url: string, title: string) => {
     window.open(url, '_blank');
@@ -100,71 +119,38 @@ export default function MySubjectsPage() {
     });
   };
 
-  const handleDownloadFile = (url: string, title: string) => {
-    window.open(url, '_blank');
-    toast({
-      title: language === 'en' ? "Downloading" : "Téléchargement",
-      description: `${title} is being prepared.`,
-    });
-  };
-
   const getFileIcon = (type: string) => {
     switch (type.toUpperCase()) {
       case 'PDF': return <FileText className="w-5 h-5 text-red-500" />;
-      case 'DOCX': 
-      case 'DOC': return <FileEdit className="w-5 h-5 text-blue-500" />;
-      case 'PNG':
-      case 'JPG': return <FileImage className="w-5 h-5 text-purple-500" />;
-      case 'TXT': return <FileCode className="w-5 h-5 text-gray-500" />;
+      case 'DOCX': return <FileEdit className="w-5 h-5 text-blue-500" />;
       default: return <FileText className="w-5 h-5 text-primary" />;
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-primary font-headline">{t("courses")}</h1>
+          <h1 className="text-3xl font-bold text-primary font-headline">
+            {isAdmin ? (language === 'en' ? "Institutional Subjects" : "Matières Institutionnelles") : t("courses")}
+          </h1>
           <p className="text-muted-foreground mt-1">
-            {user?.role === 'TEACHER' 
-              ? (language === 'en' ? "View your assigned subjects and manage course materials." : "Consultez vos matières assignées et gérez les supports de cours.")
+            {isAdmin 
+              ? (language === 'en' ? "Monitor pedagogical activity, resources, and performance for all courses." : "Surveillez l'activité pédagogique, les supports et les performances de tous les cours.")
               : (language === 'en' ? "Manage your class subjects and access learning materials." : "Gérez vos matières et accédez aux supports de cours.")
             }
           </p>
         </div>
         
-        {isStudent && (
-          <Dialog open={isAddingSubject} onOpenChange={setIsAddingSubject}>
-            <DialogTrigger asChild>
-              <Button className="gap-2 shadow-lg h-11">
-                <Plus className="w-4 h-4" /> {t("addSubject")}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>{t("availableSubjects")}</DialogTitle>
-                <DialogDescription>
-                  {language === 'en' ? "Choose an optional subject to add to your class register." : "Choisissez une matière facultative à ajouter à votre registre."}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-3 mt-4">
-                {OPTIONAL_SUBJECTS.map((sub) => (
-                  <div key={sub.id} className="flex items-center justify-between p-4 rounded-xl border border-accent bg-accent/10">
-                    <div>
-                      <p className="font-bold text-sm">{sub.name}</p>
-                      <p className="text-xs text-muted-foreground">Instructor: {sub.instructor} • Coeff: {sub.coeff}</p>
-                    </div>
-                    <Button size="sm" onClick={() => handleAddSubject(sub.name)}>{language === 'en' ? 'Add' : 'Ajouter'}</Button>
-                  </div>
-                ))}
-              </div>
-            </DialogContent>
-          </Dialog>
+        {isAdmin && (
+          <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl">
+            <Plus className="w-5 h-5" /> {language === 'en' ? 'Add New Subject' : 'Nouvelle Matière'}
+          </Button>
         )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {ENROLLED_SUBJECTS.map((course) => (
+        {ALL_SUBJECTS.map((course) => (
           <Card key={course.id} className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-shadow">
             <div className={`h-2 ${course.color}`} />
             <CardHeader>
@@ -173,125 +159,236 @@ export default function MySubjectsPage() {
                   <Badge variant="outline" className="mb-2">{course.id}</Badge>
                   <CardTitle className="text-xl group-hover:text-primary transition-colors">{course.name}</CardTitle>
                 </div>
-                <BookOpen className="w-5 h-5 text-muted-foreground" />
+                <div className="p-2 bg-accent/50 rounded-lg">
+                  <BookOpen className="w-5 h-5 text-primary" />
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <User className="w-4 h-4" />
-                  <span>{course.instructor}</span>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1">
+                    <User className="w-3 h-3" /> Instructor
+                  </p>
+                  <p className="text-xs font-bold truncate">{course.instructor}</p>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Clock className="w-4 h-4" />
-                  <span>{course.schedule}</span>
+                <div className="space-y-1">
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1">
+                    <Users className="w-3 h-3" /> Enrolled
+                  </p>
+                  <p className="text-xs font-bold">{course.studentCount} Students</p>
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs font-medium">
-                  <span>{language === 'en' ? 'Syllabus Progress' : 'Progression du Programme'}</span>
-                  <span>{course.progress}%</span>
+              {isStudent && (
+                <div className="space-y-1 pt-2">
+                  <div className="flex justify-between text-[10px] font-bold">
+                    <span>Syllabus Progress</span>
+                    <span>{course.progress}%</span>
+                  </div>
+                  <div className="h-1.5 bg-accent rounded-full overflow-hidden">
+                    <div className={`h-full ${course.color} transition-all`} style={{ width: `${course.progress}%` }} />
+                  </div>
                 </div>
-                <div className="h-2 bg-accent rounded-full overflow-hidden">
-                  <div 
-                    className={`h-full ${course.color} transition-all duration-500`} 
-                    style={{ width: `${course.progress}%` }} 
-                  />
+              )}
+
+              {isAdmin && (
+                <div className="pt-2 border-t border-accent flex items-center justify-between">
+                   <div className="flex items-center gap-2">
+                      <div className="p-1.5 bg-secondary/20 rounded-md">
+                        <TrendingUp className="w-3 h-3 text-primary" />
+                      </div>
+                      <span className="text-[10px] font-black uppercase text-muted-foreground">Performance Index</span>
+                   </div>
+                   <span className="font-black text-primary text-sm">{course.avgMark}</span>
                 </div>
-              </div>
+              )}
             </CardContent>
-            <CardFooter className="bg-accent/30 border-t border-accent/50 pt-4">
-              <Button 
-                variant="ghost" 
-                className="w-full justify-between group-hover:bg-white"
-                onClick={() => setSelectedSubject(course)}
-              >
-                <span className="flex items-center gap-2"><FileText className="w-4 h-4" /> {t("viewMaterials")}</span>
-                <ChevronRight className="w-4 h-4" />
-              </Button>
+            <CardFooter className="bg-accent/30 border-t border-accent/50 pt-4 flex gap-2">
+              {isAdmin ? (
+                <>
+                  <Button 
+                    variant="outline" 
+                    className="flex-1 h-10 gap-2 text-xs font-bold bg-white"
+                    onClick={() => setIsEditingSubject(true)}
+                  >
+                    <Settings2 className="w-4 h-4" /> Edit
+                  </Button>
+                  <Button 
+                    className="flex-1 h-10 gap-2 text-xs font-bold shadow-sm"
+                    onClick={() => setSelectedSubject(course)}
+                  >
+                    <Eye className="w-4 h-4" /> View
+                  </Button>
+                </>
+              ) : (
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-between group-hover:bg-white h-10"
+                  onClick={() => setSelectedSubject(course)}
+                >
+                  <span className="flex items-center gap-2 font-bold text-xs"><FileText className="w-4 h-4" /> {t("viewMaterials")}</span>
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              )}
             </CardFooter>
           </Card>
         ))}
       </div>
 
-      {/* Materials Dialog */}
+      {/* Subject Command Center Dialog (Admin & Student) */}
       <Dialog open={!!selectedSubject} onOpenChange={() => setSelectedSubject(null)}>
-        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
-          <DialogHeader className="pb-4 border-b">
-            <DialogTitle className="flex items-center gap-2 text-primary text-xl">
-              <BookOpen className="w-6 h-6" />
-              {t("materials")} - {selectedSubject?.name}
-            </DialogTitle>
-            <DialogDescription>
-              {language === 'en' 
-                ? `Academic resources and learning materials for ${selectedSubject?.id}.` 
-                : `Ressources académiques et supports de cours pour ${selectedSubject?.id}.`}
-            </DialogDescription>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl rounded-3xl">
+          <DialogHeader className="p-8 bg-primary text-white shrink-0">
+            <div className="flex items-center gap-6">
+              <div className={cn("p-4 rounded-2xl shadow-xl", selectedSubject?.color)}>
+                <BookOpen className="w-10 h-10 text-white" />
+              </div>
+              <div className="space-y-1">
+                <Badge className="bg-white/20 text-white border-none text-[10px] font-black">{selectedSubject?.id}</Badge>
+                <DialogTitle className="text-3xl font-black">{selectedSubject?.name}</DialogTitle>
+                <DialogDescription className="text-white/60 font-bold flex items-center gap-2">
+                  <User className="w-4 h-4" /> {selectedSubject?.instructor} • {selectedSubject?.schedule}
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
           
-          <div className="flex-1 overflow-y-auto py-4 space-y-6">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input placeholder={language === 'en' ? "Search in materials..." : "Chercher dans les supports..."} className="pl-10" />
-            </div>
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <Tabs defaultValue="materials" className="flex-1 flex flex-col">
+              <TabsList className="px-8 border-b bg-accent/10 h-14 justify-start gap-8 rounded-none">
+                <TabsTrigger value="materials" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full bg-transparent shadow-none px-0 gap-2">
+                  <FileText className="w-4 h-4" /> Resources
+                </TabsTrigger>
+                {isAdmin && (
+                  <>
+                    <TabsTrigger value="exams" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full bg-transparent shadow-none px-0 gap-2">
+                      <PenTool className="w-4 h-4" /> Exams
+                    </TabsTrigger>
+                    <TabsTrigger value="results" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full bg-transparent shadow-none px-0 gap-2">
+                      <Award className="w-4 h-4" /> Results
+                    </TabsTrigger>
+                    <TabsTrigger value="attendance" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full bg-transparent shadow-none px-0 gap-2">
+                      <ClipboardCheck className="w-4 h-4" /> Attendance
+                    </TabsTrigger>
+                  </>
+                )}
+              </TabsList>
 
-            <div className="space-y-3">
-              {selectedSubject?.materials.map((file: any) => (
-                <div key={file.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl border border-accent bg-white hover:shadow-md transition-all gap-4">
-                  <div className="flex items-start gap-3">
-                    <div className="p-3 bg-accent/50 rounded-xl">
-                      {getFileIcon(file.type)}
-                    </div>
-                    <div>
-                      <p className="font-bold text-sm leading-none mb-1">{file.title}</p>
-                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-                        <span>{file.type}</span>
-                        <span>•</span>
-                        <span>{file.size}</span>
-                        <span>•</span>
-                        <span>{file.date}</span>
+              <TabsContent value="materials" className="flex-1 overflow-y-auto p-8 mt-0">
+                <div className="space-y-4">
+                  {selectedSubject?.materials.map((file: any) => (
+                    <div key={file.id} className="flex items-center justify-between p-4 rounded-xl border bg-white hover:shadow-md transition-all group">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-accent/50 rounded-xl group-hover:bg-primary/10 transition-colors">
+                          {getFileIcon(file.type)}
+                        </div>
+                        <div>
+                          <p className="font-bold text-sm text-primary">{file.title}</p>
+                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{file.type} • {file.size} • {file.date}</p>
+                        </div>
                       </div>
-                      
-                      {/* Teacher Attribution */}
-                      <div className="flex items-center gap-2 mt-2">
-                        <Avatar className="w-5 h-5 border">
-                          <AvatarImage src={selectedSubject.instructorAvatar} alt={selectedSubject.instructor} />
-                          <AvatarFallback><User className="w-3 h-3" /></AvatarFallback>
-                        </Avatar>
-                        <span className="text-[10px] font-medium text-primary/70">{selectedSubject.instructor}</span>
-                      </div>
+                      <Button size="sm" variant="ghost" onClick={() => handleViewFile(file.url, file.title)} className="gap-2">
+                        <Eye className="w-4 h-4" /> View
+                      </Button>
                     </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex-1 sm:flex-none h-8 gap-1.5 text-xs"
-                      onClick={() => handleViewFile(file.url, file.title)}
-                    >
-                      <Eye className="w-3.5 h-3.5" />
-                      {language === 'en' ? 'View' : 'Voir'}
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      className="flex-1 sm:flex-none h-8 gap-1.5 text-xs shadow-sm"
-                      onClick={() => handleDownloadFile(file.url, file.title)}
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      {language === 'en' ? 'Download' : 'Télécharger'}
-                    </Button>
-                  </div>
+                  ))}
+                  {selectedSubject?.materials.length === 0 && <p className="text-center py-10 text-muted-foreground">No resources uploaded.</p>}
                 </div>
-              ))}
-            </div>
+              </TabsContent>
+
+              <TabsContent value="exams" className="flex-1 overflow-y-auto p-8 mt-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-accent/30 uppercase text-[10px] font-black">
+                      <TableHead>Exam Title</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead className="text-right">Submissions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {selectedSubject?.exams.map((ex: any) => (
+                      <TableRow key={ex.id}>
+                        <TableCell className="font-bold text-sm text-primary">{ex.title}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{ex.date}</TableCell>
+                        <TableCell className="text-right font-black">{ex.submissions}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TabsContent>
+
+              <TabsContent value="results" className="flex-1 overflow-y-auto p-8 mt-0">
+                <div className="flex flex-col items-center justify-center h-full text-center space-y-4 py-10">
+                   <div className="p-4 bg-secondary/20 rounded-full">
+                      <TrendingUp className="w-12 h-12 text-primary" />
+                   </div>
+                   <div>
+                      <h3 className="text-xl font-bold">Course Performance Analysis</h3>
+                      <p className="text-muted-foreground max-w-sm mx-auto mt-2">Aggregate student outcome for {selectedSubject?.name} is currently <span className="font-black text-primary">{selectedSubject?.avgMark}</span>.</p>
+                   </div>
+                   <Button variant="outline" className="gap-2">Download Full Grade Ledger</Button>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="attendance" className="flex-1 overflow-y-auto p-8 mt-0">
+                <div className="space-y-4">
+                  {selectedSubject?.attendance.map((att: any, idx: number) => (
+                    <div key={idx} className="flex items-center justify-between p-4 border rounded-xl bg-white shadow-sm">
+                      <div className="flex items-center gap-4">
+                        <div className="p-2 bg-green-50 rounded-lg text-green-600 border border-green-100">
+                          <ClipboardCheck className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-sm">{att.date}</p>
+                          <p className="text-[10px] text-muted-foreground">{att.time}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-6">
+                        <div className="text-center">
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground">Present</p>
+                          <p className="text-sm font-black text-green-600">{att.present}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground">Absent</p>
+                          <p className="text-sm font-black text-red-600">{att.absent}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
 
-          <div className="pt-4 border-t flex justify-between items-center text-xs text-muted-foreground italic">
-            <span>{selectedSubject?.materials.length} {language === 'en' ? 'resources shared' : 'ressources partagées'}</span>
-            <Button variant="ghost" size="sm" onClick={() => setSelectedSubject(null)} className="h-7 text-xs">{t("cancel")}</Button>
+          <DialogFooter className="p-6 bg-accent/10 border-t flex justify-between items-center shrink-0">
+            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest italic">Institutional pedagogical audit active.</p>
+            <Button variant="ghost" onClick={() => setSelectedSubject(null)}>Close Portal</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Mock Edit Dialog */}
+      <Dialog open={isEditingSubject} onOpenChange={setIsEditingSubject}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Subject Parameters</DialogTitle>
+            <DialogDescription>Modify global settings for this course.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+             <div className="space-y-2">
+                <label className="text-xs font-bold uppercase">Assign Instructor</label>
+                <Input defaultValue="Dr. Aris Tesla" />
+             </div>
+             <div className="space-y-2">
+                <label className="text-xs font-bold uppercase">Schedule Window</label>
+                <Input defaultValue="Mon, Wed 09:00 AM" />
+             </div>
           </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsEditingSubject(false)}>Cancel</Button>
+            <Button onClick={() => { setIsEditingSubject(false); toast({ title: "Updated", description: "Subject settings saved." }); }}>Save Changes</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
