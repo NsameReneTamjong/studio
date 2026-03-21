@@ -25,11 +25,17 @@ import {
   PenTool,
   ClipboardCheck,
   TrendingUp,
-  Settings2
+  Settings2,
+  Layers,
+  CheckCircle2,
+  HelpCircle
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n-context";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { AvatarImage, AvatarFallback, Avatar } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -37,7 +43,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { cn } from "@/lib/utils";
 
 // Comprehensive Mock Data for All School Subjects
-const ALL_SUBJECTS = [
+const INITIAL_SUBJECTS = [
   {
     id: "PHY101",
     name: "Advanced Physics",
@@ -47,6 +53,8 @@ const ALL_SUBJECTS = [
     progress: 75,
     studentCount: 42,
     avgMark: "14.5/20",
+    type: "compulsory",
+    targetClass: "Form 5 / 2nde",
     color: "bg-blue-500",
     materials: [
       { id: "M1", title: "Thermodynamics Lecture Notes", type: "PDF", date: "Oct 12, 2023", size: "2.4 MB", url: "https://picsum.photos/seed/pdf1/800/1200" },
@@ -70,6 +78,8 @@ const ALL_SUBJECTS = [
     progress: 45,
     studentCount: 38,
     avgMark: "15.2/20",
+    type: "compulsory",
+    targetClass: "Lower Sixth / 1ère",
     color: "bg-purple-500",
     materials: [
       { id: "M4", title: "Integration by Parts", type: "PDF", date: "Oct 10, 2023", size: "3.1 MB", url: "https://picsum.photos/seed/pdf2/800/1200" },
@@ -90,6 +100,8 @@ const ALL_SUBJECTS = [
     progress: 90,
     studentCount: 45,
     avgMark: "16.8/20",
+    type: "optional",
+    targetClass: "Form 5 / 2nde",
     color: "bg-emerald-500",
     materials: [
       { id: "M6", title: "Poetry Analysis Guide", type: "PDF", date: "Oct 05, 2023", size: "1.5 MB", url: "https://picsum.photos/seed/pdf3/800/1200" },
@@ -99,6 +111,8 @@ const ALL_SUBJECTS = [
   },
 ];
 
+const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
+
 export default function CoursesPage() {
   const { user } = useAuth();
   const { t, language } = useI18n();
@@ -107,9 +121,29 @@ export default function CoursesPage() {
   const [selectedSubject, setSelectedSubject] = useState<any>(null);
   const [isAddingSubject, setIsAddingSubject] = useState(false);
   const [isEditingSubject, setIsEditingSubject] = useState(false);
+  const [newSubject, setNewSubject] = useState({
+    name: "",
+    id: "",
+    instructor: "",
+    targetClass: "",
+    type: "compulsory"
+  });
 
   const isAdmin = user?.role === "SCHOOL_ADMIN";
   const isStudent = user?.role === "STUDENT";
+
+  const handleCreateSubject = () => {
+    if (!newSubject.name || !newSubject.id) {
+      toast({ variant: "destructive", title: "Error", description: "Subject name and ID are required." });
+      return;
+    }
+    toast({
+      title: "Subject Created",
+      description: `${newSubject.name} has been added to the ${newSubject.targetClass} curriculum as a ${newSubject.type} course.`
+    });
+    setIsAddingSubject(false);
+    setNewSubject({ name: "", id: "", instructor: "", targetClass: "", type: "compulsory" });
+  };
 
   const handleViewFile = (url: string, title: string) => {
     window.open(url, '_blank');
@@ -143,23 +177,114 @@ export default function CoursesPage() {
         </div>
         
         {isAdmin && (
-          <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl">
-            <Plus className="w-5 h-5" /> {language === 'en' ? 'Add New Subject' : 'Nouvelle Matière'}
-          </Button>
+          <Dialog open={isAddingSubject} onOpenChange={setIsAddingSubject}>
+            <DialogTrigger asChild>
+              <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl">
+                <Plus className="w-5 h-5" /> {language === 'en' ? 'Add New Subject' : 'Nouvelle Matière'}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+              <DialogHeader className="bg-primary p-8 text-white">
+                <DialogTitle className="text-2xl font-black">{language === 'en' ? 'Setup New Subject' : 'Nouvelle Matière'}</DialogTitle>
+                <DialogDescription className="text-white/60">Configure curriculum requirements and instructor assignment.</DialogDescription>
+              </DialogHeader>
+              <div className="p-8 space-y-6">
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="col-span-2 space-y-2">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Subject Name</Label>
+                    <Input 
+                      placeholder="e.g. Advanced Biology" 
+                      className="bg-accent/30 border-none h-12 rounded-xl"
+                      value={newSubject.name}
+                      onChange={(e) => setNewSubject({...newSubject, name: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Subject ID</Label>
+                    <Input 
+                      placeholder="e.g. BIO101" 
+                      className="bg-accent/30 border-none h-12 rounded-xl"
+                      value={newSubject.id}
+                      onChange={(e) => setNewSubject({...newSubject, id: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Lead Instructor</Label>
+                    <Input 
+                      placeholder="e.g. Dr. Jane Smith" 
+                      className="bg-accent/30 border-none h-12 rounded-xl"
+                      value={newSubject.instructor}
+                      onChange={(e) => setNewSubject({...newSubject, instructor: e.target.value})}
+                    />
+                  </div>
+                  <div className="col-span-2 space-y-2">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Target Class Level</Label>
+                    <Select onValueChange={(v) => setNewSubject({...newSubject, targetClass: v})}>
+                      <SelectTrigger className="bg-accent/30 border-none h-12 rounded-xl">
+                        <SelectValue placeholder="Select class..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="col-span-2 space-y-4">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Requirement Type</Label>
+                    <RadioGroup 
+                      defaultValue="compulsory" 
+                      className="grid grid-cols-2 gap-4"
+                      onValueChange={(v) => setNewSubject({...newSubject, type: v})}
+                    >
+                      <Label
+                        htmlFor="compulsory"
+                        className="flex flex-col items-center justify-between rounded-xl border-2 border-accent bg-white p-4 hover:bg-accent/50 cursor-pointer [&:has([data-state=checked])]:border-primary"
+                      >
+                        <RadioGroupItem value="compulsory" id="compulsory" className="sr-only" />
+                        <CheckCircle2 className="mb-2 h-6 w-6 text-primary" />
+                        <span className="font-bold text-sm">Compulsory</span>
+                        <span className="text-[10px] text-muted-foreground text-center">Mandatory for the whole class</span>
+                      </Label>
+                      <Label
+                        htmlFor="optional"
+                        className="flex flex-col items-center justify-between rounded-xl border-2 border-accent bg-white p-4 hover:bg-accent/50 cursor-pointer [&:has([data-state=checked])]:border-primary"
+                      >
+                        <RadioGroupItem value="optional" id="optional" className="sr-only" />
+                        <HelpCircle className="mb-2 h-6 w-6 text-secondary" />
+                        <span className="font-bold text-sm">Optional</span>
+                        <span className="text-[10px] text-muted-foreground text-center">Elective subject choice</span>
+                      </Label>
+                    </RadioGroup>
+                  </div>
+                </div>
+              </div>
+              <DialogFooter className="bg-accent/20 p-6 border-t border-accent flex sm:flex-row gap-3">
+                <Button variant="ghost" className="flex-1 rounded-xl h-12" onClick={() => setIsAddingSubject(false)}>{t("cancel")}</Button>
+                <Button onClick={handleCreateSubject} className="flex-1 rounded-xl h-12 shadow-lg font-bold">Register Subject</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {ALL_SUBJECTS.map((course) => (
+        {INITIAL_SUBJECTS.map((course) => (
           <Card key={course.id} className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-shadow">
             <div className={`h-2 ${course.color}`} />
             <CardHeader>
               <div className="flex justify-between items-start">
-                <div>
-                  <Badge variant="outline" className="mb-2">{course.id}</Badge>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-[10px] font-bold">{course.id}</Badge>
+                    <Badge className={cn(
+                      "text-[9px] uppercase font-black border-none h-4 px-2",
+                      course.type === 'compulsory' ? "bg-primary/10 text-primary" : "bg-secondary/20 text-primary"
+                    )}>
+                      {course.type}
+                    </Badge>
+                  </div>
                   <CardTitle className="text-xl group-hover:text-primary transition-colors">{course.name}</CardTitle>
                 </div>
-                <div className="p-2 bg-accent/50 rounded-lg">
+                <div className="p-2 bg-accent/50 rounded-lg shrink-0">
                   <BookOpen className="w-5 h-5 text-primary" />
                 </div>
               </div>
@@ -174,9 +299,9 @@ export default function CoursesPage() {
                 </div>
                 <div className="space-y-1">
                   <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1">
-                    <Users className="w-3 h-3" /> Enrolled
+                    <Layers className="w-3 h-3" /> Class Level
                   </p>
-                  <p className="text-xs font-bold">{course.studentCount} Students</p>
+                  <p className="text-xs font-bold">{course.targetClass}</p>
                 </div>
               </div>
 
@@ -236,7 +361,7 @@ export default function CoursesPage() {
         ))}
       </div>
 
-      {/* Subject Command Center Dialog (Admin & Student) */}
+      {/* Subject Command Center Dialog */}
       <Dialog open={!!selectedSubject} onOpenChange={() => setSelectedSubject(null)}>
         <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl rounded-3xl">
           <DialogHeader className="p-8 bg-primary text-white shrink-0">
@@ -245,10 +370,15 @@ export default function CoursesPage() {
                 <BookOpen className="w-10 h-10 text-white" />
               </div>
               <div className="space-y-1">
-                <Badge className="bg-white/20 text-white border-none text-[10px] font-black">{selectedSubject?.id}</Badge>
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-white/20 text-white border-none text-[10px] font-black">{selectedSubject?.id}</Badge>
+                  <Badge variant="secondary" className="bg-secondary text-primary border-none text-[10px] font-black uppercase">
+                    {selectedSubject?.type}
+                  </Badge>
+                </div>
                 <DialogTitle className="text-3xl font-black">{selectedSubject?.name}</DialogTitle>
                 <DialogDescription className="text-white/60 font-bold flex items-center gap-2">
-                  <User className="w-4 h-4" /> {selectedSubject?.instructor} • {selectedSubject?.schedule}
+                  <User className="w-4 h-4" /> {selectedSubject?.instructor} • {selectedSubject?.targetClass}
                 </DialogDescription>
               </div>
             </div>
@@ -368,7 +498,7 @@ export default function CoursesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Mock Edit Dialog */}
+      {/* Edit Dialog */}
       <Dialog open={isEditingSubject} onOpenChange={setIsEditingSubject}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
