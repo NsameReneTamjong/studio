@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   Library, 
   Search, 
@@ -32,14 +33,17 @@ import {
   Coins,
   AlertCircle,
   Save,
-  Users
+  Users,
+  Plus,
+  Pencil,
+  Trash2
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 // Mock Data for Books
-const MOCK_BOOKS = [
+const INITIAL_BOOKS = [
   { id: "B001", title: "Advanced Physics", author: "Dr. Tesla", category: "Science", available: 5, total: 10, cover: "https://picsum.photos/seed/phys/400/600" },
   { id: "B002", title: "Calculus II", author: "Prof. Smith", category: "Mathematics", available: 2, total: 5, cover: "https://picsum.photos/seed/math/400/600" },
   { id: "B003", title: "Things Fall Apart", author: "Chinua Achebe", category: "Literature", available: 12, total: 15, cover: "https://picsum.photos/seed/lit1/400/600" },
@@ -66,10 +70,22 @@ export default function LibraryPage() {
   const { toast } = useToast();
   
   const [searchTerm, setSearchTerm] = useState("");
+  const [books, setBooks] = useState(INITIAL_BOOKS);
   const [borrowingBook, setBorrowingBook] = useState<any>(null);
   const [previewReceipt, setPreviewReceipt] = useState<any>(null);
   const [loans, setLoans] = useState(MOCK_LOANS);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Librarian Management State
+  const [isBookModalOpen, setIsBookModalOpen] = useState(false);
+  const [editingBook, setEditingBook] = useState<any>(null);
+  const [bookFormData, setBookFormData] = useState({
+    title: "",
+    author: "",
+    category: "General",
+    available: "1",
+    total: "1"
+  });
 
   // Librarian Settings State
   const [librarySettings, setLibrarySettings] = useState({
@@ -81,7 +97,7 @@ export default function LibraryPage() {
 
   const isLibrarian = user?.role === "LIBRARIAN";
 
-  const filteredBooks = MOCK_BOOKS.filter(b => 
+  const filteredBooks = books.filter(b => 
     b.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
     b.author.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -113,6 +129,66 @@ export default function LibraryPage() {
     }, 1500);
   };
 
+  const openBookModal = (book?: any) => {
+    if (book) {
+      setEditingBook(book);
+      setBookFormData({
+        title: book.title,
+        author: book.author,
+        category: book.category,
+        available: book.available.toString(),
+        total: book.total.toString()
+      });
+    } else {
+      setEditingBook(null);
+      setBookFormData({
+        title: "",
+        author: "",
+        category: "General",
+        available: "1",
+        total: "1"
+      });
+    }
+    setIsBookModalOpen(true);
+  };
+
+  const handleSaveBook = () => {
+    if (!bookFormData.title || !bookFormData.author) {
+      toast({ variant: "destructive", title: "Missing Data", description: "Title and Author are required." });
+      return;
+    }
+
+    if (editingBook) {
+      setBooks(prev => prev.map(b => b.id === editingBook.id ? { 
+        ...b, 
+        ...bookFormData, 
+        available: parseInt(bookFormData.available),
+        total: parseInt(bookFormData.total)
+      } : b));
+      toast({ title: "Book Updated", description: `"${bookFormData.title}" has been updated in the catalog.` });
+    } else {
+      const newBook = {
+        id: `B${Math.floor(Math.random() * 9000 + 1000)}`,
+        ...bookFormData,
+        available: parseInt(bookFormData.available),
+        total: parseInt(bookFormData.total),
+        cover: `https://picsum.photos/seed/${Math.random()}/400/600`
+      };
+      setBooks(prev => [newBook, ...prev]);
+      toast({ title: "Book Added", description: `"${bookFormData.title}" is now available in the catalog.` });
+    }
+    setIsBookModalOpen(false);
+  };
+
+  const handleDeleteBook = (id: string) => {
+    setBooks(prev => prev.filter(b => b.id !== id));
+    toast({
+      variant: "destructive",
+      title: "Book Removed",
+      description: "The resource has been deleted from the institutional library."
+    });
+  };
+
   const handleSaveSettings = () => {
     setIsProcessing(true);
     setTimeout(() => {
@@ -141,6 +217,11 @@ export default function LibraryPage() {
             }
           </p>
         </div>
+        {isLibrarian && (
+          <Button onClick={() => openBookModal()} className="gap-2 shadow-lg h-11 rounded-xl">
+            <Plus className="w-4 h-4" /> Add New Book
+          </Button>
+        )}
       </div>
 
       <Tabs defaultValue="catalog" className="w-full">
@@ -218,17 +299,37 @@ export default function LibraryPage() {
                     <User className="w-3 h-3" /> {book.author}
                   </CardDescription>
                 </CardHeader>
-                <CardFooter className="p-5 pt-0">
-                  <Button 
-                    className={cn(
-                      "w-full gap-2 shadow-lg h-11 text-sm font-bold uppercase tracking-wider transition-all",
-                      book.available > 0 ? "bg-primary hover:shadow-primary/20" : "opacity-50 cursor-not-allowed"
-                    )} 
-                    disabled={book.available === 0}
-                    onClick={() => setBorrowingBook(book)}
-                  >
-                    <Bookmark className="w-4 h-4" /> {t("borrow")}
-                  </Button>
+                <CardFooter className="p-5 pt-0 gap-2">
+                  {isLibrarian ? (
+                    <>
+                      <Button 
+                        variant="outline"
+                        className="flex-1 gap-2 h-11 text-xs font-bold uppercase tracking-wider"
+                        onClick={() => openBookModal(book)}
+                      >
+                        <Pencil className="w-3.5 h-3.5" /> Edit
+                      </Button>
+                      <Button 
+                        variant="ghost"
+                        size="icon"
+                        className="h-11 w-11 text-destructive hover:text-destructive hover:bg-destructive/10 border border-destructive/10"
+                        onClick={() => handleDeleteBook(book.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </>
+                  ) : (
+                    <Button 
+                      className={cn(
+                        "w-full gap-2 shadow-lg h-11 text-sm font-bold uppercase tracking-wider transition-all",
+                        book.available > 0 ? "bg-primary hover:shadow-primary/20" : "opacity-50 cursor-not-allowed"
+                      )} 
+                      disabled={book.available === 0}
+                      onClick={() => setBorrowingBook(book)}
+                    >
+                      <Bookmark className="w-4 h-4" /> {t("borrow")}
+                    </Button>
+                  )}
                 </CardFooter>
               </Card>
             ))}
@@ -427,7 +528,80 @@ export default function LibraryPage() {
         )}
       </Tabs>
 
-      {/* Borrow Confirmation Dialog */}
+      {/* Book Add/Edit Dialog */}
+      <Dialog open={isBookModalOpen} onOpenChange={setIsBookModalOpen}>
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden border-none shadow-2xl rounded-3xl">
+          <DialogHeader className="bg-primary text-white p-6">
+            <DialogTitle className="text-xl font-bold">
+              {editingBook ? "Edit Book Details" : "Add New Book"}
+            </DialogTitle>
+            <DialogDescription className="text-white/60">
+              {editingBook ? "Update the information for this resource." : "Enter the details to add a new book to the library."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="p-6 space-y-4">
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Book Title</Label>
+              <Input 
+                placeholder="e.g. Modern Chemistry" 
+                className="h-11 bg-accent/30 border-none rounded-xl"
+                value={bookFormData.title}
+                onChange={(e) => setBookFormData({...bookFormData, title: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Author</Label>
+              <Input 
+                placeholder="e.g. Marie Curie" 
+                className="h-11 bg-accent/30 border-none rounded-xl"
+                value={bookFormData.author}
+                onChange={(e) => setBookFormData({...bookFormData, author: e.target.value})}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Category</Label>
+                <Input 
+                  placeholder="e.g. Science" 
+                  className="h-11 bg-accent/30 border-none rounded-xl"
+                  value={bookFormData.category}
+                  onChange={(e) => setBookFormData({...bookFormData, category: e.target.value})}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Stock (Total)</Label>
+                <Input 
+                  type="number" 
+                  className="h-11 bg-accent/30 border-none rounded-xl"
+                  value={bookFormData.total}
+                  onChange={(e) => setBookFormData({...bookFormData, total: e.target.value, available: e.target.value})}
+                />
+              </div>
+            </div>
+            {editingBook && (
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Currently Available</Label>
+                <Input 
+                  type="number" 
+                  className="h-11 bg-accent/30 border-none rounded-xl"
+                  value={bookFormData.available}
+                  onChange={(e) => setBookFormData({...bookFormData, available: e.target.value})}
+                />
+              </div>
+            )}
+          </div>
+          <DialogFooter className="p-6 bg-accent/30 flex sm:flex-row gap-3">
+            <Button variant="ghost" className="flex-1 rounded-xl h-12" onClick={() => setIsBookModalOpen(false)}>
+              {t("cancel")}
+            </Button>
+            <Button onClick={handleSaveBook} className="flex-1 rounded-xl h-12 gap-2 shadow-lg font-bold">
+              <Save className="w-4 h-4" /> Save Book
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Borrow Confirmation Dialog (Students) */}
       <Dialog open={!!borrowingBook} onOpenChange={() => setBorrowingBook(null)}>
         <DialogContent className="sm:max-w-md p-0 overflow-hidden border-none shadow-2xl rounded-3xl">
           <div className="p-8 space-y-6">
@@ -476,7 +650,7 @@ export default function LibraryPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Collection Receipt Dialog - Enhanced Institution Design */}
+      {/* Collection Receipt Dialog */}
       <Dialog open={!!previewReceipt} onOpenChange={() => setPreviewReceipt(null)}>
         <DialogContent className="sm:max-w-md p-0 border-none shadow-2xl overflow-hidden bg-[#F0F2F5]">
           <DialogHeader className="p-6 bg-primary text-white border-b border-white/10 shrink-0">
@@ -493,12 +667,10 @@ export default function LibraryPage() {
           
           <div className="p-6 overflow-y-auto max-h-[70vh]">
             <div className="bg-white p-8 space-y-8 rounded-3xl shadow-lg relative border border-border overflow-hidden">
-               {/* Watermark Logo */}
                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-[0.03]">
                   <Building2 className="w-64 h-64 text-primary rotate-12" />
                </div>
 
-               {/* Receipt Branding Header */}
                <div className="flex justify-between items-start border-b-2 border-dashed border-accent pb-6">
                   <div className="flex items-center gap-3">
                      <div className="bg-primary p-2 rounded-xl shadow-lg">
@@ -516,7 +688,6 @@ export default function LibraryPage() {
                   </div>
                </div>
 
-               {/* Borrower & Institution Context */}
                <div className="space-y-6 relative z-10">
                   <div className="grid grid-cols-2 gap-8">
                      <div className="space-y-1">
@@ -552,7 +723,6 @@ export default function LibraryPage() {
                   </div>
                </div>
 
-               {/* Collection Code Section - High Contrast */}
                <div className="pt-8 border-t-4 border-double border-accent flex flex-col items-center gap-6 relative z-10">
                   <div className="space-y-2 text-center w-full">
                      <p className="text-[10px] uppercase font-black tracking-[0.2em] text-muted-foreground">Presentation Code</p>
@@ -563,17 +733,6 @@ export default function LibraryPage() {
                            <ShieldCheck className="w-3 h-3" />
                            Validated Institutional ID
                         </div>
-                     </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4 w-full opacity-60">
-                     <div className="border-t border-muted-foreground/20 pt-2 text-center space-y-1">
-                        <p className="text-[8px] font-black uppercase">Officer Sign</p>
-                        <div className="h-8" />
-                     </div>
-                     <div className="border-t border-muted-foreground/20 pt-2 text-center space-y-1">
-                        <p className="text-[8px] font-black uppercase">Official Stamp</p>
-                        <div className="h-8" />
                      </div>
                   </div>
                </div>
