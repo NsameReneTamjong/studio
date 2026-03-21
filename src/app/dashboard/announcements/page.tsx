@@ -57,7 +57,7 @@ export default function AnnouncementsPage() {
   const [formData, setFormData] = useState({ title: "", content: "", target: "all" });
 
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
-  const canPost = ["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER"].includes(user?.role || "");
+  const canPost = ["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER", "BURSAR"].includes(user?.role || "");
 
   const handleSend = () => {
     if (!formData.title || !formData.content) return;

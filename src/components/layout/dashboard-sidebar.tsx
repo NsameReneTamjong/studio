@@ -28,7 +28,8 @@ import {
   PenTool,
   FileEdit,
   Library,
-  Coins
+  Coins,
+  Receipt
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -91,6 +92,12 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       roles: ["SCHOOL_ADMIN", "TEACHER", "BURSAR"],
     },
     {
+      label: language === 'en' ? "Fees & Finance" : "Frais & Finance",
+      icon: Coins,
+      href: "/dashboard/fees",
+      roles: ["BURSAR", "SCHOOL_ADMIN"],
+    },
+    {
       label: t("staff"),
       icon: Users,
       href: "/dashboard/staff",
@@ -145,7 +152,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       roles: ["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER", "STUDENT", "PARENT", "BURSAR", "LIBRARIAN"],
     },
     {
-      label: t("aiFeedback"),
+      label: language === 'en' ? 'Feedback' : 'Feedback',
       icon: Sparkles,
       href: "/dashboard/ai-feedback",
       roles: ["TEACHER"],
