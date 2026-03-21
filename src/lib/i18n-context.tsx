@@ -20,7 +20,7 @@ const translations: TranslationDict = {
   grades: { en: "Report Card", fr: "Bulletin de Notes" },
   attendance: { en: "Attendance", fr: "Présences" },
   aiAssistant: { en: "AI Assistant", fr: "Assistant IA" },
-  aiFeedback: { en: "AI Feedback", fr: "Feedback IA" },
+  aiFeedback: { en: "Feedback", fr: "Feedback" },
   schedule: { en: "Schedule", fr: "Emploi du temps" },
   schools: { en: "Schools", fr: "Écoles" },
   feedback: { en: "Feedback", fr: "Feedback" },

@@ -10,9 +10,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Sparkles, Send, Loader2, User, BookOpen, Clock, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useI18n } from "@/lib/i18n-context";
 
 export default function AiFeedbackPage() {
   const { toast } = useToast();
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [generatedFeedback, setGeneratedFeedback] = useState("");
   
@@ -60,7 +62,7 @@ export default function AiFeedbackPage() {
       <div>
         <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-2">
           <Sparkles className="w-8 h-8 text-secondary fill-secondary/20" />
-          AI Feedback Assistant
+          {t("aiFeedback")} Assistant
         </h1>
         <p className="text-muted-foreground mt-1">Generate personalized, constructive feedback based on student data.</p>
       </div>
