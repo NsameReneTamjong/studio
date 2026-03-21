@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -113,6 +112,16 @@ const INITIAL_SUBJECTS = [
 
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
 
+const TEACHERS = [
+  "Dr. Aris Tesla",
+  "Prof. Sarah Smith",
+  "Ms. Bennet",
+  "Dr. Jane Smith",
+  "Mr. John Doe",
+  "Mme. Ngono Celine",
+  "Mr. Ebong"
+];
+
 export default function CoursesPage() {
   const { user } = useAuth();
   const { t, language } = useI18n();
@@ -133,13 +142,13 @@ export default function CoursesPage() {
   const isStudent = user?.role === "STUDENT";
 
   const handleCreateSubject = () => {
-    if (!newSubject.name || !newSubject.id) {
-      toast({ variant: "destructive", title: "Error", description: "Subject name and ID are required." });
+    if (!newSubject.name || !newSubject.id || !newSubject.instructor) {
+      toast({ variant: "destructive", title: "Error", description: "Subject name, ID, and instructor are required." });
       return;
     }
     toast({
       title: "Subject Created",
-      description: `${newSubject.name} has been added to the ${newSubject.targetClass} curriculum as a ${newSubject.type} course.`
+      description: `${newSubject.name} has been added to the ${newSubject.targetClass} curriculum as a ${newSubject.type} course taught by ${newSubject.instructor}.`
     });
     setIsAddingSubject(false);
     setNewSubject({ name: "", id: "", instructor: "", targetClass: "", type: "compulsory" });
@@ -210,12 +219,14 @@ export default function CoursesPage() {
                   </div>
                   <div className="space-y-2">
                     <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Lead Instructor</Label>
-                    <Input 
-                      placeholder="e.g. Dr. Jane Smith" 
-                      className="bg-accent/30 border-none h-12 rounded-xl"
-                      value={newSubject.instructor}
-                      onChange={(e) => setNewSubject({...newSubject, instructor: e.target.value})}
-                    />
+                    <Select value={newSubject.instructor} onValueChange={(v) => setNewSubject({...newSubject, instructor: v})}>
+                      <SelectTrigger className="bg-accent/30 border-none h-12 rounded-xl">
+                        <SelectValue placeholder="Select teacher..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TEACHERS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="col-span-2 space-y-2">
                     <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Target Class Level</Label>
@@ -508,7 +519,14 @@ export default function CoursesPage() {
           <div className="space-y-4 py-4">
              <div className="space-y-2">
                 <label className="text-xs font-bold uppercase">Assign Instructor</label>
-                <Input defaultValue="Dr. Aris Tesla" />
+                <Select defaultValue="Dr. Aris Tesla">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TEACHERS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  </SelectContent>
+                </Select>
              </div>
              <div className="space-y-2">
                 <label className="text-xs font-bold uppercase">Schedule Window</label>
