@@ -35,10 +35,10 @@ const CAMEROON_SUBJECTS = [
 
 const MOCK_GRADES_TEACHER = [
   { id: "S001", name: "Alice Thompson", seq1: 14.5, seq2: 12, coeff: 5 },
-  { id: "S002", name: "Bob Richards", seq1: 08, seq2: 10.5, coeff: 5 },
-  { id: "S003", name: "Charlie Davis", seq1: 11, seq2: 09, coeff: 5 },
+  { id: "S002", name: "Bob Richards", seq1: 8, seq2: 10.5, coeff: 5 },
+  { id: "S003", name: "Charlie Davis", seq1: 11, seq2: 9, coeff: 5 },
   { id: "S004", name: "Diana Prince", seq1: 18, seq2: 17.5, coeff: 5 },
-  { id: "S005", name: "Ethan Hunt", seq1: 07.5, seq2: 06, coeff: 5 },
+  { id: "S005", name: "Ethan Hunt", seq1: 7.5, seq2: 6, coeff: 5 },
 ];
 
 export default function GradeBookPage() {
