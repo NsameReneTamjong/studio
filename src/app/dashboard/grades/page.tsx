@@ -3,15 +3,32 @@
 
 import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useI18n } from "@/lib/i18n-context";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Save, Download, Search, FileText, Award, TrendingUp, BookOpen, User, AlertCircle } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Save, 
+  Download, 
+  Search, 
+  FileText, 
+  Award, 
+  TrendingUp, 
+  BookOpen, 
+  User, 
+  AlertCircle,
+  History,
+  CheckCircle2,
+  Lock,
+  ChevronRight
+} from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 // Cameroonian grading appreciation mapping
 const getAppreciation = (note: number) => {
@@ -43,12 +60,33 @@ const MOCK_GRADES_TEACHER = [
   { id: "S005", name: "Ethan Hunt", seq1: 7.5, seq2: 6, coeff: 5 },
 ];
 
+const MOCK_HISTORY_DATA = [
+  { id: "S001", name: "Alice Thompson", math: 15.5, physics: 14.0, english: 17.5, avg: 15.6, rank: "04/42" },
+  { id: "S004", name: "Diana Prince", math: 19.0, physics: 18.5, english: 19.5, avg: 19.0, rank: "01/42" },
+];
+
 export default function GradeBookPage() {
   const { user } = useAuth();
-  const [selectedSubject, setSelectedSubject] = useState("maths");
+  const { t, language } = useI18n();
+  const { toast } = useToast();
+  
+  const [selectedSubject, setSelectedSubject] = useState("mathématiques");
+  const [selectedSequence, setSelectedSequence] = useState("seq1");
+  const [isSaving, setIsSaving] = useState(false);
 
   const isTeacher = user?.role === "TEACHER" || user?.role === "SCHOOL_ADMIN";
   const isParent = user?.role === "PARENT";
+
+  const handleSaveMarks = () => {
+    setIsSaving(true);
+    setTimeout(() => {
+      setIsSaving(false);
+      toast({
+        title: language === 'en' ? "Marks Recorded" : "Notes Enregistrées",
+        description: language === 'en' ? "Sequence marks have been successfully updated in the official registry." : "Les notes de la séquence ont été mises à jour avec succès dans le registre officiel.",
+      });
+    }, 1200);
+  };
 
   if (isParent) {
     return (
@@ -203,99 +241,190 @@ export default function GradeBookPage() {
     <div className="space-y-6">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline">Gestion des Notes</h1>
-          <p className="text-sm text-muted-foreground mt-1">Input sequence marks (0-20 scale).</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline">{language === 'en' ? 'Report Card Management' : 'Gestion des Notes'}</h1>
+          <p className="text-sm text-muted-foreground mt-1">Institutional mark entry and performance tracking.</p>
         </div>
         <div className="flex gap-2 w-full lg:w-auto">
-          <Button variant="outline" className="gap-2 flex-1 lg:flex-none"><FileText className="w-4 h-4" /> <span className="hidden sm:inline">Import</span></Button>
-          <Button className="gap-2 shadow-lg flex-1 lg:flex-none"><Save className="w-4 h-4" /> Enregistrer</Button>
+          <Button variant="outline" className="gap-2 flex-1 lg:flex-none"><FileText className="w-4 h-4" /> <span className="hidden sm:inline">Import Excel</span></Button>
+          <Button className="gap-2 shadow-lg flex-1 lg:flex-none" onClick={handleSaveMarks} disabled={isSaving}>
+            <Save className="w-4 h-4" /> {isSaving ? 'Enregistrement...' : (language === 'en' ? 'Save Registry' : 'Enregistrer')}
+          </Button>
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row flex-wrap gap-4 items-stretch sm:items-center">
-        <div className="flex-1 min-w-[200px]">
-          <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner Matière" />
-            </SelectTrigger>
-            <SelectContent>
-              {CAMEROON_SUBJECTS.map(s => (
-                <SelectItem key={s.name} value={s.name.toLowerCase()}>{s.name} (Coeff {s.coeff})</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex-1 min-w-[150px]">
-          <Select defaultValue="seq1">
-            <SelectTrigger>
-              <SelectValue placeholder="Période" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="seq1">Séquence 1</SelectItem>
-              <SelectItem value="seq2">Séquence 2</SelectItem>
-              <SelectItem value="seq3">Séquence 3</SelectItem>
-              <SelectItem value="seq4">Séquence 4</SelectItem>
-              <SelectItem value="seq5">Séquence 5</SelectItem>
-              <SelectItem value="seq6">Séquence 6</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="relative flex-[1.5] min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="Chercher un élève..." className="pl-10" />
-        </div>
-      </div>
+      <Tabs defaultValue="entry" className="w-full">
+        <TabsList className="grid grid-cols-2 w-full md:w-[400px] mb-6 bg-white shadow-sm border h-auto p-1">
+          <TabsTrigger value="entry" className="gap-2 py-2">
+            <CheckCircle2 className="w-4 h-4" /> {language === 'en' ? 'Mark Entry' : 'Saisie des Notes'}
+          </TabsTrigger>
+          <TabsTrigger value="history" className="gap-2 py-2">
+            <History className="w-4 h-4" /> {language === 'en' ? 'Results History' : 'Historique'}
+          </TabsTrigger>
+        </TabsList>
 
-      <Card className="border-none shadow-sm overflow-hidden">
-        <CardHeader className="p-4 md:p-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-            <CardTitle className="text-base md:text-lg">Classe: 2nde C / Lower Sixth Science</CardTitle>
-            <Badge variant="outline" className="gap-1 bg-secondary/10 text-secondary border-secondary/20">
-              <TrendingUp className="w-3 h-3"/> Coeff {CAMEROON_SUBJECTS.find(s => s.name.toLowerCase() === selectedSubject)?.coeff || 5}
-            </Badge>
+        <TabsContent value="entry" className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-4 items-stretch sm:items-center">
+            <div className="flex-1 min-w-[200px] space-y-1.5">
+              <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest pl-1">Assign Subject</p>
+              <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+                <SelectTrigger className="bg-white">
+                  <SelectValue placeholder="Sélectionner Matière" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CAMEROON_SUBJECTS.map(s => (
+                    <SelectItem key={s.name} value={s.name.toLowerCase()}>{s.name} (Coeff {s.coeff})</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex-1 min-w-[150px] space-y-1.5">
+              <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest pl-1">Active Sequence</p>
+              <Select value={selectedSequence} onValueChange={setSelectedSequence}>
+                <SelectTrigger className="bg-white">
+                  <SelectValue placeholder="Période" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="seq1">Séquence 1</SelectItem>
+                  <SelectItem value="seq2">Séquence 2</SelectItem>
+                  <SelectItem value="seq3">Séquence 3</SelectItem>
+                  <SelectItem value="seq4">Séquence 4</SelectItem>
+                  <SelectItem value="seq5">Séquence 5</SelectItem>
+                  <SelectItem value="seq6">Séquence 6</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="relative flex-[1.5] min-w-[200px] self-end">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input placeholder="Chercher un élève..." className="pl-10 bg-white" />
+            </div>
           </div>
-          <CardDescription className="text-xs md:text-sm">Enter marks out of 20. Calculations are automatic.</CardDescription>
-        </CardHeader>
-        <CardContent className="p-0 overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-accent/30 font-bold text-[10px] md:text-xs">
-                <TableHead className="w-[100px] pl-4 md:pl-6">Matricule</TableHead>
-                <TableHead className="min-w-[150px]">Nom de l'élève</TableHead>
-                <TableHead className="text-center">Note / 20</TableHead>
-                <TableHead className="text-center hidden sm:table-cell">Appréciation</TableHead>
-                <TableHead className="text-right pr-4 md:pr-6">Obs.</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {MOCK_GRADES_TEACHER.map((student) => (
-                <TableRow key={student.id} className="text-xs md:text-sm">
-                  <TableCell className="font-mono text-[10px] md:text-xs pl-4 md:pl-6">{student.id}</TableCell>
-                  <TableCell className="font-medium">{student.name}</TableCell>
-                  <TableCell className="text-center">
-                    <Input 
-                      defaultValue={student.seq1} 
-                      className="w-14 md:w-20 h-8 md:h-9 mx-auto text-center font-bold text-sm" 
-                      type="number" 
-                      step="0.25"
-                      min="0"
-                      max="20"
-                    />
-                  </TableCell>
-                  <TableCell className="text-center hidden sm:table-cell">
-                    <Badge variant="outline" className={cn("text-[9px] text-white border-none", getAppreciation(student.seq1).color)}>
-                      {getAppreciation(student.seq1).text}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right pr-4 md:pr-6">
-                    <Input placeholder="Commentaire..." className="h-8 text-[10px] max-w-[120px] ml-auto" />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+
+          <Card className="border-none shadow-sm overflow-hidden">
+            <CardHeader className="p-4 md:p-6 bg-white border-b">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <CardTitle className="text-base md:text-lg flex items-center gap-2">
+                  <Award className="w-5 h-5 text-primary" />
+                  Entry Sheet: {CAMEROON_SUBJECTS.find(s => s.name.toLowerCase() === selectedSubject)?.name}
+                </CardTitle>
+                <Badge variant="outline" className="gap-1 bg-secondary/10 text-secondary border-secondary/20">
+                  <TrendingUp className="w-3 h-3"/> Coeff {CAMEROON_SUBJECTS.find(s => s.name.toLowerCase() === selectedSubject)?.coeff || 5}
+                </Badge>
+              </div>
+              <CardDescription className="text-xs md:text-sm">Enter marks out of 20 for {selectedSequence.toUpperCase()}. Calculations are automatic.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0 overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-accent/30 font-bold text-[10px] md:text-xs">
+                    <TableHead className="w-[100px] pl-4 md:pl-6">Matricule</TableHead>
+                    <TableHead className="min-w-[150px]">Nom de l'élève</TableHead>
+                    <TableHead className="text-center">Note / 20</TableHead>
+                    <TableHead className="text-center hidden sm:table-cell">Appréciation</TableHead>
+                    <TableHead className="text-right pr-4 md:pr-6">Observations</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {MOCK_GRADES_TEACHER.map((student) => (
+                    <TableRow key={student.id} className="text-xs md:text-sm bg-white hover:bg-accent/5">
+                      <TableCell className="font-mono text-[10px] md:text-xs pl-4 md:pl-6 font-bold text-primary">{student.id}</TableCell>
+                      <TableCell className="font-medium">{student.name}</TableCell>
+                      <TableCell className="text-center">
+                        <Input 
+                          defaultValue={student.seq1} 
+                          className="w-14 md:w-20 h-8 md:h-9 mx-auto text-center font-bold text-sm bg-accent/10 border-accent focus-visible:ring-primary" 
+                          type="number" 
+                          step="0.25"
+                          min="0"
+                          max="20"
+                        />
+                      </TableCell>
+                      <TableCell className="text-center hidden sm:table-cell">
+                        <Badge variant="outline" className={cn("text-[9px] text-white border-none px-3 py-0.5", getAppreciation(student.seq1).color)}>
+                          {getAppreciation(student.seq1).text}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right pr-4 md:pr-6">
+                        <Input placeholder="Observation..." className="h-8 text-[10px] max-w-[120px] ml-auto bg-transparent border-none italic focus-visible:ring-0" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+            <CardFooter className="bg-accent/10 p-4 border-t flex justify-between items-center">
+               <p className="text-[10px] text-muted-foreground italic flex items-center gap-1">
+                 <AlertCircle className="w-3 h-3"/> {language === 'en' ? 'Ensure all marks are verified before final submission.' : 'Vérifiez toutes les notes avant la validation finale.'}
+               </p>
+               <Button size="sm" className="gap-2 shadow-lg" onClick={handleSaveMarks} disabled={isSaving}>
+                 <Save className="w-3.5 h-3.5" /> {language === 'en' ? 'Record Marks' : 'Valider'}
+               </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="history" className="animate-in fade-in slide-in-from-bottom-2">
+          <div className="grid grid-cols-1 gap-6">
+            <Card className="border-none shadow-sm overflow-hidden">
+              <CardHeader className="bg-primary text-white flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2 text-white">
+                    <Lock className="w-5 h-5 text-secondary" />
+                    Locked Results Registry
+                  </CardTitle>
+                  <CardDescription className="text-white/60">Finalized performance records for past sequences.</CardDescription>
+                </div>
+                <Badge className="bg-white/20 text-white border-none">History View</Badge>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50 uppercase text-[10px] font-black tracking-widest">
+                      <TableHead className="pl-6 py-4">Student Profile</TableHead>
+                      <TableHead className="text-center">Maths</TableHead>
+                      <TableHead className="text-center">Physics</TableHead>
+                      <TableHead className="text-center">English</TableHead>
+                      <TableHead className="text-center">Average</TableHead>
+                      <TableHead className="text-right pr-6">Position</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {MOCK_HISTORY_DATA.map((row) => (
+                      <TableRow key={row.id} className="hover:bg-accent/5">
+                        <TableCell className="pl-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center text-primary font-bold text-xs border border-primary/10">
+                              {row.name.charAt(0)}
+                            </div>
+                            <div>
+                              <p className="font-bold text-sm text-primary leading-none mb-1">{row.name}</p>
+                              <p className="text-[10px] text-muted-foreground font-mono">{row.id}</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center font-mono font-bold">{row.math.toFixed(1)}</TableCell>
+                        <TableCell className="text-center font-mono font-bold">{row.physics.toFixed(1)}</TableCell>
+                        <TableCell className="text-center font-mono font-bold">{row.english.toFixed(1)}</TableCell>
+                        <TableCell className="text-center">
+                          <Badge className="bg-primary text-white border-none font-mono">{row.avg.toFixed(2)}</Badge>
+                        </TableCell>
+                        <TableCell className="text-right pr-6 font-bold text-secondary">{row.rank}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+              <CardFooter className="p-4 bg-muted/20 border-t flex justify-between items-center">
+                <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest italic">These results are finalized and cannot be modified via this portal.</p>
+                <Button variant="ghost" size="sm" className="gap-2 text-primary" asChild>
+                  <Link href="/dashboard/students">
+                    Full Student Records <ChevronRight className="w-4 h-4" />
+                  </Link>
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
