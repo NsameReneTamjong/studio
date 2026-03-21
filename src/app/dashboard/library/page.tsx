@@ -122,6 +122,7 @@ export default function LibraryPage() {
   const [borrowingBook, setBorrowingBook] = useState<any>(null);
   const [previewReceipt, setPreviewReceipt] = useState<any>(null);
   const [returnReceipt, setReturnReceipt] = useState<any>(null);
+  const [issueReceipt, setIssueReceipt] = useState<any>(null);
   const [loans, setLoans] = useState(INITIAL_LOANS);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -197,14 +198,17 @@ export default function LibraryPage() {
         borrowerName: request.userName,
         borrowerId: "STUDENT_ID",
         borrowDate: new Date().toLocaleDateString(),
-        returnDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+        returnDate: new Date(Date.now() + parseInt(librarySettings.loanDuration) * 24 * 60 * 60 * 1000).toLocaleDateString(),
         status: "Active",
-        collectionCode: `IGN-${Math.floor(100 + Math.random() * 899)}-X`
+        collectionCode: `IGN-${Math.floor(100 + Math.random() * 899)}-X`,
+        role: request.userRole
       };
       
+      setIssueReceipt(newLoan);
       setLoans(prev => [newLoan, ...prev]);
       setRequests(prev => prev.filter(r => r.id !== requestId));
       setIsProcessing(false);
+      
       toast({
         title: "Book Issued",
         description: `"${request.bookTitle}" has been successfully issued to ${request.userName}.`,
@@ -1023,7 +1027,7 @@ export default function LibraryPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Collection Receipt Dialog (Borrowing) */}
+      {/* Collection Receipt Dialog (Request Acknowledgement) */}
       <Dialog open={!!previewReceipt} onOpenChange={() => setPreviewReceipt(null)}>
         <DialogContent className="sm:max-w-md p-0 border-none shadow-2xl overflow-hidden bg-[#F0F2F5]">
           <DialogHeader className="p-6 bg-primary text-white border-b border-white/10 shrink-0">
@@ -1123,6 +1127,114 @@ export default function LibraryPage() {
             </Button>
             <Button onClick={() => setPreviewReceipt(null)} className="flex-1 h-12 gap-2 rounded-xl font-black uppercase tracking-widest shadow-xl">
               <CheckCircle2 className="w-4 h-4 text-secondary" /> {language === 'en' ? 'Done' : 'Terminé'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ISSUE RECEIPT DIALOG (Librarian Confirming Issue) */}
+      <Dialog open={!!issueReceipt} onOpenChange={() => setIssueReceipt(null)}>
+        <DialogContent className="sm:max-w-md p-0 border-none shadow-2xl overflow-hidden bg-[#F0F2F5]">
+          <DialogHeader className="p-6 bg-primary text-white border-b border-white/10 shrink-0">
+            <div className="flex items-center justify-between w-full">
+              <DialogTitle className="flex items-center gap-3 text-xl font-headline tracking-tight">
+                <BookOpen className="w-6 h-6 text-secondary" />
+                Book Issue Receipt
+              </DialogTitle>
+              <div className="bg-white/10 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-white/60">
+                Librarian Confirmed
+              </div>
+            </div>
+          </DialogHeader>
+          
+          <div className="p-6 overflow-y-auto max-h-[70vh]">
+            <div className="bg-white p-8 space-y-8 rounded-3xl shadow-lg relative border border-border overflow-hidden">
+               {/* Watermark Logo */}
+               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-[0.03]">
+                  <Library className="w-64 h-64 text-primary rotate-12" />
+               </div>
+
+               {/* Receipt Branding Header */}
+               <div className="flex justify-between items-start border-b-2 border-dashed border-accent pb-6">
+                  <div className="flex items-center gap-3">
+                     <div className="bg-primary p-2 rounded-xl shadow-lg">
+                        <Building2 className="w-8 h-8 text-secondary" />
+                     </div>
+                     <div>
+                        <p className="font-black text-lg text-primary uppercase tracking-tighter leading-none">EduIgnite Institution</p>
+                        <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mt-1">Librarian Office</p>
+                     </div>
+                  </div>
+                  <div className="text-right">
+                     <Badge variant="outline" className="text-[10px] h-6 px-3 font-black bg-secondary/10 text-primary border-none shadow-inner">
+                       {issueReceipt?.id}
+                     </Badge>
+                  </div>
+               </div>
+
+               {/* Borrower & Book Info */}
+               <div className="space-y-6 relative z-10">
+                  <div className="grid grid-cols-2 gap-8">
+                     <div className="space-y-1">
+                        <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Issued To</p>
+                        <p className="text-sm font-black flex items-center gap-2 text-primary uppercase"><User className="w-4 h-4 text-secondary"/> {issueReceipt?.borrowerName}</p>
+                        <p className="text-[9px] font-bold text-muted-foreground pl-6 uppercase tracking-wider">{issueReceipt?.role || "STUDENT"}: {issueReceipt?.borrowerId}</p>
+                     </div>
+                     <div className="space-y-1 text-right">
+                        <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Librarian</p>
+                        <p className="text-sm font-bold text-primary">{user?.name}</p>
+                     </div>
+                  </div>
+
+                  <div className="bg-[#F8FAFC] p-5 rounded-2xl border-2 border-accent/50 space-y-3 relative shadow-inner">
+                     <div className="absolute -top-3 left-4 bg-white px-3 py-0.5 border border-accent rounded-full text-[9px] font-black text-primary uppercase tracking-widest shadow-sm">
+                        Resource Details
+                     </div>
+                     <div className="space-y-1">
+                        <p className="font-black text-primary text-lg leading-tight uppercase tracking-tight">{issueReceipt?.bookTitle}</p>
+                        <p className="text-xs font-bold text-muted-foreground">{issueReceipt?.author}</p>
+                     </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-8 pt-4 border-t border-accent/50">
+                     <div className="space-y-1 text-left">
+                        <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Date Issued</p>
+                        <p className="text-sm font-bold text-primary">{issueReceipt?.borrowDate}</p>
+                     </div>
+                     <div className="space-y-1 text-right">
+                        <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Deadline Date</p>
+                        <p className="text-sm font-black text-secondary uppercase italic">{issueReceipt?.returnDate}</p>
+                     </div>
+                  </div>
+               </div>
+
+               <div className="pt-8 border-t-4 border-double border-accent flex flex-col items-center gap-6 relative z-10">
+                  <div className="space-y-2 text-center w-full">
+                     <p className="text-[10px] uppercase font-black tracking-[0.2em] text-muted-foreground">Verification Code</p>
+                     <div className="p-6 bg-[#1E293B] text-white rounded-3xl w-full text-center space-y-1 shadow-2xl relative overflow-hidden group">
+                        <div className="absolute inset-0 bg-gradient-to-br from-secondary/20 to-transparent opacity-50" />
+                        <p className="text-4xl font-black font-mono tracking-widest relative z-10 text-secondary">{issueReceipt?.collectionCode}</p>
+                        <div className="flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest text-white/40 mt-3 relative z-10">
+                           <ShieldCheck className="w-3 h-3" />
+                           Validated Institutional Issue
+                        </div>
+                     </div>
+                  </div>
+               </div>
+               
+               <div className="absolute bottom-4 left-0 right-0 px-8 flex items-center justify-between opacity-30 text-[8px] font-black uppercase tracking-[0.3em]">
+                  <span>EduIgnite Library</span>
+                  <span>Circulation Record</span>
+               </div>
+            </div>
+          </div>
+
+          <DialogFooter className="p-6 bg-white border-t gap-3 sm:gap-0 shrink-0">
+            <Button variant="outline" onClick={() => window.print()} className="flex-1 h-12 gap-2 rounded-xl font-bold border-primary/10">
+              <Printer className="w-4 h-4 text-primary" /> Print Copy
+            </Button>
+            <Button onClick={() => setIssueReceipt(null)} className="flex-1 h-12 gap-2 rounded-xl font-black uppercase tracking-widest shadow-xl">
+              <CheckCircle2 className="w-4 h-4 text-secondary" /> Finalize Issue
             </Button>
           </DialogFooter>
         </DialogContent>
