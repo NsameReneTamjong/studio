@@ -22,29 +22,55 @@ import {
   QrCode, 
   Signature, 
   Info,
-  CheckCircle2
+  CheckCircle2,
+  Ban,
+  Activity,
+  CreditCard,
+  History,
+  TrendingUp,
+  Settings2,
+  Trash2,
+  Eye
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n-context";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogTrigger 
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-const MOCK_SCHOOLS = [
-  { id: "EDU-JOSS-01", name: "Lycée de Joss", domain: "joss.cm", admins: 3, students: 1200, status: "Active", address: "Douala, Littoral", lat: 4.0435, lng: 9.7085, logo: "https://picsum.photos/seed/joss-logo/200/200" },
-  { id: "EDU-GBHS-02", name: "GBHS Yaoundé", domain: "gbhs.yaounde.edu", admins: 5, students: 2850, status: "Active", address: "Yaoundé, Centre", lat: 3.8480, lng: 11.5021, logo: "https://picsum.photos/seed/gbhs-logo/200/200" },
-  { id: "EDU-BUEA-03", name: "BUEA University", domain: "ubuea.cm", admins: 12, students: 4500, status: "Active", address: "Buea, South West", lat: 4.1550, lng: 9.2435, logo: "https://picsum.photos/seed/buea-logo/200/200" },
-  { id: "EDU-MAR-04", name: "Lycée de Maroua", domain: "maroua.edu", admins: 2, students: 900, status: "Suspended", address: "Maroua, Far North", lat: 10.5916, lng: 14.3155, logo: "https://picsum.photos/seed/maroua-logo/200/200" },
+const INITIAL_SCHOOLS = [
+  { id: "EDU-JOSS-01", name: "Lycée de Joss", domain: "joss.cm", admins: 3, students: 1200, status: "Active", address: "Douala, Littoral", lat: 4.0435, lng: 9.7085, logo: "https://picsum.photos/seed/joss-logo/200/200", revenue: "2.4M", lastSync: "10 mins ago" },
+  { id: "EDU-GBHS-02", name: "GBHS Yaoundé", domain: "gbhs.yaounde.edu", admins: 5, students: 2850, status: "Active", address: "Yaoundé, Centre", lat: 3.8480, lng: 11.5021, logo: "https://picsum.photos/seed/gbhs-logo/200/200", revenue: "4.8M", lastSync: "2 hours ago" },
+  { id: "EDU-BUEA-03", name: "BUEA University", domain: "ubuea.cm", admins: 12, students: 4500, status: "Active", address: "Buea, South West", lat: 4.1550, lng: 9.2435, logo: "https://picsum.photos/seed/buea-logo/200/200", revenue: "8.2M", lastSync: "Yesterday" },
+  { id: "EDU-MAR-04", name: "Lycée de Maroua", domain: "maroua.edu", admins: 2, students: 900, status: "Suspended", address: "Maroua, Far North", lat: 10.5916, lng: 14.3155, logo: "https://picsum.photos/seed/maroua-logo/200/200", revenue: "1.2M", lastSync: "3 days ago" },
 ];
 
 export default function SchoolsManagementPage() {
   const { t, language } = useI18n();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
+  const [schools, setSchools] = useState(INITIAL_SCHOOLS);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedMapSchool, setSelectedMapSchool] = useState<any>(null);
+  const [managedSchool, setManagedSchool] = useState<any>(null);
   
-  // Success & Onboarding Letter State
   const [onboardingSuccess, setOnboardingSuccess] = useState<any>(null);
   const [newSchoolData, setNewSchoolData] = useState({
     name: "",
@@ -53,10 +79,19 @@ export default function SchoolsManagementPage() {
     logo: "https://picsum.photos/seed/newschool/200/200"
   });
 
-  const filteredSchools = MOCK_SCHOOLS.filter(s => 
+  const filteredSchools = schools.filter(s => 
     s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    s.domain.toLowerCase().includes(searchTerm.toLowerCase())
+    s.domain.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    s.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleToggleStatus = (id: string) => {
+    setSchools(prev => prev.map(s => s.id === id ? { ...s, status: s.status === 'Active' ? 'Suspended' : 'Active' } : s));
+    toast({ 
+      title: "Status Updated", 
+      description: "Institution status has been toggled successfully." 
+    });
+  };
 
   const handleSaveSchool = () => {
     if (!newSchoolData.name || !newSchoolData.domain) {
@@ -64,7 +99,6 @@ export default function SchoolsManagementPage() {
       return;
     }
 
-    // Generate a unique institutional matricule
     const generatedId = `EDU-${newSchoolData.name.substring(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
     
     const createdSchool = {
@@ -73,12 +107,22 @@ export default function SchoolsManagementPage() {
       status: "Active",
       admins: 1,
       students: 0,
-      createdAt: new Date().toLocaleDateString()
+      revenue: "0",
+      lastSync: "Just now",
+      lat: 4.0,
+      lng: 10.0
     };
 
+    setSchools(prev => [createdSchool, ...prev]);
     setIsAddModalOpen(false);
     setOnboardingSuccess(createdSchool);
     toast({ title: "School Onboarded", description: `Activation credentials generated for ${newSchoolData.name}.` });
+  };
+
+  const handleDeleteSchool = (id: string) => {
+    setSchools(prev => prev.filter(s => s.id !== id));
+    setManagedSchool(null);
+    toast({ variant: "destructive", title: "Institutional Node Removed", description: "The school has been decommissioned from the platform." });
   };
 
   return (
@@ -159,59 +203,213 @@ export default function SchoolsManagementPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {filteredSchools.map((school) => (
           <Card key={school.id} className="border-none shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-               <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="w-4 h-4"/></Button>
+            <div className="absolute top-0 right-0 p-4">
+               <DropdownMenu>
+                 <DropdownMenuTrigger asChild>
+                   <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-accent"><MoreVertical className="w-4 h-4"/></Button>
+                 </DropdownMenuTrigger>
+                 <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl border-accent">
+                   <DropdownMenuLabel className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Institutional Actions</DropdownMenuLabel>
+                   <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => setManagedSchool(school)}>
+                     <Settings2 className="w-4 h-4 text-primary" /> Configuration Suite
+                   </DropdownMenuItem>
+                   <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => handleToggleStatus(school.id)}>
+                     {school.status === 'Active' ? (
+                       <><Ban className="w-4 h-4 text-destructive" /> Suspend License</>
+                     ) : (
+                       <><CheckCircle2 className="w-4 h-4 text-green-600" /> Reactivate License</>
+                     )}
+                   </DropdownMenuItem>
+                   <DropdownMenuSeparator />
+                   <DropdownMenuItem className="gap-2 cursor-pointer text-destructive focus:bg-destructive/5" onClick={() => handleDeleteSchool(school.id)}>
+                     <Trash2 className="w-4 h-4" /> Decommission Node
+                   </DropdownMenuItem>
+                 </DropdownMenuContent>
+               </DropdownMenu>
             </div>
             <CardHeader className="flex flex-row items-start gap-4">
-              <div className="p-3 bg-primary/10 rounded-xl">
+              <div className="p-3 bg-primary/10 rounded-xl border border-primary/5">
                 <Building2 className="w-6 h-6 text-primary" />
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <CardTitle className="text-lg">{school.name}</CardTitle>
-                  <Badge variant={school.status === "Active" ? "default" : "destructive"} className="text-[10px] h-4">
+                  <CardTitle className="text-lg font-black text-primary">{school.name}</CardTitle>
+                  <Badge variant={school.status === "Active" ? "default" : "destructive"} className="text-[10px] h-4 px-2 uppercase font-black">
                     {school.status}
                   </Badge>
                 </div>
-                <CardDescription className="flex items-center gap-1 mt-1 text-xs">
+                <CardDescription className="flex items-center gap-1 mt-1 text-xs font-medium">
                   <Globe className="w-3 h-3" /> {school.domain}
                 </CardDescription>
               </div>
             </CardHeader>
             <CardContent className="py-4 border-y border-accent/50 space-y-4 bg-accent/5">
               <div className="flex justify-between items-center text-sm">
-                <div className="flex items-center gap-2 text-muted-foreground">
+                <div className="flex items-center gap-2 text-muted-foreground font-bold text-xs uppercase tracking-tighter">
                   <ShieldCheck className="w-4 h-4" /> Matricule
                 </div>
-                <span className="font-mono font-bold text-primary">{school.id}</span>
+                <span className="font-mono font-black text-primary text-xs">{school.id}</span>
               </div>
               <div className="flex justify-between items-center text-sm">
-                <div className="flex items-center gap-2 text-muted-foreground">
+                <div className="flex items-center gap-2 text-muted-foreground font-bold text-xs uppercase tracking-tighter">
                   <Users className="w-4 h-4" /> Enrolled
                 </div>
-                <span className="font-bold">{school.students.toLocaleString()}</span>
+                <span className="font-black text-primary">{school.students.toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center text-sm">
-                <div className="flex items-center gap-2 text-muted-foreground">
+                <div className="flex items-center gap-2 text-muted-foreground font-bold text-xs uppercase tracking-tighter">
                   <MapPin className="w-4 h-4" /> {language === 'en' ? "Location" : "Localisation"}
                 </div>
-                <span className="text-xs truncate max-w-[150px]">{school.address}</span>
+                <span className="text-xs truncate max-w-[150px] font-bold text-primary">{school.address}</span>
               </div>
             </CardContent>
             <CardFooter className="pt-4 gap-2">
-              <Button variant="outline" size="sm" className="flex-1 font-bold">Manage</Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex-1 font-black uppercase text-[10px] tracking-widest bg-white"
+                onClick={() => setManagedSchool(school)}
+              >
+                <Eye className="w-3.5 h-3.5 mr-2" /> Manage
+              </Button>
               <Button 
                 variant="secondary" 
                 size="sm" 
-                className="gap-1 flex-1 font-bold"
+                className="gap-1 flex-1 font-black uppercase text-[10px] tracking-widest shadow-sm"
                 onClick={() => setSelectedMapSchool(school)}
               >
-                <MapPin className="w-3 h-3" /> {t("viewMap")}
+                <MapPin className="w-3.5 h-3.5 mr-1" /> {t("viewMap")}
               </Button>
             </CardFooter>
           </Card>
         ))}
       </div>
+
+      {/* Institutional Command Center Dialog */}
+      <Dialog open={!!managedSchool} onOpenChange={() => setManagedSchool(null)}>
+        <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto p-0 border-none shadow-2xl rounded-3xl">
+          <DialogHeader className={cn(
+            "p-8 text-white relative",
+            managedSchool?.status === 'Active' ? "bg-primary" : "bg-destructive"
+          )}>
+            <div className="flex flex-col md:flex-row items-center gap-8">
+              <div className="w-32 h-32 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/20 p-4 flex items-center justify-center shrink-0 shadow-2xl">
+                <img src={managedSchool?.logo} alt="Logo" className="w-full h-full object-contain" />
+              </div>
+              <div className="flex-1 text-center md:text-left">
+                <div className="flex flex-wrap justify-center md:justify-start items-center gap-3 mb-2">
+                  <DialogTitle className="text-4xl font-black tracking-tight">{managedSchool?.name}</DialogTitle>
+                  <Badge className="bg-secondary text-primary border-none font-black h-6">{managedSchool?.status}</Badge>
+                </div>
+                <DialogDescription className="text-white/70 text-lg flex items-center justify-center md:justify-start gap-4">
+                  <span className="flex items-center gap-1.5"><Globe className="w-4 h-4"/> {managedSchool?.domain}</span>
+                  <span className="opacity-30">|</span>
+                  <span className="flex items-center gap-1.5 font-mono">ID: {managedSchool?.id}</span>
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="p-8 space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card className="border-none shadow-sm bg-accent/30 border border-accent">
+                <CardContent className="pt-6">
+                  <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">Total Users</p>
+                  <p className="text-2xl font-black text-primary">{managedSchool?.students + managedSchool?.admins}</p>
+                </CardContent>
+              </Card>
+              <Card className="border-none shadow-sm bg-accent/30 border border-accent">
+                <CardContent className="pt-6">
+                  <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">SaaS Revenue</p>
+                  <p className="text-2xl font-black text-primary">{managedSchool?.revenue} XAF</p>
+                </CardContent>
+              </Card>
+              <Card className="border-none shadow-sm bg-accent/30 border border-accent">
+                <CardContent className="pt-6">
+                  <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">Infrastructure</p>
+                  <Badge className="bg-green-100 text-green-700 border-none font-black">HEALTHY</Badge>
+                </CardContent>
+              </Card>
+              <Card className="border-none shadow-sm bg-accent/30 border border-accent">
+                <CardContent className="pt-6">
+                  <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">Last Sync</p>
+                  <p className="text-xs font-bold text-primary flex items-center gap-1.5"><Activity className="w-3.5 h-3.5" /> {managedSchool?.lastSync}</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <section className="space-y-4">
+              <h3 className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2 border-b pb-2">
+                <Settings2 className="w-4 h-4" /> Administrative Control Panel
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="p-6 rounded-2xl bg-primary/5 border border-primary/10 space-y-4">
+                    <h4 className="font-bold text-primary flex items-center gap-2"><ShieldCheck className="w-4 h-4"/> Licensing & Access</h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Control the operational status of this institutional node. Suspending a license immediately restricts login access for all students, staff, and parents linked to this matricule.
+                    </p>
+                    <Button 
+                      variant={managedSchool?.status === 'Active' ? 'destructive' : 'default'} 
+                      className="w-full font-black uppercase tracking-widest text-xs h-11"
+                      onClick={() => handleToggleStatus(managedSchool.id)}
+                    >
+                      {managedSchool?.status === 'Active' ? 'Suspend Operational Node' : 'Reactivate Operational Node'}
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="p-6 rounded-2xl bg-primary/5 border border-primary/10 space-y-4">
+                    <h4 className="font-bold text-primary flex items-center gap-2"><CreditCard className="w-4 h-4"/> SaaS Billing Registry</h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Review subscription tiers and outstanding platform service fees for this institution.
+                    </p>
+                    <div className="flex gap-2">
+                      <Button variant="outline" className="flex-1 text-[10px] font-black uppercase">View Invoices</Button>
+                      <Button variant="outline" className="flex-1 text-[10px] font-black uppercase">Adjust Tier</Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className="space-y-4">
+              <h3 className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2 border-b pb-2">
+                <History className="w-4 h-4" /> System Audit Trail
+              </h3>
+              <Table>
+                <TableHeader className="bg-accent/30 uppercase text-[9px] font-black tracking-[0.2em]">
+                  <TableRow>
+                    <TableHead>Event</TableHead>
+                    <TableHead>Origin</TableHead>
+                    <TableHead className="text-right">Timestamp</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow className="text-xs">
+                    <TableCell className="font-bold">Institutional Data Backup</TableCell>
+                    <TableCell>Cloud Controller</TableCell>
+                    <TableCell className="text-right text-muted-foreground">{managedSchool?.lastSync}</TableCell>
+                  </TableRow>
+                  <TableRow className="text-xs">
+                    <TableCell className="font-bold">License Verification</TableCell>
+                    <TableCell>System Root</TableCell>
+                    <TableCell className="text-right text-muted-foreground">Yesterday</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </section>
+          </div>
+
+          <DialogFooter className="bg-accent/10 p-6 border-t flex justify-between items-center">
+            <Button variant="ghost" className="text-destructive font-black uppercase tracking-widest text-[10px]" onClick={() => handleDeleteSchool(managedSchool.id)}>
+              Permanently Decommission Node
+            </Button>
+            <Button onClick={() => setManagedSchool(null)} className="px-10 h-12 shadow-lg font-black uppercase tracking-widest text-xs rounded-2xl">Close Command Center</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Institutional Activation Letter Dialog */}
       <Dialog open={!!onboardingSuccess} onOpenChange={() => setOnboardingSuccess(null)}>
@@ -241,7 +439,7 @@ export default function SchoolsManagementPage() {
                   <Building2 className="w-10 h-10 text-white" />
                 </div>
                 <div className="space-y-0.5">
-                  <h2 className="text-2xl font-black tracking-tight text-primary">EduIgnite SaaS</h2>
+                  <h2 className="text-2xl font-black tracking-tight text-primary font-headline">EduIgnite SaaS</h2>
                   <p className="text-[10px] uppercase font-bold tracking-widest opacity-60">Global Academic Network</p>
                 </div>
               </div>
@@ -329,7 +527,7 @@ export default function SchoolsManagementPage() {
                     <div className="h-px bg-black/20 w-full" />
                     <div>
                       <p className="font-bold text-[10px] uppercase">SaaS System Administrator</p>
-                      <p className="text-[10px] font-black text-primary">EduIgnite Platform Seal</p>
+                      <p className="text-[10px] font-black text-primary font-headline">EduIgnite Platform Seal</p>
                     </div>
                   </div>
                 </div>
