@@ -132,7 +132,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: t("assignments"),
       icon: FileEdit,
       href: "/dashboard/assignments",
-      roles: ["TEACHER", "STUDENT", "SCHOOL_ADMIN"],
+      roles: ["TEACHER", "STUDENT"], // Removed SCHOOL_ADMIN
     },
     {
       label: t("exams"),
