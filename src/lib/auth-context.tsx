@@ -6,6 +6,16 @@ import { useRouter } from "next/navigation";
 
 export type UserRole = "SUPER_ADMIN" | "SCHOOL_ADMIN" | "TEACHER" | "STUDENT" | "PARENT" | "BURSAR" | "LIBRARIAN";
 
+export interface SchoolInfo {
+  id: string;
+  name: string;
+  motto: string;
+  logo: string;
+  banner: string;
+  description: string;
+  location: string;
+}
+
 interface User {
   id: string;
   name: string;
@@ -13,6 +23,7 @@ interface User {
   role: UserRole;
   schoolId: string | null;
   avatar?: string;
+  school?: SchoolInfo;
 }
 
 interface AuthContextType {
@@ -25,6 +36,27 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const MOCK_SCHOOLS: Record<string, SchoolInfo> = {
+  "S001": {
+    id: "S001",
+    name: "Lycée de Joss",
+    motto: "Discipline - Travail - Succès",
+    logo: "https://picsum.photos/seed/joss-logo/200/200",
+    banner: "https://picsum.photos/seed/joss-banner/1200/600",
+    description: "One of the most prestigious secondary institutions in Douala, committed to academic excellence since 1950.",
+    location: "Douala, Littoral"
+  },
+  "S002": {
+    id: "S002",
+    name: "GBHS Yaoundé",
+    motto: "Excellence through Bilingualism",
+    logo: "https://picsum.photos/seed/gbhs-logo/200/200",
+    banner: "https://picsum.photos/seed/gbhs-banner/1200/600",
+    description: "A leading bilingual institution in the heart of the capital city, shaping the future of Cameroonian youth.",
+    location: "Yaoundé, Centre"
+  }
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
@@ -36,23 +68,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const login = (role: UserRole, schoolName: string = "Springfield High") => {
+  const login = (role: UserRole, schoolId: string = "S001") => {
+    const school = role === "SUPER_ADMIN" ? undefined : MOCK_SCHOOLS[schoolId] || MOCK_SCHOOLS["S001"];
+    
     const mockUser: User = {
       id: Math.random().toString(36).substr(2, 9),
       name: role === "SUPER_ADMIN" ? "EduIgnite Super Admin" : 
-            role === "SCHOOL_ADMIN" ? `${schoolName} Principal` :
+            role === "SCHOOL_ADMIN" ? `${school?.name} Principal` :
             role === "TEACHER" ? "Sarah Smith" : 
             role === "PARENT" ? "Robert Parent" : 
             role === "BURSAR" ? "Finance Manager" :
             role === "LIBRARIAN" ? "Resource Librarian" : "John Doe",
       email: `${role.toLowerCase()}@eduignite.io`,
       role,
-      schoolId: role === "SUPER_ADMIN" ? null : "school-123",
+      schoolId: role === "SUPER_ADMIN" ? null : schoolId,
       avatar: `https://picsum.photos/seed/${role}/100/100`,
+      school
     };
     setUser(mockUser);
     localStorage.setItem("edu-nexus-user", JSON.stringify(mockUser));
-    router.push("/dashboard");
+    
+    // SaaS Flow: Redirect to school welcome page first, unless Super Admin
+    if (role === "SUPER_ADMIN") {
+      router.push("/dashboard");
+    } else {
+      router.push("/welcome");
+    }
   };
 
   const updateUser = (updates: Partial<User>) => {

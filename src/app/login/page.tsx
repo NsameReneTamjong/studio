@@ -16,7 +16,6 @@ import {
   UserCircle, 
   Briefcase,
   Languages,
-  UserPlus,
   Coins,
   Library
 } from "lucide-react";
@@ -26,11 +25,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function LoginPage() {
   const { login } = useAuth();
   const { t, setLanguage, language } = useI18n();
   const [role, setRole] = useState<UserRole>("STUDENT");
+  const [schoolId, setSchoolId] = useState("S001");
   const [isCreateAccount, setIsCreateAccount] = useState(false);
 
   return (
@@ -67,10 +68,23 @@ export default function LoginPage() {
               {isCreateAccount ? t("createAccount") : t("login")}
             </CardTitle>
             <CardDescription className="text-center">
-              {isCreateAccount ? t("selectRole") : t("selectRole")}
+              {language === 'en' ? 'Access your institutional space' : 'Accédez à votre espace institutionnel'}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label>{language === 'en' ? 'Select School' : 'Sélectionner l\'école'}</Label>
+              <Select value={schoolId} onValueChange={setSchoolId}>
+                <SelectTrigger className="bg-accent/30 border-none h-11">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="S001">Lycée de Joss (Douala)</SelectItem>
+                  <SelectItem value="S002">GBHS Yaoundé (Yaoundé)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="grid grid-cols-4 gap-2">
               <Button 
                 variant={role === "STUDENT" ? "default" : "outline"} 
@@ -150,7 +164,7 @@ export default function LoginPage() {
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="email">{t("email")}</Label>
-                    <Input id="email" type="email" placeholder="name@eduignite.io" />
+                    <Input id="email" type="email" placeholder="name@school.edu" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="password">{t("password")}</Label>
@@ -161,7 +175,7 @@ export default function LoginPage() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
-            <Button className="w-full h-11 text-base font-semibold shadow-lg" onClick={() => login(role)}>
+            <Button className="w-full h-11 text-base font-semibold shadow-lg" onClick={() => login(role, schoolId)}>
               {isCreateAccount ? t("register") : t("signIn")} ({role.replace('_', ' ').toLowerCase()})
             </Button>
             
