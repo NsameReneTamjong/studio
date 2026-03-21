@@ -4,8 +4,8 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n-context";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -17,10 +17,17 @@ import {
   User,
   GraduationCap,
   MapPin,
-  Clock
+  Clock,
+  FileText,
+  CreditCard,
+  Receipt,
+  Download,
+  Building2,
+  CalendarDays
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 // Mock Data for the selected child detail
 const CHILDREN_DATA: Record<string, any> = {
@@ -30,6 +37,8 @@ const CHILDREN_DATA: Record<string, any> = {
     id: "S001",
     avatar: "https://picsum.photos/seed/alice/200/200",
     stats: { average: 15.4, rank: "04/42", attendance: "98%" },
+    schoolName: "Lycée de Joss",
+    schoolAddress: "Douala, Cameroon",
     grades: [
       { name: "Mathématiques", coeff: 5, seq1: 14, seq2: 16, moy: 15, group: "Sciences" },
       { name: "Physique", coeff: 4, seq1: 12, seq2: 15, moy: 13.5, group: "Sciences" },
@@ -46,7 +55,11 @@ const CHILDREN_DATA: Record<string, any> = {
       Wednesday: [{ time: "09:00 AM", subject: "Advanced Physics", room: "Room 402", instructor: "Dr. Tesla" }],
       Thursday: [{ time: "11:30 AM", subject: "Calculus II", room: "Room 201", instructor: "Prof. Smith" }],
       Friday: [{ time: "10:00 AM", subject: "English Literature", room: "Hall B", instructor: "Ms. Bennet" }],
-    }
+    },
+    receipts: [
+      { id: "RCP-001", title: "Registration Fee", amount: "50,000 XAF", date: "Sept 05, 2023" },
+      { id: "RCP-002", title: "Tuition - Term 1", amount: "125,000 XAF", date: "Oct 12, 2023" },
+    ]
   },
   "S004": {
     name: "Diana Prince",
@@ -54,6 +67,8 @@ const CHILDREN_DATA: Record<string, any> = {
     id: "S004",
     avatar: "https://picsum.photos/seed/diana/200/200",
     stats: { average: 18.2, rank: "01/42", attendance: "100%" },
+    schoolName: "Lycée de Joss",
+    schoolAddress: "Douala, Cameroon",
     grades: [
       { name: "Mathématiques", coeff: 5, seq1: 18, seq2: 19, moy: 18.5, group: "Sciences" },
       { name: "Physique", coeff: 4, seq1: 17, seq2: 18, moy: 17.5, group: "Sciences" },
@@ -67,7 +82,10 @@ const CHILDREN_DATA: Record<string, any> = {
     schedule: {
       Monday: [{ time: "10:30 AM", subject: "Math Honors", room: "Room 101", instructor: "Dr. Hawking" }],
       Wednesday: [{ time: "10:30 AM", subject: "Math Honors", room: "Room 101", instructor: "Dr. Hawking" }],
-    }
+    },
+    receipts: [
+      { id: "RCP-099", title: "Full Scholarship Enrollment", amount: "0 XAF", date: "Aug 28, 2023" },
+    ]
   }
 };
 
@@ -82,6 +100,7 @@ const getAppreciation = (note: number) => {
 export default function ChildViewPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { toast } = useToast();
   const { t, language } = useI18n();
   const studentId = searchParams.get("id");
   const [child, setChild] = useState<any>(null);
@@ -91,6 +110,13 @@ export default function ChildViewPage() {
       setChild(CHILDREN_DATA[studentId]);
     }
   }, [studentId]);
+
+  const handleDownload = (docName: string) => {
+    toast({
+      title: t("download") + "...",
+      description: `${docName} is being prepared for download.`,
+    });
+  };
 
   if (!child) {
     return (
@@ -146,15 +172,18 @@ export default function ChildViewPage() {
       </div>
 
       <Tabs defaultValue="grades" className="w-full">
-        <TabsList className="grid grid-cols-3 w-full max-w-md bg-white border shadow-sm h-12">
-          <TabsTrigger value="grades" className="gap-2">
+        <TabsList className="grid grid-cols-2 md:grid-cols-4 w-full bg-white border shadow-sm h-auto p-1">
+          <TabsTrigger value="grades" className="gap-2 py-2">
             <Award className="w-4 h-4" /> {language === "en" ? "Grades" : "Bulletin"}
           </TabsTrigger>
-          <TabsTrigger value="schedule" className="gap-2">
-            <Calendar className="w-4 h-4" /> {language === "en" ? "Schedule" : "Emploi du Temps"}
+          <TabsTrigger value="schedule" className="gap-2 py-2">
+            <Calendar className="w-4 h-4" /> {language === "en" ? "Schedule" : "Emploi"}
           </TabsTrigger>
-          <TabsTrigger value="attendance" className="gap-2">
-            <ClipboardCheck className="w-4 h-4" /> {language === "en" ? "Attendance" : "Présences"}
+          <TabsTrigger value="attendance" className="gap-2 py-2">
+            <ClipboardCheck className="w-4 h-4" /> {language === "en" ? "Presence" : "Présence"}
+          </TabsTrigger>
+          <TabsTrigger value="documents" className="gap-2 py-2">
+            <FileText className="w-4 h-4" /> {t("documents")}
           </TabsTrigger>
         </TabsList>
 
@@ -262,6 +291,115 @@ export default function ChildViewPage() {
               ))}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="documents" className="mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="space-y-6">
+              <h3 className="text-lg font-bold text-primary flex items-center gap-2">
+                <Award className="w-5 h-5" /> {t("reportCard")}
+              </h3>
+              <Card className="border-none shadow-sm group hover:ring-2 hover:ring-primary/20 transition-all">
+                <CardHeader className="flex flex-row items-center gap-4">
+                  <div className="p-3 bg-primary/10 rounded-xl text-primary">
+                    <FileText className="w-8 h-8" />
+                  </div>
+                  <div className="flex-1">
+                    <CardTitle className="text-base">{t("reportCard")} - Sequence 1 & 2</CardTitle>
+                    <CardDescription>{t("academicYear")} 2023/2024</CardDescription>
+                  </div>
+                  <Button variant="outline" size="icon" onClick={() => handleDownload("Report Card")}>
+                    <Download className="w-4 h-4" />
+                  </Button>
+                </CardHeader>
+              </Card>
+
+              <h3 className="text-lg font-bold text-primary flex items-center gap-2 mt-8">
+                <Receipt className="w-5 h-5" /> {t("fees")}
+              </h3>
+              <div className="space-y-3">
+                {child.receipts.map((receipt: any) => (
+                  <Card key={receipt.id} className="border-none shadow-sm">
+                    <CardContent className="p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="p-2 bg-secondary/10 rounded-lg text-secondary">
+                          <Receipt className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-sm">{receipt.title}</p>
+                          <p className="text-xs text-muted-foreground">{receipt.date} • {receipt.id}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className="font-bold text-primary">{receipt.amount}</span>
+                        <Button variant="ghost" size="icon" onClick={() => handleDownload(`Receipt ${receipt.id}`)}>
+                          <Download className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <h3 className="text-lg font-bold text-primary flex items-center gap-2">
+                <CreditCard className="w-5 h-5" /> {t("idCard")}
+              </h3>
+              <div className="flex justify-center">
+                <Card className="w-full max-w-sm border shadow-xl bg-gradient-to-br from-primary to-primary/90 text-white overflow-hidden relative">
+                  <div className="absolute top-0 right-0 p-8 opacity-10">
+                    <GraduationCap className="w-32 h-32" />
+                  </div>
+                  <CardHeader className="border-b border-white/10 pb-4">
+                    <div className="flex items-center gap-3">
+                      <Building2 className="w-6 h-6 text-secondary" />
+                      <div>
+                        <CardTitle className="text-sm font-bold tracking-tight">{child.schoolName}</CardTitle>
+                        <CardDescription className="text-white/60 text-[10px] uppercase font-bold tracking-widest">{t("idCard")}</CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-6 pb-6 space-y-4">
+                    <div className="flex gap-6">
+                      <div className="w-24 h-24 rounded-lg overflow-hidden border-2 border-white/20 shadow-lg shrink-0">
+                        <img src={child.avatar} alt={child.name} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="space-y-3 flex-1">
+                        <div>
+                          <p className="text-[10px] text-white/50 uppercase font-bold">{language === "en" ? "Student Name" : "Nom de l'Élève"}</p>
+                          <p className="font-bold text-lg leading-none">{child.name}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-white/50 uppercase font-bold">Matricule</p>
+                          <p className="font-mono font-bold text-secondary">{child.id}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 pt-2">
+                      <div>
+                        <p className="text-[10px] text-white/50 uppercase font-bold">{language === "en" ? "Class" : "Classe"}</p>
+                        <p className="text-sm font-bold">{child.grade}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-white/50 uppercase font-bold">{language === "en" ? "Expires" : "Expire"}</p>
+                        <p className="text-sm font-bold">Aug 2024</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="bg-white/5 py-3 flex justify-between items-center text-[10px]">
+                    <span className="flex items-center gap-1 opacity-60"><MapPin className="w-3 h-3" /> {child.schoolAddress}</span>
+                    <Badge variant="secondary" className="bg-secondary text-primary border-none text-[8px] h-4">VALID 2023-24</Badge>
+                  </CardFooter>
+                </Card>
+              </div>
+              <div className="flex justify-center">
+                <Button className="w-full max-w-sm gap-2" onClick={() => handleDownload("Student ID Card")}>
+                  <Download className="w-4 h-4" /> {t("download")} {t("idCard")}
+                </Button>
+              </div>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

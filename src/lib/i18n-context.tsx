@@ -40,6 +40,13 @@ const translations: TranslationDict = {
   viewMap: { en: "View Map", fr: "Voir la Carte" },
   sendAnnouncement: { en: "Send Announcement", fr: "Envoyer une Annonce" },
   allSchools: { en: "All Schools", fr: "Toutes les Écoles" },
+  documents: { en: "Documents", fr: "Documents" },
+  download: { en: "Download", fr: "Télécharger" },
+  reportCard: { en: "Report Card", fr: "Bulletin de Notes" },
+  idCard: { en: "ID Card", fr: "Carte d'Identité" },
+  receipt: { en: "Receipt", fr: "Reçu de Paiement" },
+  academicYear: { en: "Academic Year", fr: "Année Académique" },
+  fees: { en: "Fees & Receipts", fr: "Frais & Reçus" },
 };
 
 interface I18nContextType {
