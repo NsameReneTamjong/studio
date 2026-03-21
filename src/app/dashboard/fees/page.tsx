@@ -32,7 +32,8 @@ import {
   ShieldCheck,
   QrCode,
   Loader2,
-  Settings2
+  Settings2,
+  Trash2
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -142,6 +143,15 @@ export default function BursarFeesPage() {
       toast({ title: "New Fee Added", description: `${feeFormData.name} is now available for collection.` });
     }
     setIsFeeModalOpen(false);
+  };
+
+  const handleDeleteFee = (id: string) => {
+    setFeeTypes(prev => prev.filter(f => f.id !== id));
+    toast({
+      variant: "destructive",
+      title: language === 'en' ? "Fee Type Deleted" : "Type de Frais Supprimé",
+      description: "The fee structure has been removed from the registry."
+    });
   };
 
   return (
@@ -390,8 +400,10 @@ export default function BursarFeesPage() {
             {feeTypes.map((type) => (
               <Card key={type.id} className="border-none shadow-sm relative overflow-hidden group flex flex-col">
                 <CardHeader className="bg-accent/30 pb-4">
-                  <Badge variant="outline" className="w-fit text-[9px] font-black tracking-widest border-primary/10 text-primary/60 mb-2">ID: {type.id}</Badge>
-                  <CardTitle className="text-lg">{type.name}</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <Badge variant="outline" className="w-fit text-[9px] font-black tracking-widest border-primary/10 text-primary/60">ID: {type.id}</Badge>
+                  </div>
+                  <CardTitle className="text-lg mt-2">{type.name}</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-4 space-y-4 flex-1">
                   <p className="text-xs text-muted-foreground leading-relaxed">{type.description}</p>
@@ -400,13 +412,21 @@ export default function BursarFeesPage() {
                     <span className="text-xl font-black text-primary">{type.amount.toLocaleString()} XAF</span>
                   </div>
                 </CardContent>
-                <CardFooter className="pt-0">
+                <CardFooter className="pt-0 pb-4 px-4 flex gap-2">
                   <Button 
                     variant="outline" 
-                    className="w-full h-9 text-xs font-bold gap-2"
+                    className="flex-1 h-9 text-xs font-bold gap-2"
                     onClick={() => openFeeModal(type)}
                   >
-                    <Settings2 className="w-3 h-3" /> Edit Structure
+                    <Settings2 className="w-3 h-3" /> Edit
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
+                    onClick={() => handleDeleteFee(type.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
                   </Button>
                 </CardFooter>
               </Card>
