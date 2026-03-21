@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Save, Download, Search, FileText, Award, TrendingUp, BookOpen, User } from "lucide-react";
+import { Save, Download, Search, FileText, Award, TrendingUp, BookOpen, User, AlertCircle } from "lucide-react";
+import Link from "next/link";
 
 // Cameroonian grading appreciation mapping
 const getAppreciation = (note: number) => {
@@ -43,10 +44,27 @@ const MOCK_GRADES_TEACHER = [
 
 export default function GradeBookPage() {
   const { user } = useAuth();
-  const [activeSequence, setActiveSequence] = useState("trimestre1");
   const [selectedSubject, setSelectedSubject] = useState("maths");
 
   const isTeacher = user?.role === "TEACHER" || user?.role === "SCHOOL_ADMIN";
+  const isParent = user?.role === "PARENT";
+
+  if (isParent) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
+        <div className="bg-amber-100 p-4 rounded-full">
+          <AlertCircle className="w-12 h-12 text-amber-600" />
+        </div>
+        <h1 className="text-2xl font-bold">Personal Grades Unavailable</h1>
+        <p className="text-muted-foreground max-w-md">
+          As a parent, you can view your children's report cards directly from the "My Children" section.
+        </p>
+        <Button asChild>
+          <Link href="/dashboard/children">Go to My Children</Link>
+        </Button>
+      </div>
+    );
+  }
 
   // Calculate stats for student view
   const studentGrades = CAMEROON_SUBJECTS.map(s => ({

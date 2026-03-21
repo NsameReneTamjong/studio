@@ -1,9 +1,12 @@
 
 "use client";
 
+import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, MapPin, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Clock, MapPin, User, AlertCircle } from "lucide-react";
+import Link from "next/link";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
@@ -28,6 +31,25 @@ const TIMETABLE = {
 };
 
 export default function SchedulePage() {
+  const { user } = useAuth();
+  
+  if (user?.role === "PARENT") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
+        <div className="bg-purple-100 p-4 rounded-full">
+          <AlertCircle className="w-12 h-12 text-purple-600" />
+        </div>
+        <h1 className="text-2xl font-bold">Personal Timetable Unavailable</h1>
+        <p className="text-muted-foreground max-w-md">
+          To view a child's weekly timetable, please select a child from your children list.
+        </p>
+        <Button asChild>
+          <Link href="/dashboard/children">Go to My Children</Link>
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>

@@ -8,9 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, CheckCircle2, XCircle, Clock, MoreVertical, Users, Info } from "lucide-react";
+import { CalendarIcon, CheckCircle2, XCircle, Clock, MoreVertical, Users, Info, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 const MOCK_STUDENTS = [
   { id: "S001", name: "Alice Thompson", status: "present" },
@@ -25,7 +26,25 @@ export default function AttendancePage() {
   const [date, setDate] = useState<Date>(new Date());
   const [students, setStudents] = useState(MOCK_STUDENTS);
 
-  const isTeacher = user?.role === "TEACHER" || user?.role === "ADMIN";
+  const isTeacher = user?.role === "TEACHER" || user?.role === "SCHOOL_ADMIN";
+  const isParent = user?.role === "PARENT";
+
+  if (isParent) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
+        <div className="bg-blue-100 p-4 rounded-full">
+          <AlertCircle className="w-12 h-12 text-blue-600" />
+        </div>
+        <h1 className="text-2xl font-bold">Personal Attendance Unavailable</h1>
+        <p className="text-muted-foreground max-w-md">
+          Attendance records for your children can be found within each child's specific dashboard.
+        </p>
+        <Button asChild>
+          <Link href="/dashboard/children">Go to My Children</Link>
+        </Button>
+      </div>
+    );
+  }
 
   const setStatus = (id: string, status: string) => {
     setStudents(prev => prev.map(s => s.id === id ? { ...s, status } : s));
