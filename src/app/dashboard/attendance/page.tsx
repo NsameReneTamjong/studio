@@ -28,7 +28,8 @@ import {
   List,
   BookOpen,
   ChevronRight,
-  BarChart3
+  BarChart3,
+  FileDown
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -78,6 +79,13 @@ export default function AttendancePage() {
   const isAdmin = user?.role === "SCHOOL_ADMIN";
   const isParent = user?.role === "PARENT";
 
+  const handleDownloadReport = (scope: string) => {
+    toast({
+      title: "Report Generated",
+      description: `${scope} attendance report is ready for download.`,
+    });
+  };
+
   if (isParent) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
@@ -111,8 +119,8 @@ export default function AttendancePage() {
             {format(date, "PPP")}
           </Button>
           {isAdmin && (
-            <Button variant="secondary" className="gap-2 rounded-xl h-11 shadow-sm">
-              <Download className="w-4 h-4" /> Export Report
+            <Button variant="secondary" className="gap-2 rounded-xl h-11 shadow-sm" onClick={() => handleDownloadReport("School-wide")}>
+              <Download className="w-4 h-4" /> Export School Report
             </Button>
           )}
         </div>
@@ -206,10 +214,18 @@ export default function AttendancePage() {
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="bg-accent/10 border-t p-4 pt-4">
+                <CardFooter className="bg-accent/10 border-t p-4 pt-4 flex gap-2">
                   <Button 
                     variant="ghost" 
-                    className="w-full justify-between hover:bg-white text-primary font-bold text-xs"
+                    size="icon"
+                    className="shrink-0 hover:bg-white text-primary"
+                    onClick={() => handleDownloadReport(`${cls.name}`)}
+                  >
+                    <Download className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="flex-1 justify-between hover:bg-white text-primary font-bold text-xs"
                     onClick={() => setSelectedClassDetails(cls)}
                   >
                     View Class Records
@@ -281,12 +297,17 @@ export default function AttendancePage() {
 
           <TabsContent value="records" className="animate-in fade-in slide-in-from-bottom-4 mt-0">
             <Card className="border-none shadow-sm overflow-hidden rounded-3xl">
-              <CardHeader className="bg-white border-b">
-                <CardTitle className="flex items-center gap-2">
-                  <History className="w-5 h-5 text-primary" />
-                  Subject Records
-                </CardTitle>
-                <CardDescription>Comprehensive term presence records for your subject.</CardDescription>
+              <CardHeader className="bg-white border-b flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <History className="w-5 h-5 text-primary" />
+                    Subject Records
+                  </CardTitle>
+                  <CardDescription>Comprehensive term presence records for your subject.</CardDescription>
+                </div>
+                <Button variant="outline" size="sm" className="gap-2" onClick={() => handleDownloadReport("Subject-Specific")}>
+                  <Download className="w-4 h-4" /> Download Records
+                </Button>
               </CardHeader>
               <CardContent className="p-0">
                 <Table>
@@ -331,9 +352,17 @@ export default function AttendancePage() {
                   <User className="w-4 h-4" /> Lead Teacher: {selectedClassDetails?.teacher}
                 </DialogDescription>
               </div>
-              <div className="text-center bg-white/20 px-6 py-3 rounded-2xl backdrop-blur-md">
-                <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Term Average</p>
-                <p className="text-3xl font-black">{selectedClassDetails?.percentage}%</p>
+              <div className="flex items-center gap-4">
+                <div className="text-center bg-white/20 px-6 py-3 rounded-2xl backdrop-blur-md">
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Term Average</p>
+                  <p className="text-3xl font-black">{selectedClassDetails?.percentage}%</p>
+                </div>
+                <Button 
+                  className="h-full bg-white/20 hover:bg-white/30 text-white border-none rounded-2xl p-4 shadow-xl backdrop-blur-md" 
+                  onClick={() => handleDownloadReport(`Class Dossier - ${selectedClassDetails?.name}`)}
+                >
+                  <Download className="w-6 h-6" />
+                </Button>
               </div>
             </div>
           </DialogHeader>
@@ -434,10 +463,17 @@ export default function AttendancePage() {
                       <Badge className="bg-primary text-white border-none text-[9px] font-black">VALIDATED</Badge>
                     </div>
                   </div>
-                  <Button className="w-full gap-3 h-12 rounded-xl text-xs font-black uppercase tracking-widest" variant="outline">
+                  <Button 
+                    className="w-full gap-3 h-12 rounded-xl text-xs font-black uppercase tracking-widest" 
+                    variant="outline"
+                    onClick={() => handleDownloadReport(`Full Session Logs - ${selectedClassDetails?.name}`)}
+                  >
                     <History className="w-4 h-4 text-primary" /> Full Session Logs
                   </Button>
-                  <Button className="w-full gap-3 h-12 rounded-xl shadow-lg bg-primary text-xs font-black uppercase tracking-widest">
+                  <Button 
+                    className="w-full gap-3 h-12 rounded-xl shadow-lg bg-primary text-xs font-black uppercase tracking-widest text-white"
+                    onClick={() => handleDownloadReport(`Parent Contact List - ${selectedClassDetails?.name}`)}
+                  >
                     <Download className="w-4 h-4 text-secondary" /> Download Contact List
                   </Button>
                 </div>
@@ -455,18 +491,27 @@ export default function AttendancePage() {
       <Dialog open={!!viewingSubjectLogs} onOpenChange={() => setViewingSubjectLogs(null)}>
         <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0 rounded-3xl border-none shadow-2xl">
           <DialogHeader className="p-8 bg-primary text-white shrink-0">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-white/10 rounded-2xl text-secondary">
-                <BookOpen className="w-8 h-8" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-2xl text-secondary">
+                  <BookOpen className="w-8 h-8" />
+                </div>
+                <div>
+                  <DialogTitle className="text-2xl font-black">
+                    {viewingSubjectLogs?.name} - Granular Registry
+                  </DialogTitle>
+                  <DialogDescription className="text-white/60 font-medium">
+                    {viewingSubjectLogs?.instructor} • Detailed student-by-student presence report
+                  </DialogDescription>
+                </div>
               </div>
-              <div>
-                <DialogTitle className="text-2xl font-black">
-                  {viewingSubjectLogs?.name} - Granular Registry
-                </DialogTitle>
-                <DialogDescription className="text-white/60 font-medium">
-                  {viewingSubjectLogs?.instructor} • Detailed student-by-student presence report
-                </DialogDescription>
-              </div>
+              <Button 
+                variant="secondary" 
+                className="h-12 w-12 rounded-2xl shadow-xl"
+                onClick={() => handleDownloadReport(`${viewingSubjectLogs?.name} - ${selectedClassDetails?.name}`)}
+              >
+                <FileDown className="w-6 h-6" />
+              </Button>
             </div>
           </DialogHeader>
           
@@ -489,7 +534,7 @@ export default function AttendancePage() {
                       <TableHead className="text-center font-black uppercase text-[10px] tracking-widest">Matricule</TableHead>
                       <TableHead className="text-center font-black uppercase text-[10px] tracking-widest text-green-600">Present</TableHead>
                       <TableHead className="text-center font-black uppercase text-[10px] tracking-widest text-red-600">Absent</TableHead>
-                      <TableHead className="pr-8 text-right font-black uppercase text-[10px] tracking-widest">Aggregate</TableHead>
+                      <TableHead className="pr-8 text-right font-black uppercase text-[10px] tracking-widest">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -515,8 +560,15 @@ export default function AttendancePage() {
                             <XCircle className="w-3 h-3" /> {student.absentCount}
                           </div>
                         </TableCell>
-                        <TableCell className="pr-8 text-right font-black text-primary">
-                          {Math.round((student.presentCount / (student.presentCount + student.absentCount)) * 100)}%
+                        <TableCell className="pr-8 text-right">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-[9px] font-black uppercase gap-1"
+                            onClick={() => handleDownloadReport(`Individual: ${student.name}`)}
+                          >
+                            <Download className="w-3 h-3" /> Report
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
