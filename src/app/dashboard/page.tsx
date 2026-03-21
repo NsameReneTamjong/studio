@@ -1,9 +1,10 @@
 
 "use client";
 
+import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { 
   Users, 
   GraduationCap, 
@@ -24,9 +25,18 @@ import {
   Library,
   Book,
   ArrowUpRight,
-  ShieldCheck
+  ShieldCheck,
+  Building2,
+  Globe,
+  Activity,
+  ArrowRight,
+  Download,
+  Filter
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Link from "next/link";
 import { 
   BarChart, 
@@ -39,18 +49,314 @@ import {
   PieChart, 
   Pie, 
   Cell,
-  Legend
+  Legend,
+  AreaChart,
+  Area
 } from "recharts";
+import { cn } from "@/lib/utils";
 
-function AwardIcon({ className }: { className?: string }) {
-  return <Award className={className} />;
-}
+// --- MOCK DATA FOR SUPER ADMIN PLATFORM REVIEW ---
+
+const WEEKLY_REVENUE = [
+  { name: 'Mon', revenue: 45000 },
+  { name: 'Tue', revenue: 52000 },
+  { name: 'Wed', revenue: 48000 },
+  { name: 'Thu', revenue: 61000 },
+  { name: 'Fri', revenue: 55000 },
+  { name: 'Sat', revenue: 32000 },
+  { name: 'Sun', revenue: 28000 },
+];
+
+const MONTHLY_REVENUE = [
+  { name: 'Jan', revenue: 1200000 },
+  { name: 'Feb', revenue: 1450000 },
+  { name: 'Mar', revenue: 1100000 },
+  { name: 'Apr', revenue: 1800000 },
+  { name: 'May', revenue: 2100000 },
+  { name: 'Jun', revenue: 1950000 },
+];
+
+const YEARLY_REVENUE = [
+  { name: '2020', revenue: 8500000 },
+  { name: '2021', revenue: 12400000 },
+  { name: '2022', revenue: 18200000 },
+  { name: '2023', revenue: 24500000 },
+  { name: '2024', revenue: 31000000 },
+];
+
+const USER_DEMOGRAPHICS = [
+  { role: 'Students', count: 12450, fill: '#264D73' },
+  { role: 'Teachers', count: 1200, fill: '#67D0E4' },
+  { role: 'Parents', count: 8500, fill: '#F59E0B' },
+  { role: 'Staff', count: 450, fill: '#10B981' },
+];
+
+const SCHOOL_STATUS = [
+  { name: 'Active', value: 18, color: '#10B981' },
+  { name: 'Trial', value: 4, color: '#67D0E4' },
+  { name: 'Suspended', value: 2, color: '#EF4444' },
+];
+
+const TOP_SCHOOLS = [
+  { id: "S001", name: "Lycée de Joss", domain: "joss.cm", users: 1200, revenue: "2.4M", status: "Active" },
+  { id: "S002", name: "GBHS Yaoundé", domain: "gbhs.yaounde.edu", users: 2850, revenue: "4.8M", status: "Active" },
+  { id: "S003", name: "BUEA University", domain: "ubuea.cm", users: 4500, revenue: "8.2M", status: "Active" },
+  { id: "S004", name: "Lycée de Maroua", domain: "maroua.edu", users: 900, revenue: "1.2M", status: "Suspended" },
+];
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const { t, language } = useI18n();
+  const [timeframe, setTimeframe] = useState("monthly");
 
-  // Mock data for Bursar/Admin Finance Charts
+  const isSuperAdmin = user?.role === "SUPER_ADMIN";
+
+  const getRevenueData = () => {
+    switch (timeframe) {
+      case 'weekly': return WEEKLY_REVENUE;
+      case 'yearly': return YEARLY_REVENUE;
+      default: return MONTHLY_REVENUE;
+    }
+  };
+
+  // --- SUPER ADMIN VIEW ---
+  if (isSuperAdmin) {
+    return (
+      <div className="space-y-8 pb-20">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
+              <div className="p-2 bg-primary rounded-xl shadow-lg">
+                <Globe className="w-6 h-6 text-secondary" />
+              </div>
+              Platform Review
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Analyzing global institutional growth, SaaS revenue, and user engagement.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Tabs value={timeframe} onValueChange={setTimeframe} className="bg-white p-1 rounded-xl border shadow-sm h-auto">
+              <TabsList className="h-9">
+                <TabsTrigger value="weekly" className="text-[10px] uppercase font-black px-4">Weekly</TabsTrigger>
+                <TabsTrigger value="monthly" className="text-[10px] uppercase font-black px-4">Monthly</TabsTrigger>
+                <TabsTrigger value="yearly" className="text-[10px] uppercase font-black px-4">Yearly</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <Button variant="secondary" size="icon" className="h-11 w-11 rounded-xl shadow-sm">
+              <Download className="w-5 h-5" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Global Key Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="border-none shadow-sm bg-primary text-white overflow-hidden relative group">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-[10px] uppercase font-black opacity-60 tracking-widest leading-none">Total SaaS Revenue</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-black text-secondary">31.4M <span className="text-xs font-medium opacity-40">XAF</span></div>
+              <p className="text-[9px] font-bold mt-2 uppercase flex items-center gap-1">
+                <TrendingUp className="w-3 h-3 text-green-400" /> +12.5% from last period
+              </p>
+            </CardContent>
+            <div className="absolute -bottom-4 -right-4 opacity-5 group-hover:scale-110 transition-transform">
+              <Coins className="w-24 h-24" />
+            </div>
+          </Card>
+
+          <Card className="border-none shadow-sm bg-white hover:shadow-md transition-all">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-[10px] uppercase font-black text-muted-foreground tracking-widest leading-none">Global Users</CardTitle>
+              <Users className="w-4 h-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-black text-primary">22,650</div>
+              <p className="text-[9px] font-bold mt-2 uppercase text-muted-foreground">Active Across all nodes</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-none shadow-sm bg-white hover:shadow-md transition-all">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-[10px] uppercase font-black text-muted-foreground tracking-widest leading-none">System Integrity</CardTitle>
+              <Activity className="w-4 h-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-black text-primary">99.9%</div>
+              <p className="text-[9px] font-bold mt-2 uppercase text-green-600">High Availability Active</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-none shadow-sm bg-white hover:shadow-md transition-all">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-[10px] uppercase font-black text-muted-foreground tracking-widest leading-none">Active Schools</CardTitle>
+              <Building2 className="w-4 h-4 text-secondary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-black text-primary">24</div>
+              <p className="text-[9px] font-bold mt-2 uppercase text-muted-foreground">Institutional Instances</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Revenue Analytics Chart */}
+          <Card className="lg:col-span-8 border-none shadow-sm overflow-hidden">
+            <CardHeader className="border-b bg-accent/10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg">Revenue Analytics</CardTitle>
+                  <CardDescription>SaaS subscription and service fee trends.</CardDescription>
+                </div>
+                <div className="bg-primary/5 px-3 py-1 rounded-full border border-primary/10">
+                  <span className="text-[10px] font-black uppercase text-primary tracking-widest">Live Ledger</span>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="h-[400px] pt-10">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={getRevenueData()}>
+                  <defs>
+                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.1}/>
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 600 }} />
+                  <YAxis hide />
+                  <RechartsTooltip 
+                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}
+                    formatter={(value: number) => [`${value.toLocaleString()} XAF`, 'Revenue']}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="revenue" 
+                    stroke="hsl(var(--primary))" 
+                    strokeWidth={4}
+                    fillOpacity={1} 
+                    fill="url(#colorRevenue)" 
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* User Demographics & Status */}
+          <div className="lg:col-span-4 space-y-8">
+            <Card className="border-none shadow-sm h-fit">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">User Demographics</CardTitle>
+                <CardDescription>Distribution across roles.</CardDescription>
+              </CardHeader>
+              <CardContent className="h-[250px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={USER_DEMOGRAPHICS} layout="vertical">
+                    <XAxis type="number" hide />
+                    <YAxis dataKey="role" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} width={70} />
+                    <RechartsTooltip />
+                    <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={20} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card className="border-none shadow-sm h-fit">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Institutional Health</CardTitle>
+                <CardDescription>Subscription status status distribution.</CardDescription>
+              </CardHeader>
+              <CardContent className="h-[200px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={SCHOOL_STATUS}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={70}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {SCHOOL_STATUS.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip />
+                    <Legend verticalAlign="bottom" align="center" iconType="circle" wrapperStyle={{ fontSize: '10px' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Top Performing Schools Table */}
+        <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
+          <CardHeader className="bg-white border-b p-6 flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4" /> Institutional Revenue Ledger
+              </CardTitle>
+              <CardDescription>Detailed revenue contribution and user density per node.</CardDescription>
+            </div>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/dashboard/schools" className="gap-2">Manage All Schools <ChevronRight className="w-4 h-4" /></Link>
+            </Button>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader className="bg-accent/10">
+                <TableRow className="uppercase text-[10px] font-black tracking-widest border-b border-accent/20">
+                  <TableHead className="pl-8 py-4">School Profile</TableHead>
+                  <TableHead>Domain</TableHead>
+                  <TableHead className="text-center">Active Users</TableHead>
+                  <TableHead className="text-center">SaaS Status</TableHead>
+                  <TableHead className="text-right pr-8">Period Revenue (XAF)</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {TOP_SCHOOLS.map((school) => (
+                  <TableRow key={school.id} className="hover:bg-accent/5">
+                    <TableCell className="pl-8 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-primary/5 rounded-lg border">
+                          <Building2 className="w-4 h-4 text-primary" />
+                        </div>
+                        <span className="font-bold text-sm text-primary">{school.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs font-mono text-muted-foreground">{school.domain}</TableCell>
+                    <TableCell className="text-center">
+                      <Badge variant="ghost" className="text-xs font-black">{school.users.toLocaleString()}</Badge>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Badge className={cn(
+                        "text-[9px] font-black uppercase border-none px-3",
+                        school.status === 'Active' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                      )}>
+                        {school.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right pr-8 font-black text-primary">
+                      {school.revenue}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+          <CardFooter className="bg-muted/20 p-4 border-t flex justify-end">
+             <p className="text-[10px] uppercase font-black opacity-30 italic">EduIgnite Platform Governance Suite • Secure Infrastructure</p>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
+
+  // --- INSTITUTIONAL ROLE VIEW (Existing logic for School Admin, Teacher, Student, etc.) ---
+  
   const paymentStatusData = [
     { name: 'Paid in Full', value: 450, color: '#10b981' },
     { name: 'Partial', value: 300, color: '#f59e0b' },
@@ -64,13 +370,7 @@ export default function DashboardPage() {
     { name: 'Exams', amount: 300000 },
   ];
 
-  // Statistics tailored by role
-  const stats = user?.role === "SUPER_ADMIN" ? [
-    { label: language === "en" ? "Active Schools" : "Écoles Actives", value: "24", icon: Users, color: "text-blue-600" },
-    { label: language === "en" ? "Total Users" : "Total Utilisateurs", value: "15.4k", icon: GraduationCap, color: "text-purple-600" },
-    { label: language === "en" ? "System Health" : "Santé Système", value: "99.9%", icon: TrendingUp, color: "text-green-600" },
-    { label: language === "en" ? "Pending Support" : "Support en Attente", value: "12", icon: AlertCircle, color: "text-amber-600" },
-  ] : user?.role === "SCHOOL_ADMIN" ? [
+  const stats = user?.role === "SCHOOL_ADMIN" ? [
     { label: language === "en" ? "Total Revenue" : "Revenu Total", value: "4.2M XAF", icon: Coins, color: "text-green-600" },
     { label: language === "en" ? "Library Loans" : "Emprunts Bibliothèque", value: "450", icon: Book, color: "text-blue-600" },
     { label: language === "en" ? "Active Students" : "Élèves Actifs", value: "1,284", icon: GraduationCap, color: "text-purple-600" },
@@ -92,12 +392,11 @@ export default function DashboardPage() {
     { label: language === "en" ? "Active Members" : "Membres Actifs", value: "1,120", icon: Users, color: "text-green-600" },
   ] : user?.role === "PARENT" ? [
     { label: language === "en" ? "Children Registered" : "Enfants Inscrits", value: "2", icon: Heart, color: "text-red-600" },
-    { label: language === "en" ? "Avg. Performance" : "Performance Moyenne", value: "16.8/20", icon: AwardIcon, color: "text-amber-600" },
+    { label: language === "en" ? "Avg. Performance" : "Performance Moyenne", value: "16.8/20", icon: Award, color: "text-amber-600" },
     { label: language === "en" ? "School Notices" : "Avis Scolaires", value: "3", icon: AlertCircle, color: "text-blue-600" },
     { label: language === "en" ? "Next Event" : "Prochain Événement", value: "PTA Meeting", icon: CalendarIcon, color: "text-purple-600" },
   ] : [
-    // STUDENT
-    { label: "Overall GPA / Moyenne", value: "14.50", icon: AwardIcon, color: "text-amber-600" },
+    { label: "Overall GPA / Moyenne", value: "14.50", icon: Award, color: "text-amber-600" },
     { label: language === "en" ? "Courses Enrolled" : "Cours Inscrits", value: "6", icon: BookOpen, color: "text-blue-600" },
     { label: language === "en" ? "Attendance" : "Présence", value: "98%", icon: TrendingUp, color: "text-green-600" },
     { label: language === "en" ? "Upcoming Tasks" : "Tâches à Venir", value: "4", icon: CalendarIcon, color: "text-purple-600" },
@@ -118,33 +417,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Global Fee Deadline Banner - Visible to all institutional roles except Super Admin */}
-      {(user?.role !== "SUPER_ADMIN") && (
-        <Card className="border-none bg-primary text-white overflow-hidden relative shadow-lg">
-          <div className="absolute top-0 right-0 p-8 opacity-10">
-            <CalendarDays className="w-32 h-32" />
-          </div>
-          <CardContent className="p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
-            <div className="flex items-center gap-4">
-              <div className="bg-secondary p-3 rounded-2xl shadow-xl">
-                <AlertCircle className="w-8 h-8 text-primary" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-xl font-black uppercase tracking-tighter">Institutional Fee Deadline</h3>
-                <p className="text-sm opacity-80 font-medium">Final term payments must be settled by June 30, 2024.</p>
-              </div>
-            </div>
-            <div className="flex flex-col items-center md:items-end gap-2 shrink-0">
-              <div className="bg-white/10 px-4 py-2 rounded-xl backdrop-blur-sm border border-white/10">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Status</p>
-                <p className="text-lg font-bold text-secondary">Action Required</p>
-              </div>
-              <p className="text-[9px] uppercase font-bold tracking-widest opacity-40">Payment required for enrollment validation</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, i) => (
           <Card key={i} className="border-none shadow-sm hover:shadow-md transition-shadow">
@@ -160,7 +432,6 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Observation Chart */}
         <Card className="lg:col-span-2 border-none shadow-sm overflow-hidden">
           <CardHeader>
             <CardTitle>
@@ -170,11 +441,6 @@ export default function DashboardPage() {
                 ? (language === "en" ? "Revenue Distribution" : "Répartition des Revenus")
                 : (language === "en" ? "Upcoming Schedule" : "Emploi du Temps à Venir")}
             </CardTitle>
-            <CardDescription>
-              {user?.role === "SCHOOL_ADMIN"
-                ? (language === "en" ? "Comparison of institutional revenue and library activity." : "Comparaison des revenus et de l'activité bibliothèque.")
-                : (language === "en" ? "Your institutional metrics at a glance." : "Vos mesures institutionnelles en un coup d'œil.")}
-            </CardDescription>
           </CardHeader>
           <CardContent className="h-[300px]">
             {(user?.role === "BURSAR" || user?.role === "SCHOOL_ADMIN") ? (
@@ -212,7 +478,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Secondary Observation Chart */}
         <Card className="border-none shadow-sm overflow-hidden">
           <CardHeader>
             <CardTitle>
