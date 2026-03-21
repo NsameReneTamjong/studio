@@ -26,7 +26,9 @@ import {
   Loader2,
   Ban,
   Pencil,
-  ShieldAlert
+  ShieldAlert,
+  Save,
+  X
 } from "lucide-react";
 import { 
   Dialog, 
@@ -71,6 +73,7 @@ export default function FoundersManagementPage() {
   
   const [founders, setFounders] = useState(INITIAL_FOUNDERS);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingFounder, setEditingFounder] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   
   const [newFounderData, setNewFounderData] = useState({
@@ -79,8 +82,13 @@ export default function FoundersManagementPage() {
     role: "COO",
   });
 
-  // Mocking identification of the current viewer as the Primary Founder for demo purposes
-  // In a real app, this would be based on the authenticated user's ID or a specific permission flag
+  const [editFormData, setEditFormData] = useState({
+    name: "",
+    email: "",
+    role: "",
+  });
+
+  // Mocking identification of the current viewer as the Primary Founder
   const isPrimaryFounder = true; 
 
   const handleAddFounder = () => {
@@ -108,6 +116,25 @@ export default function FoundersManagementPage() {
     }, 1000);
   };
 
+  const handleUpdateFounder = () => {
+    if (!editFormData.name || !editFormData.email) {
+      toast({ variant: "destructive", title: "Missing Information", description: "Name and email are required." });
+      return;
+    }
+
+    setIsProcessing(true);
+    setTimeout(() => {
+      setFounders(prev => prev.map(f => 
+        f.id === editingFounder.id 
+          ? { ...f, ...editFormData } 
+          : f
+      ));
+      setEditingFounder(null);
+      setIsProcessing(false);
+      toast({ title: "Profile Updated", description: `${editFormData.name}'s designation has been synchronized.` });
+    }, 800);
+  };
+
   const handleRemoveFounder = (id: string) => {
     setFounders(prev => prev.filter(f => f.id !== id));
     toast({ variant: "destructive", title: "Founder Removed", description: "The access credentials have been revoked." });
@@ -125,6 +152,15 @@ export default function FoundersManagementPage() {
       }
       return f;
     }));
+  };
+
+  const openEditModal = (founder: any) => {
+    setEditingFounder(founder);
+    setEditFormData({
+      name: founder.name,
+      email: founder.email,
+      role: founder.role
+    });
   };
 
   return (
@@ -193,6 +229,57 @@ export default function FoundersManagementPage() {
           </Dialog>
         )}
       </div>
+
+      {/* Edit Founder Dialog */}
+      <Dialog open={!!editingFounder} onOpenChange={() => setEditingFounder(null)}>
+        <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="bg-primary p-8 text-white">
+            <div className="flex justify-between items-center">
+              <div>
+                <DialogTitle className="text-2xl font-black">Edit Designation</DialogTitle>
+                <DialogDescription className="text-white/60">Modify profile parameters for {editingFounder?.name}.</DialogDescription>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setEditingFounder(null)} className="text-white hover:bg-white/10 rounded-full">
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+          </DialogHeader>
+          <div className="p-8 space-y-6">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Full Legal Name</Label>
+              <Input 
+                className="h-12 bg-accent/30 border-none rounded-xl font-bold"
+                value={editFormData.name}
+                onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Executive Email</Label>
+              <Input 
+                className="h-12 bg-accent/30 border-none rounded-xl"
+                value={editFormData.email}
+                onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Strategic Role</Label>
+              <Select value={editFormData.role} onValueChange={(v) => setEditFormData({...editFormData, role: v})}>
+                <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {ROLES.map(role => <SelectItem key={role} value={role}>{role}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter className="bg-accent/20 p-6 border-t border-accent flex sm:flex-row gap-3">
+            <Button variant="ghost" className="flex-1 h-12 rounded-xl" onClick={() => setEditingFounder(null)}>Discard</Button>
+            <Button className="flex-1 h-12 rounded-xl shadow-lg font-bold gap-2" onClick={handleUpdateFounder} disabled={isProcessing}>
+              {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              Commit Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="border-none shadow-sm bg-primary text-white">
@@ -274,7 +361,7 @@ export default function FoundersManagementPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-xl border-accent">
                           <DropdownMenuLabel className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Administrative</DropdownMenuLabel>
-                          <DropdownMenuItem className="gap-2 cursor-pointer">
+                          <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => openEditModal(founder)}>
                             <Pencil className="w-4 h-4 text-primary" /> Edit Designation
                           </DropdownMenuItem>
                           <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => handleToggleStatus(founder.id)}>
