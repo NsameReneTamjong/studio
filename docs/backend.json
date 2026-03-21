@@ -1,0 +1,76 @@
+
+{
+  "entities": {
+    "School": {
+      "title": "School",
+      "description": "An educational institution in the SaaS platform.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "domain": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "suspended"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name"]
+    },
+    "User": {
+      "title": "User",
+      "description": "A user profile within a specific school or a platform-wide super admin.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "schoolId": { "type": "string", "description": "The ID of the school this user belongs to. Null for super admins." },
+        "role": { "type": "string", "enum": ["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER", "STUDENT", "PARENT"] },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "avatar": { "type": "string" }
+      },
+      "required": ["id", "role", "name", "email"]
+    },
+    "Course": {
+      "title": "Course",
+      "description": "A subject or class offered by a school.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "schoolId": { "type": "string" },
+        "name": { "type": "string" },
+        "instructorId": { "type": "string" }
+      },
+      "required": ["id", "schoolId", "name"]
+    },
+    "StudentParentLink": {
+      "title": "Student Parent Link",
+      "description": "Connects a parent user to their child (student user).",
+      "type": "object",
+      "properties": {
+        "parentId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "schoolId": { "type": "string" }
+      },
+      "required": ["parentId", "studentId", "schoolId"]
+    }
+  },
+  "auth": {
+    "providers": ["password", "google"]
+  },
+  "firestore": {
+    "/schools/{schoolId}": {
+      "schema": { "$ref": "#/entities/School" },
+      "description": "School details and configuration."
+    },
+    "/schools/{schoolId}/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profiles belonging to a specific school."
+    },
+    "/schools/{schoolId}/courses/{courseId}": {
+      "schema": { "$ref": "#/entities/Course" },
+      "description": "Courses managed by the school."
+    },
+    "/schools/{schoolId}/parentLinks/{linkId}": {
+      "schema": { "$ref": "#/entities/StudentParentLink" },
+      "description": "Relationship records between parents and students."
+    }
+  }
+}

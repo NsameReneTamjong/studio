@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { ShieldCheck, GraduationCap, Presentation, Building2 } from "lucide-react";
+import { ShieldCheck, GraduationCap, Presentation, Building2, UserCircle, Briefcase } from "lucide-react";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -23,46 +23,62 @@ export default function LoginPage() {
             </div>
           </div>
           <h1 className="text-3xl font-bold text-primary font-headline">EduNexus</h1>
-          <p className="text-muted-foreground">Sign in to your institutional portal</p>
+          <p className="text-muted-foreground">SaaS Institutional Portal</p>
         </div>
 
         <Card className="border-none shadow-xl">
           <CardHeader>
-            <CardTitle className="text-xl">Login</CardTitle>
-            <CardDescription>Select your role and enter credentials</CardDescription>
+            <CardTitle className="text-xl text-center">Login to your Portal</CardTitle>
+            <CardDescription className="text-center">Select your role to access features</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-3 gap-2">
               <Button 
                 variant={role === "STUDENT" ? "default" : "outline"} 
-                className="flex flex-col h-auto py-3 gap-2"
+                className="flex flex-col h-auto py-2 gap-1 text-[9px]"
                 onClick={() => setRole("STUDENT")}
               >
-                <GraduationCap className="w-5 h-5" />
-                <span className="text-[10px] uppercase font-bold tracking-wider">Student</span>
+                <GraduationCap className="w-4 h-4" />
+                <span>Student</span>
               </Button>
               <Button 
                 variant={role === "TEACHER" ? "default" : "outline"} 
-                className="flex flex-col h-auto py-3 gap-2"
+                className="flex flex-col h-auto py-2 gap-1 text-[9px]"
                 onClick={() => setRole("TEACHER")}
               >
-                <Presentation className="w-5 h-5" />
-                <span className="text-[10px] uppercase font-bold tracking-wider">Teacher</span>
+                <Presentation className="w-4 h-4" />
+                <span>Teacher</span>
               </Button>
               <Button 
-                variant={role === "ADMIN" ? "default" : "outline"} 
-                className="flex flex-col h-auto py-3 gap-2"
-                onClick={() => setRole("ADMIN")}
+                variant={role === "PARENT" ? "default" : "outline"} 
+                className="flex flex-col h-auto py-2 gap-1 text-[9px]"
+                onClick={() => setRole("PARENT")}
               >
-                <ShieldCheck className="w-5 h-5" />
-                <span className="text-[10px] uppercase font-bold tracking-wider">Admin</span>
+                <UserCircle className="w-4 h-4" />
+                <span>Parent</span>
+              </Button>
+              <Button 
+                variant={role === "SCHOOL_ADMIN" ? "default" : "outline"} 
+                className="flex flex-col h-auto py-2 gap-1 text-[9px]"
+                onClick={() => setRole("SCHOOL_ADMIN")}
+              >
+                <ShieldCheck className="w-4 h-4" />
+                <span>Admin</span>
+              </Button>
+              <Button 
+                variant={role === "SUPER_ADMIN" ? "default" : "outline"} 
+                className="flex flex-col h-auto py-2 gap-1 text-[9px]"
+                onClick={() => setRole("SUPER_ADMIN")}
+              >
+                <Briefcase className="w-4 h-4" />
+                <span>Super</span>
               </Button>
             </div>
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Institutional Email</Label>
-                <Input id="email" type="email" placeholder="name@edunexus.edu" />
+                <Label htmlFor="email">Email Address</Label>
+                <Input id="email" type="email" placeholder="name@domain.edu" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
@@ -72,14 +88,10 @@ export default function LoginPage() {
           </CardContent>
           <CardFooter>
             <Button className="w-full h-11 text-base font-semibold shadow-lg" onClick={() => login(role)}>
-              Sign In as {role.charAt(0) + role.slice(1).toLowerCase()}
+              Sign In as {role.replace('_', ' ').toLowerCase()}
             </Button>
           </CardFooter>
         </Card>
-        
-        <p className="text-center text-xs text-muted-foreground">
-          &copy; {new Date().getFullYear()} EduNexus School Management. All rights reserved.
-        </p>
       </div>
     </div>
   );

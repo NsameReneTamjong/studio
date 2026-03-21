@@ -17,6 +17,8 @@ import {
   LogOut,
   Building2,
   Sparkles,
+  Heart,
+  Globe
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -26,40 +28,58 @@ export function DashboardSidebar() {
 
   const routes = [
     {
+      label: "Platform Overview",
+      icon: LayoutDashboard,
+      href: "/dashboard",
+      roles: ["SUPER_ADMIN"],
+    },
+    {
+      label: "Schools",
+      icon: Globe,
+      href: "/dashboard/schools",
+      roles: ["SUPER_ADMIN"],
+    },
+    {
       label: "Overview",
       icon: LayoutDashboard,
       href: "/dashboard",
-      roles: ["ADMIN", "TEACHER", "STUDENT"],
+      roles: ["SCHOOL_ADMIN", "TEACHER", "STUDENT", "PARENT"],
     },
     {
       label: "Students",
       icon: GraduationCap,
       href: "/dashboard/students",
-      roles: ["ADMIN", "TEACHER"],
+      roles: ["SCHOOL_ADMIN", "TEACHER"],
     },
     {
       label: "Staff Directory",
       icon: Users,
       href: "/dashboard/staff",
-      roles: ["ADMIN"],
+      roles: ["SCHOOL_ADMIN"],
+    },
+    {
+      label: "My Children",
+      icon: Heart,
+      href: "/dashboard/children",
+      roles: ["PARENT"],
     },
     {
       label: "Courses",
       icon: BookOpen,
       href: "/dashboard/courses",
-      roles: ["ADMIN", "STUDENT"],
+      roles: ["SCHOOL_ADMIN", "STUDENT", "TEACHER"],
     },
     {
       label: "Grade Book",
       icon: Award,
       href: "/dashboard/grades",
-      roles: ["TEACHER", "STUDENT"],
+      roles: ["TEACHER", "STUDENT", "PARENT"],
     },
     {
       label: "Attendance",
       icon: ClipboardCheck,
       href: "/dashboard/attendance",
-      roles: ["TEACHER", "STUDENT"],
+      roles: ["TEACHER", "STUDENT", "PARENT"],
     },
     {
       label: "AI Feedback",
@@ -71,7 +91,7 @@ export function DashboardSidebar() {
       label: "Schedule",
       icon: Calendar,
       href: "/dashboard/schedule",
-      roles: ["TEACHER", "STUDENT"],
+      roles: ["TEACHER", "STUDENT", "PARENT"],
     },
   ];
 
