@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Search, User, MessageCircle, MoreVertical } from "lucide-react";
+import { Send, Search, User, MessageCircle, MoreVertical, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const MOCK_CONTACTS = [
@@ -33,13 +33,12 @@ export default function ChatPage() {
 
   const handleSendMessage = () => {
     if (!messageText.trim()) return;
-    // Logic for sending message would go here
     setMessageText("");
   };
 
   if (user?.role === "SUPER_ADMIN") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4 px-4">
         <MessageCircle className="w-16 h-16 text-primary/20" />
         <h1 className="text-2xl font-bold">Platform Management Only</h1>
         <p className="text-muted-foreground max-w-md">Super Admins manage feedback and announcements, but do not participate in institutional live chats.</p>
@@ -48,17 +47,20 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-140px)] gap-6">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col h-[calc(100vh-140px)] md:h-[calc(100vh-140px)] gap-4 md:gap-6">
+      <div className="flex items-center justify-between px-1">
         <div>
-          <h1 className="text-3xl font-bold text-primary font-headline">{t("chat")}</h1>
-          <p className="text-muted-foreground mt-1">Connect with teachers and school administration instantly.</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline">{t("chat")}</h1>
+          <p className="text-xs md:text-sm text-muted-foreground mt-1">Connect with teachers and administration.</p>
         </div>
       </div>
 
-      <div className="flex-1 flex gap-6 overflow-hidden">
+      <div className="flex-1 flex flex-col md:flex-row gap-4 md:gap-6 overflow-hidden">
         {/* Contact List */}
-        <Card className="w-80 flex flex-col border-none shadow-sm shrink-0">
+        <Card className={cn(
+          "w-full md:w-80 flex flex-col border-none shadow-sm shrink-0 overflow-hidden",
+          selectedContact && "hidden md:flex"
+        )}>
           <CardHeader className="p-4 border-b">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -87,11 +89,11 @@ export default function ChatPage() {
                       <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
                     )}
                   </div>
-                  <div className="flex-1 overflow-hidden">
+                  <div className="flex-1 overflow-hidden text-ellipsis">
                     <div className="flex justify-between items-baseline">
                       <span className="font-bold text-sm truncate">{contact.name}</span>
                       <span className={cn(
-                        "text-[10px] opacity-60",
+                        "text-[10px] opacity-60 ml-2",
                         selectedContact?.id === contact.id ? "text-white" : "text-muted-foreground"
                       )}>10:35</span>
                     </div>
@@ -109,35 +111,46 @@ export default function ChatPage() {
         </Card>
 
         {/* Chat Window */}
-        <Card className="flex-1 flex flex-col border-none shadow-sm relative overflow-hidden bg-white/50">
+        <Card className={cn(
+          "flex-1 flex flex-col border-none shadow-sm relative overflow-hidden bg-white/50",
+          !selectedContact && "hidden md:flex"
+        )}>
           {selectedContact ? (
             <>
-              <div className="p-4 border-b flex items-center justify-between bg-white z-10">
+              <div className="p-3 md:p-4 border-b flex items-center justify-between bg-white z-10">
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="md:hidden" 
+                    onClick={() => setSelectedContact(null)}
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                  </Button>
+                  <Avatar className="h-8 w-8 md:h-10 md:w-10">
                     <AvatarImage src={selectedContact.avatar} />
                     <AvatarFallback>{selectedContact.name.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <h3 className="font-bold text-sm">{selectedContact.name}</h3>
-                    <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">{selectedContact.role}</p>
+                    <h3 className="font-bold text-sm leading-tight">{selectedContact.name}</h3>
+                    <p className="text-[9px] md:text-[10px] text-muted-foreground uppercase font-bold tracking-widest">{selectedContact.role}</p>
                   </div>
                 </div>
                 <Button variant="ghost" size="icon"><MoreVertical className="w-4 h-4 text-muted-foreground" /></Button>
               </div>
 
-              <ScrollArea className="flex-1 p-6">
-                <div className="space-y-6">
+              <ScrollArea className="flex-1 p-4 md:p-6">
+                <div className="space-y-4 md:space-y-6">
                   {MOCK_MESSAGES.map((msg) => (
                     <div
                       key={msg.id}
                       className={cn(
-                        "flex flex-col max-w-[75%]",
+                        "flex flex-col max-w-[85%] md:max-w-[75%]",
                         msg.senderId === "me" ? "ml-auto items-end" : "items-start"
                       )}
                     >
                       <div className={cn(
-                        "p-4 rounded-2xl text-sm shadow-sm",
+                        "p-3 md:p-4 rounded-2xl text-sm shadow-sm",
                         msg.senderId === "me" 
                           ? "bg-primary text-white rounded-tr-none" 
                           : "bg-white text-foreground rounded-tl-none border border-accent"
@@ -150,16 +163,16 @@ export default function ChatPage() {
                 </div>
               </ScrollArea>
 
-              <div className="p-4 bg-white border-t flex items-center gap-3">
+              <div className="p-3 md:p-4 bg-white border-t flex items-center gap-2 md:gap-3">
                 <Input
                   placeholder="Type a message..."
-                  className="flex-1 bg-accent/30 border-none h-11"
+                  className="flex-1 bg-accent/30 border-none h-10 md:h-11 text-sm"
                   value={messageText}
                   onChange={(e) => setMessageText(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
                 />
-                <Button size="icon" className="h-11 w-11 rounded-full shadow-lg" onClick={handleSendMessage}>
-                  <Send className="w-5 h-5" />
+                <Button size="icon" className="h-10 w-10 md:h-11 md:w-11 rounded-full shadow-lg shrink-0" onClick={handleSendMessage}>
+                  <Send className="w-4 h-4 md:w-5 md:h-5" />
                 </Button>
               </div>
             </>

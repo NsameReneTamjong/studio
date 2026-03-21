@@ -22,7 +22,8 @@ import {
   Languages,
   MessageSquare,
   Megaphone,
-  MessageCircle
+  MessageCircle,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,7 +33,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export function DashboardSidebar() {
+interface SidebarProps {
+  onClose?: () => void;
+}
+
+export function DashboardSidebar({ onClose }: SidebarProps) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const { t, language, setLanguage } = useI18n();
@@ -127,7 +132,7 @@ export function DashboardSidebar() {
   const filteredRoutes = routes.filter((route) => route.roles.includes(user?.role || ""));
 
   return (
-    <div className="flex flex-col h-full bg-primary text-white w-64 border-r border-white/10">
+    <div className="flex flex-col h-full bg-primary text-white w-full border-r border-white/10">
       <div className="p-6">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -136,29 +141,37 @@ export function DashboardSidebar() {
             </div>
             <span className="text-xl font-bold tracking-tight font-headline">EduNexus</span>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
-                <Languages className="w-4 h-4" />
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
+                  <Languages className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setLanguage("en")} className={language === "en" ? "bg-accent" : ""}>
+                  English
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage("fr")} className={language === "fr" ? "bg-accent" : ""}>
+                  Français
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            {onClose && (
+              <Button variant="ghost" size="icon" className="text-white md:hidden" onClick={onClose}>
+                <X className="w-5 h-5" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setLanguage("en")} className={language === "en" ? "bg-accent" : ""}>
-                English
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setLanguage("fr")} className={language === "fr" ? "bg-accent" : ""}>
-                Français
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 px-3 space-y-1">
+      <div className="flex-1 px-3 space-y-1 overflow-y-auto">
         {filteredRoutes.map((route) => (
           <Link
             key={route.href}
             href={route.href}
+            onClick={onClose}
             className={cn(
               "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 hover:bg-white/10 group",
               pathname === route.href ? "bg-white/20 text-white" : "text-white/60"
@@ -170,9 +183,9 @@ export function DashboardSidebar() {
         ))}
       </div>
 
-      <div className="p-4 border-t border-white/10 mt-auto">
+      <div className="p-4 border-t border-white/10 mt-auto bg-primary">
         <div className="flex items-center gap-3 mb-4 px-2">
-          <div className="w-10 h-10 rounded-full bg-secondary overflow-hidden">
+          <div className="w-10 h-10 rounded-full bg-secondary overflow-hidden shrink-0">
             <img src={user?.avatar} alt={user?.name} className="w-full h-full object-cover" />
           </div>
           <div className="flex flex-col overflow-hidden">
