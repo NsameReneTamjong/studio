@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
-const MOCK_FEEDBACKS = [
+const INITIAL_FEEDBACKS = [
   { 
     id: "F001", 
     schoolName: "Lycée de Joss", 
@@ -46,8 +46,9 @@ export default function FeedbackPage() {
   const { user } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
-  const [isSending, setIsSending] = useState(false);
   
+  const [feedbacks, setFeedbacks] = useState(INITIAL_FEEDBACKS);
+  const [isSending, setIsSending] = useState(false);
   const [newFeedback, setNewFeedback] = useState({ subject: "", message: "" });
 
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
@@ -60,6 +61,31 @@ export default function FeedbackPage() {
       setNewFeedback({ subject: "", message: "" });
       setIsSending(false);
     }, 1000);
+  };
+
+  const handleResolve = (id: string) => {
+    setFeedbacks(prev => prev.map(fb => fb.id === id ? { ...fb, status: 'Resolved' } : fb));
+    toast({ 
+      title: "Ticket Resolved", 
+      description: "The support request has been marked as completed." 
+    });
+  };
+
+  const handleArchive = (id: string) => {
+    setFeedbacks(prev => prev.filter(fb => fb.id !== id));
+    toast({ 
+      title: "Ticket Archived", 
+      description: "The message has been moved to the system archives." 
+    });
+  };
+
+  const handleDelete = (id: string) => {
+    setFeedbacks(prev => prev.filter(fb => fb.id !== id));
+    toast({ 
+      variant: "destructive",
+      title: "Ticket Deleted", 
+      description: "The support record has been permanently removed." 
+    });
   };
 
   if (isSuperAdmin) {
@@ -76,12 +102,12 @@ export default function FeedbackPage() {
             <p className="text-muted-foreground mt-1">Review issues, suggestions, and support requests from institutional admins.</p>
           </div>
           <Badge variant="outline" className="h-10 px-4 rounded-xl border-primary/20 text-primary font-black uppercase tracking-widest">
-            {MOCK_FEEDBACKS.length} Active Tickets
+            {feedbacks.length} Active Tickets
           </Badge>
         </div>
 
         <div className="grid grid-cols-1 gap-6">
-          {MOCK_FEEDBACKS.map((fb) => (
+          {feedbacks.map((fb) => (
             <Card key={fb.id} className="border-none shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-300">
               <div className="flex flex-col md:flex-row">
                 {/* School Context Side */}
@@ -94,7 +120,13 @@ export default function FeedbackPage() {
                     <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter mt-1">Institutional Node</p>
                   </div>
                   <div className="pt-4 border-t border-accent/50 w-full">
-                    <Badge variant={fb.status === 'New' ? 'default' : 'secondary'} className="w-full justify-center py-1 font-black uppercase text-[9px]">
+                    <Badge 
+                      variant={fb.status === 'Resolved' ? 'secondary' : (fb.status === 'New' ? 'default' : 'outline')} 
+                      className={cn(
+                        "w-full justify-center py-1 font-black uppercase text-[9px]",
+                        fb.status === 'Resolved' ? "bg-green-100 text-green-700" : ""
+                      )}
+                    >
                       {fb.status}
                     </Badge>
                   </div>
@@ -118,7 +150,12 @@ export default function FeedbackPage() {
                         </p>
                       </div>
                     </div>
-                    <Button variant="ghost" size="icon" className="rounded-full hover:bg-destructive/5 text-destructive/20 hover:text-destructive">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="rounded-full hover:bg-destructive/5 text-destructive/20 hover:text-destructive"
+                      onClick={() => handleDelete(fb.id)}
+                    >
                       <Trash2 className="w-5 h-5" />
                     </Button>
                   </div>
@@ -139,11 +176,20 @@ export default function FeedbackPage() {
                        <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest italic">Node Verified</span>
                     </div>
                     <div className="flex gap-2 w-full sm:w-auto">
-                      <Button variant="outline" className="flex-1 sm:flex-none gap-2 rounded-xl h-11 px-6 font-bold">
+                      <Button 
+                        variant="outline" 
+                        className="flex-1 sm:flex-none gap-2 rounded-xl h-11 px-6 font-bold"
+                        onClick={() => handleArchive(fb.id)}
+                      >
                         Archive Ticket
                       </Button>
-                      <Button className="flex-1 sm:flex-none gap-2 rounded-xl h-11 px-8 font-black uppercase tracking-widest text-xs shadow-lg">
-                        <CheckCircle2 className="w-4 h-4" /> Resolve Support
+                      <Button 
+                        className="flex-1 sm:flex-none gap-2 rounded-xl h-11 px-8 font-black uppercase tracking-widest text-xs shadow-lg"
+                        onClick={() => handleResolve(fb.id)}
+                        disabled={fb.status === 'Resolved'}
+                      >
+                        <CheckCircle2 className="w-4 h-4" /> 
+                        {fb.status === 'Resolved' ? 'Resolved' : 'Resolve Support'}
                       </Button>
                     </div>
                   </div>
@@ -151,6 +197,15 @@ export default function FeedbackPage() {
               </div>
             </Card>
           ))}
+          {feedbacks.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 bg-white/50 rounded-3xl border-2 border-dashed">
+              <MessageSquare className="w-16 h-16 text-primary/10" />
+              <div>
+                <h3 className="text-xl font-bold text-primary">All clear!</h3>
+                <p className="text-muted-foreground">No active support tickets in the queue.</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
