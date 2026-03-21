@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Megaphone, Send, Globe, Building2, Clock, Trash2, User } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
+import { Megaphone, Send, Globe, Building2, Clock, Trash2, User, Users, GraduationCap, ShieldCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -19,7 +19,7 @@ const MOCK_ANNOUNCEMENTS = [
   { 
     id: "A001", 
     title: "Annual Pedagogic Seminar", 
-    target: "All Schools", 
+    target: "All Teachers", 
     content: "All teachers are required to attend the virtual seminar on new evaluation methods this Friday at 10 AM.", 
     date: "2h ago",
     senderName: "Dr. Fonka Maurice",
@@ -38,13 +38,13 @@ const MOCK_ANNOUNCEMENTS = [
   },
   { 
     id: "A003", 
-    title: "System Infrastructure Update", 
-    target: "All Schools", 
-    content: "EduIgnite will undergo a scheduled maintenance on Sunday to improve report card generation speed.", 
+    title: "Tuition Fee Deadline", 
+    target: "All Students", 
+    content: "Please be reminded that the deadline for the second installment of tuition fees is next Friday. Receipts must be presented at the gate.", 
     date: "1 day ago",
-    senderName: "SaaS Support",
-    senderRole: "Super Admin",
-    senderAvatar: "https://picsum.photos/seed/saas/100/100"
+    senderName: "Finance Manager",
+    senderRole: "Bursar",
+    senderAvatar: "https://picsum.photos/seed/bursar/100/100"
   },
 ];
 
@@ -54,7 +54,7 @@ export default function AnnouncementsPage() {
   const { toast } = useToast();
   
   const [isSending, setIsSending] = useState(false);
-  const [formData, setFormData] = useState({ title: "", content: "", target: "all" });
+  const [formData, setFormData] = useState({ title: "", content: "", target: "everyone" });
 
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
   const canPost = ["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER", "BURSAR"].includes(user?.role || "");
@@ -63,10 +63,17 @@ export default function AnnouncementsPage() {
     if (!formData.title || !formData.content) return;
     setIsSending(true);
     setTimeout(() => {
-      toast({ title: "Announcement Published", description: "The message has been dispatched to the selected recipients." });
-      setFormData({ title: "", content: "", target: "all" });
+      toast({ title: "Announcement Published", description: `The message has been broadcasted to ${formData.target}.` });
+      setFormData({ title: "", content: "", target: "everyone" });
       setIsSending(false);
     }, 1200);
+  };
+
+  const getTargetIcon = (target: string) => {
+    if (target.includes("Teachers")) return <Users className="w-3 h-3"/>;
+    if (target.includes("Students") || target.includes("Class")) return <GraduationCap className="w-3 h-3"/>;
+    if (target.includes("Admin")) return <ShieldCheck className="w-3 h-3"/>;
+    return <Globe className="w-3 h-3"/>;
   };
 
   const AnnouncementCard = ({ ann }: { ann: typeof MOCK_ANNOUNCEMENTS[0] }) => (
@@ -94,7 +101,7 @@ export default function AnnouncementsPage() {
             </div>
           </div>
           <Badge variant="outline" className="text-[9px] gap-1 shrink-0">
-            {ann.target === 'All Schools' ? <Globe className="w-3 h-3"/> : <Building2 className="w-3 h-3"/>}
+            {getTargetIcon(ann.target)}
             {ann.target}
           </Badge>
         </div>
@@ -136,14 +143,14 @@ export default function AnnouncementsPage() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-1 space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-primary font-headline">Manage Announcements</h1>
-          <p className="text-muted-foreground mt-1">Broadcast messages to all institutions or specific targets.</p>
+          <h1 className="text-3xl font-bold text-primary font-headline">Broadcast</h1>
+          <p className="text-muted-foreground mt-1">Send official messages to targeted groups in your school.</p>
         </div>
 
         <Card className="border-none shadow-xl bg-primary text-white">
           <CardHeader>
-            <CardTitle className="text-white">New Broadcast</CardTitle>
-            <CardDescription className="text-white/60">Your profile info will be attached to this message.</CardDescription>
+            <CardTitle className="text-white">New Announcement</CardTitle>
+            <CardDescription className="text-white/60">Choose your audience carefully.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -154,12 +161,32 @@ export default function AnnouncementsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   {isSuperAdmin ? (
-                    <SelectItem value="all">{t("allSchools")}</SelectItem>
+                    <SelectGroup>
+                      <SelectLabel>Platform Level</SelectLabel>
+                      <SelectItem value="all_schools">All Registered Schools</SelectItem>
+                      <SelectItem value="saas_admins">SaaS Administrators</SelectItem>
+                    </SelectGroup>
                   ) : (
-                    <SelectItem value="school">My School</SelectItem>
+                    <>
+                      <SelectGroup>
+                        <SelectLabel>School-wide</SelectLabel>
+                        <SelectItem value="everyone">Everyone (School-wide)</SelectItem>
+                        <SelectItem value="teachers">All Teachers</SelectItem>
+                        <SelectItem value="students">All Students</SelectItem>
+                        <SelectItem value="administration">Administration Only</SelectItem>
+                      </SelectGroup>
+                      <SelectGroup>
+                        <SelectLabel>Specific Classes</SelectLabel>
+                        <SelectItem value="class_6">6ème / Form 1</SelectItem>
+                        <SelectItem value="class_5">5ème / Form 2</SelectItem>
+                        <SelectItem value="class_4">4ème / Form 3</SelectItem>
+                        <SelectItem value="class_3">3ème / Form 4</SelectItem>
+                        <SelectItem value="class_2">2nde / Form 5</SelectItem>
+                        <SelectItem value="class_1">1ère / Lower Sixth</SelectItem>
+                        <SelectItem value="class_t">Terminale / Upper Sixth</SelectItem>
+                      </SelectGroup>
+                    </>
                   )}
-                  <SelectItem value="S001">Lycée de Joss</SelectItem>
-                  <SelectItem value="S002">GBHS Yaoundé</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -167,7 +194,7 @@ export default function AnnouncementsPage() {
               <Label className="text-white/80">Title</Label>
               <Input 
                 className="bg-white/10 border-white/20 text-white placeholder:text-white/30"
-                placeholder="e.g. System Update" 
+                placeholder="e.g. System Update or Fee Notice" 
                 value={formData.title}
                 onChange={(e) => setFormData({...formData, title: e.target.value})}
               />
