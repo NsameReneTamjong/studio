@@ -10,13 +10,42 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Megaphone, Send, Globe, Building2, Clock, Trash2 } from "lucide-react";
+import { Megaphone, Send, Globe, Building2, Clock, Trash2, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const MOCK_ANNOUNCEMENTS = [
-  { id: "A001", title: "System Maintenance", target: "All Schools", content: "The system will be offline this Sunday from 2 AM to 4 AM for scheduled database optimization.", date: "3h ago" },
-  { id: "A002", title: "Quarterly Billing Update", target: "GBHS Yaoundé", content: "Your institution's quarterly invoice is now ready for download in the billing portal.", date: "1 day ago" },
+  { 
+    id: "A001", 
+    title: "Annual Pedagogic Seminar", 
+    target: "All Schools", 
+    content: "All teachers are required to attend the virtual seminar on new evaluation methods this Friday at 10 AM.", 
+    date: "2h ago",
+    senderName: "Dr. Fonka Maurice",
+    senderRole: "Principal",
+    senderAvatar: "https://picsum.photos/seed/p1/100/100"
+  },
+  { 
+    id: "A002", 
+    title: "Sequence 2 Marks Extension", 
+    target: "Lycée de Joss", 
+    content: "The deadline for entering Sequence 2 marks has been extended to Monday noon. Please ensure all data is verified.", 
+    date: "5h ago",
+    senderName: "Mme. Ngono Celine",
+    senderRole: "Vice Principal",
+    senderAvatar: "https://picsum.photos/seed/vp1/100/100"
+  },
+  { 
+    id: "A003", 
+    title: "System Infrastructure Update", 
+    target: "All Schools", 
+    content: "EduNexus will undergo a scheduled maintenance on Sunday to improve report card generation speed.", 
+    date: "1 day ago",
+    senderName: "SaaS Support",
+    senderRole: "Super Admin",
+    senderAvatar: "https://picsum.photos/seed/saas/100/100"
+  },
 ];
 
 export default function AnnouncementsPage() {
@@ -39,6 +68,52 @@ export default function AnnouncementsPage() {
     }, 1200);
   };
 
+  const AnnouncementCard = ({ ann }: { ann: typeof MOCK_ANNOUNCEMENTS[0] }) => (
+    <Card className="border-none shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+      <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
+      <CardHeader className="pb-3">
+        <div className="flex justify-between items-start gap-4">
+          <div className="flex gap-3">
+            <Avatar className="h-10 w-10 border border-primary/10 shadow-sm">
+              <AvatarImage src={ann.senderAvatar} alt={ann.senderName} />
+              <AvatarFallback className="bg-primary/5 text-primary">
+                <User className="h-5 w-5" />
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-primary">{ann.senderName}</span>
+                <Badge variant="secondary" className="text-[9px] h-4 py-0 font-bold uppercase tracking-wider bg-secondary/20 text-primary border-none">
+                  {ann.senderRole}
+                </Badge>
+              </div>
+              <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                <Clock className="w-3 h-3" /> {ann.date}
+              </p>
+            </div>
+          </div>
+          <Badge variant="outline" className="text-[9px] gap-1 shrink-0">
+            {ann.target === 'All Schools' ? <Globe className="w-3 h-3"/> : <Building2 className="w-3 h-3"/>}
+            {ann.target}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <CardTitle className="text-lg font-bold">{ann.title}</CardTitle>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          {ann.content}
+        </p>
+      </CardContent>
+      {isSuperAdmin && (
+        <CardFooter className="pt-0 justify-end">
+          <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive gap-2">
+            <Trash2 className="w-3.5 h-3.5" /> {language === 'en' ? 'Remove' : 'Supprimer'}
+          </Button>
+        </CardFooter>
+      )}
+    </Card>
+  );
+
   if (!isSuperAdmin) {
     return (
       <div className="space-y-6">
@@ -49,25 +124,7 @@ export default function AnnouncementsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {MOCK_ANNOUNCEMENTS.map((ann) => (
-            <Card key={ann.id} className="border-none shadow-sm relative overflow-hidden group">
-              <div className="absolute top-0 left-0 w-1.5 h-full bg-primary" />
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-xl">{ann.title}</CardTitle>
-                    <CardDescription className="flex items-center gap-1 mt-1">
-                      <Clock className="w-3 h-3" /> {ann.date}
-                    </CardDescription>
-                  </div>
-                  <Megaphone className="w-5 h-5 text-primary/30 group-hover:text-primary transition-colors" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {ann.content}
-                </p>
-              </CardContent>
-            </Card>
+            <AnnouncementCard key={ann.id} ann={ann} />
           ))}
         </div>
       </div>
@@ -85,6 +142,7 @@ export default function AnnouncementsPage() {
         <Card className="border-none shadow-xl bg-primary text-white">
           <CardHeader>
             <CardTitle className="text-white">New Broadcast</CardTitle>
+            <CardDescription className="text-white/60">Your profile info will be attached to this message.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -137,31 +195,11 @@ export default function AnnouncementsPage() {
         <h2 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
           <Megaphone className="w-5 h-5" /> Recent Dispatches
         </h2>
-        {MOCK_ANNOUNCEMENTS.map((ann) => (
-          <Card key={ann.id} className="border-none shadow-sm group">
-            <CardHeader className="flex flex-row items-start justify-between">
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-accent/50 rounded-xl">
-                  <Megaphone className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <CardTitle className="text-lg">{ann.title}</CardTitle>
-                    <Badge variant="outline" className="text-[10px] gap-1">
-                      {ann.target === 'All Schools' ? <Globe className="w-3 h-3"/> : <Building2 className="w-3 h-3"/>}
-                      {ann.target}
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">{ann.date}</p>
-                </div>
-              </div>
-              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">{ann.content}</p>
-            </CardContent>
-          </Card>
-        ))}
+        <div className="grid grid-cols-1 gap-4">
+          {MOCK_ANNOUNCEMENTS.map((ann) => (
+            <AnnouncementCard key={ann.id} ann={ann} />
+          ))}
+        </div>
       </div>
     </div>
   );
