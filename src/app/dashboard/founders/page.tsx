@@ -23,7 +23,10 @@ import {
   Activity,
   User,
   CheckCircle2,
-  Loader2
+  Loader2,
+  Ban,
+  Pencil,
+  ShieldAlert
 } from "lucide-react";
 import { 
   Dialog, 
@@ -41,14 +44,22 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
 const INITIAL_FOUNDERS = [
-  { id: "FND-001", name: "EduIgnite Primary Founder", email: "ceo@eduignite.io", role: "CEO", avatar: "https://picsum.photos/seed/ceo/100/100", status: "Active", joined: "Jan 2023" },
-  { id: "FND-002", name: "Dr. Aris Tesla", email: "cto@eduignite.io", role: "CTO", avatar: "https://picsum.photos/seed/cto/100/100", status: "Active", joined: "Mar 2023" },
+  { id: "FND-001", name: "EduIgnite Primary Founder", email: "ceo@eduignite.io", role: "CEO", avatar: "https://picsum.photos/seed/ceo/100/100", status: "Active", joined: "Jan 2023", isPrimary: true },
+  { id: "FND-002", name: "Dr. Aris Tesla", email: "cto@eduignite.io", role: "CTO", avatar: "https://picsum.photos/seed/cto/100/100", status: "Active", joined: "Mar 2023", isPrimary: false },
 ];
 
 const ROLES = ["CEO", "CTO", "COO", "CFO", "Investor", "Board Member", "Adviser"];
@@ -68,6 +79,10 @@ export default function FoundersManagementPage() {
     role: "COO",
   });
 
+  // Mocking identification of the current viewer as the Primary Founder for demo purposes
+  // In a real app, this would be based on the authenticated user's ID or a specific permission flag
+  const isPrimaryFounder = true; 
+
   const handleAddFounder = () => {
     if (!newFounderData.name || !newFounderData.email) {
       toast({ variant: "destructive", title: "Missing Information", description: "Name and email are required." });
@@ -81,7 +96,8 @@ export default function FoundersManagementPage() {
         ...newFounderData,
         avatar: `https://picsum.photos/seed/${newFounderData.name}/100/100`,
         status: "Active",
-        joined: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+        joined: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        isPrimary: false
       };
 
       setFounders(prev => [...prev, newFounder]);
@@ -95,6 +111,20 @@ export default function FoundersManagementPage() {
   const handleRemoveFounder = (id: string) => {
     setFounders(prev => prev.filter(f => f.id !== id));
     toast({ variant: "destructive", title: "Founder Removed", description: "The access credentials have been revoked." });
+  };
+
+  const handleToggleStatus = (id: string) => {
+    setFounders(prev => prev.map(f => {
+      if (f.id === id) {
+        const newStatus = f.status === "Active" ? "Suspended" : "Active";
+        toast({
+          title: `Status: ${newStatus}`,
+          description: `Access for ${f.name} has been ${newStatus.toLowerCase()}.`
+        });
+        return { ...f, status: newStatus };
+      }
+      return f;
+    }));
   };
 
   return (
@@ -112,54 +142,56 @@ export default function FoundersManagementPage() {
           </p>
         </div>
         
-        <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl">
-              <UserPlus className="w-5 h-5" /> Add Team Member
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-            <DialogHeader className="bg-primary p-8 text-white">
-              <DialogTitle className="text-2xl font-black">Onboard Founder</DialogTitle>
-              <DialogDescription className="text-white/60">Initialize executive platform access for a core team member.</DialogDescription>
-            </DialogHeader>
-            <div className="p-8 space-y-6">
-              <div className="space-y-2">
-                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Full Name</Label>
-                <Input 
-                  placeholder="e.g. John Doe" 
-                  className="h-12 bg-accent/30 border-none rounded-xl"
-                  value={newFounderData.name}
-                  onChange={(e) => setNewFounderData({...newFounderData, name: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Primary Email</Label>
-                <Input 
-                  placeholder="name@eduignite.io" 
-                  className="h-12 bg-accent/30 border-none rounded-xl"
-                  value={newFounderData.email}
-                  onChange={(e) => setNewFounderData({...newFounderData, email: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Executive Role</Label>
-                <Select value={newFounderData.role} onValueChange={(v) => setNewFounderData({...newFounderData, role: v})}>
-                  <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {ROLES.map(role => <SelectItem key={role} value={role}>{role}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter className="bg-accent/20 p-6 border-t border-accent flex sm:flex-row gap-3">
-              <Button variant="ghost" className="flex-1 h-12 rounded-xl" onClick={() => setIsAddModalOpen(false)}>{t("cancel")}</Button>
-              <Button className="flex-1 h-12 rounded-xl shadow-lg font-bold" onClick={handleAddFounder} disabled={isProcessing}>
-                {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify & Onboard"}
+        {isPrimaryFounder && (
+          <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl">
+                <UserPlus className="w-5 h-5" /> Add Team Member
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+              <DialogHeader className="bg-primary p-8 text-white">
+                <DialogTitle className="text-2xl font-black">Onboard Founder</DialogTitle>
+                <DialogDescription className="text-white/60">Initialize executive platform access for a core team member.</DialogDescription>
+              </DialogHeader>
+              <div className="p-8 space-y-6">
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Full Name</Label>
+                  <Input 
+                    placeholder="e.g. John Doe" 
+                    className="h-12 bg-accent/30 border-none rounded-xl"
+                    value={newFounderData.name}
+                    onChange={(e) => setNewFounderData({...newFounderData, name: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Primary Email</Label>
+                  <Input 
+                    placeholder="name@eduignite.io" 
+                    className="h-12 bg-accent/30 border-none rounded-xl"
+                    value={newFounderData.email}
+                    onChange={(e) => setNewFounderData({...newFounderData, email: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Executive Role</Label>
+                  <Select value={newFounderData.role} onValueChange={(v) => setNewFounderData({...newFounderData, role: v})}>
+                    <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {ROLES.map(role => <SelectItem key={role} value={role}>{role}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter className="bg-accent/20 p-6 border-t border-accent flex sm:flex-row gap-3">
+                <Button variant="ghost" className="flex-1 h-12 rounded-xl" onClick={() => setIsAddModalOpen(false)}>{t("cancel")}</Button>
+                <Button className="flex-1 h-12 rounded-xl shadow-lg font-bold" onClick={handleAddFounder} disabled={isProcessing}>
+                  {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify & Onboard"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -225,22 +257,43 @@ export default function FoundersManagementPage() {
                     {founder.email}
                   </TableCell>
                   <TableCell className="text-center">
-                    <Badge className="bg-green-100 text-green-700 border-none text-[9px] font-black uppercase px-3">
+                    <Badge className={cn(
+                      "text-[9px] font-black uppercase tracking-tighter border-none px-3",
+                      founder.status === 'Active' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                    )}>
                       {founder.status}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right pr-8">
-                    {founder.role !== 'CEO' ? (
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="text-destructive/20 hover:text-destructive hover:bg-destructive/5 rounded-full"
-                        onClick={() => handleRemoveFounder(founder.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                    {!founder.isPrimary ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-accent">
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-xl border-accent">
+                          <DropdownMenuLabel className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Administrative</DropdownMenuLabel>
+                          <DropdownMenuItem className="gap-2 cursor-pointer">
+                            <Pencil className="w-4 h-4 text-primary" /> Edit Designation
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => handleToggleStatus(founder.id)}>
+                            {founder.status === 'Active' ? (
+                              <><Ban className="w-4 h-4 text-amber-600" /> Suspend Access</>
+                            ) : (
+                              <><CheckCircle2 className="w-4 h-4 text-green-600" /> Reactivate Access</>
+                            )}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="gap-2 cursor-pointer text-destructive focus:bg-destructive/5" onClick={() => handleRemoveFounder(founder.id)}>
+                            <Trash2 className="w-4 h-4" /> Remove Team Member
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     ) : (
-                      <Badge variant="outline" className="text-[8px] opacity-30 border-none uppercase">Primary</Badge>
+                      <Badge variant="outline" className="text-[8px] opacity-30 border-none uppercase flex items-center gap-1">
+                        <Crown className="w-2.5 h-2.5" /> Primary Owner
+                      </Badge>
                     )}
                   </TableCell>
                 </TableRow>
