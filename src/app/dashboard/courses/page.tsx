@@ -5,42 +5,60 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BookOpen, User, Clock, FileText, ChevronRight, Plus, Download, FileType, Search } from "lucide-react";
+import { 
+  BookOpen, 
+  User, 
+  Clock, 
+  FileText, 
+  ChevronRight, 
+  Plus, 
+  Download, 
+  FileImage, 
+  FileEdit, 
+  FileCode,
+  Search,
+  Eye,
+  Avatar,
+} from "lucide-react";
 import { useI18n } from "@/lib/i18n-context";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const ENROLLED_SUBJECTS = [
   {
     id: "PHY101",
     name: "Advanced Physics",
     instructor: "Dr. Aris Tesla",
+    instructorAvatar: "https://picsum.photos/seed/t1/100/100",
     schedule: "Mon, Wed 09:00 AM",
     progress: 75,
     color: "bg-blue-500",
     materials: [
       { id: "M1", title: "Thermodynamics Lecture Notes", type: "PDF", date: "Oct 12, 2023", size: "2.4 MB" },
       { id: "M2", title: "Kinematics Practice Sheet", type: "DOCX", date: "Oct 15, 2023", size: "1.1 MB" },
-      { id: "M3", title: "Vector Analysis Quiz Prep", type: "PDF", date: "Oct 20, 2023", size: "850 KB" },
+      { id: "M3", title: "Lab Safety Poster", type: "PNG", date: "Oct 20, 2023", size: "3.2 MB" },
     ]
   },
   {
     id: "MAT202",
     name: "Calculus II",
     instructor: "Prof. Sarah Smith",
+    instructorAvatar: "https://picsum.photos/seed/t2/100/100",
     schedule: "Tue, Thu 11:30 AM",
     progress: 45,
     color: "bg-purple-500",
     materials: [
       { id: "M4", title: "Integration by Parts", type: "PDF", date: "Oct 10, 2023", size: "3.1 MB" },
-      { id: "M5", title: "Trigonometric Substitution", type: "PDF", date: "Oct 18, 2023", size: "2.8 MB" },
+      { id: "M5", title: "Reading List", type: "TXT", date: "Oct 18, 2023", size: "12 KB" },
     ]
   },
   {
     id: "LIT105",
     name: "English Literature",
     instructor: "Ms. Bennet",
+    instructorAvatar: "https://picsum.photos/seed/t3/100/100",
     schedule: "Fri 10:00 AM",
     progress: 90,
     color: "bg-emerald-500",
@@ -68,6 +86,18 @@ export default function MySubjectsPage() {
       description: `${subjectName} ${language === 'en' ? 'has been added to your optional courses.' : 'a été ajoutée à vos cours facultatifs.'}`,
     });
     setIsAddingSubject(false);
+  };
+
+  const getFileIcon = (type: string) => {
+    switch (type.toUpperCase()) {
+      case 'PDF': return <FileText className="w-5 h-5 text-red-500" />;
+      case 'DOCX': 
+      case 'DOC': return <FileEdit className="w-5 h-5 text-blue-500" />;
+      case 'PNG':
+      case 'JPG': return <FileImage className="w-5 h-5 text-purple-500" />;
+      case 'TXT': return <FileCode className="w-5 h-5 text-gray-500" />;
+      default: return <FileText className="w-5 h-5 text-primary" />;
+    }
   };
 
   return (
@@ -162,49 +192,71 @@ export default function MySubjectsPage() {
 
       {/* Materials Dialog */}
       <Dialog open={!!selectedSubject} onOpenChange={() => setSelectedSubject(null)}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-primary" />
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader className="pb-4 border-b">
+            <DialogTitle className="flex items-center gap-2 text-primary text-xl">
+              <BookOpen className="w-6 h-6" />
               {t("materials")} - {selectedSubject?.name}
             </DialogTitle>
             <DialogDescription>
               {language === 'en' 
-                ? `Access resources shared by ${selectedSubject?.instructor}.` 
-                : `Accédez aux ressources partagées par ${selectedSubject?.instructor}.`}
+                ? `Academic resources and learning materials for ${selectedSubject?.id}.` 
+                : `Ressources académiques et supports de cours pour ${selectedSubject?.id}.`}
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4 mt-4">
+          <div className="flex-1 overflow-y-auto py-4 space-y-6">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input placeholder={language === 'en' ? "Search materials..." : "Chercher supports..."} className="pl-10" />
+              <Input placeholder={language === 'en' ? "Search in materials..." : "Chercher dans les supports..."} className="pl-10" />
             </div>
 
-            <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
+            <div className="space-y-3">
               {selectedSubject?.materials.map((file: any) => (
-                <div key={file.id} className="flex items-center justify-between p-4 rounded-xl border border-accent hover:bg-accent/20 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                      <FileType className="w-5 h-5" />
+                <div key={file.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl border border-accent bg-white hover:shadow-md transition-all gap-4">
+                  <div className="flex items-start gap-3">
+                    <div className="p-3 bg-accent/50 rounded-xl">
+                      {getFileIcon(file.type)}
                     </div>
                     <div>
-                      <p className="font-bold text-sm">{file.title}</p>
-                      <p className="text-[10px] text-muted-foreground uppercase">{file.type} • {file.size} • {file.date}</p>
+                      <p className="font-bold text-sm leading-none mb-1">{file.title}</p>
+                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                        <span>{file.type}</span>
+                        <span>•</span>
+                        <span>{file.size}</span>
+                        <span>•</span>
+                        <span>{file.date}</span>
+                      </div>
+                      
+                      {/* Teacher Attribution */}
+                      <div className="flex items-center gap-2 mt-2">
+                        <div className="w-5 h-5 rounded-full overflow-hidden border">
+                          <img src={selectedSubject.instructorAvatar} alt={selectedSubject.instructor} className="w-full h-full object-cover" />
+                        </div>
+                        <span className="text-[10px] font-medium text-primary/70">{selectedSubject.instructor}</span>
+                      </div>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" className="hover:text-primary">
-                    <Download className="w-4 h-4" />
-                  </Button>
+                  
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <Button variant="outline" size="sm" className="flex-1 sm:flex-none h-8 gap-1.5 text-xs">
+                      <Eye className="w-3.5 h-3.5" />
+                      {language === 'en' ? 'View' : 'Voir'}
+                    </Button>
+                    <Button size="sm" className="flex-1 sm:flex-none h-8 gap-1.5 text-xs shadow-sm">
+                      <Download className="w-3.5 h-3.5" />
+                      {language === 'en' ? 'Download' : 'Télécharger'}
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
 
-          <CardFooter className="px-0 pt-4 flex justify-between items-center text-xs text-muted-foreground italic border-t mt-4">
-            <span>{selectedSubject?.materials.length} {language === 'en' ? 'files found' : 'fichiers trouvés'}</span>
-            <Button variant="link" size="sm" onClick={() => setSelectedSubject(null)}>{t("cancel")}</Button>
-          </CardFooter>
+          <div className="pt-4 border-t flex justify-between items-center text-xs text-muted-foreground italic">
+            <span>{selectedSubject?.materials.length} {language === 'en' ? 'resources shared' : 'ressources partagées'}</span>
+            <Button variant="ghost" size="sm" onClick={() => setSelectedSubject(null)} className="h-7 text-xs">{t("cancel")}</Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
