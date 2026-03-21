@@ -31,6 +31,49 @@
       },
       "required": ["id", "role", "name", "email"]
     },
+    "Exam": {
+      "title": "Exam",
+      "description": "An online MCQ exam created by a teacher.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "schoolId": { "type": "string" },
+        "subject": { "type": "string" },
+        "title": { "type": "string" },
+        "startTime": { "type": "string", "format": "date-time" },
+        "durationMinutes": { "type": "number" },
+        "passingScore": { "type": "number" },
+        "questions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "questionText": { "type": "string" },
+              "options": { "type": "array", "items": { "type": "string" } },
+              "correctOptionIndex": { "type": "number" }
+            }
+          }
+        }
+      },
+      "required": ["id", "teacherId", "title", "subject", "questions"]
+    },
+    "ExamSubmission": {
+      "title": "ExamSubmission",
+      "description": "A student's attempt at an exam.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "examId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "answers": { "type": "array", "items": { "type": "number" } },
+        "score": { "type": "number" },
+        "totalQuestions": { "type": "number" },
+        "passed": { "type": "boolean" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "examId", "studentId", "score"]
+    },
     "Conversation": {
       "title": "Conversation",
       "description": "A chat conversation between two or more participants.",
@@ -56,33 +99,6 @@
         "timestamp": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "conversationId", "senderId", "text", "timestamp"]
-    },
-    "Feedback": {
-      "title": "Feedback",
-      "description": "Feedback sent from a school to the SaaS Super Admin.",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "schoolId": { "type": "string" },
-        "senderId": { "type": "string" },
-        "subject": { "type": "string" },
-        "message": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "schoolId", "senderId", "message"]
-    },
-    "Announcement": {
-      "title": "Announcement",
-      "description": "Announcements sent by Super Admin to schools.",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "title": { "type": "string" },
-        "content": { "type": "string" },
-        "targetSchoolId": { "type": "string", "description": "Specific school ID or 'all'." },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "title", "content", "targetSchoolId"]
     }
   },
   "auth": {
@@ -91,23 +107,19 @@
   "firestore": {
     "/schools/{schoolId}": {
       "schema": { "$ref": "#/entities/School" },
-      "description": "School details and configuration."
+      "description": "School details."
     },
-    "/schools/{schoolId}/feedbacks/{feedbackId}": {
-      "schema": { "$ref": "#/entities/Feedback" },
-      "description": "Feedbacks from schools to Super Admin."
+    "/exams/{examId}": {
+      "schema": { "$ref": "#/entities/Exam" },
+      "description": "Exam definitions."
     },
-    "/announcements/{announcementId}": {
-      "schema": { "$ref": "#/entities/Announcement" },
-      "description": "Global or targeted announcements."
+    "/exams/{examId}/submissions/{submissionId}": {
+      "schema": { "$ref": "#/entities/ExamSubmission" },
+      "description": "Student exam submissions."
     },
     "/conversations/{conversationId}": {
       "schema": { "$ref": "#/entities/Conversation" },
       "description": "Chat conversations."
-    },
-    "/conversations/{conversationId}/messages/{messageId}": {
-      "schema": { "$ref": "#/entities/Message" },
-      "description": "Individual chat messages."
     }
   }
 }

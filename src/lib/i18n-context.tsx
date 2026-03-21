@@ -75,6 +75,19 @@ const translations: TranslationDict = {
   viewMaterials: { en: "View Materials", fr: "Voir les Supports" },
   materials: { en: "Course Materials", fr: "Supports de Cours" },
   availableSubjects: { en: "Available Optional Subjects", fr: "Matières Facultatives Disponibles" },
+  exams: { en: "Online Exams", fr: "Examens en Ligne" },
+  takeExam: { en: "Take Exam", fr: "Passer l'Examen" },
+  createExam: { en: "Create Exam", fr: "Créer un Examen" },
+  examResults: { en: "Exam Results", fr: "Résultats d'Examen" },
+  certificate: { en: "Certificate", fr: "Certificat" },
+  score: { en: "Score", fr: "Score" },
+  duration: { en: "Duration", fr: "Durée" },
+  startTime: { en: "Start Time", fr: "Heure de Début" },
+  minutes: { en: "Minutes", fr: "Minutes" },
+  questions: { en: "Questions", fr: "Questions" },
+  submitExam: { en: "Submit Exam", fr: "Soumettre l'Examen" },
+  passed: { en: "Passed", fr: "Réussi" },
+  failed: { en: "Failed", fr: "Échoué" },
 };
 
 interface I18nContextType {
