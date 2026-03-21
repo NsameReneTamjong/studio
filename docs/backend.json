@@ -10,6 +10,9 @@
         "name": { "type": "string" },
         "domain": { "type": "string" },
         "status": { "type": "string", "enum": ["active", "suspended"] },
+        "address": { "type": "string" },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "name"]
@@ -28,28 +31,32 @@
       },
       "required": ["id", "role", "name", "email"]
     },
-    "Course": {
-      "title": "Course",
-      "description": "A subject or class offered by a school.",
+    "Feedback": {
+      "title": "Feedback",
+      "description": "Feedback sent from a school to the SaaS Super Admin.",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
         "schoolId": { "type": "string" },
-        "name": { "type": "string" },
-        "instructorId": { "type": "string" }
+        "senderId": { "type": "string" },
+        "subject": { "type": "string" },
+        "message": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "schoolId", "name"]
+      "required": ["id", "schoolId", "senderId", "message"]
     },
-    "StudentParentLink": {
-      "title": "Student Parent Link",
-      "description": "Connects a parent user to their child (student user).",
+    "Announcement": {
+      "title": "Announcement",
+      "description": "Announcements sent by Super Admin to schools.",
       "type": "object",
       "properties": {
-        "parentId": { "type": "string" },
-        "studentId": { "type": "string" },
-        "schoolId": { "type": "string" }
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "targetSchoolId": { "type": "string", "description": "Specific school ID or 'all'." },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["parentId", "studentId", "schoolId"]
+      "required": ["id", "title", "content", "targetSchoolId"]
     }
   },
   "auth": {
@@ -60,17 +67,13 @@
       "schema": { "$ref": "#/entities/School" },
       "description": "School details and configuration."
     },
-    "/schools/{schoolId}/users/{userId}": {
-      "schema": { "$ref": "#/entities/User" },
-      "description": "User profiles belonging to a specific school."
+    "/schools/{schoolId}/feedbacks/{feedbackId}": {
+      "schema": { "$ref": "#/entities/Feedback" },
+      "description": "Feedbacks from schools to Super Admin."
     },
-    "/schools/{schoolId}/courses/{courseId}": {
-      "schema": { "$ref": "#/entities/Course" },
-      "description": "Courses managed by the school."
-    },
-    "/schools/{schoolId}/parentLinks/{linkId}": {
-      "schema": { "$ref": "#/entities/StudentParentLink" },
-      "description": "Relationship records between parents and students."
+    "/announcements/{announcementId}": {
+      "schema": { "$ref": "#/entities/Announcement" },
+      "description": "Global or targeted announcements."
     }
   }
 }

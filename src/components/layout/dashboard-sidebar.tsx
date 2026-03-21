@@ -19,7 +19,9 @@ import {
   Sparkles,
   Heart,
   Globe,
-  Languages
+  Languages,
+  MessageSquare,
+  Megaphone
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,6 +48,18 @@ export function DashboardSidebar() {
       icon: Globe,
       href: "/dashboard/schools",
       roles: ["SUPER_ADMIN"],
+    },
+    {
+      label: t("feedback"),
+      icon: MessageSquare,
+      href: "/dashboard/feedback",
+      roles: ["SUPER_ADMIN", "SCHOOL_ADMIN"],
+    },
+    {
+      label: t("announcements"),
+      icon: Megaphone,
+      href: "/dashboard/announcements",
+      roles: ["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER", "STUDENT", "PARENT"],
     },
     {
       label: t("overview"),
@@ -81,13 +95,13 @@ export function DashboardSidebar() {
       label: t("grades"),
       icon: Award,
       href: "/dashboard/grades",
-      roles: ["TEACHER", "STUDENT"], // Parents view grades through the Child View
+      roles: ["TEACHER", "STUDENT"],
     },
     {
       label: t("attendance"),
       icon: ClipboardCheck,
       href: "/dashboard/attendance",
-      roles: ["TEACHER", "STUDENT"], // Parents view attendance through the Child View
+      roles: ["TEACHER", "STUDENT"],
     },
     {
       label: t("aiFeedback"),
@@ -99,7 +113,7 @@ export function DashboardSidebar() {
       label: t("schedule"),
       icon: Calendar,
       href: "/dashboard/schedule",
-      roles: ["TEACHER", "STUDENT"], // Parents view schedule through the Child View
+      roles: ["TEACHER", "STUDENT"],
     },
   ];
 

@@ -22,6 +22,8 @@ const translations: TranslationDict = {
   aiFeedback: { en: "AI Feedback", fr: "Feedback IA" },
   schedule: { en: "Schedule", fr: "Emploi du temps" },
   schools: { en: "Schools", fr: "Écoles" },
+  feedback: { en: "Feedback", fr: "Feedback" },
+  announcements: { en: "Announcements", fr: "Annonces" },
   logout: { en: "Logout", fr: "Déconnexion" },
   welcome: { en: "Welcome back", fr: "Bon retour" },
   myChildren: { en: "My Children", fr: "Mes Enfants" },
@@ -34,6 +36,10 @@ const translations: TranslationDict = {
   email: { en: "Email Address", fr: "Adresse Email" },
   password: { en: "Password", fr: "Mot de passe" },
   signIn: { en: "Sign In", fr: "Se Connecter" },
+  addSchool: { en: "Add School", fr: "Ajouter une École" },
+  viewMap: { en: "View Map", fr: "Voir la Carte" },
+  sendAnnouncement: { en: "Send Announcement", fr: "Envoyer une Annonce" },
+  allSchools: { en: "All Schools", fr: "Toutes les Écoles" },
 };
 
 interface I18nContextType {
@@ -45,7 +51,7 @@ interface I18nContextType {
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
 export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>("fr"); // Default to French as it's common in CM
+  const [language, setLanguage] = useState<Language>("fr");
 
   useEffect(() => {
     const savedLang = localStorage.getItem("edu-nexus-lang") as Language;
