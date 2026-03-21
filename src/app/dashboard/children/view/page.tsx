@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -23,9 +23,12 @@ import {
   Receipt,
   Download,
   Building2,
-  CalendarDays
+  Eye,
+  CheckCircle2,
+  Printer
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -104,6 +107,9 @@ export default function ChildViewPage() {
   const { t, language } = useI18n();
   const studentId = searchParams.get("id");
   const [child, setChild] = useState<any>(null);
+  
+  // Preview States
+  const [previewDoc, setPreviewDoc] = useState<{ type: 'report' | 'receipt' | 'id', data?: any } | null>(null);
 
   useEffect(() => {
     if (studentId && CHILDREN_DATA[studentId]) {
@@ -308,8 +314,8 @@ export default function ChildViewPage() {
                     <CardTitle className="text-base">{t("reportCard")} - Sequence 1 & 2</CardTitle>
                     <CardDescription>{t("academicYear")} 2023/2024</CardDescription>
                   </div>
-                  <Button variant="outline" size="icon" onClick={() => handleDownload("Report Card")}>
-                    <Download className="w-4 h-4" />
+                  <Button variant="outline" size="sm" onClick={() => setPreviewDoc({ type: 'report' })} className="gap-2">
+                    <Eye className="w-4 h-4" /> {language === 'en' ? 'View' : 'Voir'}
                   </Button>
                 </CardHeader>
               </Card>
@@ -332,8 +338,8 @@ export default function ChildViewPage() {
                       </div>
                       <div className="flex items-center gap-4">
                         <span className="font-bold text-primary">{receipt.amount}</span>
-                        <Button variant="ghost" size="icon" onClick={() => handleDownload(`Receipt ${receipt.id}`)}>
-                          <Download className="w-4 h-4" />
+                        <Button variant="ghost" size="sm" onClick={() => setPreviewDoc({ type: 'receipt', data: receipt })} className="gap-2">
+                          <Eye className="w-4 h-4" /> {language === 'en' ? 'View' : 'Voir'}
                         </Button>
                       </div>
                     </CardContent>
@@ -376,32 +382,193 @@ export default function ChildViewPage() {
                         </div>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 pt-2">
-                      <div>
-                        <p className="text-[10px] text-white/50 uppercase font-bold">{language === "en" ? "Class" : "Classe"}</p>
-                        <p className="text-sm font-bold">{child.grade}</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-white/50 uppercase font-bold">{language === "en" ? "Expires" : "Expire"}</p>
-                        <p className="text-sm font-bold">Aug 2024</p>
-                      </div>
-                    </div>
                   </CardContent>
                   <CardFooter className="bg-white/5 py-3 flex justify-between items-center text-[10px]">
                     <span className="flex items-center gap-1 opacity-60"><MapPin className="w-3 h-3" /> {child.schoolAddress}</span>
-                    <Badge variant="secondary" className="bg-secondary text-primary border-none text-[8px] h-4">VALID 2023-24</Badge>
+                    <Button variant="ghost" size="sm" onClick={() => setPreviewDoc({ type: 'id' })} className="text-white hover:bg-white/10 h-7 text-[10px] gap-1">
+                      <Eye className="w-3 h-3" /> {language === 'en' ? 'Full Preview' : 'Aperçu'}
+                    </Button>
                   </CardFooter>
                 </Card>
-              </div>
-              <div className="flex justify-center">
-                <Button className="w-full max-w-sm gap-2" onClick={() => handleDownload("Student ID Card")}>
-                  <Download className="w-4 h-4" /> {t("download")} {t("idCard")}
-                </Button>
               </div>
             </div>
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Document Preview Dialog */}
+      <Dialog open={!!previewDoc} onOpenChange={() => setPreviewDoc(null)}>
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="w-5 h-5 text-primary" />
+              {previewDoc?.type === 'report' ? t("reportCard") : 
+               previewDoc?.type === 'receipt' ? t("receipt") : t("idCard")}
+            </DialogTitle>
+            <DialogDescription>
+              {language === 'en' ? 'Official document preview. Review before downloading.' : 'Aperçu du document officiel. Examinez avant de télécharger.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="bg-muted p-4 md:p-8 rounded-lg">
+            {/* REPORT CARD PREVIEW */}
+            {previewDoc?.type === 'report' && (
+              <div className="bg-white p-8 shadow-sm border border-border min-h-[500px] flex flex-col space-y-6">
+                 <div className="flex justify-between items-start border-b-2 border-primary pb-4">
+                    <div className="space-y-1">
+                      <h2 className="text-xl font-bold text-primary">{child.schoolName}</h2>
+                      <p className="text-[10px] text-muted-foreground uppercase">{child.schoolAddress}</p>
+                    </div>
+                    <Badge variant="outline" className="text-primary border-primary">Academic Year 2023/24</Badge>
+                 </div>
+                 
+                 <div className="grid grid-cols-2 gap-8 py-4 bg-accent/10 p-4 rounded-lg">
+                    <div>
+                      <p className="text-[10px] uppercase text-muted-foreground font-bold">Student</p>
+                      <p className="font-bold">{child.name}</p>
+                      <p className="text-xs">{child.grade} Grade</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] uppercase text-muted-foreground font-bold">Matricule</p>
+                      <p className="font-mono font-bold">{child.id}</p>
+                    </div>
+                 </div>
+
+                 <Table className="border">
+                    <TableHeader className="bg-muted/50">
+                      <TableRow>
+                        <TableHead className="text-[10px] uppercase">Subject</TableHead>
+                        <TableHead className="text-center text-[10px] uppercase">Coeff</TableHead>
+                        <TableHead className="text-center text-[10px] uppercase">Moy/20</TableHead>
+                        <TableHead className="text-right text-[10px] uppercase">Appreciation</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {child.grades.map((g: any, i: number) => (
+                        <TableRow key={i}>
+                          <TableCell className="font-bold py-2">{g.name}</TableCell>
+                          <TableCell className="text-center py-2">{g.coeff}</TableCell>
+                          <TableCell className="text-center py-2 font-bold">{g.moy}</TableCell>
+                          <TableCell className="text-right py-2 text-xs italic">{getAppreciation(g.moy).text}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                 </Table>
+
+                 <div className="mt-auto pt-8 flex justify-between items-end border-t border-dashed">
+                    <div className="space-y-1">
+                      <p className="text-[10px] uppercase font-bold text-muted-foreground underline">Parent's Signature</p>
+                      <div className="h-12 w-32 border-b border-black/20" />
+                    </div>
+                    <div className="text-center space-y-1">
+                      <p className="text-sm font-bold">Moyenne Générale: {child.stats.average.toFixed(2)}/20</p>
+                      <p className="text-[10px] uppercase text-muted-foreground">The Principal</p>
+                      <div className="w-16 h-16 mx-auto opacity-20 bg-primary rounded-full flex items-center justify-center">
+                         <CheckCircle2 className="w-8 h-8" />
+                      </div>
+                    </div>
+                 </div>
+              </div>
+            )}
+
+            {/* RECEIPT PREVIEW */}
+            {previewDoc?.type === 'receipt' && (
+              <div className="bg-white p-8 shadow-sm border border-border flex flex-col space-y-4 max-w-md mx-auto">
+                 <div className="text-center border-b pb-4">
+                    <Building2 className="w-8 h-8 mx-auto text-primary mb-2" />
+                    <h2 className="font-bold text-lg uppercase tracking-wider">{child.schoolName}</h2>
+                    <p className="text-[10px] text-muted-foreground">OFFICIAL PAYMENT RECEIPT</p>
+                 </div>
+                 <div className="space-y-3 py-4">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Receipt No:</span>
+                      <span className="font-mono font-bold">{previewDoc.data?.id}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Date:</span>
+                      <span className="font-bold">{previewDoc.data?.date}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Payee:</span>
+                      <span className="font-bold">{child.name}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Description:</span>
+                      <span className="font-bold">{previewDoc.data?.title}</span>
+                    </div>
+                    <div className="mt-4 pt-4 border-t-2 border-primary flex justify-between items-center">
+                      <span className="text-lg font-bold">TOTAL PAID:</span>
+                      <span className="text-xl font-black text-primary">{previewDoc.data?.amount}</span>
+                    </div>
+                 </div>
+                 <div className="text-center py-4 relative">
+                    <div className="border-4 border-green-600/30 text-green-600 font-black text-3xl p-2 rounded inline-block rotate-[-12deg] opacity-50 absolute right-0 bottom-0">
+                       PAID
+                    </div>
+                    <p className="text-[10px] italic text-muted-foreground">This is a system generated document.</p>
+                 </div>
+              </div>
+            )}
+
+            {/* ID CARD PREVIEW (ENLARGED) */}
+            {previewDoc?.type === 'id' && (
+              <div className="flex justify-center p-8">
+                <Card className="w-full max-w-md border shadow-xl bg-gradient-to-br from-primary to-primary/90 text-white overflow-hidden relative">
+                  <CardHeader className="border-b border-white/10 pb-4">
+                    <div className="flex items-center gap-3">
+                      <Building2 className="w-8 h-8 text-secondary" />
+                      <div>
+                        <CardTitle className="text-lg font-bold tracking-tight">{child.schoolName}</CardTitle>
+                        <CardDescription className="text-white/60 text-xs uppercase font-bold tracking-widest">{t("idCard")}</CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-8 pb-8 space-y-6">
+                    <div className="flex gap-8">
+                      <div className="w-32 h-32 rounded-xl overflow-hidden border-4 border-white/20 shadow-2xl shrink-0">
+                        <img src={child.avatar} alt={child.name} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="space-y-4 flex-1">
+                        <div>
+                          <p className="text-[10px] text-white/50 uppercase font-bold">{language === "en" ? "Student Name" : "Nom de l'Élève"}</p>
+                          <p className="font-bold text-xl leading-none">{child.name}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-white/50 uppercase font-bold">Matricule</p>
+                          <p className="font-mono font-bold text-2xl text-secondary">{child.id}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 pt-4">
+                      <div>
+                        <p className="text-[10px] text-white/50 uppercase font-bold">{language === "en" ? "Class" : "Classe"}</p>
+                        <p className="text-lg font-bold">{child.grade}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-white/50 uppercase font-bold">{language === "en" ? "Expiry" : "Expiration"}</p>
+                        <p className="text-lg font-bold">Aug 2024</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="bg-white/5 py-4 flex justify-between items-center">
+                    <span className="flex items-center gap-1 opacity-60 text-xs"><MapPin className="w-4 h-4" /> {child.schoolAddress}</span>
+                    <Badge variant="secondary" className="bg-secondary text-primary border-none text-[10px] h-6 px-4">VALID 2023-24</Badge>
+                  </CardFooter>
+                </Card>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setPreviewDoc(null)} className="gap-2">
+              <Printer className="w-4 h-4" /> {language === 'en' ? 'Print' : 'Imprimer'}
+            </Button>
+            <Button onClick={() => { handleDownload(previewDoc?.type === 'report' ? 'Report Card' : 'Document'); setPreviewDoc(null); }} className="gap-2">
+              <Download className="w-4 h-4" /> {t("download")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
