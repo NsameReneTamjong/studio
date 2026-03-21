@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -5,18 +6,9 @@ import { useAuth } from "@/lib/auth-context";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Search, MoreHorizontal, Filter, Eye, User, FileDown, FileType } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Plus, Search, Filter, User, FileDown, FileType } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 
 const MOCK_STUDENTS = [
@@ -84,7 +76,6 @@ export default function StudentsPage() {
                   <TableHead className="font-bold uppercase text-[10px] tracking-wider">Student Profile</TableHead>
                   <TableHead className="font-bold uppercase text-[10px] tracking-wider">Gender</TableHead>
                   <TableHead className="font-bold uppercase text-[10px] tracking-wider">Date of Birth</TableHead>
-                  <TableHead className="text-right font-bold uppercase text-[10px] tracking-wider">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -107,33 +98,6 @@ export default function StudentsPage() {
                     </TableCell>
                     <TableCell className="text-sm font-medium">{student.gender}</TableCell>
                     <TableCell className="text-sm font-medium">{student.dob}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button variant="outline" size="sm" className="h-8 gap-1.5 text-[10px] font-black uppercase tracking-tighter" asChild>
-                          <Link href={`/dashboard/children/view?id=${student.id}`}>
-                            <Eye className="w-3.5 h-3.5" />
-                            Details
-                          </Link>
-                        </Button>
-                        
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreHorizontal className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel className="text-[10px] uppercase font-bold text-muted-foreground">Options</DropdownMenuLabel>
-                            <DropdownMenuItem asChild>
-                              <Link href={`/dashboard/children/view?id=${student.id}`}>View Full File</Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>Update Record</DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive">Archive</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -162,11 +126,6 @@ export default function StudentsPage() {
             
             <div className="flex items-center gap-4 text-xs text-muted-foreground font-medium">
               <span>Showing {filtered.length} students</span>
-              <div className="flex gap-1">
-                <Button variant="outline" size="icon" className="h-8 w-8" disabled>
-                  <MoreHorizontal className="w-3 h-3 rotate-90" />
-                </Button>
-              </div>
             </div>
           </div>
         </CardContent>
