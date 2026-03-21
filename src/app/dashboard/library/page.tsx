@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
   Library, 
   Search, 
@@ -36,11 +37,15 @@ import {
   Users,
   Plus,
   Pencil,
-  Trash2
+  Trash2,
+  Eye,
+  FileText,
+  FileDown
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 // Mock Data for Books
 const INITIAL_BOOKS = [
@@ -62,6 +67,13 @@ const MOCK_LOANS = [
     status: "Active",
     collectionCode: "IGN-882-X"
   }
+];
+
+const MOCK_MEMBERS = [
+  { id: "S001", name: "Alice Thompson", role: "STUDENT", avatar: "https://picsum.photos/seed/s1/100/100", borrowed: 2, overdue: 0, returned: 12 },
+  { id: "S002", name: "Bob Richards", role: "STUDENT", avatar: "https://picsum.photos/seed/s2/100/100", borrowed: 1, overdue: 1, returned: 8 },
+  { id: "T001", name: "Dr. Aris Tesla", role: "TEACHER", avatar: "https://picsum.photos/seed/t1/100/100", borrowed: 3, overdue: 0, returned: 24 },
+  { id: "S004", name: "Diana Prince", role: "STUDENT", avatar: "https://picsum.photos/seed/s4/100/100", borrowed: 0, overdue: 0, returned: 15 },
 ];
 
 export default function LibraryPage() {
@@ -87,6 +99,9 @@ export default function LibraryPage() {
     total: "1",
     description: ""
   });
+
+  // Member View State
+  const [viewingMember, setViewingMember] = useState<any>(null);
 
   // Librarian Settings State
   const [librarySettings, setLibrarySettings] = useState({
@@ -230,7 +245,7 @@ export default function LibraryPage() {
       <Tabs defaultValue="catalog" className="w-full">
         <TabsList className={cn(
           "grid w-full bg-white shadow-sm border h-auto p-1 rounded-2xl",
-          isLibrarian ? "grid-cols-3 md:w-[600px]" : "grid-cols-2 md:w-[400px]"
+          isLibrarian ? "grid-cols-4 md:w-[800px]" : "grid-cols-2 md:w-[400px]"
         )}>
           <TabsTrigger value="catalog" className="gap-2 py-3 rounded-xl transition-all">
             <Book className="w-4 h-4" /> {language === 'en' ? 'Catalog' : 'Catalogue'}
@@ -245,9 +260,14 @@ export default function LibraryPage() {
             )}
           </TabsTrigger>
           {isLibrarian && (
-            <TabsTrigger value="settings" className="gap-2 py-3 rounded-xl transition-all">
-              <Settings2 className="w-4 h-4" /> {language === 'en' ? 'Settings' : 'Paramètres'}
-            </TabsTrigger>
+            <>
+              <TabsTrigger value="members" className="gap-2 py-3 rounded-xl transition-all">
+                <Users className="w-4 h-4" /> {language === 'en' ? 'Members' : 'Membres'}
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="gap-2 py-3 rounded-xl transition-all">
+                <Settings2 className="w-4 h-4" /> {language === 'en' ? 'Settings' : 'Paramètres'}
+              </TabsTrigger>
+            </>
           )}
         </TabsList>
 
@@ -412,122 +432,208 @@ export default function LibraryPage() {
         </TabsContent>
 
         {isLibrarian && (
-          <TabsContent value="settings" className="mt-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              <div className="lg:col-span-7 space-y-6">
-                <Card className="border-none shadow-xl rounded-3xl overflow-hidden bg-white">
-                  <CardHeader className="bg-primary text-white p-8">
-                    <CardTitle className="text-2xl font-black tracking-tight">Library Policy Configuration</CardTitle>
-                    <CardDescription className="text-white/60">Define global rules for book circulation and institutional fines.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-8 space-y-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div className="space-y-2">
-                        <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Standard Loan Duration (Days)</Label>
-                        <div className="relative">
-                          <Input 
-                            type="number" 
-                            className="h-12 bg-accent/30 border-none rounded-xl pl-12 text-lg font-bold"
-                            value={librarySettings.loanDuration}
-                            onChange={(e) => setLibrarySettings({...librarySettings, loanDuration: e.target.value})}
-                          />
-                          <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary opacity-40" />
+          <>
+            <TabsContent value="members" className="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <Card className="border-none shadow-sm overflow-hidden">
+                <CardHeader className="bg-white border-b flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <CardTitle>Library Active Members</CardTitle>
+                    <CardDescription>Track institutional users currently using library services.</CardDescription>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="gap-2"><Download className="w-4 h-4" /> Export Ledger</Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0 overflow-x-auto">
+                  <Table>
+                    <TableHeader className="bg-accent/30">
+                      <TableRow className="uppercase text-[10px] font-black tracking-widest">
+                        <TableHead className="pl-6 py-4">User Profile</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead>Matricule</TableHead>
+                        <TableHead className="text-center">Borrowed</TableHead>
+                        <TableHead className="text-center">Overdue</TableHead>
+                        <TableHead className="text-center">Returned</TableHead>
+                        <TableHead className="text-right pr-6">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {MOCK_MEMBERS.map((member) => (
+                        <TableRow key={member.id} className="hover:bg-accent/5">
+                          <TableCell className="pl-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent">
+                                <AvatarImage src={member.avatar} alt={member.name} />
+                                <AvatarFallback><User className="w-4 h-4" /></AvatarFallback>
+                              </Avatar>
+                              <span className="font-bold text-sm text-primary">{member.name}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-tighter">
+                              {member.role}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="font-mono text-xs font-bold text-muted-foreground">{member.id}</TableCell>
+                          <TableCell className="text-center">
+                            <Badge className="bg-blue-100 text-blue-700 border-none font-bold">{member.borrowed}</Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge className={cn(
+                              "font-bold border-none",
+                              member.overdue > 0 ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-400"
+                            )}>
+                              {member.overdue}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge className="bg-green-100 text-green-700 border-none font-bold">{member.returned}</Badge>
+                          </TableCell>
+                          <TableCell className="text-right pr-6">
+                            <div className="flex justify-end gap-2">
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 text-primary hover:bg-primary/10"
+                                onClick={() => setViewingMember(member)}
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 text-secondary hover:bg-secondary/10"
+                                onClick={() => toast({ title: "Generating Report", description: `Library statement for ${member.name} is being prepared.` })}
+                              >
+                                <FileDown className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="settings" className="mt-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div className="lg:col-span-7 space-y-6">
+                  <Card className="border-none shadow-xl rounded-3xl overflow-hidden bg-white">
+                    <CardHeader className="bg-primary text-white p-8">
+                      <CardTitle className="text-2xl font-black tracking-tight">Library Policy Configuration</CardTitle>
+                      <CardDescription className="text-white/60">Define global rules for book circulation and institutional fines.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-8 space-y-8">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-2">
+                          <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Standard Loan Duration (Days)</Label>
+                          <div className="relative">
+                            <Input 
+                              type="number" 
+                              className="h-12 bg-accent/30 border-none rounded-xl pl-12 text-lg font-bold"
+                              value={librarySettings.loanDuration}
+                              onChange={(e) => setLibrarySettings({...librarySettings, loanDuration: e.target.value})}
+                            />
+                            <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary opacity-40" />
+                          </div>
+                          <p className="text-[10px] text-muted-foreground">Default time allowed before a book is marked as overdue.</p>
                         </div>
-                        <p className="text-[10px] text-muted-foreground">Default time allowed before a book is marked as overdue.</p>
-                      </div>
 
-                      <div className="space-y-2">
-                        <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Overdue Fine Rate (XAF/Day)</Label>
-                        <div className="relative">
-                          <Input 
-                            type="number" 
-                            className="h-12 bg-accent/30 border-none rounded-xl pl-12 text-lg font-bold text-red-600"
-                            value={librarySettings.overdueFine}
-                            onChange={(e) => setLibrarySettings({...librarySettings, overdueFine: e.target.value})}
-                          />
-                          <Coins className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-red-600 opacity-40" />
+                        <div className="space-y-2">
+                          <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Overdue Fine Rate (XAF/Day)</Label>
+                          <div className="relative">
+                            <Input 
+                              type="number" 
+                              className="h-12 bg-accent/30 border-none rounded-xl pl-12 text-lg font-bold text-red-600"
+                              value={librarySettings.overdueFine}
+                              onChange={(e) => setLibrarySettings({...librarySettings, overdueFine: e.target.value})}
+                            />
+                            <Coins className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-red-600 opacity-40" />
+                          </div>
+                          <p className="text-[10px] text-muted-foreground">Penalty charged daily for each day past the return date.</p>
                         </div>
-                        <p className="text-[10px] text-muted-foreground">Penalty charged daily for each day past the return date.</p>
-                      </div>
 
-                      <div className="space-y-2">
-                        <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Max Books per Student</Label>
-                        <div className="relative">
-                          <Input 
-                            type="number" 
-                            className="h-12 bg-accent/30 border-none rounded-xl pl-12 text-lg font-bold"
-                            value={librarySettings.maxBooks}
-                            onChange={(e) => setLibrarySettings({...librarySettings, maxBooks: e.target.value})}
-                          />
-                          <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary opacity-40" />
+                        <div className="space-y-2">
+                          <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Max Books per Student</Label>
+                          <div className="relative">
+                            <Input 
+                              type="number" 
+                              className="h-12 bg-accent/30 border-none rounded-xl pl-12 text-lg font-bold"
+                              value={librarySettings.maxBooks}
+                              onChange={(e) => setLibrarySettings({...librarySettings, maxBooks: e.target.value})}
+                            />
+                            <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary opacity-40" />
+                          </div>
+                          <p className="text-[10px] text-muted-foreground">Limit the number of active loans per user ID.</p>
                         </div>
-                        <p className="text-[10px] text-muted-foreground">Limit the number of active loans per user ID.</p>
-                      </div>
 
-                      <div className="space-y-2">
-                        <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Hold Buffer (Hours)</Label>
-                        <div className="relative">
-                          <Input 
-                            type="number" 
-                            className="h-12 bg-accent/30 border-none rounded-xl pl-12 text-lg font-bold"
-                            value={librarySettings.reservationBuffer}
-                            onChange={(e) => setLibrarySettings({...librarySettings, reservationBuffer: e.target.value})}
-                          />
-                          <Bookmark className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary opacity-40" />
+                        <div className="space-y-2">
+                          <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Hold Buffer (Hours)</Label>
+                          <div className="relative">
+                            <Input 
+                              type="number" 
+                              className="h-12 bg-accent/30 border-none rounded-xl pl-12 text-lg font-bold"
+                              value={librarySettings.reservationBuffer}
+                              onChange={(e) => setLibrarySettings({...librarySettings, reservationBuffer: e.target.value})}
+                            />
+                            <Bookmark className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary opacity-40" />
+                          </div>
+                          <p className="text-[10px] text-muted-foreground">How long a reserved book is kept on the shelf.</p>
                         </div>
-                        <p className="text-[10px] text-muted-foreground">How long a reserved book is kept on the shelf.</p>
                       </div>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="p-8 pt-0 flex justify-end">
-                    <Button 
-                      onClick={handleSaveSettings} 
-                      disabled={isProcessing}
-                      className="h-12 px-8 rounded-xl shadow-xl font-black uppercase tracking-widest gap-2"
-                    >
-                      {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                      Update Library Policy
-                    </Button>
-                  </CardFooter>
-                </Card>
-              </div>
+                    </CardContent>
+                    <CardFooter className="p-8 pt-0 flex justify-end">
+                      <Button 
+                        onClick={handleSaveSettings} 
+                        disabled={isProcessing}
+                        className="h-12 px-8 rounded-xl shadow-xl font-black uppercase tracking-widest gap-2"
+                      >
+                        {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                        Update Library Policy
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                </div>
 
-              <div className="lg:col-span-5 space-y-6">
-                <Card className="border-none shadow-lg bg-secondary text-primary overflow-hidden">
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <ShieldCheck className="w-5 h-5" /> Enforcement Summary
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="bg-white/20 p-4 rounded-2xl space-y-3">
-                      <div className="flex justify-between items-center text-xs font-bold">
-                        <span className="uppercase tracking-widest opacity-70">Current Penalty Load</span>
-                        <span className="text-red-600">Active</span>
+                <div className="lg:col-span-5 space-y-6">
+                  <Card className="border-none shadow-lg bg-secondary text-primary overflow-hidden">
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <ShieldCheck className="w-5 h-5" /> Enforcement Summary
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="bg-white/20 p-4 rounded-2xl space-y-3">
+                        <div className="flex justify-between items-center text-xs font-bold">
+                          <span className="uppercase tracking-widest opacity-70">Current Penalty Load</span>
+                          <span className="text-red-600">Active</span>
+                        </div>
+                        <p className="text-2xl font-black tracking-tight">12,500 XAF</p>
+                        <p className="text-[10px] opacity-60">Total outstanding fines across all student accounts.</p>
                       </div>
-                      <p className="text-2xl font-black tracking-tight">12,500 XAF</p>
-                      <p className="text-[10px] opacity-60">Total outstanding fines across all student accounts.</p>
-                    </div>
-                    
-                    <div className="pt-2">
-                       <Button variant="ghost" className="w-full justify-between text-primary/70 hover:bg-white/10 h-10 px-4 rounded-xl">
-                          <span className="text-xs font-bold">Download Fine Reports</span>
-                          <Download className="w-4 h-4" />
-                       </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                      
+                      <div className="pt-2">
+                         <Button variant="ghost" className="w-full justify-between text-primary/70 hover:bg-white/10 h-10 px-4 rounded-xl">
+                            <span className="text-xs font-bold">Download Fine Reports</span>
+                            <Download className="w-4 h-4" />
+                         </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-                <div className="p-6 bg-amber-50 rounded-3xl border border-amber-100 flex gap-4">
-                   <AlertCircle className="w-6 h-6 text-amber-600 shrink-0" />
-                   <div className="space-y-1">
-                      <h4 className="font-bold text-amber-900 text-sm">Policy Governance</h4>
-                      <p className="text-[11px] text-amber-800 leading-relaxed">Changes to these settings affect future loans immediately. Students with existing overdue books will be notified of any changes to the fine rate via the dashboard alert system.</p>
-                   </div>
+                  <div className="p-6 bg-amber-50 rounded-3xl border border-amber-100 flex gap-4">
+                     <AlertCircle className="w-6 h-6 text-amber-600 shrink-0" />
+                     <div className="space-y-1">
+                        <h4 className="font-bold text-amber-900 text-sm">Policy Governance</h4>
+                        <p className="text-[11px] text-amber-800 leading-relaxed">Changes to these settings affect future loans immediately. Students with existing overdue books will be notified of any changes to the fine rate via the dashboard alert system.</p>
+                     </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </TabsContent>
+            </TabsContent>
+          </>
         )}
       </Tabs>
 
@@ -766,6 +872,94 @@ export default function LibraryPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Member Report Dialog */}
+      <Dialog open={!!viewingMember} onOpenChange={() => setViewingMember(null)}>
+        <DialogContent className="sm:max-w-2xl p-0 border-none shadow-2xl overflow-hidden rounded-3xl bg-[#F0F2F5]">
+          <DialogHeader className="p-6 bg-primary text-white shrink-0">
+            <div className="flex items-center gap-4">
+              <Avatar className="h-14 w-14 border-2 border-white/20">
+                <AvatarImage src={viewingMember?.avatar} />
+                <AvatarFallback><User className="w-6 h-6" /></AvatarFallback>
+              </Avatar>
+              <div>
+                <DialogTitle className="text-xl font-headline tracking-tight">{viewingMember?.name}</DialogTitle>
+                <DialogDescription className="text-white/60 font-mono text-[10px] uppercase font-bold tracking-widest">
+                  {viewingMember?.role} • Matricule: {viewingMember?.id}
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+          
+          <div className="p-6 space-y-6 overflow-y-auto max-h-[60vh]">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-white p-4 rounded-2xl shadow-sm text-center space-y-1">
+                <p className="text-[9px] uppercase font-black text-muted-foreground tracking-widest">Active Loans</p>
+                <p className="text-2xl font-black text-primary">{viewingMember?.borrowed}</p>
+              </div>
+              <div className="bg-white p-4 rounded-2xl shadow-sm text-center space-y-1">
+                <p className="text-[9px] uppercase font-black text-muted-foreground tracking-widest">Overdue</p>
+                <p className={cn("text-2xl font-black", viewingMember?.overdue > 0 ? "text-red-600" : "text-green-600")}>
+                  {viewingMember?.overdue}
+                </p>
+              </div>
+              <div className="bg-white p-4 rounded-2xl shadow-sm text-center space-y-1">
+                <p className="text-[9px] uppercase font-black text-muted-foreground tracking-widest">Lifetime Returns</p>
+                <p className="text-2xl font-black text-secondary">{viewingMember?.returned}</p>
+              </div>
+            </div>
+
+            <Card className="border-none shadow-sm bg-white">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <History className="w-4 h-4 text-primary" /> Current Activity History
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {[
+                  { book: "Organic Chemistry", date: "Borrow: May 15, 2024", status: "Active" },
+                  { book: "Advanced Physics", date: "Return: April 20, 2024", status: "Returned" },
+                  { book: "Things Fall Apart", date: "Return: March 12, 2024", status: "Returned" },
+                ].map((act, i) => (
+                  <div key={i} className="flex justify-between items-center p-3 rounded-xl bg-accent/10 text-xs border border-accent/20">
+                    <div>
+                      <p className="font-bold text-primary">{act.book}</p>
+                      <p className="text-[10px] text-muted-foreground">{act.date}</p>
+                    </div>
+                    <Badge variant={act.status === 'Active' ? 'default' : 'secondary'} className="text-[9px]">
+                      {act.status}
+                    </Badge>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex gap-3">
+               <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+               <p className="text-[10px] text-amber-800 leading-tight">This report is an internal institutional summary. For official conduct statements, please cross-reference with the Discipline Office records.</p>
+            </div>
+          </div>
+
+          <DialogFooter className="p-6 bg-white border-t gap-3 shrink-0">
+            <Button variant="outline" className="flex-1 rounded-xl h-12 gap-2 font-bold" onClick={() => window.print()}>
+              <Printer className="w-4 h-4" /> Print Statement
+            </Button>
+            <Button className="flex-1 rounded-xl h-12 gap-2 font-black uppercase tracking-widest shadow-lg">
+              <Download className="w-4 h-4" /> Download Report
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+  );
+}
+
+function History({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+      <path d="M3 3v5h5" />
+      <path d="M12 7v5l4 2" />
+    </svg>
   );
 }
