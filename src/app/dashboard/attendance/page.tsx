@@ -25,7 +25,10 @@ import {
   Download,
   Filter,
   LayoutGrid,
-  List
+  List,
+  BookOpen,
+  ChevronRight,
+  BarChart3
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -33,7 +36,7 @@ import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 // Mock Data for Admin Class Overview
 const MOCK_CLASSES_ATTENDANCE = [
@@ -49,6 +52,15 @@ const MOCK_CLASSES_ATTENDANCE = [
 const MOCK_STUDENTS = [
   { id: "S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", status: "present", presentCount: 22, absentCount: 2 },
   { id: "S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", status: "present", presentCount: 18, absentCount: 6 },
+  { id: "S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", status: "absent", presentCount: 15, absentCount: 9 },
+];
+
+const MOCK_SUBJECT_ATTENDANCE = [
+  { id: "SUB1", name: "Mathematics", percentage: 95, sessions: 24, instructor: "Prof. Sarah Smith" },
+  { id: "SUB2", name: "Physics", percentage: 88, sessions: 20, instructor: "Dr. Aris Tesla" },
+  { id: "SUB3", name: "English Literature", percentage: 92, sessions: 18, instructor: "Ms. Bennet" },
+  { id: "SUB4", name: "History", percentage: 76, sessions: 15, instructor: "Mr. Tabi" },
+  { id: "SUB5", name: "Chemistry", percentage: 90, sessions: 22, instructor: "Dr. White" },
 ];
 
 export default function AttendancePage() {
@@ -58,6 +70,7 @@ export default function AttendancePage() {
   
   const [date, setDate] = useState<Date>(new Date());
   const [selectedClassDetails, setSelectedClassDetails] = useState<any>(null);
+  const [viewingSubjectLogs, setViewingSubjectLogs] = useState<any>(null);
   
   const isTeacher = user?.role === "TEACHER";
   const isAdmin = user?.role === "SCHOOL_ADMIN";
@@ -304,7 +317,7 @@ export default function AttendancePage() {
 
       {/* Class Details Drill-down Dialog */}
       <Dialog open={!!selectedClassDetails} onOpenChange={() => setSelectedClassDetails(null)}>
-        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto p-0 border-none shadow-2xl rounded-3xl">
+        <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto p-0 border-none shadow-2xl rounded-3xl">
           <DialogHeader className={cn(
             "p-8 text-white",
             selectedClassDetails?.status === 'high' ? "bg-green-600" : selectedClassDetails?.status === 'medium' ? "bg-blue-600" : "bg-red-600"
@@ -323,45 +336,107 @@ export default function AttendancePage() {
             </div>
           </DialogHeader>
           
-          <div className="p-8 space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="p-8 space-y-10">
+            {/* Subject-wise Attendance Breakdown */}
+            <section className="space-y-6">
+              <h3 className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2 border-b pb-2">
+                <BookOpen className="w-4 h-4" /> Subject Attendance Breakdown
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {MOCK_SUBJECT_ATTENDANCE.map((sub) => (
+                  <Card key={sub.id} className="border-none shadow-sm bg-accent/30 hover:bg-accent/50 transition-colors group">
+                    <CardContent className="p-4 flex items-center justify-between">
+                      <div className="space-y-1 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-sm text-primary">{sub.name}</span>
+                          <Badge variant="outline" className="text-[9px] h-4 border-primary/20">{sub.sessions} Sessions</Badge>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground uppercase font-bold">{sub.instructor}</p>
+                        <div className="w-3/4 mt-2">
+                          <Progress value={sub.percentage} className="h-1 bg-white" />
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-3">
+                        <div className={cn(
+                          "px-3 py-1.5 rounded-xl font-black text-sm",
+                          sub.percentage >= 90 ? "bg-green-100 text-green-700" : 
+                          sub.percentage >= 80 ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"
+                        )}>
+                          {sub.percentage}%
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-[10px] uppercase font-black gap-1 h-7 text-primary hover:bg-white"
+                          onClick={() => setViewingSubjectLogs(sub)}
+                        >
+                          Details <ChevronRight className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </section>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               <section className="space-y-4">
-                <h3 className="text-sm font-black uppercase text-primary tracking-widest border-b pb-2">Student Performance Matrix</h3>
-                <Table>
-                  <TableBody>
-                    {MOCK_STUDENTS.map(s => (
-                      <TableRow key={s.id} className="hover:bg-accent/5">
-                        <TableCell className="py-3">
-                          <span className="font-bold text-sm text-primary">{s.name}</span>
-                        </TableCell>
-                        <TableCell className="text-right py-3">
-                          <Badge variant="outline" className="text-[10px] font-mono font-black">
-                            {Math.round((s.presentCount / (s.presentCount + s.absentCount)) * 100)}%
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <h3 className="text-sm font-black uppercase text-primary tracking-widest border-b pb-2 flex items-center gap-2">
+                  <Users className="w-4 h-4" /> Student Matrix
+                </h3>
+                <div className="max-h-[300px] overflow-y-auto pr-2">
+                  <Table>
+                    <TableBody>
+                      {MOCK_STUDENTS.map(s => (
+                        <TableRow key={s.id} className="hover:bg-accent/5 border-b border-accent/10">
+                          <TableCell className="py-3 pl-0">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage src={s.avatar} />
+                                <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                              </Avatar>
+                              <span className="font-bold text-sm text-primary">{s.name}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right py-3 pr-0">
+                            <Badge variant="outline" className="text-[10px] font-mono font-black border-primary/10">
+                              {Math.round((s.presentCount / (s.presentCount + s.absentCount)) * 100)}%
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </section>
 
               <section className="space-y-4">
-                <h3 className="text-sm font-black uppercase text-primary tracking-widest border-b pb-2">Institutional Audit</h3>
+                <h3 className="text-sm font-black uppercase text-primary tracking-widest border-b pb-2 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4" /> Institutional Audit
+                </h3>
                 <div className="space-y-4">
-                  <div className="bg-accent/20 p-4 rounded-xl space-y-3">
-                    <p className="text-xs font-bold leading-relaxed italic text-muted-foreground">
-                      "Attendance for this class is {selectedClassDetails?.status === 'high' ? 'above' : selectedClassDetails?.status === 'medium' ? 'meeting' : 'below'} institutional benchmarks."
-                    </p>
-                    <div className="pt-2 border-t border-accent flex justify-between items-center">
-                      <span className="text-[10px] font-black uppercase text-muted-foreground">Registry Status</span>
+                  <div className="bg-primary/5 p-6 rounded-2xl space-y-4 border border-primary/10">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-primary rounded-lg text-white">
+                        <BarChart3 className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold leading-relaxed text-primary">
+                          "Attendance for this class is {selectedClassDetails?.status === 'high' ? 'above' : selectedClassDetails?.status === 'medium' ? 'meeting' : 'below'} institutional benchmarks."
+                        </p>
+                        <p className="text-[9px] text-muted-foreground mt-1">Last audit: Today, 08:45 AM</p>
+                      </div>
+                    </div>
+                    <div className="pt-4 border-t border-primary/10 flex justify-between items-center">
+                      <span className="text-[10px] font-black uppercase text-primary tracking-widest">Registry Status</span>
                       <Badge className="bg-primary text-white border-none text-[9px] font-black">VALIDATED</Badge>
                     </div>
                   </div>
-                  <Button className="w-full gap-2 h-11 rounded-xl" variant="outline">
-                    <History className="w-4 h-4" /> View Full Session Logs
+                  <Button className="w-full gap-3 h-12 rounded-xl text-xs font-black uppercase tracking-widest" variant="outline">
+                    <History className="w-4 h-4 text-primary" /> Full Session Logs
                   </Button>
-                  <Button className="w-full gap-2 h-11 rounded-xl shadow-lg bg-primary">
-                    <Download className="w-4 h-4" /> Download Parent Contact List
+                  <Button className="w-full gap-3 h-12 rounded-xl shadow-lg bg-primary text-xs font-black uppercase tracking-widest">
+                    <Download className="w-4 h-4 text-secondary" /> Download Contact List
                   </Button>
                 </div>
               </section>
@@ -371,6 +446,76 @@ export default function AttendancePage() {
           <div className="p-6 bg-accent/10 border-t flex justify-end">
             <Button variant="ghost" onClick={() => setSelectedClassDetails(null)} className="font-black uppercase tracking-widest text-[10px]">Close Dossier</Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Subject-Specific Detail Dialog */}
+      <Dialog open={!!viewingSubjectLogs} onOpenChange={() => setViewingSubjectLogs(null)}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                <BookOpen className="w-5 h-5" />
+              </div>
+              <DialogTitle className="text-xl font-bold">
+                {viewingSubjectLogs?.name} - Detailed Records
+              </DialogTitle>
+            </div>
+            <DialogDescription className="pt-2">
+              Viewing complete session history and student presence for this subject.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="mt-6 space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-accent/30 p-4 rounded-xl">
+                <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Lead Instructor</p>
+                <p className="text-sm font-bold text-primary">{viewingSubjectLogs?.instructor}</p>
+              </div>
+              <div className="bg-accent/30 p-4 rounded-xl">
+                <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Subject Average</p>
+                <p className="text-sm font-bold text-primary">{viewingSubjectLogs?.percentage}%</p>
+              </div>
+            </div>
+
+            <div className="max-h-[40vh] overflow-y-auto rounded-xl border border-accent">
+              <Table>
+                <TableHeader className="bg-accent/10">
+                  <TableRow>
+                    <TableHead className="text-[10px] font-black uppercase">Session Date</TableHead>
+                    <TableHead className="text-center text-[10px] font-black uppercase">Presence</TableHead>
+                    <TableHead className="text-right text-[10px] font-black uppercase pr-6">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {[
+                    { date: "May 24, 2024", time: "08:00 AM", present: 42, total: 45, status: "Closed" },
+                    { date: "May 22, 2024", time: "08:00 AM", present: 40, total: 45, status: "Closed" },
+                    { date: "May 20, 2024", time: "08:00 AM", present: 41, total: 45, status: "Closed" },
+                  ].map((log, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell className="text-xs font-bold">
+                        {log.date}
+                        <p className="text-[9px] text-muted-foreground font-medium">{log.time}</p>
+                      </TableCell>
+                      <TableCell className="text-center font-mono text-xs font-black">
+                        {log.present} / {log.total}
+                      </TableCell>
+                      <TableCell className="text-right pr-6">
+                        <Badge className="bg-green-100 text-green-700 border-none text-[9px]">{log.status}</Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+          
+          <DialogFooter className="mt-6">
+            <Button variant="outline" className="w-full rounded-xl" onClick={() => setViewingSubjectLogs(null)}>
+              Close Subject Logs
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
