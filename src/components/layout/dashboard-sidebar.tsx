@@ -31,7 +31,8 @@ import {
   Coins,
   Receipt,
   UsersRound,
-  CreditCard
+  CreditCard,
+  Settings2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -178,6 +179,12 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       icon: Calendar,
       href: "/dashboard/schedule",
       roles: ["TEACHER", "STUDENT"],
+    },
+    {
+      label: t("settings"),
+      icon: Settings2,
+      href: "/dashboard/settings",
+      roles: ["SCHOOL_ADMIN"],
     },
     {
       label: t("profile"),

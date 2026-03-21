@@ -30,6 +30,7 @@ interface AuthContextType {
   user: User | null;
   login: (role: UserRole, schoolName?: string) => void;
   updateUser: (updates: Partial<User>) => void;
+  updateSchool: (updates: Partial<SchoolInfo>) => void;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -103,6 +104,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem("edu-nexus-user", JSON.stringify(updatedUser));
   };
 
+  const updateSchool = (updates: Partial<SchoolInfo>) => {
+    if (!user || !user.school) return;
+    const updatedSchool = { ...user.school, ...updates };
+    const updatedUser = { ...user, school: updatedSchool };
+    setUser(updatedUser);
+    localStorage.setItem("edu-nexus-user", JSON.stringify(updatedUser));
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem("edu-nexus-user");
@@ -110,7 +119,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, updateUser, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, login, updateUser, updateSchool, logout, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );

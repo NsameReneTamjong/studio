@@ -101,12 +101,13 @@ const translations: TranslationDict = {
   librarian: { en: "Librarian", fr: "Bibliothécaire" },
   library: { en: "Library", fr: "Bibliothèque" },
   borrow: { en: "Borrow Book", fr: "Emprunter" },
-  borrowed: { en: "My Borrowed Books", fr: "Mes Emprunts" },
+  borrowed: { en: "My Borrowed Books", fr: "Mes Enfants" },
   returnDate: { en: "Return Date", fr: "Date de Retour" },
   available: { en: "Available", fr: "Disponible" },
   searchBooks: { en: "Search for books...", fr: "Rechercher un livre..." },
   collectionReceipt: { en: "Collection Receipt", fr: "Reçu de Collection" },
   collectionCode: { en: "Collection Code", fr: "Code de Collection" },
+  settings: { en: "School Settings", fr: "Paramètres de l'École" },
 };
 
 interface I18nContextType {
