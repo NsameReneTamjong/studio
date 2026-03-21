@@ -24,7 +24,11 @@ import {
   TrendingUp,
   Activity,
   UserCheck,
-  ShieldAlert
+  ShieldAlert,
+  Mail,
+  Calendar,
+  MapPin,
+  Fingerprint
 } from "lucide-react";
 import { 
   DropdownMenu, 
@@ -38,21 +42,41 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip as RechartsTooltip, 
+  ResponsiveContainer 
+} from "recharts";
 
 // Mock Community Data
 const INITIAL_USERS = [
-  { id: "S001", name: "Alice Thompson", role: "STUDENT", email: "alice.t@school.edu", avatar: "https://picsum.photos/seed/s1/100/100", status: "active", lastLogin: "2 hours ago" },
-  { id: "T001", name: "Dr. Aris Tesla", role: "TEACHER", email: "aris.tesla@school.edu", avatar: "https://picsum.photos/seed/t1/100/100", status: "active", lastLogin: "10 mins ago" },
-  { id: "B001", name: "Mme. Ngono Celine", role: "BURSAR", email: "celine.n@school.edu", avatar: "https://picsum.photos/seed/b1/100/100", status: "active", lastLogin: "Yesterday" },
-  { id: "L001", name: "Mr. Ebong", role: "LIBRARIAN", email: "ebong.lib@school.edu", avatar: "https://picsum.photos/seed/l1/100/100", status: "suspended", lastLogin: "3 days ago" },
-  { id: "S002", name: "Bob Richards", role: "STUDENT", email: "bob.r@school.edu", avatar: "https://picsum.photos/seed/s2/100/100", status: "active", lastLogin: "1 hour ago" },
+  { id: "S001", name: "Alice Thompson", role: "STUDENT", email: "alice.t@school.edu", avatar: "https://picsum.photos/seed/s1/100/100", status: "active", lastLogin: "2 hours ago", dept: "Science Section A" },
+  { id: "T001", name: "Dr. Aris Tesla", role: "TEACHER", email: "aris.tesla@school.edu", avatar: "https://picsum.photos/seed/t1/100/100", status: "active", lastLogin: "10 mins ago", dept: "Physics Department" },
+  { id: "B001", name: "Mme. Ngono Celine", role: "BURSAR", email: "celine.n@school.edu", avatar: "https://picsum.photos/seed/b1/100/100", status: "active", lastLogin: "Yesterday", dept: "Finance Office" },
+  { id: "L001", name: "Mr. Ebong", role: "LIBRARIAN", email: "ebong.lib@school.edu", avatar: "https://picsum.photos/seed/l1/100/100", status: "suspended", lastLogin: "3 days ago", dept: "Resource Center" },
+  { id: "S002", name: "Bob Richards", role: "STUDENT", email: "bob.r@school.edu", avatar: "https://picsum.photos/seed/s2/100/100", status: "active", lastLogin: "1 hour ago", dept: "Arts Section C" },
 ];
 
 const MOCK_ACTIVITIES = [
-  { id: 1, action: "Assignment Submitted", module: "Pedagogy", time: "Oct 24, 10:30 AM", detail: "Physics: Thermodynamics Lab" },
-  { id: 2, action: "Library Book Borrowed", module: "Library", time: "Oct 23, 02:15 PM", detail: "Calculus II (Ref: IGN-102)" },
-  { id: 3, action: "Fee Installment Paid", module: "Finance", time: "Oct 20, 09:00 AM", detail: "Amount: 50,000 XAF" },
-  { id: 4, action: "Exam Attempted", module: "Exams", time: "Oct 18, 11:00 AM", detail: "Mid-Term Physics MCQ" },
+  { id: 1, action: "Assignment Submitted", module: "Pedagogy", time: "Oct 24, 10:30 AM", detail: "Physics: Thermodynamics Lab", status: "Verified" },
+  { id: 2, action: "Library Book Borrowed", module: "Library", time: "Oct 23, 02:15 PM", detail: "Calculus II (Ref: IGN-102)", status: "Verified" },
+  { id: 3, action: "Fee Installment Paid", module: "Finance", time: "Oct 20, 09:00 AM", detail: "Amount: 50,000 XAF", status: "Verified" },
+  { id: 4, action: "Exam Attempted", module: "Exams", time: "Oct 18, 11:00 AM", detail: "Mid-Term Physics MCQ", status: "Verified" },
+  { id: 5, action: "Course Material Downloaded", module: "Courses", time: "Oct 15, 04:00 PM", detail: "Kinematics PDF", status: "Verified" },
+];
+
+const MOCK_CHART_DATA = [
+  { day: 'Mon', engagement: 40 },
+  { day: 'Tue', engagement: 65 },
+  { day: 'Wed', engagement: 45 },
+  { day: 'Thu', engagement: 90 },
+  { day: 'Fri', engagement: 75 },
+  { day: 'Sat', engagement: 20 },
+  { day: 'Sun', engagement: 10 },
 ];
 
 export default function CommunityPage() {
@@ -190,7 +214,7 @@ export default function CommunityPage() {
                       <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-xl border-accent/50">
                         <DropdownMenuLabel className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Management</DropdownMenuLabel>
                         <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => setViewingUser(u)}>
-                          <Eye className="w-4 h-4 text-primary" /> {language === 'en' ? 'View Activities' : 'Voir Activités'}
+                          <Eye className="w-4 h-4 text-primary" /> {language === 'en' ? 'View Profile' : 'Voir Profil'}
                         </DropdownMenuItem>
                         <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => handleSuspend(u.id)}>
                           {u.status === 'active' ? (
@@ -213,73 +237,178 @@ export default function CommunityPage() {
         </CardContent>
       </Card>
 
-      {/* User Activity Dialog */}
+      {/* User Activity Insight Dialog */}
       <Dialog open={!!viewingUser} onOpenChange={() => setViewingUser(null)}>
-        <DialogContent className="sm:max-w-3xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-          <DialogHeader className="bg-primary p-8 text-white">
-            <div className="flex items-center gap-6">
-              <Avatar className="h-20 w-20 border-4 border-white/20 shadow-lg">
+        <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto p-0 border-none shadow-2xl rounded-3xl">
+          <DialogHeader className="bg-primary p-8 text-white relative">
+            <div className="absolute top-4 right-12 flex items-center gap-2">
+               <Fingerprint className="w-4 h-4 opacity-30" />
+               <span className="text-[10px] uppercase font-bold opacity-30 tracking-widest">Verified Digital ID</span>
+            </div>
+            <div className="flex flex-col md:flex-row items-center gap-8">
+              <Avatar className="h-32 w-32 border-4 border-white shadow-2xl shrink-0">
                 <AvatarImage src={viewingUser?.avatar} />
-                <AvatarFallback className="text-2xl text-primary bg-white">{viewingUser?.name?.charAt(0)}</AvatarFallback>
+                <AvatarFallback className="text-4xl text-primary bg-white">{viewingUser?.name?.charAt(0)}</AvatarFallback>
               </Avatar>
-              <div>
-                <DialogTitle className="text-3xl font-black tracking-tight">{viewingUser?.name}</DialogTitle>
-                <DialogDescription className="text-white/60 flex items-center gap-2 mt-1">
-                  <Badge className="bg-secondary text-primary border-none font-bold">{viewingUser?.role}</Badge>
-                  <span>•</span>
-                  <span>ID: {viewingUser?.id}</span>
-                </DialogDescription>
+              <div className="flex-1 text-center md:text-left space-y-4">
+                <div className="space-y-1">
+                  <div className="flex flex-wrap justify-center md:justify-start items-center gap-3">
+                    <DialogTitle className="text-4xl font-black tracking-tight">{viewingUser?.name}</DialogTitle>
+                    <Badge className="bg-secondary text-primary border-none font-black h-6">{viewingUser?.role}</Badge>
+                  </div>
+                  <DialogDescription className="text-white/60 text-lg flex items-center justify-center md:justify-start gap-4">
+                    <span className="flex items-center gap-1.5"><Mail className="w-4 h-4"/> {viewingUser?.email}</span>
+                    <span className="opacity-30">|</span>
+                    <span className="flex items-center gap-1.5 font-mono">ID: {viewingUser?.id}</span>
+                  </DialogDescription>
+                </div>
+                <div className="flex flex-wrap justify-center md:justify-start gap-3 pt-2">
+                   <Badge variant="secondary" className="bg-white/10 text-white hover:bg-white/20 border-none gap-1.5 py-1 px-3">
+                     <Building2 className="w-3.5 h-3.5" /> {viewingUser?.dept}
+                   </Badge>
+                   <Badge variant="secondary" className="bg-white/10 text-white hover:bg-white/20 border-none gap-1.5 py-1 px-3">
+                     <Calendar className="w-3.5 h-3.5" /> Joined Sept 2023
+                   </Badge>
+                   <Badge variant="secondary" className="bg-white/10 text-white hover:bg-white/20 border-none gap-1.5 py-1 px-3">
+                     <MapPin className="w-3.5 h-3.5" /> Main Campus
+                   </Badge>
+                </div>
               </div>
             </div>
           </DialogHeader>
           
-          <div className="p-8 space-y-8">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="bg-accent/30 p-4 rounded-2xl text-center space-y-1">
-                <Activity className="w-5 h-5 mx-auto text-primary" />
-                <p className="text-[10px] uppercase font-bold text-muted-foreground">Session Count</p>
-                <p className="text-xl font-black">124</p>
+          <div className="p-8 space-y-10">
+            {/* Participation Analytics */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              <div className="lg:col-span-4 grid grid-cols-2 lg:grid-cols-1 gap-4">
+                <Card className="border-none bg-accent/30 p-6 rounded-3xl flex flex-col justify-between">
+                  <div className="space-y-1">
+                    <div className="p-2 bg-primary/10 rounded-xl w-fit text-primary">
+                      <Activity className="w-5 h-5" />
+                    </div>
+                    <p className="text-xs font-black uppercase text-muted-foreground tracking-widest pt-2">Engagement</p>
+                  </div>
+                  <div className="pt-4">
+                    <p className="text-4xl font-black text-primary">84%</p>
+                    <p className="text-[10px] text-green-600 font-bold flex items-center gap-1">
+                      <TrendingUp className="w-3 h-3" /> +12% this week
+                    </p>
+                  </div>
+                </Card>
+                <Card className="border-none bg-accent/30 p-6 rounded-3xl flex flex-col justify-between">
+                  <div className="space-y-1">
+                    <div className="p-2 bg-primary/10 rounded-xl w-fit text-primary">
+                      <Clock className="w-5 h-5" />
+                    </div>
+                    <p className="text-xs font-black uppercase text-muted-foreground tracking-widest pt-2">Online Presence</p>
+                  </div>
+                  <div className="pt-4">
+                    <p className="text-4xl font-black text-primary">42h</p>
+                    <p className="text-[10px] text-muted-foreground font-bold italic">Total login duration</p>
+                  </div>
+                </Card>
               </div>
-              <div className="bg-accent/30 p-4 rounded-2xl text-center space-y-1">
-                <Clock className="w-5 h-5 mx-auto text-primary" />
-                <p className="text-[10px] uppercase font-bold text-muted-foreground">Online Time</p>
-                <p className="text-xl font-black">42h</p>
-              </div>
-              <div className="bg-accent/30 p-4 rounded-2xl text-center space-y-1">
-                <ShieldAlert className="w-5 h-5 mx-auto text-amber-600" />
-                <p className="text-[10px] uppercase font-bold text-muted-foreground">Flags</p>
-                <p className="text-xl font-black text-amber-600">0</p>
+
+              <div className="lg:col-span-8">
+                <Card className="border-none shadow-sm p-6 rounded-3xl">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-sm font-black uppercase tracking-widest text-primary">Weekly Participation Intensity</h3>
+                    <Badge variant="outline" className="text-[10px]">REAL-TIME TELEMETRY</Badge>
+                  </div>
+                  <div className="h-[200px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={MOCK_CHART_DATA}>
+                        <defs>
+                          <linearGradient id="colorEngagement" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.1}/>
+                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
+                        <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                        <YAxis hide />
+                        <RechartsTooltip 
+                          contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                        />
+                        <Area 
+                          type="monotone" 
+                          dataKey="engagement" 
+                          stroke="hsl(var(--primary))" 
+                          strokeWidth={3} 
+                          fillOpacity={1} 
+                          fill="url(#colorEngagement)" 
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </Card>
               </div>
             </div>
 
+            {/* Detailed Activity Log Table */}
             <div className="space-y-4">
-              <h3 className="text-sm font-bold text-primary uppercase tracking-widest flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" /> Recent Institutional footprint
-              </h3>
-              <div className="space-y-3">
-                {MOCK_ACTIVITIES.map((act) => (
-                  <div key={act.id} className="flex items-start gap-4 p-4 bg-white border border-accent rounded-2xl hover:shadow-md transition-shadow">
-                    <div className="p-2 bg-primary/5 rounded-xl">
-                      <FileText className="w-5 h-5 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start">
-                        <p className="font-bold text-sm text-primary">{act.action}</p>
-                        <span className="text-[10px] text-muted-foreground font-medium">{act.time}</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">{act.detail}</p>
-                      <Badge variant="outline" className="text-[8px] h-4 mt-2 border-primary/10 text-primary/60">{act.module}</Badge>
-                    </div>
-                  </div>
-                ))}
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-black text-primary uppercase tracking-widest flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4" /> Full Institutional Footprint
+                </h3>
+                <Button variant="ghost" size="sm" className="text-xs gap-2">
+                  <FileText className="w-3.5 h-3.5" /> Export Logs
+                </Button>
+              </div>
+              
+              <div className="border rounded-3xl overflow-hidden bg-white shadow-sm">
+                <Table>
+                  <TableHeader className="bg-accent/30">
+                    <TableRow>
+                      <TableHead className="pl-6 py-4 uppercase text-[10px] font-black">Event / Action</TableHead>
+                      <TableHead className="uppercase text-[10px] font-black">Module</TableHead>
+                      <TableHead className="uppercase text-[10px] font-black">Description</TableHead>
+                      <TableHead className="uppercase text-[10px] font-black">Timestamp</TableHead>
+                      <TableHead className="pr-6 text-right uppercase text-[10px] font-black">Integrity</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {MOCK_ACTIVITIES.map((act) => (
+                      <TableRow key={act.id} className="hover:bg-accent/5">
+                        <TableCell className="pl-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="p-1.5 bg-primary/5 rounded-lg text-primary">
+                              <Activity className="w-3.5 h-3.5" />
+                            </div>
+                            <span className="font-bold text-sm text-primary">{act.action}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-[9px] uppercase font-bold tracking-tighter border-primary/10 text-primary/60">
+                            {act.module}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground italic">
+                          {act.detail}
+                        </TableCell>
+                        <TableCell className="text-[10px] font-mono font-bold text-muted-foreground">
+                          {act.time}
+                        </TableCell>
+                        <TableCell className="pr-6 text-right">
+                          <div className="inline-flex items-center gap-1 text-[10px] text-green-600 font-black">
+                            <CheckCircle2 className="w-3 h-3" /> {act.status}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             </div>
           </div>
 
           <DialogFooter className="bg-accent/10 p-6 border-t flex justify-between items-center">
-            <p className="text-[10px] text-muted-foreground italic max-w-[200px]">Logs are cryptographically verified for institutional audits.</p>
-            <Button onClick={() => setViewingUser(null)} className="rounded-xl px-8 shadow-lg font-bold">
-              Close History
+            <div className="flex items-center gap-2 text-muted-foreground">
+               <ShieldCheck className="w-4 h-4 text-primary" />
+               <p className="text-[10px] uppercase font-bold tracking-widest">Logs are cryptographically immutable</p>
+            </div>
+            <Button onClick={() => setViewingUser(null)} className="rounded-xl px-10 h-12 shadow-lg font-black uppercase tracking-widest text-xs">
+              Close Dossier
             </Button>
           </DialogFooter>
         </DialogContent>
