@@ -32,7 +32,11 @@ import {
   Clock,
   MapPin,
   History,
-  GraduationCap
+  GraduationCap,
+  Printer,
+  FileText,
+  FileCheck,
+  Signature
 } from "lucide-react";
 import { 
   Dialog, 
@@ -68,6 +72,7 @@ const INITIAL_STAFF = [
     id: "T001", 
     name: "Dr. Aris Tesla", 
     role: "TEACHER", 
+    type: "Government-sent",
     email: "aris.tesla@school.edu", 
     department: "Science", 
     status: "active", 
@@ -91,6 +96,7 @@ const INITIAL_STAFF = [
     id: "T002", 
     name: "Prof. Sarah Smith", 
     role: "TEACHER", 
+    type: "School-employed",
     email: "sarah.s@school.edu", 
     department: "Mathematics", 
     status: "active", 
@@ -112,6 +118,7 @@ const INITIAL_STAFF = [
     id: "B001", 
     name: "Mme. Ngono Celine", 
     role: "BURSAR", 
+    type: "Permanent",
     email: "celine.n@school.edu", 
     department: "Finance", 
     status: "active", 
@@ -127,25 +134,6 @@ const INITIAL_STAFF = [
       Daily: [{ time: "08:00 AM - 04:00 PM", subject: "Fee Collection & Accounting", room: "Bursary Office" }]
     }
   },
-  { 
-    id: "L001", 
-    name: "Mr. Ebong", 
-    role: "LIBRARIAN", 
-    email: "ebong.lib@school.edu", 
-    department: "Resources", 
-    status: "suspended", 
-    joined: "Jan 2022", 
-    avatar: "https://picsum.photos/seed/l1/100/100",
-    portfolio: {
-      bio: "Resource management expert with a passion for promoting literacy and archival science.",
-      education: "B.A. Library & Information Science",
-      awards: ["Digital Archiving Certificate"],
-      stats: { booksManaged: "1.7k", activeMembers: "1.1k", circulation: "85%" }
-    },
-    schedule: {
-      Daily: [{ time: "07:30 AM - 03:30 PM", subject: "Library Operations", room: "Resource Center" }]
-    }
-  },
 ];
 
 export default function StaffManagementPage() {
@@ -157,7 +145,18 @@ export default function StaffManagementPage() {
   const [staff, setStaff] = useState(INITIAL_STAFF);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   
-  // New States for Detail Dialogs
+  // New States for Onboarding Form
+  const [onboardingSuccess, setOnboardingSuccess] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    name: "",
+    role: "TEACHER",
+    type: "Government-sent",
+    email: "",
+    department: "",
+    joined: new Date().toISOString().split('T')[0]
+  });
+
+  // Detail Dialogs
   const [selectedStaffForPortfolio, setSelectedStaffForPortfolio] = useState<any>(null);
   const [selectedStaffForSchedule, setSelectedStaffForSchedule] = useState<any>(null);
 
@@ -167,11 +166,30 @@ export default function StaffManagementPage() {
   );
 
   const handleAddStaff = () => {
+    if (!formData.name || !formData.email) return;
+
+    const newStaffMember = {
+      id: `ST-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
+      ...formData,
+      status: "active",
+      avatar: `https://picsum.photos/seed/${formData.name}/100/100`,
+      portfolio: {
+        bio: "Profile pending completion by employee.",
+        education: "Pending",
+        awards: [],
+        stats: { sessions: 0, students: 0, avgMark: "N/A" }
+      },
+      schedule: {}
+    };
+
+    setStaff(prev => [newStaffMember, ...prev]);
+    setIsAddModalOpen(false);
+    setOnboardingSuccess(newStaffMember);
+    
     toast({
       title: "Staff Onboarded",
-      description: "Credentials have been sent to the new staff member's email.",
+      description: `Appointment record generated for ${formData.name}.`,
     });
-    setIsAddModalOpen(false);
   };
 
   const handleStatusToggle = (id: string) => {
@@ -191,7 +209,7 @@ export default function StaffManagementPage() {
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'TEACHER': return 'bg-purple-100 text-purple-700';
-      case 'BURSAR': return 'bg-green-100 text-green-700';
+      case 'BURSAR': case 'ACCOUNTANT': return 'bg-green-100 text-green-700';
       case 'LIBRARIAN': return 'bg-amber-100 text-amber-700';
       default: return 'bg-gray-100 text-gray-700';
     }
@@ -225,34 +243,72 @@ export default function StaffManagementPage() {
             </DialogHeader>
             <div className="p-8 space-y-6">
               <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-2">
+                <div className="col-span-2 space-y-2">
                   <Label>Full Name</Label>
-                  <Input placeholder="e.g. Jean Dupont" className="bg-accent/30 border-none h-12" />
+                  <Input 
+                    placeholder="e.g. Jean Dupont" 
+                    className="bg-accent/30 border-none h-12"
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Role</Label>
-                  <Select defaultValue="TEACHER">
+                  <Select value={formData.role} onValueChange={(v) => setFormData({...formData, role: v})}>
                     <SelectTrigger className="bg-accent/30 border-none h-12">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="TEACHER">Teacher</SelectItem>
                       <SelectItem value="BURSAR">Bursar</SelectItem>
+                      <SelectItem value="ACCOUNTANT">Accountant</SelectItem>
                       <SelectItem value="LIBRARIAN">Librarian</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+                
+                {formData.role === 'TEACHER' && (
+                  <div className="space-y-2">
+                    <Label>Teacher Type</Label>
+                    <Select value={formData.type} onValueChange={(v) => setFormData({...formData, type: v})}>
+                      <SelectTrigger className="bg-accent/30 border-none h-12">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Government-sent">Government-sent</SelectItem>
+                        <SelectItem value="School-employed">School-employed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
                 <div className="col-span-2 space-y-2">
                   <Label>Institutional Email</Label>
-                  <Input type="email" placeholder="name@school.edu" className="bg-accent/30 border-none h-12" />
+                  <Input 
+                    type="email" 
+                    placeholder="name@school.edu" 
+                    className="bg-accent/30 border-none h-12"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Department</Label>
-                  <Input placeholder="e.g. Science" className="bg-accent/30 border-none h-12" />
+                  <Input 
+                    placeholder="e.g. Science" 
+                    className="bg-accent/30 border-none h-12"
+                    value={formData.department}
+                    onChange={(e) => setFormData({...formData, department: e.target.value})}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Join Date</Label>
-                  <Input type="date" className="bg-accent/30 border-none h-12" />
+                  <Input 
+                    type="date" 
+                    className="bg-accent/30 border-none h-12"
+                    value={formData.joined}
+                    onChange={(e) => setFormData({...formData, joined: e.target.value})}
+                  />
                 </div>
               </div>
             </div>
@@ -262,33 +318,6 @@ export default function StaffManagementPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-none shadow-sm bg-white">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs uppercase font-bold text-muted-foreground tracking-widest">Total Employees</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-black text-primary">{staff.length}</div>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-sm bg-white">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs uppercase font-bold text-muted-foreground tracking-widest">Active Teachers</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-black text-purple-600">{staff.filter(s => s.role === 'TEACHER' && s.status === 'active').length}</div>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-sm bg-white">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs uppercase font-bold text-muted-foreground tracking-widest">Administrative</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-black text-amber-600">{staff.filter(s => s.role !== 'TEACHER').length}</div>
-          </CardContent>
-        </Card>
       </div>
 
       <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
@@ -329,7 +358,14 @@ export default function StaffManagementPage() {
                       </Avatar>
                       <div className="flex flex-col">
                         <span className="font-bold text-sm text-primary leading-none mb-1">{s.name}</span>
-                        <span className="text-[10px] text-muted-foreground">{s.email}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-muted-foreground">{s.email}</span>
+                          {s.type && (
+                            <Badge variant="ghost" className="h-3 px-1.5 text-[8px] uppercase border-none bg-accent text-primary">
+                              {s.type}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </TableCell>
@@ -359,10 +395,13 @@ export default function StaffManagementPage() {
                       <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl border-accent/50">
                         <DropdownMenuLabel className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Management</DropdownMenuLabel>
                         <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => setSelectedStaffForPortfolio(s)}>
-                          <Eye className="w-4 h-4 text-primary" /> View Professional Portfolio
+                          <Eye className="w-4 h-4 text-primary" /> View Portfolio
                         </DropdownMenuItem>
                         <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => setSelectedStaffForSchedule(s)}>
                           <Calendar className="w-4 h-4 text-primary" /> View Work Schedule
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => setOnboardingSuccess(s)}>
+                          <Printer className="w-4 h-4 text-primary" /> Onboarding Form
                         </DropdownMenuItem>
                         <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => handleStatusToggle(s.id)}>
                           {s.status === 'active' ? (
@@ -383,13 +422,6 @@ export default function StaffManagementPage() {
             </TableBody>
           </Table>
         </CardContent>
-        <CardFooter className="bg-accent/5 p-4 border-t flex justify-between items-center text-[10px] text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-3 h-3" /> 
-            Credentials are cryptographically secured and managed by the SaaS platform.
-          </div>
-          <span className="font-bold">Total Staff: {staff.length}</span>
-        </CardFooter>
       </Card>
 
       {/* Portfolio Dialog */}
@@ -437,20 +469,6 @@ export default function StaffManagementPage() {
                   <p className="text-xl font-black text-primary">{val}</p>
                 </div>
               ))}
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
-                <History className="w-4 h-4" /> Key Achievements
-              </h3>
-              <div className="space-y-2">
-                {selectedStaffForPortfolio?.portfolio?.awards?.map((award: string, idx: number) => (
-                  <div key={idx} className="flex items-center gap-3 p-3 bg-primary/5 rounded-lg border border-primary/10">
-                    <CheckCircle2 className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-medium">{award}</span>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
           <DialogFooter className="bg-accent/10 p-6 border-t">
@@ -511,6 +529,130 @@ export default function StaffManagementPage() {
               <ShieldCheck className="w-3.5 h-3.5" /> Official Workload Registry
             </p>
             <Button variant="ghost" onClick={() => setSelectedStaffForSchedule(null)}>Close Schedule</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* SUCCESS & PRINTABLE ONBOARDING FORM */}
+      <Dialog open={!!onboardingSuccess} onOpenChange={() => setOnboardingSuccess(null)}>
+        <DialogContent className="sm:max-w-4xl max-h-[95vh] overflow-y-auto p-0 border-none shadow-2xl rounded-3xl">
+          <DialogHeader className="bg-green-600 p-8 text-white no-print">
+            <div className="flex items-center gap-4">
+              <div className="bg-white/20 p-3 rounded-2xl">
+                <FileCheck className="w-8 h-8" />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-black">Onboarding Successful!</DialogTitle>
+                <DialogDescription className="text-white/80">Staff member has been added to the registry. Print the form below for physical records.</DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div id="printable-onboarding-form" className="p-12 bg-white font-serif text-black min-h-[800px] relative overflow-hidden print:p-0">
+            {/* Form Header */}
+            <div className="flex flex-col items-center text-center space-y-4 border-b-2 border-black pb-8 mb-10">
+              <Building2 className="w-16 h-16 text-primary/20 absolute top-12 right-12 opacity-50" />
+              <div className="space-y-1 uppercase tracking-tight text-xs font-bold">
+                <p>Republic of Cameroon</p>
+                <p>Peace - Work - Fatherland</p>
+                <div className="h-px bg-black w-12 mx-auto my-1" />
+                <p>{user?.school?.name || "Lycée de Joss"}</p>
+                <p>{user?.school?.location || "Douala, Littoral"}</p>
+              </div>
+              <h1 className="text-3xl font-black uppercase underline decoration-2 underline-offset-8 mt-6">
+                Institutional Appointment & Onboarding Form
+              </h1>
+            </div>
+
+            {/* Employee Details Section */}
+            <div className="grid grid-cols-12 gap-10 items-start">
+              <div className="col-span-3">
+                <div className="w-32 h-32 border-2 border-black rounded-lg overflow-hidden bg-accent/10 flex items-center justify-center">
+                  <img src={onboardingSuccess?.avatar} alt="Profile" className="w-full h-full object-cover" />
+                </div>
+                <div className="mt-4 p-2 bg-black/5 text-center rounded border border-black/10">
+                  <p className="text-[10px] uppercase font-bold opacity-60">Matricule ID</p>
+                  <p className="text-sm font-mono font-black">{onboardingSuccess?.id}</p>
+                </div>
+              </div>
+
+              <div className="col-span-9 space-y-6">
+                <div className="grid grid-cols-2 gap-y-4 text-sm">
+                  <div className="space-y-1">
+                    <p className="font-bold text-xs uppercase opacity-50">Full Name</p>
+                    <p className="text-lg font-black border-b border-black/10 pb-1">{onboardingSuccess?.name}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="font-bold text-xs uppercase opacity-50">Designation / Role</p>
+                    <p className="text-lg font-black border-b border-black/10 pb-1">{onboardingSuccess?.role}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="font-bold text-xs uppercase opacity-50">Employment Type</p>
+                    <p className="text-lg font-bold border-b border-black/10 pb-1">{onboardingSuccess?.type || "Permanent Administrative"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="font-bold text-xs uppercase opacity-50">Assigned Department</p>
+                    <p className="text-lg font-bold border-b border-black/10 pb-1">{onboardingSuccess?.department}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="font-bold text-xs uppercase opacity-50">Effective Date</p>
+                    <p className="text-lg font-bold border-b border-black/10 pb-1">{onboardingSuccess?.joined}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="font-bold text-xs uppercase opacity-50">Institutional Email</p>
+                    <p className="text-lg font-medium italic border-b border-black/10 pb-1">{onboardingSuccess?.email}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Terms Summary */}
+            <div className="mt-12 p-6 border-2 border-black/5 rounded-xl bg-accent/5 space-y-4">
+              <h3 className="font-black text-sm uppercase flex items-center gap-2">
+                <FileText className="w-4 h-4" /> Onboarding Certification
+              </h3>
+              <p className="text-sm leading-relaxed italic">
+                This document serves as the official digital onboarding record for the above-named professional at <strong>{user?.school?.name}</strong>. 
+                The employee is hereby registered into the institutional portal with the designated role and permissions. 
+                Full access to pedagogical and administrative modules has been granted effective as of the registration date.
+              </p>
+            </div>
+
+            {/* Signature Section */}
+            <div className="mt-20 grid grid-cols-2 gap-20">
+              <div className="space-y-12">
+                <div className="h-px bg-black w-full" />
+                <div className="text-center">
+                  <p className="font-bold text-xs uppercase">Employee Signature</p>
+                  <p className="text-[9px] opacity-40 italic mt-1">Acceptance of digital policy</p>
+                </div>
+              </div>
+              <div className="space-y-12">
+                <div className="flex justify-center h-12 items-end">
+                   <Signature className="w-12 h-12 text-primary opacity-10 -rotate-12" />
+                </div>
+                <div className="h-px bg-black w-full" />
+                <div className="text-center">
+                  <p className="font-bold text-xs uppercase">Authorized Registrar</p>
+                  <p className="text-sm font-black mt-1">EduIgnite Automated Verification</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="absolute bottom-8 inset-x-0 text-center">
+               <p className="text-[10px] uppercase font-black opacity-20 tracking-[0.3em]">
+                 Official Digital Document • EduIgnite SaaS Onboarding Suite
+               </p>
+            </div>
+          </div>
+
+          <DialogFooter className="bg-accent/10 p-6 border-t no-print flex sm:flex-row gap-3">
+            <Button variant="outline" className="flex-1 gap-2 rounded-xl h-12" onClick={() => setOnboardingSuccess(null)}>
+              Dismiss
+            </Button>
+            <Button className="flex-1 gap-2 rounded-xl h-12 shadow-lg" onClick={() => window.print()}>
+              <Printer className="w-5 h-5" /> Print Appointment Form
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
