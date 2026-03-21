@@ -28,7 +28,8 @@ import {
   Mail,
   Calendar,
   MapPin,
-  Fingerprint
+  Fingerprint,
+  Building2
 } from "lucide-react";
 import { 
   DropdownMenu, 
