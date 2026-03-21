@@ -44,12 +44,12 @@ import { cn } from "@/lib/utils";
 
 // Mock Data for Books
 const INITIAL_BOOKS = [
-  { id: "B001", title: "Advanced Physics", author: "Dr. Tesla", category: "Science", available: 5, total: 10, cover: "https://picsum.photos/seed/phys/400/600" },
-  { id: "B002", title: "Calculus II", author: "Prof. Smith", category: "Mathematics", available: 2, total: 5, cover: "https://picsum.photos/seed/math/400/600" },
-  { id: "B003", title: "Things Fall Apart", author: "Chinua Achebe", category: "Literature", available: 12, total: 15, cover: "https://picsum.photos/seed/lit1/400/600" },
-  { id: "B004", title: "A Midsummer Night's Dream", author: "William Shakespeare", category: "Arts", available: 0, total: 3, cover: "https://picsum.photos/seed/art/400/600" },
-  { id: "B005", title: "Modern Computing", author: "Ada Lovelace", category: "Informatique", available: 4, total: 4, cover: "https://picsum.photos/seed/comp/400/600" },
-  { id: "B006", title: "The Old Man and the Sea", author: "Ernest Hemingway", category: "Literature", available: 8, total: 8, cover: "https://picsum.photos/seed/sea/400/600" },
+  { id: "B001", title: "Advanced Physics", author: "Dr. Tesla", category: "Science", available: 5, total: 10, cover: "https://picsum.photos/seed/phys/400/600", description: "In-depth study of thermodynamics and classical mechanics for advanced students." },
+  { id: "B002", title: "Calculus II", author: "Prof. Smith", category: "Mathematics", available: 2, total: 5, cover: "https://picsum.photos/seed/math/400/600", description: "Comprehensive guide to integration, series, and multivariable calculus." },
+  { id: "B003", title: "Things Fall Apart", author: "Chinua Achebe", category: "Literature", available: 12, total: 15, cover: "https://picsum.photos/seed/lit1/400/600", description: "A classic of modern African literature, chronicling the life of Okonkwo." },
+  { id: "B004", title: "A Midsummer Night's Dream", author: "William Shakespeare", category: "Arts", available: 0, total: 3, cover: "https://picsum.photos/seed/art/400/600", description: "A whimsical comedy about love, magic, and mistaken identity." },
+  { id: "B005", title: "Modern Computing", author: "Ada Lovelace", category: "Informatique", available: 4, total: 4, cover: "https://picsum.photos/seed/comp/400/600", description: "Foundational principles of algorithms and structured programming." },
+  { id: "B006", title: "The Old Man and the Sea", author: "Ernest Hemingway", category: "Literature", available: 8, total: 8, cover: "https://picsum.photos/seed/sea/400/600", description: "A powerful tale of human endurance and the struggle against nature." },
 ];
 
 const MOCK_LOANS = [
@@ -84,7 +84,8 @@ export default function LibraryPage() {
     author: "",
     category: "General",
     available: "1",
-    total: "1"
+    total: "1",
+    description: ""
   });
 
   // Librarian Settings State
@@ -137,7 +138,8 @@ export default function LibraryPage() {
         author: book.author,
         category: book.category,
         available: book.available.toString(),
-        total: book.total.toString()
+        total: book.total.toString(),
+        description: book.description || ""
       });
     } else {
       setEditingBook(null);
@@ -146,7 +148,8 @@ export default function LibraryPage() {
         author: "",
         category: "General",
         available: "1",
-        total: "1"
+        total: "1",
+        description: ""
       });
     }
     setIsBookModalOpen(true);
@@ -275,8 +278,8 @@ export default function LibraryPage() {
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                     data-ai-hint="book cover"
                    />
-                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
-                      <p className="text-white text-xs font-medium line-clamp-2 italic mb-2">"Education is the most powerful weapon which you can use to change the world."</p>
+                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
+                      <p className="text-white text-xs font-medium line-clamp-3 italic mb-2">"{book.description || "No description available for this institutional resource."}"</p>
                    </div>
                    <div className="absolute top-3 right-3">
                       <Badge variant={book.available > 0 ? "default" : "destructive"} className={cn(
@@ -577,6 +580,15 @@ export default function LibraryPage() {
                   onChange={(e) => setBookFormData({...bookFormData, total: e.target.value, available: e.target.value})}
                 />
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Hover Description / Quote</Label>
+              <Textarea 
+                placeholder="Brief summary or catchy quote for hover effect..." 
+                className="min-h-[100px] bg-accent/30 border-none rounded-xl"
+                value={bookFormData.description}
+                onChange={(e) => setBookFormData({...bookFormData, description: e.target.value})}
+              />
             </div>
             {editingBook && (
               <div className="space-y-2">
