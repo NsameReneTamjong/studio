@@ -23,7 +23,7 @@ const translations: TranslationDict = {
   schedule: { en: "Schedule", fr: "Emploi du temps" },
   schools: { en: "Schools", fr: "Écoles" },
   feedback: { en: "Feedback", fr: "Feedback" },
-  announcements: { en: "Announcements", fr: "Annonces" },
+  announcements: { en: "Annonces", fr: "Annonces" },
   logout: { en: "Logout", fr: "Déconnexion" },
   welcome: { en: "Welcome back", fr: "Bon retour" },
   myChildren: { en: "My Children", fr: "Mes Enfants" },
@@ -88,6 +88,13 @@ const translations: TranslationDict = {
   submitExam: { en: "Submit Exam", fr: "Soumettre l'Examen" },
   passed: { en: "Passed", fr: "Réussi" },
   failed: { en: "Failed", fr: "Échoué" },
+  assignments: { en: "Assignments", fr: "Devoirs" },
+  upcoming: { en: "Upcoming", fr: "À venir" },
+  due: { en: "Due", fr: "À rendre" },
+  submitted: { en: "Submitted", fr: "Soumis" },
+  graded: { en: "Graded", fr: "Noté" },
+  submitAssignment: { en: "Submit Assignment", fr: "Rendre le Devoir" },
+  dueDate: { en: "Due Date", fr: "Date limite" },
 };
 
 interface I18nContextType {

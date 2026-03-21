@@ -25,7 +25,8 @@ import {
   MessageCircle,
   User,
   X,
-  PenTool
+  PenTool,
+  FileEdit
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -104,6 +105,12 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       icon: BookOpen,
       href: "/dashboard/courses",
       roles: ["SCHOOL_ADMIN", "STUDENT", "TEACHER"],
+    },
+    {
+      label: t("assignments"),
+      icon: FileEdit,
+      href: "/dashboard/assignments",
+      roles: ["TEACHER", "STUDENT"],
     },
     {
       label: t("exams"),

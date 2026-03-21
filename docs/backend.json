@@ -58,47 +58,37 @@
       },
       "required": ["id", "teacherId", "title", "subject", "questions"]
     },
-    "ExamSubmission": {
-      "title": "ExamSubmission",
-      "description": "A student's attempt at an exam.",
+    "Assignment": {
+      "title": "Assignment",
+      "description": "A homework or project task assigned to students.",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
-        "examId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "subject": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "maxMarks": { "type": "number" }
+      },
+      "required": ["id", "title", "subject", "dueDate"]
+    },
+    "AssignmentSubmission": {
+      "title": "AssignmentSubmission",
+      "description": "A student's submission for a non-MCQ assignment.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "assignmentId": { "type": "string" },
         "studentId": { "type": "string" },
-        "answers": { "type": "array", "items": { "type": "number" } },
-        "score": { "type": "number" },
-        "totalQuestions": { "type": "number" },
-        "passed": { "type": "boolean" },
+        "content": { "type": "string" },
+        "fileUrl": { "type": "string" },
+        "status": { "type": "string", "enum": ["submitted", "graded"] },
+        "grade": { "type": "number" },
+        "feedback": { "type": "string" },
         "timestamp": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "examId", "studentId", "score"]
-    },
-    "Conversation": {
-      "title": "Conversation",
-      "description": "A chat conversation between two or more participants.",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "participants": { "type": "array", "items": { "type": "string" } },
-        "lastMessage": { "type": "string" },
-        "lastTimestamp": { "type": "string", "format": "date-time" },
-        "schoolId": { "type": "string" }
-      },
-      "required": ["id", "participants"]
-    },
-    "Message": {
-      "title": "Message",
-      "description": "A single message within a conversation.",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "conversationId": { "type": "string" },
-        "senderId": { "type": "string" },
-        "text": { "type": "string" },
-        "timestamp": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "conversationId", "senderId", "text", "timestamp"]
+      "required": ["id", "assignmentId", "studentId", "status"]
     }
   },
   "auth": {
@@ -113,13 +103,13 @@
       "schema": { "$ref": "#/entities/Exam" },
       "description": "Exam definitions."
     },
-    "/exams/{examId}/submissions/{submissionId}": {
-      "schema": { "$ref": "#/entities/ExamSubmission" },
-      "description": "Student exam submissions."
+    "/assignments/{assignmentId}": {
+      "schema": { "$ref": "#/entities/Assignment" },
+      "description": "Assignment definitions."
     },
-    "/conversations/{conversationId}": {
-      "schema": { "$ref": "#/entities/Conversation" },
-      "description": "Chat conversations."
+    "/assignments/{assignmentId}/submissions/{submissionId}": {
+      "schema": { "$ref": "#/entities/AssignmentSubmission" },
+      "description": "Student assignment submissions."
     }
   }
 }
