@@ -27,10 +27,11 @@ import {
   Activity,
   CreditCard,
   History,
-  TrendingUp,
   Settings2,
   Trash2,
-  Eye
+  Eye,
+  User,
+  Upload
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n-context";
 import { 
@@ -56,10 +57,8 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const INITIAL_SCHOOLS = [
-  { id: "EDU-JOSS-01", name: "Lycée de Joss", domain: "joss.cm", admins: 3, students: 1200, status: "Active", address: "Douala, Littoral", lat: 4.0435, lng: 9.7085, logo: "https://picsum.photos/seed/joss-logo/200/200", revenue: "2.4M", lastSync: "10 mins ago" },
-  { id: "EDU-GBHS-02", name: "GBHS Yaoundé", domain: "gbhs.yaounde.edu", admins: 5, students: 2850, status: "Active", address: "Yaoundé, Centre", lat: 3.8480, lng: 11.5021, logo: "https://picsum.photos/seed/gbhs-logo/200/200", revenue: "4.8M", lastSync: "2 hours ago" },
-  { id: "EDU-BUEA-03", name: "BUEA University", domain: "ubuea.cm", admins: 12, students: 4500, status: "Active", address: "Buea, South West", lat: 4.1550, lng: 9.2435, logo: "https://picsum.photos/seed/buea-logo/200/200", revenue: "8.2M", lastSync: "Yesterday" },
-  { id: "EDU-MAR-04", name: "Lycée de Maroua", domain: "maroua.edu", admins: 2, students: 900, status: "Suspended", address: "Maroua, Far North", lat: 10.5916, lng: 14.3155, logo: "https://picsum.photos/seed/maroua-logo/200/200", revenue: "1.2M", lastSync: "3 days ago" },
+  { id: "EDU-JOS-4015", name: "Lycée de Joss", domain: "joss.cm", principal: "Dr. Fonka Maurice", admins: 3, students: 1200, status: "Active", address: "Douala, Littoral", lat: 4.0435, lng: 9.7085, logo: "https://picsum.photos/seed/joss-logo/200/200", revenue: "2.4M", lastSync: "10 mins ago" },
+  { id: "EDU-GBH-1105", name: "GBHS Yaoundé", domain: "gbhs.yaounde.edu", principal: "Mme. Ngono Celine", admins: 5, students: 2850, status: "Active", address: "Yaoundé, Centre", lat: 3.8480, lng: 11.5021, logo: "https://picsum.photos/seed/gbhs-logo/200/200", revenue: "4.8M", lastSync: "2 hours ago" },
 ];
 
 export default function SchoolsManagementPage() {
@@ -74,6 +73,7 @@ export default function SchoolsManagementPage() {
   const [onboardingSuccess, setOnboardingSuccess] = useState<any>(null);
   const [newSchoolData, setNewSchoolData] = useState({
     name: "",
+    principal: "",
     domain: "",
     address: "",
     logo: "https://picsum.photos/seed/newschool/200/200"
@@ -94,8 +94,8 @@ export default function SchoolsManagementPage() {
   };
 
   const handleSaveSchool = () => {
-    if (!newSchoolData.name || !newSchoolData.domain) {
-      toast({ variant: "destructive", title: "Missing Info", description: "School name and domain are required." });
+    if (!newSchoolData.name || !newSchoolData.principal) {
+      toast({ variant: "destructive", title: "Missing Info", description: "School name and Principal name are required." });
       return;
     }
 
@@ -162,21 +162,32 @@ export default function SchoolsManagementPage() {
                 />
               </div>
               <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Principal / Head Name</Label>
+                <Input 
+                  placeholder="e.g. Dr. Jean Dupont" 
+                  className="h-12 bg-accent/30 border-none rounded-xl"
+                  value={newSchoolData.principal}
+                  onChange={(e) => setNewSchoolData({...newSchoolData, principal: e.target.value})}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Institution Logo</Label>
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-xl bg-accent/30 border border-dashed border-primary/20 flex items-center justify-center overflow-hidden">
+                    <img src={newSchoolData.logo} alt="Preview" className="w-full h-full object-cover" />
+                  </div>
+                  <Button variant="outline" size="sm" className="h-10 rounded-xl gap-2">
+                    <Upload className="w-4 h-4" /> Upload Logo
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
                 <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Primary Domain</Label>
                 <Input 
                   placeholder="school.edu" 
                   className="h-12 bg-accent/30 border-none rounded-xl"
                   value={newSchoolData.domain}
                   onChange={(e) => setNewSchoolData({...newSchoolData, domain: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Geographic Location</Label>
-                <Input 
-                  placeholder="City, Region" 
-                  className="h-12 bg-accent/30 border-none rounded-xl"
-                  value={newSchoolData.address}
-                  onChange={(e) => setNewSchoolData({...newSchoolData, address: e.target.value})}
                 />
               </div>
             </div>
@@ -246,6 +257,12 @@ export default function SchoolsManagementPage() {
             <CardContent className="py-4 border-y border-accent/50 space-y-4 bg-accent/5">
               <div className="flex justify-between items-center text-sm">
                 <div className="flex items-center gap-2 text-muted-foreground font-bold text-xs uppercase tracking-tighter">
+                  <User className="w-4 h-4" /> Principal
+                </div>
+                <span className="font-bold text-primary text-xs">{school.principal}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <div className="flex items-center gap-2 text-muted-foreground font-bold text-xs uppercase tracking-tighter">
                   <ShieldCheck className="w-4 h-4" /> Matricule
                 </div>
                 <span className="font-mono font-black text-primary text-xs">{school.id}</span>
@@ -255,12 +272,6 @@ export default function SchoolsManagementPage() {
                   <Users className="w-4 h-4" /> Enrolled
                 </div>
                 <span className="font-black text-primary">{school.students.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between items-center text-sm">
-                <div className="flex items-center gap-2 text-muted-foreground font-bold text-xs uppercase tracking-tighter">
-                  <MapPin className="w-4 h-4" /> {language === 'en' ? "Location" : "Localisation"}
-                </div>
-                <span className="text-xs truncate max-w-[150px] font-bold text-primary">{school.address}</span>
               </div>
             </CardContent>
             <CardFooter className="pt-4 gap-2">
@@ -302,7 +313,7 @@ export default function SchoolsManagementPage() {
                   <Badge className="bg-secondary text-primary border-none font-black h-6">{managedSchool?.status}</Badge>
                 </div>
                 <DialogDescription className="text-white/70 text-lg flex items-center justify-center md:justify-start gap-4">
-                  <span className="flex items-center gap-1.5"><Globe className="w-4 h-4"/> {managedSchool?.domain}</span>
+                  <span className="flex items-center gap-1.5"><User className="w-4 h-4"/> Principal: {managedSchool?.principal}</span>
                   <span className="opacity-30">|</span>
                   <span className="flex items-center gap-1.5 font-mono">ID: {managedSchool?.id}</span>
                 </DialogDescription>
@@ -373,33 +384,6 @@ export default function SchoolsManagementPage() {
                 </div>
               </div>
             </section>
-
-            <section className="space-y-4">
-              <h3 className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2 border-b pb-2">
-                <History className="w-4 h-4" /> System Audit Trail
-              </h3>
-              <Table>
-                <TableHeader className="bg-accent/30 uppercase text-[9px] font-black tracking-[0.2em]">
-                  <TableRow>
-                    <TableHead>Event</TableHead>
-                    <TableHead>Origin</TableHead>
-                    <TableHead className="text-right">Timestamp</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow className="text-xs">
-                    <TableCell className="font-bold">Institutional Data Backup</TableCell>
-                    <TableCell>Cloud Controller</TableCell>
-                    <TableCell className="text-right text-muted-foreground">{managedSchool?.lastSync}</TableCell>
-                  </TableRow>
-                  <TableRow className="text-xs">
-                    <TableCell className="font-bold">License Verification</TableCell>
-                    <TableCell>System Root</TableCell>
-                    <TableCell className="text-right text-muted-foreground">Yesterday</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </section>
           </div>
 
           <DialogFooter className="bg-accent/10 p-6 border-t flex justify-between items-center">
@@ -411,102 +395,98 @@ export default function SchoolsManagementPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Institutional Activation Letter Dialog */}
+      {/* INSTITUTIONAL ACTIVATION RECEIPT DIALOG */}
       <Dialog open={!!onboardingSuccess} onOpenChange={() => setOnboardingSuccess(null)}>
-        <DialogContent className="sm:max-w-5xl max-h-[95vh] overflow-y-auto p-0 border-none shadow-2xl rounded-3xl">
+        <DialogContent className="sm:max-w-4xl max-h-[95vh] overflow-y-auto p-0 border-none shadow-2xl rounded-3xl">
           <DialogHeader className="bg-green-600 p-8 text-white no-print">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="bg-white/20 p-3 rounded-2xl">
-                  <FileCheck className="w-8 h-8 text-white" />
-                </div>
-                <div>
-                  <DialogTitle className="text-2xl font-black">Activation Credentials Generated</DialogTitle>
-                  <DialogDescription className="text-white/80">The institution has been registered. Print this activation notice for the school admin.</DialogDescription>
-                </div>
+            <div className="flex items-center gap-4">
+              <div className="bg-white/20 p-3 rounded-2xl">
+                <FileCheck className="w-8 h-8 text-white" />
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setOnboardingSuccess(null)} className="text-white">
-                <X className="w-6 h-6" />
-              </Button>
+              <div>
+                <DialogTitle className="text-2xl font-black">Onboarding Successful!</DialogTitle>
+                <DialogDescription className="text-white/80">Institutional node activated. Provide this receipt to the Principal.</DialogDescription>
+              </div>
             </div>
           </DialogHeader>
 
-          <div className="p-12 bg-white font-serif text-black min-h-[900px] relative overflow-hidden print:p-0">
-            {/* National/Platform Header */}
-            <div className="flex items-center justify-between border-b-2 border-black pb-8 mb-10">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-primary rounded-2xl shadow-lg">
-                  <Building2 className="w-10 h-10 text-white" />
-                </div>
-                <div className="space-y-0.5">
-                  <h2 className="text-2xl font-black tracking-tight text-primary font-headline">EduIgnite SaaS</h2>
-                  <p className="text-[10px] uppercase font-bold tracking-widest opacity-60">Global Academic Network</p>
-                </div>
+          <div id="printable-receipt" className="p-12 bg-white font-serif text-black min-h-[850px] relative overflow-hidden print:p-0">
+            {/* EduIgnite Platform Header */}
+            <div className="flex flex-col items-center text-center space-y-4 border-b-4 border-primary pb-8 mb-10">
+              <div className="p-4 bg-primary rounded-[2rem] shadow-2xl mb-2">
+                <Building2 className="w-16 h-16 text-secondary" />
               </div>
-              <div className="text-right space-y-1">
-                <p className="text-xs font-bold uppercase">Activation ID: {onboardingSuccess?.id}</p>
-                <p className="text-xs opacity-60">Date: {new Date().toLocaleDateString()}</p>
+              <div className="space-y-1">
+                <h2 className="text-4xl font-black tracking-tighter text-primary font-headline">EduIgnite SaaS</h2>
+                <p className="text-[10px] uppercase font-black tracking-[0.5em] text-muted-foreground">Digital Academic Infrastructure</p>
               </div>
             </div>
 
             <div className="text-center space-y-4 mb-12">
               <h1 className="text-3xl font-black uppercase underline decoration-2 underline-offset-8">
-                Institutional Onboarding & Activation Notice
+                Institutional Activation Receipt
               </h1>
-              <p className="text-lg font-medium italic opacity-70">Official Confirmation of Platform Registration</p>
+              <p className="text-lg font-medium italic opacity-70">Official Node Registration Confirmation</p>
             </div>
 
             <div className="grid grid-cols-12 gap-12">
+              {/* Receipt Body - Left */}
               <div className="col-span-4 space-y-8">
-                <div className="w-full aspect-square border-4 border-accent bg-accent/5 rounded-3xl overflow-hidden flex items-center justify-center p-4">
+                <div className="w-full aspect-square border-4 border-accent bg-accent/5 rounded-3xl overflow-hidden flex items-center justify-center p-4 shadow-inner">
                   <img src={onboardingSuccess?.logo} alt="School Logo" className="w-full h-full object-contain" />
                 </div>
                 
-                <div className="p-6 bg-primary/5 rounded-2xl border-2 border-primary/10 text-center space-y-2">
-                  <p className="text-[10px] font-black uppercase text-primary opacity-60 tracking-widest">School Matricule</p>
-                  <p className="text-2xl font-mono font-black text-primary select-all">{onboardingSuccess?.id}</p>
-                  <p className="text-[9px] font-bold text-muted-foreground italic">Use this ID for initial administrative setup.</p>
+                <div className="p-6 bg-primary/5 rounded-2xl border-2 border-primary/10 text-center space-y-2 relative">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-[8px] font-black uppercase px-3 py-1 rounded-full">Matricule ID</div>
+                  <p className="text-3xl font-mono font-black text-primary select-all pt-2">{onboardingSuccess?.id}</p>
+                  <p className="text-[9px] font-bold text-muted-foreground italic">Required for first-time administrative login.</p>
                 </div>
 
                 <div className="flex flex-col items-center gap-2 pt-4">
-                  <QrCode className="w-32 h-32 opacity-20" />
-                  <p className="text-[8px] font-black uppercase opacity-40">Scan to Verify Institutional Node</p>
+                  <div className="p-2 border-2 border-accent rounded-2xl bg-white shadow-sm">
+                    <QrCode className="w-32 h-32 opacity-20 text-primary" />
+                  </div>
+                  <p className="text-[8px] font-black uppercase opacity-40">Scan to Verify Infrastructure</p>
                 </div>
               </div>
 
+              {/* Receipt Body - Right */}
               <div className="col-span-8 space-y-8">
                 <section className="space-y-4">
-                  <h3 className="bg-primary text-white text-[10px] font-black uppercase px-4 py-1.5 flex items-center gap-2 rounded">
-                    <CheckCircle2 className="w-3 h-3" /> Section I: Institutional Identity
-                  </h3>
+                  <div className="flex items-center gap-3 border-b border-accent pb-2">
+                    <CheckCircle2 className="w-5 h-5 text-primary" />
+                    <h3 className="font-black uppercase text-sm tracking-widest text-primary">Institution Identity</h3>
+                  </div>
                   <div className="grid grid-cols-2 gap-y-6 text-sm">
                     <div>
-                      <p className="font-bold uppercase opacity-40 text-[9px] block mb-1">Official Institution Name</p>
-                      <p className="font-black text-lg uppercase text-primary leading-none">{onboardingSuccess?.name}</p>
+                      <p className="font-bold uppercase opacity-40 text-[9px] block mb-1">Official School Name</p>
+                      <p className="font-black text-xl uppercase text-primary leading-tight">{onboardingSuccess?.name}</p>
                     </div>
                     <div>
-                      <p className="font-bold uppercase opacity-40 text-[9px] block mb-1">Assigned Domain</p>
-                      <p className="font-bold text-base text-primary">{onboardingSuccess?.domain}</p>
+                      <p className="font-bold uppercase opacity-40 text-[9px] block mb-1">Onboarded Principal</p>
+                      <p className="font-black text-lg text-primary">{onboardingSuccess?.principal}</p>
                     </div>
                     <div className="col-span-2">
-                      <p className="font-bold uppercase opacity-40 text-[9px] block mb-1">Operational Physical Location</p>
-                      <p className="font-medium flex items-center gap-2"><MapPin className="w-4 h-4 text-primary opacity-40" /> {onboardingSuccess?.address}</p>
+                      <p className="font-bold uppercase opacity-40 text-[9px] block mb-1">Assigned Operational Domain</p>
+                      <p className="font-bold text-base text-primary flex items-center gap-2"><Globe className="w-4 h-4 opacity-40"/> {onboardingSuccess?.domain}</p>
                     </div>
                   </div>
                 </section>
 
                 <section className="space-y-4">
-                  <h3 className="bg-primary text-white text-[10px] font-black uppercase px-4 py-1.5 flex items-center gap-2 rounded">
-                    <ShieldCheck className="w-3 h-3" /> Section II: Administrative Authorization
-                  </h3>
-                  <div className="p-6 border-2 border-primary/10 rounded-2xl bg-accent/5 space-y-4">
-                    <p className="text-xs leading-relaxed italic text-muted-foreground">
-                      This document authorizes the school administration of <strong>{onboardingSuccess?.name}</strong> to initialize their pedagogical and financial modules on the EduIgnite SaaS Platform. Access is granted under the terms of the master service agreement. The <strong>Institutional Matricule</strong> provided herein is confidential and must be kept secure.
+                  <div className="flex items-center gap-3 border-b border-accent pb-2">
+                    <Info className="w-5 h-5 text-primary" />
+                    <h3 className="font-black uppercase text-sm tracking-widest text-primary">Activation Message</h3>
+                  </div>
+                  <div className="p-6 border-2 border-dashed border-primary/20 rounded-2xl bg-primary/5 space-y-4">
+                    <p className="text-sm leading-relaxed italic text-muted-foreground">
+                      Welcome to the EduIgnite network. Your institutional node is now active. As the primary administrator, please use your **Institutional Matricule** to initialize the pedagogical and financial registries. Ensure that all faculty and staff are registered under their respective sections (Anglophone, Francophone, or Technical) to maintain structural integrity.
                     </p>
-                    <div className="flex gap-4">
-                       <div className="flex-1 p-3 bg-white border rounded-xl flex items-center gap-3">
-                          <Info className="w-5 h-5 text-primary opacity-40" />
-                          <p className="text-[10px] leading-tight">Admin Portal: <strong>app.eduignite.io/admin</strong></p>
+                    <div className="p-4 bg-white border rounded-xl flex items-center gap-4">
+                       <ShieldCheck className="w-8 h-8 text-green-600" />
+                       <div>
+                          <p className="text-xs font-black uppercase text-primary leading-none">Security Protocol Active</p>
+                          <p className="text-[10px] text-muted-foreground mt-1">This node is cryptographically linked to the SaaS core infrastructure.</p>
                        </div>
                     </div>
                   </div>
@@ -536,7 +516,7 @@ export default function SchoolsManagementPage() {
 
             <div className="absolute bottom-8 inset-x-0 text-center">
                <p className="text-[9px] uppercase font-black opacity-20 tracking-[0.4em]">
-                 OFFICIAL ACTIVATION DOSSIER • SECURE INSTITUTIONAL CREDENTIALS
+                 OFFICIAL ACTIVATION RECEIPT • NODE: {onboardingSuccess?.id}
                </p>
             </div>
           </div>
@@ -546,7 +526,7 @@ export default function SchoolsManagementPage() {
               Dismiss
             </Button>
             <Button className="flex-1 gap-2 rounded-xl h-12 shadow-lg font-bold" onClick={() => window.print()}>
-              <Printer className="w-5 h-5" /> Print Activation Letter
+              <Printer className="w-5 h-5" /> Print Activation Receipt
             </Button>
           </DialogFooter>
         </DialogContent>
