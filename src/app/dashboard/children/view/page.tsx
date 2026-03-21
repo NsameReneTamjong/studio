@@ -26,7 +26,9 @@ import {
   Eye,
   CheckCircle2,
   Printer,
-  ChevronRight
+  ChevronRight,
+  XCircle,
+  History
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -54,10 +56,26 @@ const CHILDREN_DATA: Record<string, any> = {
       { subject: "Informatique", time: "02:00 PM", status: "late" },
     ],
     attendanceSummary: [
-      { subject: "Mathématiques", present: 22, absent: 2 },
-      { subject: "Physique-Chimie", present: 18, absent: 4 },
-      { subject: "Anglais", present: 24, absent: 0 },
-      { subject: "Histoire-Géo", present: 21, absent: 3 },
+      { subject: "Mathématiques", present: 22, absent: 2, history: [
+        { date: "May 24, 2024", time: "08:00 AM", status: "present" },
+        { date: "May 22, 2024", time: "08:00 AM", status: "present" },
+        { date: "May 20, 2024", time: "08:00 AM", status: "absent" },
+        { date: "May 17, 2024", time: "08:00 AM", status: "present" },
+        { date: "May 15, 2024", time: "08:00 AM", status: "present" },
+      ]},
+      { subject: "Physique-Chimie", present: 18, absent: 4, history: [
+        { date: "May 24, 2024", time: "10:30 AM", status: "present" },
+        { date: "May 21, 2024", time: "10:30 AM", status: "present" },
+        { date: "May 19, 2024", time: "10:30 AM", status: "absent" },
+      ]},
+      { subject: "Anglais", present: 24, absent: 0, history: [
+        { date: "May 23, 2024", time: "01:00 PM", status: "present" },
+        { date: "May 20, 2024", time: "01:00 PM", status: "present" },
+      ]},
+      { subject: "Histoire-Géo", present: 21, absent: 3, history: [
+        { date: "May 22, 2024", time: "03:00 PM", status: "present" },
+        { date: "May 18, 2024", time: "03:00 PM", status: "absent" },
+      ]},
     ],
     schedule: {
       Monday: [{ time: "09:00 AM", subject: "Advanced Physics", room: "Room 402", instructor: "Dr. Tesla" }],
@@ -89,9 +107,15 @@ const CHILDREN_DATA: Record<string, any> = {
       { subject: "Chemistry", time: "10:30 AM", status: "present" },
     ],
     attendanceSummary: [
-      { subject: "Math Honors", present: 30, absent: 0 },
-      { subject: "Chemistry", present: 28, absent: 0 },
-      { subject: "English Lit", present: 25, absent: 0 },
+      { subject: "Math Honors", present: 30, absent: 0, history: [
+        { date: "May 24, 2024", time: "08:00 AM", status: "present" },
+      ]},
+      { subject: "Chemistry", present: 28, absent: 0, history: [
+        { date: "May 24, 2024", time: "10:30 AM", status: "present" },
+      ]},
+      { subject: "English Lit", present: 25, absent: 0, history: [
+        { date: "May 23, 2024", time: "01:00 PM", status: "present" },
+      ]},
     ],
     schedule: {
       Monday: [{ time: "10:30 AM", subject: "Math Honors", room: "Room 101", instructor: "Dr. Hawking" }],
@@ -121,6 +145,7 @@ export default function ChildViewPage() {
   
   // Preview States
   const [previewDoc, setPreviewDoc] = useState<{ type: 'report' | 'receipt' | 'id', data?: any } | null>(null);
+  const [selectedAttendanceDetails, setSelectedAttendanceDetails] = useState<any>(null);
 
   useEffect(() => {
     if (studentId && CHILDREN_DATA[studentId]) {
@@ -327,7 +352,12 @@ export default function ChildViewPage() {
                          <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded-md border border-red-100">{summary.absent} {t("absent")}</span>
                       </div>
                     </div>
-                    <Button variant="ghost" size="sm" className="gap-1 text-primary hover:bg-primary/5">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="gap-1 text-primary hover:bg-primary/5"
+                      onClick={() => setSelectedAttendanceDetails(summary)}
+                    >
                       {t("viewDetails")} <ChevronRight className="w-4 h-4" />
                     </Button>
                   </CardContent>
@@ -433,6 +463,61 @@ export default function ChildViewPage() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Attendance History Detail Dialog */}
+      <Dialog open={!!selectedAttendanceDetails} onOpenChange={() => setSelectedAttendanceDetails(null)}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="w-5 h-5 text-primary" />
+              {selectedAttendanceDetails?.subject} - {language === 'en' ? 'Detailed Records' : 'Détails de Présence'}
+            </DialogTitle>
+            <DialogDescription>
+              {language === 'en' 
+                ? 'Review complete session history for this subject.' 
+                : 'Consultez l\'historique complet des sessions pour cette matière.'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="max-h-[60vh] overflow-y-auto mt-4 rounded-md border">
+            <Table>
+              <TableHeader className="bg-muted/50">
+                <TableRow>
+                  <TableHead className="w-[150px]">Date</TableHead>
+                  <TableHead>{language === 'en' ? 'Time' : 'Heure'}</TableHead>
+                  <TableHead className="text-right">{language === 'en' ? 'Status' : 'Statut'}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {selectedAttendanceDetails?.history?.map((record: any, idx: number) => (
+                  <TableRow key={idx}>
+                    <TableCell className="font-medium text-xs md:text-sm">{record.date}</TableCell>
+                    <TableCell className="text-xs md:text-sm">{record.time}</TableCell>
+                    <TableCell className="text-right">
+                      <Badge 
+                        variant={record.status === 'present' ? 'default' : 'destructive'}
+                        className={cn(
+                          "text-[10px] px-2 py-0.5",
+                          record.status === 'present' ? "bg-green-600" : "bg-red-600"
+                        )}
+                      >
+                        {record.status === 'present' ? <CheckCircle2 className="w-3 h-3 mr-1" /> : <XCircle className="w-3 h-3 mr-1" />}
+                        {record.status.toUpperCase()}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setSelectedAttendanceDetails(null)}>
+              {language === 'en' ? 'Close' : 'Fermer'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Document Preview Dialog */}
       <Dialog open={!!previewDoc} onOpenChange={() => setPreviewDoc(null)}>
