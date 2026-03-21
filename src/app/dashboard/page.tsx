@@ -3,7 +3,20 @@
 
 import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Users, GraduationCap, BookOpen, AlertCircle, TrendingUp, Calendar as CalendarIcon } from "lucide-react";
+import { 
+  Users, 
+  GraduationCap, 
+  BookOpen, 
+  AlertCircle, 
+  TrendingUp, 
+  Calendar as CalendarIcon,
+  Award 
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+function AwardIcon({ className }: { className?: string }) {
+  return <Award className={className} />;
+}
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -98,8 +111,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-function AwardIcon(props: any) {
-  return <Award className={props.className} />
-}
-import { Award } from "lucide-react";
