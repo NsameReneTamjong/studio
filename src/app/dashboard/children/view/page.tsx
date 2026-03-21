@@ -125,11 +125,11 @@ const CHILDREN_DATA: Record<string, any> = {
 };
 
 const getAppreciation = (note: number) => {
-  if (note >= 16) return { text: "Très Bien", color: "bg-green-600" };
-  if (note >= 14) return { text: "Bien", color: "bg-green-500" };
-  if (note >= 12) return { text: "Assez Bien", color: "bg-blue-500" };
-  if (note >= 10) return { text: "Passable", color: "bg-amber-500" };
-  return { text: "Faible", color: "bg-red-500" };
+  if (note >= 16) return { text: "Très Bien / Excellent", color: "bg-green-600" };
+  if (note >= 14) return { text: "Bien / Very Good", color: "bg-green-500" };
+  if (note >= 12) return { text: "Assez Bien / Good", color: "bg-blue-500" };
+  if (note >= 10) return { text: "Passable / Fair", color: "bg-amber-500" };
+  return { text: "Faible / Poor", color: "bg-red-500" };
 };
 
 export default function ChildViewPage() {
@@ -578,7 +578,7 @@ export default function ChildViewPage() {
             {/* REPORT CARD PREVIEW - CAMEROONIAN SYSTEM STYLE */}
             {previewDoc?.type === 'report' && (
               <div className="bg-white p-6 md:p-10 shadow-sm border border-border min-h-[700px] flex flex-col space-y-6 font-serif text-black relative">
-                 {/* OFFICIAL HEADER */}
+                 {/* OFFICIAL HEADER (BILINGUAL) */}
                  <div className="grid grid-cols-3 gap-4 items-start text-center border-b-2 border-black pb-6">
                     <div className="space-y-1 text-[9px] uppercase font-bold">
                       <p>Republic of Cameroon</p>
@@ -602,10 +602,10 @@ export default function ChildViewPage() {
                  </div>
                  
                  <div className="text-center space-y-2">
-                    <h2 className="text-2xl font-black uppercase underline tracking-tighter">
-                      {previewDoc.data?.term?.toUpperCase() || "FIRST TERM REPORT CARD"}
+                    <h2 className="text-xl md:text-2xl font-black uppercase underline tracking-tighter">
+                      BULLETIN DE NOTES DU 1ER TRIMESTRE / FIRST TERM REPORT CARD
                     </h2>
-                    <p className="font-bold text-sm italic">Academic Year: {previewDoc.data?.year || "2023/2024"}</p>
+                    <p className="font-bold text-sm italic">Année Scolaire / Academic Year: {previewDoc.data?.year || "2023/2024"}</p>
                  </div>
 
                  <div className="grid grid-cols-12 gap-6 bg-accent/10 p-4 border border-accent rounded-lg items-center">
@@ -616,13 +616,13 @@ export default function ChildViewPage() {
                     </div>
                     <div className="col-span-9 space-y-2">
                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                          <span className="font-bold uppercase opacity-60">Name of Student:</span>
+                          <span className="font-bold uppercase opacity-60">Nom de l'élève / Name of Student:</span>
                           <span className="font-black uppercase">{child.name}</span>
-                          <span className="font-bold uppercase opacity-60">Matricule:</span>
+                          <span className="font-bold uppercase opacity-60">Matricule / ID No:</span>
                           <span className="font-mono font-bold text-primary">{child.id}</span>
-                          <span className="font-bold uppercase opacity-60">Class / Grade:</span>
+                          <span className="font-bold uppercase opacity-60">Classe / Grade:</span>
                           <span className="font-bold">{child.grade}</span>
-                          <span className="font-bold uppercase opacity-60">Number of Pupils:</span>
+                          <span className="font-bold uppercase opacity-60">Nombre d'élèves / Number of Pupils:</span>
                           <span className="font-bold">42</span>
                        </div>
                     </div>
@@ -637,13 +637,13 @@ export default function ChildViewPage() {
                           <TableHead className="text-center text-[10px] uppercase font-bold text-black border-r border-black">Seq 1</TableHead>
                           <TableHead className="text-center text-[10px] uppercase font-bold text-black border-r border-black">Seq 2</TableHead>
                           <TableHead className="text-center text-[10px] uppercase font-bold text-black border-r border-black">Moy/20</TableHead>
-                          <TableHead className="text-right text-[10px] uppercase font-bold text-black">Appreciation</TableHead>
+                          <TableHead className="text-right text-[10px] uppercase font-bold text-black">Appréciation / Appreciation</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {child.grades.map((g: any, i: number) => (
                           <TableRow key={i} className="border-black">
-                            <TableCell className="font-bold py-1.5 border-r border-black">{g.name}</TableCell>
+                            <TableCell className="font-bold py-1.5 border-r border-black text-[11px]">{g.name}</TableCell>
                             <TableCell className="text-center py-1.5 border-r border-black font-black">{g.coeff}</TableCell>
                             <TableCell className="text-center py-1.5 border-r border-black font-mono">{(previewDoc.data?.average ? (g.seq1 - 0.5) : g.seq1).toFixed(2)}</TableCell>
                             <TableCell className="text-center py-1.5 border-r border-black font-mono">{(previewDoc.data?.average ? (g.seq2 - 0.5) : g.seq2).toFixed(2)}</TableCell>
@@ -653,12 +653,12 @@ export default function ChildViewPage() {
                         ))}
                         {/* TOTAL ROW */}
                         <TableRow className="border-black bg-black/5 font-bold">
-                           <TableCell className="border-r border-black text-right uppercase" colSpan={4}>General Summary</TableCell>
+                           <TableCell className="border-r border-black text-right uppercase text-[10px]" colSpan={4}>Résumé Général / General Summary</TableCell>
                            <TableCell className="text-center border-r border-black text-lg font-black text-primary" colSpan={1}>
                              {previewDoc.data?.average?.toFixed(2) || child.stats.average.toFixed(2)}
                            </TableCell>
                            <TableCell className="text-right uppercase text-[10px]" colSpan={1}>
-                             Rank: {previewDoc.data?.position || child.stats.rank}
+                             Rang / Rank: {previewDoc.data?.position || child.stats.rank}
                            </TableCell>
                         </TableRow>
                       </TableBody>
@@ -667,7 +667,7 @@ export default function ChildViewPage() {
 
                  <div className="grid grid-cols-3 gap-6 pt-6 border-t-2 border-black border-dashed">
                     <div className="space-y-4 text-center">
-                       <p className="text-[10px] uppercase font-black underline">The Parent</p>
+                       <p className="text-[10px] uppercase font-black underline">Le Parent / The Parent</p>
                        <div className="h-16 w-full border border-black/10 rounded bg-accent/5 italic text-[10px] flex items-center justify-center opacity-30">
                           (Signature)
                        </div>
@@ -676,22 +676,22 @@ export default function ChildViewPage() {
                        <div className="p-3 border-4 border-double border-primary/20 rounded-full">
                           <ShieldCheck className="w-10 h-10 text-primary opacity-20" />
                        </div>
-                       <p className="text-[10px] font-black uppercase mt-1">School Seal</p>
+                       <p className="text-[10px] font-black uppercase mt-1">Sceau / School Seal</p>
                     </div>
                     <div className="space-y-4 text-center relative">
-                       <p className="text-[10px] uppercase font-black underline">The Principal</p>
+                       <p className="text-[10px] uppercase font-black underline">Le Proviseur / The Principal</p>
                        <div className="mt-2 space-y-0">
                          <p className="font-bold text-xs uppercase">{child.schoolName}</p>
                          <div className="h-20 flex flex-col items-center justify-center">
                             <div className="w-32 h-16 border-b border-black/20" />
-                            <p className="text-[9px] italic mt-1 font-serif">Official Stamp Required</p>
+                            <p className="text-[9px] italic mt-1 font-serif">Cachet officiel requis / Official Stamp Required</p>
                          </div>
                        </div>
                     </div>
                  </div>
                  
                  <div className="text-[9px] text-center italic opacity-60 absolute bottom-4 left-0 right-0">
-                    Document generated via EduNexus SaaS Platform - Cameroon Institutional Portal
+                    Document généré via EduNexus SaaS Platform - Portail Institutionnel Camerounais / Cameroon Institutional Portal
                  </div>
               </div>
             )}
@@ -702,35 +702,35 @@ export default function ChildViewPage() {
                  <div className="text-center border-b pb-4">
                     <Building2 className="w-8 h-8 mx-auto text-primary mb-2" />
                     <h2 className="font-bold text-lg uppercase tracking-wider">{child.schoolName}</h2>
-                    <p className="text-[10px] text-muted-foreground">OFFICIAL PAYMENT RECEIPT</p>
+                    <p className="text-[10px] text-muted-foreground">REÇU DE PAIEMENT OFFICIEL / OFFICIAL PAYMENT RECEIPT</p>
                  </div>
-                 <div className="space-y-3 py-4">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Receipt No:</span>
+                 <div className="space-y-3 py-4 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Reçu No / Receipt No:</span>
                       <span className="font-mono font-bold">{previewDoc.data?.id}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between">
                       <span className="text-muted-foreground">Date:</span>
                       <span className="font-bold">{previewDoc.data?.date}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Payee:</span>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Payeur / Payee:</span>
                       <span className="font-bold">{child.name}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between">
                       <span className="text-muted-foreground">Description:</span>
                       <span className="font-bold">{previewDoc.data?.title}</span>
                     </div>
                     <div className="mt-4 pt-4 border-t-2 border-primary flex justify-between items-center">
-                      <span className="text-lg font-bold">TOTAL PAID:</span>
-                      <span className="text-xl font-black text-primary">{previewDoc.data?.amount}</span>
+                      <span className="text-base md:text-lg font-bold">TOTAL PAYÉ / TOTAL PAID:</span>
+                      <span className="text-lg md:text-xl font-black text-primary">{previewDoc.data?.amount}</span>
                     </div>
                  </div>
                  <div className="text-center py-4 relative">
                     <div className="border-4 border-green-600/30 text-green-600 font-black text-3xl p-2 rounded inline-block rotate-[-12deg] opacity-50 absolute right-0 bottom-0">
-                       PAID
+                       PAYÉ / PAID
                     </div>
-                    <p className="text-[10px] italic text-muted-foreground">This is a system generated document.</p>
+                    <p className="text-[10px] italic text-muted-foreground">Document généré automatiquement.</p>
                  </div>
               </div>
             )}
@@ -744,7 +744,7 @@ export default function ChildViewPage() {
                       <Building2 className="w-8 h-8 text-secondary" />
                       <div>
                         <CardTitle className="text-lg font-bold tracking-tight">{child.schoolName}</CardTitle>
-                        <CardDescription className="text-white/60 text-xs uppercase font-bold tracking-widest">{t("idCard")}</CardDescription>
+                        <CardDescription className="text-white/60 text-xs uppercase font-bold tracking-widest">{t("idCard")} / Carte d'Élève</CardDescription>
                       </div>
                     </div>
                   </CardHeader>
@@ -755,7 +755,7 @@ export default function ChildViewPage() {
                       </div>
                       <div className="space-y-4 flex-1">
                         <div>
-                          <p className="text-[10px] text-white/50 uppercase font-bold">{language === "en" ? "Student Name" : "Nom de l'Élève"}</p>
+                          <p className="text-[10px] text-white/50 uppercase font-bold">Nom / Student Name</p>
                           <p className="font-bold text-xl leading-none">{child.name}</p>
                         </div>
                         <div>
@@ -766,11 +766,11 @@ export default function ChildViewPage() {
                     </div>
                     <div className="grid grid-cols-2 gap-4 pt-4">
                       <div>
-                        <p className="text-[10px] text-white/50 uppercase font-bold">{language === "en" ? "Class" : "Classe"}</p>
+                        <p className="text-[10px] text-white/50 uppercase font-bold">Classe / Class</p>
                         <p className="text-lg font-bold">{child.grade}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-white/50 uppercase font-bold">{language === "en" ? "Expiry" : "Expiration"}</p>
+                        <p className="text-[10px] text-white/50 uppercase font-bold">Expiration / Expiry</p>
                         <p className="text-lg font-bold">Aug 2024</p>
                       </div>
                     </div>
@@ -786,7 +786,7 @@ export default function ChildViewPage() {
 
           <DialogFooter className="p-6 bg-white border-t gap-3 sm:gap-0">
             <Button variant="outline" onClick={() => setPreviewDoc(null)} className="gap-2">
-              <Printer className="w-4 h-4" /> {language === 'en' ? 'Print Document' : 'Imprimer le Document'}
+              <Printer className="w-4 h-4" /> Imprimer / Print
             </Button>
             <Button onClick={() => { handleDownload(previewDoc?.type === 'report' ? 'Official Report Card' : 'Academic Document'); setPreviewDoc(null); }} className="gap-2 shadow-lg">
               <Download className="w-4 h-4" /> {t("download")}
