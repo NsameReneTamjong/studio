@@ -32,7 +32,8 @@ import {
   ShieldCheck,
   Mail,
   Info,
-  Phone
+  Phone,
+  QrCode
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
