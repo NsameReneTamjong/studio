@@ -32,7 +32,9 @@ import {
   MapPin,
   ShieldCheck,
   Building2,
-  CalendarDays
+  CalendarDays,
+  LayoutGrid,
+  Zap
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -44,16 +46,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 // Mock Subjects for Automatic Teacher Suggestion
 const SUBJECT_METADATA = [
-  { name: "Mathematics", teacher: "Prof. Sarah Smith" },
-  { name: "Advanced Physics", teacher: "Dr. Aris Tesla" },
-  { name: "English Literature", teacher: "Ms. Bennet" },
-  { name: "General Chemistry", teacher: "Dr. White" },
+  { name: "Mathematics", teacher: "Prof. Sarah Smith", id: "MAT101" },
+  { name: "Advanced Physics", teacher: "Dr. Aris Tesla", id: "PHY101" },
+  { name: "English Literature", teacher: "Ms. Bennet", id: "LIT101" },
+  { name: "General Chemistry", teacher: "Dr. White", id: "CHM101" },
 ];
 
 const CLASSES = ["Form 5 / 2nde", "Lower Sixth / 1ère", "Upper Sixth / Terminale"];
 const ROOMS = ["Hall A", "Hall B", "Science Lab 1", "Room 402", "Library Wing"];
+const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+const TIME_SLOTS = ["08:00 AM", "09:30 AM", "11:00 AM", "01:00 PM", "02:30 PM"];
 
-// Mock Data
 const MOCK_EXAMS = [
   { 
     id: "E001", 
@@ -79,38 +82,6 @@ const MOCK_EXAMS = [
 
 const INITIAL_ONSITE_EXAMS = [
   { id: 'OE1', title: 'Mathematics Paper 1', class: 'Form 5 / 2nde', room: 'Hall A', date: '2024-06-10', time: '08:00 AM', teacher: 'Prof. Sarah Smith', status: 'Scheduled' },
-  { id: 'OE2', title: 'Physics Theory & Lab', class: 'Lower Sixth / 1ère', room: 'Science Lab 1', date: '2024-06-12', time: '10:30 AM', teacher: 'Dr. Aris Tesla', status: 'Scheduled' },
-];
-
-const COMPLETED_EXAMS_DIRECTORY = [
-  { id: "E001", title: "Mid-Term Physics MCQ", subject: "Advanced Physics", date: "May 14, 2024", submissions: 42 },
-  { id: "E003", title: "Unit 1: English Poetry", subject: "English", date: "May 12, 2024", submissions: 38 },
-  { id: "E004", title: "Chemical Bonds Basic", subject: "Chemistry", date: "May 08, 2024", submissions: 35 },
-];
-
-const MOCK_SUBMISSIONS = [
-  { 
-    id: "S1", 
-    examId: "E003",
-    examTitle: "Unit 1: English Poetry", 
-    score: 18, 
-    total: 20, 
-    passed: true, 
-    date: "May 12, 2024",
-    studentName: "Alice Thompson",
-    studentAvatar: "https://picsum.photos/seed/s1/100/100"
-  },
-  { 
-    id: "S2", 
-    examId: "E004",
-    examTitle: "Chemical Bonds Basic", 
-    score: 12, 
-    total: 20, 
-    passed: false, 
-    date: "May 08, 2024",
-    studentName: "Bob Richards",
-    studentAvatar: "https://picsum.photos/seed/s2/100/100"
-  },
 ];
 
 export default function ExamsPage() {
@@ -120,10 +91,20 @@ export default function ExamsPage() {
   
   const [isCreatingOnline, setIsCreatingOnline] = useState(false);
   const [isSchedulingOnsite, setIsSchedulingOnsite] = useState(false);
+  const [isDrawingTimetable, setIsDrawingTimetable] = useState(false);
   const [onsiteExams, setOnsiteExams] = useState(INITIAL_ONSITE_EXAMS);
   const [selectedExamResults, setSelectedExamResults] = useState<any>(null);
 
-  // Onsite Scheduling Form State
+  // Timetable State
+  const [timetableFormData, setTimetableFormData] = useState({
+    class: "",
+    subject: "",
+    day: "",
+    time: "",
+    room: "",
+    teacher: ""
+  });
+
   const [onsiteFormData, setOnsiteFormData] = useState({
     title: "",
     subject: "",
@@ -135,9 +116,15 @@ export default function ExamsPage() {
   });
 
   const isAdmin = user?.role === "SCHOOL_ADMIN";
-  const isTeacher = user?.role === "TEACHER" || isAdmin;
 
-  // Auto-assign teacher when subject changes
+  // Auto-assign teacher when subject changes for any schedule
+  useEffect(() => {
+    const meta = SUBJECT_METADATA.find(s => s.name === timetableFormData.subject);
+    if (meta) {
+      setTimetableFormData(prev => ({ ...prev, teacher: meta.teacher }));
+    }
+  }, [timetableFormData.subject]);
+
   useEffect(() => {
     const meta = SUBJECT_METADATA.find(s => s.name === onsiteFormData.subject);
     if (meta) {
@@ -145,34 +132,26 @@ export default function ExamsPage() {
     }
   }, [onsiteFormData.subject]);
 
-  const handleCreateOnlineExam = () => {
-    toast({ title: "Online Exam Scheduled", description: "Successfully added to the portal." });
-    setIsCreatingOnline(false);
-  };
-
   const handleScheduleOnsite = () => {
-    if (!onsiteFormData.title || !onsiteFormData.class || !onsiteFormData.room) {
-      toast({ variant: "destructive", title: "Error", description: "Please complete all fields." });
-      return;
-    }
-    
     const newExam = {
       id: `OE-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
       ...onsiteFormData,
       status: 'Scheduled'
     };
-
     setOnsiteExams(prev => [newExam, ...prev]);
     setIsSchedulingOnsite(false);
-    toast({
-      title: "Onsite Exam Scheduled",
-      description: `Exam for ${onsiteFormData.class} has been confirmed. ${onsiteFormData.teacher} has been assigned as invigilator.`,
-    });
+    toast({ title: "Onsite Exam Scheduled", description: `${onsiteFormData.teacher} assigned as invigilator.` });
   };
 
-  const filteredSubmissions = selectedExamResults 
-    ? MOCK_SUBMISSIONS.filter(s => s.examId === selectedExamResults.id)
-    : [];
+  const handleDrawTimetable = () => {
+    if (!timetableFormData.class || !timetableFormData.subject) return;
+    
+    setIsDrawingTimetable(false);
+    toast({
+      title: "Master Timetable Updated",
+      description: `Schedule generated for ${timetableFormData.class}. Personal timetable for ${timetableFormData.teacher} has been updated automatically.`,
+    });
+  };
 
   return (
     <div className="space-y-8">
@@ -180,139 +159,120 @@ export default function ExamsPage() {
         <div>
           <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
             <div className="p-2 bg-primary rounded-xl shadow-lg">
-              <PenTool className="w-6 h-6 text-secondary" />
+              <CalendarDays className="w-6 h-6 text-secondary" />
             </div>
-            {t("exams")}
+            Institutional Schedules
           </h1>
           <p className="text-muted-foreground mt-1">
-            {isAdmin 
-              ? "Oversee institutional assessment calendars, invigilation duty, and results."
-              : "Access your scheduled exams and achievement records."
-            }
+            Coordinate class timetables, onsite exams, and automated teacher duty cycles.
           </p>
         </div>
 
         {isAdmin && (
           <div className="flex gap-2">
-            <Dialog open={isSchedulingOnsite} onOpenChange={setIsSchedulingOnsite}>
+            <Dialog open={isDrawingTimetable} onOpenChange={setIsDrawingTimetable}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="gap-2 shadow-sm h-12 px-6 rounded-2xl border-primary/20">
-                  <CalendarDays className="w-5 h-5 text-primary" /> Schedule Onsite
+                <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl bg-secondary text-primary hover:bg-secondary/90">
+                  <LayoutGrid className="w-5 h-5" /> Draw Timetable
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
                 <DialogHeader className="bg-primary p-8 text-white">
-                  <DialogTitle className="text-2xl font-black">Schedule Onsite Exam</DialogTitle>
-                  <DialogDescription className="text-white/60">Configure a physical examination session. The system will automatically assign the subject teacher for invigilation.</DialogDescription>
+                  <DialogTitle className="text-2xl font-black">Master Schedule Slot</DialogTitle>
+                  <DialogDescription className="text-white/60">Draw a class timetable slot. The system will automatically reflect this in the teacher's schedule.</DialogDescription>
                 </DialogHeader>
                 <div className="p-8 space-y-6">
                   <div className="grid grid-cols-2 gap-6">
                     <div className="col-span-2 space-y-2">
-                      <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Exam Title</Label>
-                      <Input 
-                        placeholder="e.g. End of Term Theory" 
-                        className="h-12 bg-accent/30 border-none rounded-xl"
-                        value={onsiteFormData.title}
-                        onChange={(e) => setOnsiteFormData({...onsiteFormData, title: e.target.value})}
-                      />
-                    </div>
-                    <div className="space-y-2">
                       <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Target Class</Label>
-                      <Select onValueChange={(v) => setOnsiteFormData({...onsiteFormData, class: v})}>
-                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl">
-                          <SelectValue placeholder="Select Class" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                        </SelectContent>
+                      <Select onValueChange={(v) => setTimetableFormData({...timetableFormData, class: v})}>
+                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue placeholder="Select Class" /></SelectTrigger>
+                        <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
                       <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Subject</Label>
-                      <Select onValueChange={(v) => setOnsiteFormData({...onsiteFormData, subject: v})}>
-                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl">
-                          <SelectValue placeholder="Select Subject" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {SUBJECT_METADATA.map(s => <SelectItem key={s.name} value={s.name}>{s.name}</SelectItem>)}
-                        </SelectContent>
+                      <Select onValueChange={(v) => setTimetableFormData({...timetableFormData, subject: v})}>
+                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue placeholder="Select Subject" /></SelectTrigger>
+                        <SelectContent>{SUBJECT_METADATA.map(s => <SelectItem key={s.name} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Day of Week</Label>
+                      <Select onValueChange={(v) => setTimetableFormData({...timetableFormData, day: v})}>
+                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue placeholder="Select Day" /></SelectTrigger>
+                        <SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
                     
-                    {onsiteFormData.teacher && (
+                    {timetableFormData.teacher && (
                       <div className="col-span-2 p-4 bg-primary/5 rounded-xl border border-primary/10 flex items-center gap-4">
-                        <div className="p-2 bg-primary rounded-lg text-white">
-                          <ShieldCheck className="w-5 h-5" />
-                        </div>
+                        <div className="p-2 bg-primary rounded-lg text-white"><ShieldCheck className="w-5 h-5" /></div>
                         <div className="flex-1">
-                          <p className="text-[10px] font-black uppercase text-primary/60 tracking-widest">Assigned Invigilator</p>
-                          <p className="font-bold text-primary">{onsiteFormData.teacher}</p>
+                          <p className="text-[10px] font-black uppercase text-primary/60 tracking-widest">Automatic Duty Assignment</p>
+                          <p className="font-bold text-primary">{timetableFormData.teacher}</p>
                         </div>
-                        <Badge className="bg-secondary text-primary border-none">AUTOMATIC</Badge>
+                        <Badge className="bg-secondary text-primary border-none">GENERATE</Badge>
                       </div>
                     )}
 
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Venue / Room</Label>
-                      <Select onValueChange={(v) => setOnsiteFormData({...onsiteFormData, room: v})}>
-                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl">
-                          <SelectValue placeholder="Select Venue" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {ROOMS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-                        </SelectContent>
+                      <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Time Slot</Label>
+                      <Select onValueChange={(v) => setTimetableFormData({...timetableFormData, time: v})}>
+                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue placeholder="Select Time" /></SelectTrigger>
+                        <SelectContent>{TIME_SLOTS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Exam Date</Label>
-                      <Input 
-                        type="date" 
-                        className="h-12 bg-accent/30 border-none rounded-xl"
-                        onChange={(e) => setOnsiteFormData({...onsiteFormData, date: e.target.value})}
-                      />
-                    </div>
-                  </div>
-                </div>
-                <DialogFooter className="bg-accent/20 p-6 border-t border-accent flex sm:flex-row gap-3">
-                  <Button variant="ghost" className="flex-1 rounded-xl h-12" onClick={() => setIsSchedulingOnsite(false)}>Cancel</Button>
-                  <Button onClick={handleScheduleOnsite} className="flex-1 rounded-xl h-12 shadow-lg font-bold">Confirm Schedule</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-
-            <Dialog open={isCreatingOnline} onOpenChange={setIsCreatingOnline}>
-              <DialogTrigger asChild>
-                <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl">
-                  <Plus className="w-5 h-5" /> Create MCQ
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-2xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-                <DialogHeader className="bg-primary p-8 text-white">
-                  <DialogTitle className="text-2xl font-black">New Online MCQ</DialogTitle>
-                  <DialogDescription className="text-white/60">Setup an automated assessment for the student portal.</DialogDescription>
-                </DialogHeader>
-                <div className="p-8 space-y-6">
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label>Exam Title</Label>
-                      <Input placeholder="e.g. Sequence 1 Physics" className="bg-accent/30 border-none h-11" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Subject</Label>
-                      <Input placeholder="e.g. Physics" className="bg-accent/30 border-none h-11" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>{t("startTime")}</Label>
-                      <Input type="datetime-local" className="bg-accent/30 border-none h-11" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>{t("duration")} ({t("minutes")})</Label>
-                      <Input type="number" placeholder="45" className="bg-accent/30 border-none h-11" />
+                      <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Venue</Label>
+                      <Select onValueChange={(v) => setTimetableFormData({...timetableFormData, room: v})}>
+                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue placeholder="Select Room" /></SelectTrigger>
+                        <SelectContent>{ROOMS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </div>
                 <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
-                  <Button onClick={handleCreateOnlineExam} className="w-full h-12 font-bold shadow-lg">Save & Publish MCQ</Button>
+                  <Button onClick={handleDrawTimetable} className="w-full h-12 font-bold shadow-lg">Confirm & Sync Schedules</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog open={isSchedulingOnsite} onOpenChange={setIsSchedulingOnsite}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="gap-2 shadow-sm h-12 px-6 rounded-2xl border-primary/20">
+                  <CalendarDays className="w-5 h-5 text-primary" /> Schedule Onsite Exam
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+                <DialogHeader className="bg-primary p-8 text-white">
+                  <DialogTitle className="text-2xl font-black">Schedule Physical Exam</DialogTitle>
+                  <DialogDescription className="text-white/60">Coordinates physical seating. Teachers will be automatically notified of invigilation duties.</DialogDescription>
+                </DialogHeader>
+                <div className="p-8 space-y-6">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="col-span-2 space-y-2">
+                      <Label>Exam Title</Label>
+                      <Input placeholder="e.g. End of Term" className="h-12 bg-accent/30 border-none rounded-xl" onChange={(e) => setOnsiteFormData({...onsiteFormData, title: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Subject</Label>
+                      <Select onValueChange={(v) => setOnsiteFormData({...onsiteFormData, subject: v})}>
+                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue /></SelectTrigger>
+                        <SelectContent>{SUBJECT_METADATA.map(s => <SelectItem key={s.name} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Class</Label>
+                      <Select onValueChange={(v) => setOnsiteFormData({...onsiteFormData, class: v})}>
+                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue /></SelectTrigger>
+                        <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+                <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+                  <Button onClick={handleScheduleOnsite} className="w-full h-12 font-bold shadow-lg">Confirm Exam Schedule</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -323,13 +283,13 @@ export default function ExamsPage() {
       <Tabs defaultValue="onsite" className="w-full">
         <TabsList className="grid grid-cols-3 w-full md:w-[600px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl">
           <TabsTrigger value="onsite" className="gap-2 py-3 rounded-xl transition-all">
-            <CalendarDays className="w-4 h-4" /> Onsite Schedule
+            <CalendarDays className="w-4 h-4" /> Onsite Exams
           </TabsTrigger>
           <TabsTrigger value="available" className="gap-2 py-3 rounded-xl transition-all">
             <PenTool className="w-4 h-4" /> Live MCQs
           </TabsTrigger>
-          <TabsTrigger value="results" className="gap-2 py-3 rounded-xl transition-all">
-            <Award className="w-4 h-4" /> Results Ledger
+          <TabsTrigger value="timetable" className="gap-2 py-3 rounded-xl transition-all">
+            <LayoutGrid className="w-4 h-4" /> Class Timetables
           </TabsTrigger>
         </TabsList>
 
@@ -338,9 +298,7 @@ export default function ExamsPage() {
             {onsiteExams.map((exam) => (
               <Card key={exam.id} className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-all">
                 <div className="bg-accent/30 p-4 border-b flex justify-between items-center">
-                  <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-primary/20 text-primary">
-                    {exam.class}
-                  </Badge>
+                  <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-primary/20 text-primary">{exam.class}</Badge>
                   <Badge className="bg-primary text-white border-none font-bold text-[9px] px-3">{exam.status}</Badge>
                 </div>
                 <CardHeader>
@@ -352,23 +310,17 @@ export default function ExamsPage() {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest flex items-center gap-1">
-                        <MapPin className="w-3 h-3" /> Venue
-                      </p>
+                      <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest flex items-center gap-1"><MapPin className="w-3 h-3" /> Venue</p>
                       <p className="text-xs font-black">{exam.room}</p>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest flex items-center gap-1">
-                        <Clock className="w-3 h-3" /> Date & Time
-                      </p>
+                      <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest flex items-center gap-1"><Clock className="w-3 h-3" /> Time</p>
                       <p className="text-xs font-black">{exam.date} • {exam.time}</p>
                     </div>
                   </div>
                   <div className="pt-4 border-t border-accent">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-secondary/20 rounded-lg text-primary">
-                        <User className="w-4 h-4" />
-                      </div>
+                      <div className="p-2 bg-secondary/20 rounded-lg text-primary"><User className="w-4 h-4" /></div>
                       <div>
                         <p className="text-[10px] font-black uppercase text-muted-foreground leading-none">Invigilator</p>
                         <p className="text-sm font-bold text-primary">{exam.teacher}</p>
@@ -376,234 +328,46 @@ export default function ExamsPage() {
                     </div>
                   </div>
                 </CardContent>
-                {isAdmin && (
-                  <CardFooter className="bg-accent/10 border-t pt-4">
-                    <Button variant="ghost" className="w-full text-[10px] font-black uppercase tracking-widest hover:bg-white text-primary">
-                      Manage Duty & Venue
-                    </Button>
-                  </CardFooter>
-                )}
               </Card>
             ))}
           </div>
         </TabsContent>
 
-        <TabsContent value="available" className="mt-0 animate-in fade-in slide-in-from-bottom-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {MOCK_EXAMS.map((exam) => (
-              <Card key={exam.id} className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-all relative">
-                <div className={cn(
-                  "absolute top-0 left-0 w-1.5 h-full",
-                  exam.status === 'active' ? "bg-green-500" : "bg-blue-500"
-                )} />
-                <CardHeader>
-                  <div className="flex justify-between items-start mb-2">
-                    <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-primary/20 text-primary">
-                      {exam.subject}
-                    </Badge>
-                    <Badge variant={exam.status === 'active' ? 'default' : 'secondary'} className={cn(
-                      "text-[10px] uppercase font-black border-none h-5 px-3",
-                      exam.status === 'active' && "bg-green-600 animate-pulse"
-                    )}>
-                      {exam.status === 'active' ? 'LIVE NOW' : 'UPCOMING'}
-                    </Badge>
-                  </div>
-                  <CardTitle className="text-xl font-black text-primary group-hover:text-primary transition-colors">{exam.title}</CardTitle>
-                  <CardDescription className="flex items-center gap-1 font-medium">
-                    <User className="w-3 h-3" /> By {exam.teacher}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <p className="text-[10px] uppercase text-muted-foreground font-black tracking-widest flex items-center gap-1">
-                        <Timer className="w-3 h-3" /> {t("duration")}
-                      </p>
-                      <p className="text-xs font-bold">{exam.duration} {t("minutes")}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[10px] uppercase text-muted-foreground font-black tracking-widest flex items-center gap-1">
-                        <FileText className="w-3 h-3" /> {t("questions")}
-                      </p>
-                      <p className="text-xs font-bold">{exam.questionCount} MCQs</p>
-                    </div>
-                  </div>
-                  <div className="pt-2">
-                    <p className="text-[10px] uppercase text-muted-foreground font-black tracking-widest flex items-center gap-1 mb-1">
-                      <Clock className="w-3 h-3" /> Start Window
-                    </p>
-                    <p className="text-[11px] font-bold text-primary">{new Date(exam.startTime).toLocaleString()}</p>
-                  </div>
-                </CardContent>
-                <CardFooter className="bg-accent/30 border-t border-accent/50 pt-4">
-                  {isAdmin ? (
-                    <Button variant="ghost" className="w-full justify-between hover:bg-white text-primary font-black text-[10px] uppercase tracking-widest">
-                      Edit MCQ Bank
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
-                  ) : (
-                    <Button 
-                      className={cn("w-full gap-2 shadow-sm font-bold", exam.status !== 'active' && "bg-muted text-muted-foreground cursor-not-allowed hover:bg-muted")}
-                      disabled={exam.status !== 'active'}
-                      asChild
-                    >
-                      <Link href={exam.status === 'active' ? `/dashboard/exams/take?id=${exam.id}` : "#"}>
-                        <CheckCircle2 className="w-4 h-4" /> Start Exam
-                      </Link>
-                    </Button>
-                  )}
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="results" className="mt-0 animate-in fade-in slide-in-from-bottom-4">
-          <div className="space-y-6">
-            {!selectedExamResults ? (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Card className="border-none shadow-sm bg-primary text-white">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-xs uppercase font-black text-white/60 tracking-widest">Avg. Performance</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-black">84.5%</div>
-                      <p className="text-[10px] opacity-60 flex items-center gap-1 mt-1"><TrendingUp className="w-3 h-3"/> Global Trend</p>
-                    </CardContent>
-                  </Card>
-                  <Card className="border-none shadow-sm">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-xs uppercase font-black text-muted-foreground tracking-widest">Passing Rate</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-black text-green-600">92%</div>
-                      <p className="text-[10px] text-muted-foreground mt-1">Institutional target met</p>
-                    </CardContent>
-                  </Card>
-                  <Card className="border-none shadow-sm">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-xs uppercase font-black text-muted-foreground tracking-widest">Total Audited</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-black text-primary">1,240</div>
-                      <p className="text-[10px] text-muted-foreground mt-1">Academic Year 2023/24</p>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                <div className="space-y-4">
-                  <h2 className="text-xl font-black text-primary flex items-center gap-2">
-                    <Award className="w-5 h-5 text-secondary" /> Historical Exam Directory
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {COMPLETED_EXAMS_DIRECTORY.map((ex) => (
-                      <Card key={ex.id} className="border-none shadow-lg group hover:ring-2 hover:ring-primary/20 transition-all cursor-pointer bg-white" onClick={() => setSelectedExamResults(ex)}>
-                        <CardHeader className="pb-3 bg-accent/30 border-b">
-                          <Badge variant="outline" className="w-fit mb-2 text-[9px] font-black border-primary/20 text-primary uppercase">{ex.subject}</Badge>
-                          <CardTitle className="text-lg font-black group-hover:text-primary transition-colors">{ex.title}</CardTitle>
-                        </CardHeader>
-                        <CardContent className="pt-4 space-y-4">
-                          <div className="flex justify-between items-center text-sm">
-                            <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" /> Date Recorded:</span>
-                            <span className="font-bold">{ex.date}</span>
-                          </div>
-                          <div className="flex justify-between items-center text-sm">
-                            <span className="text-muted-foreground text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"><Users className="w-3.5 h-3.5" /> Submissions:</span>
-                            <span className="font-bold text-primary">{ex.submissions} students</span>
-                          </div>
-                        </CardContent>
-                        <CardFooter className="pt-0 pb-4">
-                          <Button variant="ghost" className="w-full group-hover:bg-primary group-hover:text-white transition-colors h-9 gap-2 font-black text-[10px] uppercase tracking-widest">
-                            View Performance Ledger <ChevronRight className="w-4 h-4" />
-                          </Button>
-                        </CardFooter>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
+        <TabsContent value="timetable" className="mt-0">
+          <Card className="border-none shadow-sm">
+            <CardHeader className="border-b bg-white flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Institutional Master Timetable</CardTitle>
+                <CardDescription>Visualizing class availability and teacher duty coverage.</CardDescription>
               </div>
-            ) : (
-              <div className="animate-in fade-in slide-in-from-left-4 duration-300">
-                <div className="flex items-center justify-between mb-6">
-                  <Button variant="ghost" className="gap-2 hover:bg-accent font-bold" onClick={() => setSelectedExamResults(null)}>
-                    <ChevronLeft className="w-4 h-4" /> Back to Directory
-                  </Button>
-                  <Button variant="outline" className="gap-2 shadow-sm font-bold">
-                    <Printer className="w-4 h-4" /> Print Registry
-                  </Button>
-                </div>
-
-                <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
-                  <CardHeader className="bg-primary text-white border-b flex flex-row items-center justify-between p-8">
-                    <div>
-                      <CardTitle className="text-3xl font-black flex items-center gap-2 text-white">
-                        <BarChart3 className="w-8 h-8 text-secondary" />
-                        {selectedExamResults.title}
-                      </CardTitle>
-                      <CardDescription className="text-white/60 font-bold text-lg">
-                        {selectedExamResults.subject} • Official Academic Ledger
-                      </CardDescription>
-                    </div>
-                    <Badge className="bg-white/20 text-white border-none h-8 px-6 text-sm font-black">{filteredSubmissions.length} Registered Records</Badge>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="bg-muted/50 uppercase text-[10px] font-black tracking-widest">
-                          <TableHead className="pl-8 py-6">Student Profile</TableHead>
-                          <TableHead className="text-center">Score Card</TableHead>
-                          <TableHead className="text-center">Percentage</TableHead>
-                          <TableHead className="text-center">Validation Status</TableHead>
-                          <TableHead className="text-right pr-8">Audit Date</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredSubmissions.map((sub) => (
-                          <TableRow key={sub.id} className="hover:bg-accent/5 transition-colors border-b border-accent/10">
-                            <TableCell className="pl-8 py-4">
-                              <div className="flex items-center gap-3">
-                                <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent">
-                                  <AvatarImage src={sub.studentAvatar} />
-                                  <AvatarFallback className="bg-primary/5 text-primary text-[10px] font-black uppercase">
-                                    {sub.studentName.charAt(0)}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <p className="font-bold text-sm text-primary leading-none mb-1">{sub.studentName}</p>
-                                  <p className="text-[10px] text-muted-foreground uppercase font-black tracking-tighter">Matricule: {sub.id}</p>
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <div className="inline-flex items-baseline gap-1">
-                                <span className="text-lg font-black text-primary">{sub.score}</span>
-                                <span className="text-xs font-bold text-muted-foreground">/ {sub.total}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-center font-mono font-black text-primary">
-                              {Math.round((sub.score / sub.total) * 100)}%
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <Badge className={cn(
-                                "text-[10px] font-black uppercase tracking-widest border-none px-4",
-                                sub.passed ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                              )}>
-                                {sub.passed ? 'PASSED' : 'RETAKE'}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-right pr-8 font-mono text-[10px] text-muted-foreground uppercase font-black">
-                              {sub.date}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-          </div>
+              <Button variant="outline" size="sm" className="gap-2"><Printer className="w-4 h-4" /> Print Current Version</Button>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader className="bg-muted/50 uppercase text-[10px] font-black">
+                  <TableRow>
+                    <TableHead className="pl-6">Class Level</TableHead>
+                    {DAYS.map(day => <TableHead key={day}>{day}</TableHead>)}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {CLASSES.map(cls => (
+                    <TableRow key={cls}>
+                      <TableCell className="pl-6 font-bold text-primary text-xs">{cls}</TableCell>
+                      {DAYS.map(day => (
+                        <TableCell key={day} className="py-4">
+                          <div className="bg-accent/30 p-2 rounded-lg border border-accent/50 min-h-[60px] flex flex-col justify-center">
+                            <p className="text-[10px] font-black text-primary leading-tight">Advanced Physics</p>
+                            <p className="text-[8px] text-muted-foreground uppercase mt-1">Dr. Tesla • R402</p>
+                          </div>
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

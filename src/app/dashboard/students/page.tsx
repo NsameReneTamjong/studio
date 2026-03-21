@@ -138,6 +138,7 @@ export default function StudentsPage() {
   const [admissionSuccess, setAdmissionSuccess] = useState<any>(null);
   const [isNewGuardian, setIsNewGuardian] = useState(false);
   const [selectedGuardianId, setSelectedGuardianId] = useState("");
+  const [guardianSearchTerm, setGuardianSearchTerm] = useState("");
   
   const [admissionForm, setAdmissionForm] = useState({
     name: "",
@@ -162,6 +163,11 @@ export default function StudentsPage() {
     
     return matchesSearch && matchesClass && matchesGender && matchesYear;
   });
+
+  const filteredGuardians = MOCK_GUARDIANS.filter(g => 
+    g.name.toLowerCase().includes(guardianSearchTerm.toLowerCase()) ||
+    g.phone.includes(guardianSearchTerm)
+  );
   
   const isBursar = user?.role === "BURSAR";
   const isAdmin = ["SUPER_ADMIN", "SCHOOL_ADMIN"].includes(user?.role || "");
@@ -230,6 +236,7 @@ export default function StudentsPage() {
               if (!open) {
                 setIsNewGuardian(false);
                 setSelectedGuardianId("");
+                setGuardianSearchTerm("");
               }
             }}>
               <DialogTrigger asChild>
@@ -296,71 +303,89 @@ export default function StudentsPage() {
                       <div className="space-y-6">
                         <div className="flex items-center justify-between">
                           <div className="space-y-0.5">
-                            <Label className="text-base">Guardian Selection</Label>
-                            <p className="text-xs text-muted-foreground">Select an existing parent or add a new one.</p>
+                            <Label className="text-base">Guardian Information</Label>
+                            <p className="text-xs text-muted-foreground">Select from database or add a new record.</p>
                           </div>
                           <Button 
-                            variant="outline" 
+                            variant="secondary" 
                             size="sm" 
-                            onClick={() => {
-                              setIsNewGuardian(!isNewGuardian);
-                              if (!isNewGuardian) {
-                                setSelectedGuardianId("");
-                                setAdmissionForm({...admissionForm, parentName: "", parentPhone: ""});
-                              }
-                            }}
+                            onClick={() => setIsNewGuardian(!isNewGuardian)}
                             className={cn(
-                              "gap-2 rounded-lg border-primary/20",
-                              isNewGuardian && "bg-primary text-white hover:bg-primary/90"
+                              "gap-2 rounded-xl h-10 px-4",
+                              isNewGuardian ? "bg-primary text-white" : "bg-secondary text-primary"
                             )}
                           >
-                            {isNewGuardian ? <UserCheck className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                            {isNewGuardian ? "Existing Guardian" : "Register New"}
+                            {isNewGuardian ? <Search className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                            {isNewGuardian ? "Back to Search" : "Add New Guardian"}
                           </Button>
                         </div>
 
                         {!isNewGuardian ? (
                           <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
-                            <div className="space-y-2">
-                              <Label className="flex items-center gap-2"><Search className="w-3 h-3"/> Search Institutional Database</Label>
-                              <Select value={selectedGuardianId} onValueChange={handleGuardianSelect}>
-                                <SelectTrigger className="h-12 rounded-xl bg-accent/30 border-none shadow-inner">
-                                  <SelectValue placeholder="Search by name or contact..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {MOCK_GUARDIANS.map(g => (
-                                    <SelectItem key={g.id} value={g.id} className="py-3">
-                                      <div className="flex flex-col">
-                                        <span className="font-bold">{g.name}</span>
-                                        <span className="text-[10px] text-muted-foreground">{g.phone} • {g.email}</span>
-                                      </div>
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                            <div className="relative">
+                              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                              <Input 
+                                placeholder="Search existing guardians by name or phone..." 
+                                className="pl-10 h-12 bg-accent/30 border-none rounded-xl"
+                                value={guardianSearchTerm}
+                                onChange={(e) => setGuardianSearchTerm(e.target.value)}
+                              />
                             </div>
                             
-                            {selectedGuardianId && (
-                              <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 flex items-center gap-4">
-                                <div className="p-3 bg-primary rounded-full text-white">
-                                  <User className="w-5 h-5" />
+                            <div className="grid grid-cols-1 gap-2 max-h-[200px] overflow-y-auto p-1">
+                              {filteredGuardians.map(g => (
+                                <button
+                                  key={g.id}
+                                  type="button"
+                                  onClick={() => handleGuardianSelect(g.id)}
+                                  className={cn(
+                                    "flex items-center justify-between p-4 rounded-xl border-2 transition-all text-left group",
+                                    selectedGuardianId === g.id 
+                                      ? "border-primary bg-primary/5" 
+                                      : "border-transparent bg-white hover:border-accent shadow-sm"
+                                  )}
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <div className={cn(
+                                      "p-2 rounded-full",
+                                      selectedGuardianId === g.id ? "bg-primary text-white" : "bg-accent text-primary"
+                                    )}>
+                                      <User className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                      <p className="font-bold text-sm">{g.name}</p>
+                                      <p className="text-[10px] text-muted-foreground">{g.phone} • {g.email}</p>
+                                    </div>
+                                  </div>
+                                  {selectedGuardianId === g.id && <CheckCircle2 className="w-5 h-5 text-primary" />}
+                                </button>
+                              ))}
+                              {filteredGuardians.length === 0 && (
+                                <div className="text-center py-8 text-muted-foreground italic text-sm">
+                                  No records found. Click "Add New Guardian" to register a new parent.
                                 </div>
-                                <div>
-                                  <p className="text-sm font-black text-primary">Guardian Linked</p>
-                                  <p className="text-xs text-muted-foreground">Selected: {admissionForm.parentName}</p>
-                                </div>
-                              </div>
-                            )}
+                              )}
+                            </div>
                           </div>
                         ) : (
                           <div className="grid grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-2">
                             <div className="col-span-2 space-y-2">
                               <Label>Parent / Guardian Full Name</Label>
-                              <Input value={admissionForm.parentName} onChange={(e) => setAdmissionForm({...admissionForm, parentName: e.target.value})} placeholder="e.g. Mr. Robert Thompson" className="h-11 rounded-xl" />
+                              <Input 
+                                value={admissionForm.parentName} 
+                                onChange={(e) => setAdmissionForm({...admissionForm, parentName: e.target.value})} 
+                                placeholder="e.g. Mr. Robert Thompson" 
+                                className="h-11 rounded-xl" 
+                              />
                             </div>
                             <div className="col-span-2 space-y-2">
                               <Label>Guardian Primary Contact</Label>
-                              <Input value={admissionForm.parentPhone} onChange={(e) => setAdmissionForm({...admissionForm, parentPhone: e.target.value})} placeholder="+237 ..." className="h-11 rounded-xl" />
+                              <Input 
+                                value={admissionForm.parentPhone} 
+                                onChange={(e) => setAdmissionForm({...admissionForm, parentPhone: e.target.value})} 
+                                placeholder="+237 ..." 
+                                className="h-11 rounded-xl" 
+                              />
                             </div>
                           </div>
                         )}
@@ -368,9 +393,9 @@ export default function StudentsPage() {
                         <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 flex gap-3">
                           <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
                           <p className="text-xs text-blue-800 leading-relaxed">
-                            {isNewGuardian 
-                              ? "A new parent portal account will be automatically generated and linked to this student profile." 
-                              : "This student will be added to the selected guardian's existing family portal account."}
+                            {selectedGuardianId 
+                              ? `Student will be linked to ${admissionForm.parentName}'s existing account.` 
+                              : "Registering a new guardian will create their first portal account credentials."}
                           </p>
                         </div>
                       </div>
