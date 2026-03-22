@@ -27,7 +27,8 @@ import {
   Play,
   Quote,
   Star,
-  MessageSquare
+  MessageSquare,
+  Video
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -59,6 +60,23 @@ const MOCK_TESTIMONIALS = [
     avatar: "https://picsum.photos/seed/admin2/100/100",
     content: "The transparency in fee collection has increased our revenue recovery by 25%. A must-have for every serious institution.",
     date: "1 month ago"
+  }
+];
+
+const FEATURED_VIDEOS = [
+  {
+    id: "v1",
+    title: "Platform Overview",
+    description: "A comprehensive tour of the EduIgnite ecosystem and its impact on digital transformation in schools.",
+    thumbnail: "https://picsum.photos/seed/edu-video-1/800/450",
+    category: "Intro"
+  },
+  {
+    id: "v2",
+    title: "Financial Governance",
+    description: "Exploring how our automated ledger system ensures 100% financial transparency and fee recovery.",
+    thumbnail: "https://picsum.photos/seed/edu-video-2/800/450",
+    category: "Finance"
   }
 ];
 
@@ -376,54 +394,84 @@ export default function LoginPage() {
                 {t("whatPeopleSay")}
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-2xl rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl">
+            <DialogContent className="sm:max-w-3xl rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl">
               <DialogHeader className="bg-primary p-8 text-white">
-                <DialogTitle className="text-2xl font-black">{t("testimonials")}</DialogTitle>
-                <DialogDescription className="text-white/60">Discover the impact of EduIgnite across the nation.</DialogDescription>
-              </DialogHeader>
-              <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto">
-                {/* YouTube Feature */}
-                <div className="aspect-video bg-black rounded-2xl overflow-hidden shadow-xl relative group">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform cursor-pointer">
-                      <Play className="w-8 h-8 text-white fill-white ml-1" />
-                    </div>
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/10 rounded-2xl">
+                    <Star className="w-8 h-8 text-secondary fill-secondary/20" />
                   </div>
-                  <img src="https://picsum.photos/seed/edu-video/800/450" alt="Video Placeholder" className="w-full h-full object-cover opacity-60" />
-                  <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full">
-                    <p className="text-[10px] text-white font-black uppercase tracking-widest">Platform Introduction</p>
+                  <div>
+                    <DialogTitle className="text-2xl font-black">{t("testimonials")}</DialogTitle>
+                    <DialogDescription className="text-white/60">Discover the impact of EduIgnite across the nation.</DialogDescription>
+                  </div>
+                </div>
+              </DialogHeader>
+              <div className="p-8 space-y-10 max-h-[75vh] overflow-y-auto">
+                
+                {/* Featured Video Gallery */}
+                <div className="space-y-6">
+                  <h3 className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2 border-b pb-2">
+                    <Video className="w-4 h-4" /> Featured Media
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {FEATURED_VIDEOS.map((video) => (
+                      <div key={video.id} className="group space-y-3">
+                        <div className="aspect-video bg-black rounded-2xl overflow-hidden shadow-lg relative cursor-pointer">
+                          <div className="absolute inset-0 flex items-center justify-center z-10">
+                            <div className="w-14 h-14 bg-red-600 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform">
+                              <Play className="w-6 h-6 text-white fill-white ml-1" />
+                            </div>
+                          </div>
+                          <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover opacity-60 transition-opacity group-hover:opacity-40" />
+                          <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full z-10">
+                            <p className="text-[8px] text-white font-black uppercase tracking-widest">{video.category}</p>
+                          </div>
+                        </div>
+                        <div className="px-1">
+                          <h4 className="font-bold text-primary text-sm mb-1">{video.title}</h4>
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            {video.description}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
                 {/* Testimonials List */}
                 <div className="space-y-6">
-                  {MOCK_TESTIMONIALS.map((test) => (
-                    <Card key={test.id} className="border-none shadow-sm bg-accent/30 relative">
-                      <div className="absolute -top-3 -left-3 p-2 bg-white rounded-xl shadow-sm border border-accent">
-                        <Quote className="w-4 h-4 text-primary" />
-                      </div>
-                      <CardContent className="p-6 pt-8 space-y-4">
-                        <p className="text-muted-foreground leading-relaxed italic">
-                          "{test.content}"
-                        </p>
-                        <div className="flex items-center justify-between pt-4 border-t border-accent">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
-                              <AvatarImage src={test.avatar} />
-                              <AvatarFallback>{test.author.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="text-sm font-black text-primary leading-none">{test.author}</p>
-                              <p className="text-[10px] text-muted-foreground mt-1">{test.role}</p>
+                  <h3 className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2 border-b pb-2">
+                    <Quote className="w-4 h-4" /> Institutional Feedback
+                  </h3>
+                  <div className="grid grid-cols-1 gap-6">
+                    {MOCK_TESTIMONIALS.map((test) => (
+                      <Card key={test.id} className="border-none shadow-sm bg-accent/30 relative">
+                        <div className="absolute -top-3 -left-3 p-2 bg-white rounded-xl shadow-sm border border-accent">
+                          <Quote className="w-4 h-4 text-primary" />
+                        </div>
+                        <CardContent className="p-6 pt-8 space-y-4">
+                          <p className="text-muted-foreground leading-relaxed italic">
+                            "{test.content}"
+                          </p>
+                          <div className="flex items-center justify-between pt-4 border-t border-accent">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
+                                <AvatarImage src={test.avatar} />
+                                <AvatarFallback>{test.author.charAt(0)}</AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="text-sm font-black text-primary leading-none">{test.author}</p>
+                                <p className="text-[10px] text-muted-foreground mt-1">{test.role}</p>
+                              </div>
+                            </div>
+                            <div className="flex gap-0.5">
+                              {[1,2,3,4,5].map(i => <Star key={i} className="w-3 h-3 text-amber-500 fill-amber-500" />)}
                             </div>
                           </div>
-                          <div className="flex gap-0.5">
-                            {[1,2,3,4,5].map(i => <Star key={i} className="w-3 h-3 text-amber-500 fill-amber-500" />)}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
                 </div>
               </div>
             </DialogContent>
