@@ -49,7 +49,8 @@ import {
   Calendar,
   MapPin,
   Lock,
-  FileCheck
+  FileCheck,
+  Users
 } from "lucide-react";
 import { 
   DropdownMenu, 
