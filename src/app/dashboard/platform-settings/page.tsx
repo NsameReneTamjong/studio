@@ -33,8 +33,8 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 export default function PlatformSettingsPage() {
-  const { platformSettings, updatePlatformSettings, t } = useAuth();
-  const { language } = useI18n();
+  const { platformSettings, updatePlatformSettings } = useAuth();
+  const { t, language } = useI18n();
   const { toast } = useToast();
   
   const [loading, setLoading] = useState(false);
