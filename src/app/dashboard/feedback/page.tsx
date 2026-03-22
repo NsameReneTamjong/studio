@@ -23,7 +23,9 @@ import {
   Lightbulb,
   Heart,
   Settings2,
-  HelpCircle
+  HelpCircle,
+  Megaphone,
+  Globe
 } from "lucide-react";
 import { 
   Select, 
@@ -57,8 +59,8 @@ const INITIAL_FEEDBACKS = [
     senderName: "Mme. Ngono Celine", 
     senderAvatar: "https://picsum.photos/seed/admin2/100/100",
     senderRole: "Vice Principal",
-    subject: "Feature Suggestion", 
-    message: "It would be beneficial to add a dedicated section for student disciplinary behavior in the official report card generation module.", 
+    subject: "General Appreciation", 
+    message: "EduIgnite has transformed how we manage Sequence marks. The automated bulletins are a game changer for our administration.", 
     date: "Yesterday", 
     status: "Read" 
   },
@@ -102,6 +104,14 @@ export default function FeedbackPage() {
     toast({ 
       title: "Ticket Resolved", 
       description: "The support request has been marked as completed." 
+    });
+  };
+
+  const handlePublishTestimonial = (id: string) => {
+    setFeedbacks(prev => prev.map(fb => fb.id === id ? { ...fb, status: 'Published' } : fb));
+    toast({ 
+      title: "Testimonial Published", 
+      description: "This appreciation is now visible on the platform login portal.",
     });
   };
 
@@ -155,10 +165,10 @@ export default function FeedbackPage() {
                   </div>
                   <div className="pt-4 border-t border-accent/50 w-full">
                     <Badge 
-                      variant={fb.status === 'Resolved' ? 'secondary' : (fb.status === 'New' ? 'default' : 'outline')} 
+                      variant={fb.status === 'Resolved' || fb.status === 'Published' ? 'secondary' : (fb.status === 'New' ? 'default' : 'outline')} 
                       className={cn(
                         "w-full justify-center py-1 font-black uppercase text-[9px]",
-                        fb.status === 'Resolved' ? "bg-green-100 text-green-700" : ""
+                        fb.status === 'Resolved' || fb.status === 'Published' ? "bg-green-100 text-green-700" : ""
                       )}
                     >
                       {fb.status}
@@ -223,13 +233,25 @@ export default function FeedbackPage() {
                       >
                         Archive Ticket
                       </Button>
+                      
+                      {fb.subject === "General Appreciation" && fb.status !== "Published" && (
+                        <Button 
+                          variant="secondary"
+                          className="flex-1 sm:flex-none gap-2 rounded-xl h-11 px-6 font-bold bg-secondary text-primary hover:bg-secondary/90"
+                          onClick={() => handlePublishTestimonial(fb.id)}
+                        >
+                          <Globe className="w-4 h-4" /> 
+                          {t("publishTestimonial")}
+                        </Button>
+                      )}
+
                       <Button 
                         className="flex-1 sm:flex-none gap-2 rounded-xl h-11 px-8 font-black uppercase tracking-widest text-xs shadow-lg"
                         onClick={() => handleResolve(fb.id)}
-                        disabled={fb.status === 'Resolved'}
+                        disabled={fb.status === 'Resolved' || fb.status === 'Published'}
                       >
                         <CheckCircle2 className="w-4 h-4" /> 
-                        {fb.status === 'Resolved' ? 'Resolved' : 'Resolve Support'}
+                        {fb.status === 'Resolved' || fb.status === 'Published' ? 'Resolved' : 'Resolve Support'}
                       </Button>
                     </div>
                   </div>

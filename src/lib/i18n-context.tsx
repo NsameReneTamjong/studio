@@ -126,6 +126,9 @@ const translations: TranslationDict = {
   unpaid: { en: "Unpaid", fr: "Non payé" },
   paid: { en: "Paid", fr: "Payé" },
   amountToPay: { en: "Amount Due", fr: "Montant à Payer" },
+  whatPeopleSay: { en: "See what people say about EduIgnite", fr: "Découvrez ce qu'on dit d'EduIgnite" },
+  testimonials: { en: "Community Testimonials", fr: "Témoignages de la Communauté" },
+  publishTestimonial: { en: "Publish as Testimonial", fr: "Publier comme Témoignage" },
 };
 
 interface I18nContextType {
