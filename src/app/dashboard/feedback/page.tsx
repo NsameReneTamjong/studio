@@ -9,7 +9,29 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { MessageSquare, Send, Building2, User, Clock, Trash2, CheckCircle2, MessageCircle, ShieldCheck } from "lucide-react";
+import { 
+  MessageSquare, 
+  Send, 
+  Building2, 
+  User, 
+  Clock, 
+  Trash2, 
+  CheckCircle2, 
+  MessageCircle, 
+  ShieldCheck,
+  AlertCircle,
+  Lightbulb,
+  Heart,
+  Settings2,
+  HelpCircle
+} from "lucide-react";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -23,7 +45,7 @@ const INITIAL_FEEDBACKS = [
     senderName: "Dr. Fonka Maurice", 
     senderAvatar: "https://picsum.photos/seed/admin1/100/100",
     senderRole: "Main Admin",
-    subject: "Server Latency during Peak Hours", 
+    subject: "Technical Error", 
     message: "We are experiencing significant slow response times when teachers are entering Sequence 2 marks simultaneously. Please investigate our instance performance.", 
     date: "2 hours ago", 
     status: "New" 
@@ -35,11 +57,20 @@ const INITIAL_FEEDBACKS = [
     senderName: "Mme. Ngono Celine", 
     senderAvatar: "https://picsum.photos/seed/admin2/100/100",
     senderRole: "Vice Principal",
-    subject: "Disciplinary Record Request", 
+    subject: "Feature Suggestion", 
     message: "It would be beneficial to add a dedicated section for student disciplinary behavior in the official report card generation module.", 
     date: "Yesterday", 
     status: "Read" 
   },
+];
+
+const SUBJECT_OPTIONS = [
+  { value: "Technical Error", label: "Error / Bug Report", icon: AlertCircle, color: "text-red-500" },
+  { value: "Feature Suggestion", label: "Feature Suggestion", icon: Lightbulb, color: "text-amber-500" },
+  { value: "General Appreciation", label: "General Appreciation", icon: Heart, color: "text-rose-500" },
+  { value: "Billing & Subscription", label: "Billing & Subscription", icon: Settings2, color: "text-blue-500" },
+  { value: "Administrative Request", label: "Administrative Request", icon: ShieldCheck, color: "text-green-500" },
+  { value: "Other", label: "Other Support Request", icon: HelpCircle, color: "text-muted-foreground" },
 ];
 
 export default function FeedbackPage() {
@@ -54,7 +85,10 @@ export default function FeedbackPage() {
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
 
   const handleSendFeedback = () => {
-    if (!newFeedback.message) return;
+    if (!newFeedback.message || !newFeedback.subject) {
+      toast({ variant: "destructive", title: "Incomplete Form", description: "Please select a subject and enter your message." });
+      return;
+    }
     setIsSending(true);
     setTimeout(() => {
       toast({ title: "Feedback Sent", description: "The platform administrator has received your message." });
@@ -150,18 +184,24 @@ export default function FeedbackPage() {
                         </p>
                       </div>
                     </div>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="rounded-full hover:bg-destructive/5 text-destructive/20 hover:text-destructive"
-                      onClick={() => handleDelete(fb.id)}
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="rounded-full hover:bg-destructive/5 text-destructive/20 hover:text-destructive h-8 w-8"
+                        onClick={() => handleDelete(fb.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="space-y-4">
-                    <h2 className="text-xl font-black text-primary leading-tight">{fb.subject}</h2>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10 font-bold uppercase text-[10px]">
+                        {fb.subject}
+                      </Badge>
+                    </div>
                     <div className="bg-white/50 border border-accent rounded-2xl p-6 relative">
                       <div className="absolute -top-3 left-6 bg-white px-2 text-[9px] font-black uppercase text-muted-foreground">Message Body</div>
                       <p className="text-muted-foreground leading-relaxed italic">
@@ -218,40 +258,56 @@ export default function FeedbackPage() {
         <p className="text-muted-foreground mt-1">Send feedback or report an issue directly to the SaaS administrator.</p>
       </div>
 
-      <Card className="border-none shadow-xl">
-        <CardHeader>
-          <CardTitle>Submit Feedback</CardTitle>
-          <CardDescription>We value your suggestions and use them to improve the platform.</CardDescription>
+      <Card className="border-none shadow-xl rounded-[2rem] overflow-hidden">
+        <CardHeader className="bg-primary p-8 text-white">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-white/10 rounded-2xl">
+              <MessageSquare className="w-8 h-8 text-secondary" />
+            </div>
+            <div>
+              <CardTitle className="text-2xl font-black">Submit Feedback</CardTitle>
+              <CardDescription className="text-white/60">We value your suggestions and use them to improve the platform.</CardDescription>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="p-8 space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="subject">Subject</Label>
-            <Input 
-              id="subject" 
-              placeholder="What is this about?" 
-              value={newFeedback.subject}
-              onChange={(e) => setNewFeedback({...newFeedback, subject: e.target.value})}
-            />
+            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Subject / Category</Label>
+            <Select value={newFeedback.subject} onValueChange={(v) => setNewFeedback({...newFeedback, subject: v})}>
+              <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl focus:ring-primary">
+                <SelectValue placeholder="Select the nature of your message" />
+              </SelectTrigger>
+              <SelectContent>
+                {SUBJECT_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    <div className="flex items-center gap-2">
+                      <opt.icon className={cn("w-4 h-4", opt.color)} />
+                      <span>{opt.label}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="message">Message</Label>
+            <Label htmlFor="message" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Message Body</Label>
             <Textarea 
               id="message" 
               placeholder="Describe your issue or suggestion in detail..." 
-              className="min-h-[200px]"
+              className="min-h-[200px] bg-accent/30 border-none rounded-xl focus-visible:ring-primary leading-relaxed"
               value={newFeedback.message}
               onChange={(e) => setNewFeedback({...newFeedback, message: e.target.value})}
             />
           </div>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="bg-accent/20 p-6 border-t border-accent">
           <Button 
-            className="w-full gap-2 h-12 shadow-lg" 
+            className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3" 
             onClick={handleSendFeedback}
-            disabled={isSending || !newFeedback.message}
+            disabled={isSending || !newFeedback.message || !newFeedback.subject}
           >
-            {isSending ? <Clock className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-            Send Feedback
+            {isSending ? <Clock className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+            Send Official Feedback
           </Button>
         </CardFooter>
       </Card>
