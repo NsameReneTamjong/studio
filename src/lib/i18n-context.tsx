@@ -110,6 +110,10 @@ const translations: TranslationDict = {
   settings: { en: "School Settings", fr: "Paramètres de l'École" },
   founders: { en: "Founders", fr: "Fondateurs" },
   supportRegistry: { en: "Support Ledger", fr: "Registre de Soutien" },
+  forgotPassword: { en: "Forgot Password?", fr: "Mot de passe oublié ?" },
+  resetPassword: { en: "Reset Password", fr: "Réinitialiser" },
+  backToLogin: { en: "Back to Login", fr: "Retour à la connexion" },
+  verificationId: { en: "Verification ID", fr: "ID de vérification" },
 };
 
 interface I18nContextType {
