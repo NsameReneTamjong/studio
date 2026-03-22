@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Search, 
   MoreVertical, 
@@ -46,7 +47,9 @@ import {
   History,
   Mail,
   Calendar,
-  MapPin
+  MapPin,
+  Lock,
+  FileCheck
 } from "lucide-react";
 import { 
   DropdownMenu, 
@@ -62,18 +65,23 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip as RechartsTooltip, 
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  Cell
-} from "recharts";
+
+// Types
+interface SubAdminPermissions {
+  manageStudents: boolean;
+  manageStaff: boolean;
+  generateReports: boolean;
+  fullControl: boolean;
+}
+
+interface SchoolAdmin {
+  id: string;
+  name: string;
+  role: string;
+  purview: string;
+  avatar: string;
+  permissions: SubAdminPermissions;
+}
 
 // Mock Data
 const INITIAL_SUB_SCHOOLS = [
@@ -82,10 +90,31 @@ const INITIAL_SUB_SCHOOLS = [
   { id: "SEC-03", name: "Technical Section", type: "Technical", head: "Mr. Ebong", headRole: "Section Head", students: 214, staff: 12, color: "bg-purple-500" },
 ];
 
-const INITIAL_ADMINS = [
-  { id: "ADM-01", name: "Principal Fonka", role: "Principal", purview: "Whole Institution", avatar: "https://picsum.photos/seed/p1/100/100" },
-  { id: "ADM-02", name: "Dr. Aris Tesla", role: "Vice Principal", purview: "Anglophone Section", avatar: "https://picsum.photos/seed/t1/100/100" },
-  { id: "ADM-03", name: "Mme. Ngono Celine", role: "Vice Principal", purview: "Francophone Section", avatar: "https://picsum.photos/seed/b1/100/100" },
+const INITIAL_ADMINS: SchoolAdmin[] = [
+  { 
+    id: "ADM-01", 
+    name: "Principal Fonka", 
+    role: "Principal", 
+    purview: "Whole Institution", 
+    avatar: "https://picsum.photos/seed/p1/100/100",
+    permissions: { manageStudents: true, manageStaff: true, generateReports: true, fullControl: true }
+  },
+  { 
+    id: "ADM-02", 
+    name: "Dr. Aris Tesla", 
+    role: "Vice Principal", 
+    purview: "Anglophone Section", 
+    avatar: "https://picsum.photos/seed/t1/100/100",
+    permissions: { manageStudents: true, manageStaff: true, generateReports: true, fullControl: false }
+  },
+  { 
+    id: "ADM-03", 
+    name: "Mme. Ngono Celine", 
+    role: "Vice Principal", 
+    purview: "Francophone Section", 
+    avatar: "https://picsum.photos/seed/b1/100/100",
+    permissions: { manageStudents: true, manageStaff: false, generateReports: true, fullControl: false }
+  },
 ];
 
 const INITIAL_USERS = [
@@ -100,38 +129,36 @@ const MOCK_ACTIVITIES = [
   { id: 2, action: "Library Book Borrowed", module: "Library", time: "Oct 23, 02:15 PM", detail: "Calculus II (Ref: IGN-102)", status: "Verified" },
 ];
 
-const MOCK_CHART_DATA = [
-  { day: 'Mon', engagement: 40 },
-  { day: 'Tue', engagement: 65 },
-  { day: 'Wed', engagement: 45 },
-  { day: 'Thu', engagement: 90 },
-  { day: 'Fri', engagement: 75 },
-  { day: 'Sat', engagement: 20 },
-  { day: 'Sun', engagement: 10 },
-];
-
 export default function CommunityPage() {
   const { language } = useI18n();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [users, setUsers] = useState(INITIAL_USERS);
   const [subSchools, setSubSchools] = useState(INITIAL_SUB_SCHOOLS);
-  const [admins, setAdmins] = useState(INITIAL_ADMINS);
+  const [admins, setAdmins] = useState<SchoolAdmin[]>(INITIAL_ADMINS);
   const [viewingUser, setViewingUser] = useState<any>(null);
   
   // Creation States
   const [isAddingSubSchool, setIsAddingSubSchool] = useState(false);
   const [isAppointingAdmin, setIsAppointingAdmin] = useState(false);
+  
+  const [newAdminData, setNewAdminData] = useState({
+    name: "",
+    id: "",
+    title: "",
+    purview: "whole",
+    permissions: {
+      manageStudents: false,
+      manageStaff: false,
+      generateReports: false,
+      fullControl: false
+    }
+  });
 
   const filteredUsers = users.filter(u => 
     u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     u.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const handleSuspend = (userId: string) => {
-    setUsers(prev => prev.map(u => u.id === userId ? { ...u, status: u.status === 'active' ? 'suspended' : 'active' } : u));
-    toast({ title: "Status Updated", description: "User account status has been toggled." });
-  };
 
   const handleCreateSubSchool = () => {
     toast({ title: "Sub-School Created", description: "New institutional section has been registered." });
@@ -139,8 +166,24 @@ export default function CommunityPage() {
   };
 
   const handleAppointAdmin = () => {
-    toast({ title: "Admin Appointed", description: "Administrative purview has been synchronized." });
+    if (!newAdminData.name) {
+      toast({ variant: "destructive", title: "Selection Required", description: "Please select a staff member to appoint." });
+      return;
+    }
+
+    const newAdmin: SchoolAdmin = {
+      id: newAdminData.id || `ADM-${Math.floor(100 + Math.random() * 900)}`,
+      name: newAdminData.name,
+      role: newAdminData.title || "Sub-Admin",
+      purview: newAdminData.purview === 'whole' ? "Whole Institution" : newAdminData.purview.charAt(0).toUpperCase() + newAdminData.purview.slice(1) + " Section",
+      avatar: `https://picsum.photos/seed/${newAdminData.name}/100/100`,
+      permissions: newAdminData.permissions
+    };
+
+    setAdmins(prev => [...prev, newAdmin]);
     setIsAppointingAdmin(false);
+    toast({ title: "Admin Appointed", description: `${newAdminData.name} has been assigned operational authority.` });
+    setNewAdminData({ name: "", id: "", title: "", purview: "whole", permissions: { manageStudents: false, manageStaff: false, generateReports: false, fullControl: false } });
   };
 
   const getRoleColor = (role: string) => {
@@ -152,6 +195,36 @@ export default function CommunityPage() {
       default: return 'bg-gray-100 text-gray-700';
     }
   };
+
+  const PermissionCheckbox = ({ 
+    id, 
+    label, 
+    description, 
+    checked, 
+    onChange, 
+    icon: Icon 
+  }: { 
+    id: string; 
+    label: string; 
+    description: string; 
+    checked: boolean; 
+    onChange: (val: boolean) => void;
+    icon: any;
+  }) => (
+    <div className={cn(
+      "flex items-start gap-3 p-3 rounded-xl border-2 transition-all",
+      checked ? "border-primary bg-primary/5 shadow-sm" : "border-accent bg-white hover:border-accent-foreground/10"
+    )}>
+      <Checkbox id={id} checked={checked} onCheckedChange={(v) => onChange(!!v)} className="mt-1" />
+      <Label htmlFor={id} className="flex-1 cursor-pointer space-y-1">
+        <div className="flex items-center gap-2">
+          <Icon className={cn("w-3.5 h-3.5", checked ? "text-primary" : "text-muted-foreground")} />
+          <span className="font-bold text-sm">{label}</span>
+        </div>
+        <p className="text-[10px] text-muted-foreground leading-tight">{description}</p>
+      </Label>
+    </div>
+  );
 
   return (
     <div className="space-y-8 pb-20">
@@ -254,7 +327,7 @@ export default function CommunityPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="pr-8 text-right">
-                        <Button variant="ghost" size="icon" onClick={() => setViewingUser(u)} className="rounded-full"><Eye className="w-4 h-4 text-primary" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => setViewingUser({ ...u, isAdmin: false })} className="rounded-full"><Eye className="w-4 h-4 text-primary" /></Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -341,35 +414,104 @@ export default function CommunityPage() {
                     <ShieldCheck className="w-4 h-4" /> Appoint Sub-Admin
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Admin Appointment Suite</DialogTitle>
-                    <DialogDescription>Define specific administrative roles and purviews.</DialogDescription>
+                <DialogContent className="sm:max-w-2xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+                  <DialogHeader className="bg-primary p-8 text-white">
+                    <DialogTitle className="text-2xl font-black">Admin Appointment Suite</DialogTitle>
+                    <DialogDescription className="text-white/60">Define administrative roles and operational authority for staff members.</DialogDescription>
                   </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <Label>Staff Member</Label>
-                      <Select><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{INITIAL_USERS.map(u => <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>)}</SelectContent></Select>
+                  <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto">
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Select Staff Member</Label>
+                        <Select onValueChange={(v) => {
+                          const staff = INITIAL_USERS.find(u => u.id === v);
+                          if (staff) setNewAdminData({...newAdminData, id: staff.id, name: staff.name});
+                        }}>
+                          <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue placeholder="Staff DB Search..." /></SelectTrigger>
+                          <SelectContent>{INITIAL_USERS.map(u => <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>)}</SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Designated Title</Label>
+                        <Input 
+                          placeholder="e.g. Vice Principal Academics" 
+                          className="h-12 bg-accent/30 border-none rounded-xl"
+                          value={newAdminData.title}
+                          onChange={(e) => setNewAdminData({...newAdminData, title: e.target.value})}
+                        />
+                      </div>
+                      <div className="col-span-2 space-y-2">
+                        <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Operational Purview</Label>
+                        <Select value={newAdminData.purview} onValueChange={(v) => setNewAdminData({...newAdminData, purview: v})}>
+                          <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="whole">Whole Institution</SelectItem>
+                            <SelectItem value="anglophone">Anglophone Section</SelectItem>
+                            <SelectItem value="francophone">Francophone Section</SelectItem>
+                            <SelectItem value="technical">Technical Section</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
-                    <div className="space-y-2"><Label>Designated Title</Label><Input placeholder="e.g. Vice Principal Academics" /></div>
-                    <div className="space-y-2">
-                      <Label>Operational Purview</Label>
-                      <Select><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>
-                        <SelectItem value="whole">Whole Institution</SelectItem>
-                        <SelectItem value="anglophone">Anglophone Section</SelectItem>
-                        <SelectItem value="francophone">Francophone Section</SelectItem>
-                      </SelectContent></Select>
+
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 border-b pb-2">
+                        <Lock className="w-4 h-4 text-primary" />
+                        <h3 className="text-sm font-black uppercase text-primary tracking-widest">Operational Authority</h3>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <PermissionCheckbox 
+                          id="p-students" 
+                          label="Manage Students" 
+                          description="Can handle admissions, class assignments and student records."
+                          icon={GraduationCap}
+                          checked={newAdminData.permissions.manageStudents}
+                          onChange={(v) => setNewAdminData({...newAdminData, permissions: {...newAdminData.permissions, manageStudents: v}})}
+                        />
+                        <PermissionCheckbox 
+                          id="p-staff" 
+                          label="Manage Staff" 
+                          description="Can onboard and manage teacher duty cycles and portfolios."
+                          icon={Users}
+                          checked={newAdminData.permissions.manageStaff}
+                          onChange={(v) => setNewAdminData({...newAdminData, permissions: {...newAdminData.permissions, manageStaff: v}})}
+                        />
+                        <PermissionCheckbox 
+                          id="p-reports" 
+                          label="Generate Reports" 
+                          description="Access to download financial, pedagogical and attendance logs."
+                          icon={FileCheck}
+                          checked={newAdminData.permissions.generateReports}
+                          onChange={(v) => setNewAdminData({...newAdminData, permissions: {...newAdminData.permissions, generateReports: v}})}
+                        />
+                        <PermissionCheckbox 
+                          id="p-full" 
+                          label="Full Admin Control" 
+                          description="Complete institutional oversight across all dashboard modules."
+                          icon={ShieldCheck}
+                          checked={newAdminData.permissions.fullControl}
+                          onChange={(v) => setNewAdminData({...newAdminData, permissions: {...newAdminData.permissions, fullControl: v}})}
+                        />
+                      </div>
                     </div>
                   </div>
-                  <DialogFooter><Button onClick={handleAppointAdmin}>Confirm Appointment</Button></DialogFooter>
+                  <DialogFooter className="bg-accent/20 p-6 border-t border-accent flex sm:flex-row gap-3">
+                    <Button variant="ghost" className="flex-1 h-12 rounded-xl" onClick={() => setIsAppointingAdmin(false)}>Cancel</Button>
+                    <Button className="flex-1 h-12 rounded-xl shadow-lg font-bold" onClick={handleAppointAdmin}>Assign Authority</Button>
+                  </DialogFooter>
                 </DialogContent>
               </Dialog>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {admins.map(adm => (
-                <Card key={adm.id} className="border-none shadow-xl bg-white overflow-hidden">
-                  <CardHeader className="bg-primary p-6 text-white text-center pb-8">
+                <Card key={adm.id} className="border-none shadow-xl bg-white overflow-hidden group hover:shadow-2xl transition-all duration-300">
+                  <CardHeader className="bg-primary p-6 text-white text-center pb-8 relative">
+                    <div className="absolute top-4 right-4">
+                       <Button variant="ghost" size="icon" className="h-8 w-8 text-white/40 hover:text-white" onClick={() => setViewingUser({ ...adm, isAdmin: true })}>
+                         <Eye className="w-4 h-4" />
+                       </Button>
+                    </div>
                     <Avatar className="h-20 w-20 border-4 border-white/20 mx-auto shadow-2xl mb-4">
                       <AvatarImage src={adm.avatar} />
                       <AvatarFallback>{adm.name.charAt(0)}</AvatarFallback>
@@ -384,6 +526,22 @@ export default function CommunityPage() {
                       </p>
                       <p className="text-sm font-bold text-primary">{adm.purview}</p>
                     </div>
+                    
+                    <div className="space-y-2 pt-2">
+                       <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest leading-none">Authority Granted</p>
+                       <div className="flex flex-wrap gap-1">
+                          {adm.permissions.fullControl ? (
+                            <Badge className="bg-primary text-white border-none text-[8px] h-4">FULL CONTROL</Badge>
+                          ) : (
+                            <>
+                              {adm.permissions.manageStudents && <Badge variant="outline" className="text-[8px] h-4 border-primary/20 text-primary">STUDENTS</Badge>}
+                              {adm.permissions.manageStaff && <Badge variant="outline" className="text-[8px] h-4 border-primary/20 text-primary">STAFF</Badge>}
+                              {adm.permissions.generateReports && <Badge variant="outline" className="text-[8px] h-4 border-primary/20 text-primary">REPORTS</Badge>}
+                            </>
+                          )}
+                       </div>
+                    </div>
+
                     <div className="pt-4 border-t border-accent flex justify-between items-center">
                        <Button variant="outline" size="sm" className="rounded-xl h-8 px-4 text-[10px] font-black uppercase">Edit Duties</Button>
                        <ShieldCheck className="w-5 h-5 text-green-600" />
@@ -448,30 +606,60 @@ export default function CommunityPage() {
                     <Badge className="bg-secondary text-primary border-none font-black h-6">{viewingUser?.role}</Badge>
                   </div>
                   <DialogDescription className="text-white/60 text-lg flex items-center justify-center md:justify-start gap-4">
-                    <span className="flex items-center gap-1.5"><Mail className="w-4 h-4"/> {viewingUser?.email}</span>
+                    <span className="flex items-center gap-1.5"><Mail className="w-4 h-4"/> {viewingUser?.email || "internal@eduignite.cm"}</span>
                     <span className="opacity-30">|</span>
                     <span className="flex items-center gap-1.5 font-mono">ID: {viewingUser?.id}</span>
                   </DialogDescription>
                 </div>
                 <div className="flex flex-wrap justify-center md:justify-start gap-3 pt-2">
                    <Badge variant="secondary" className="bg-white/10 text-white border-none gap-1.5 py-1 px-3">
-                     <Building2 className="w-3.5 h-3.5" /> {viewingUser?.section}
+                     <Building2 className="w-3.5 h-3.5" /> {viewingUser?.section || viewingUser?.purview}
                    </Badge>
                    <Badge variant="secondary" className="bg-white/10 text-white border-none gap-1.5 py-1 px-3">
-                     <Calendar className="w-3.5 h-3.5" /> Joined Sept 2023
+                     <Calendar className="w-3.5 h-3.5" /> Active Record
                    </Badge>
                 </div>
               </div>
             </div>
           </DialogHeader>
           <div className="p-8">
-             <div className="bg-primary/5 p-6 rounded-2xl border border-primary/10 space-y-4">
-                <h3 className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4" /> Operational pur·view
-                </h3>
-                <p className="text-sm leading-relaxed text-muted-foreground italic">
-                  This account has active access to the <strong>{viewingUser?.section}</strong> module. All actions performed are logged under the verified digital ID system.
-                </p>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="bg-primary/5 p-6 rounded-2xl border border-primary/10 space-y-4 h-fit">
+                  <h3 className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4" /> Operational pur·view
+                  </h3>
+                  <p className="text-sm leading-relaxed text-muted-foreground italic">
+                    {viewingUser?.isAdmin 
+                      ? `This administrator is assigned to the ${viewingUser?.purview} and is authorized to execute operations based on their verified authority profile.`
+                      : `This account has active access to the ${viewingUser?.section} module. All actions performed are logged under the verified digital ID system.`
+                    }
+                  </p>
+                </div>
+
+                {viewingUser?.isAdmin && (
+                  <div className="bg-accent/20 p-6 rounded-2xl border border-accent space-y-4">
+                    <h3 className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
+                      <Lock className="w-4 h-4" /> Verified Authority Profile
+                    </h3>
+                    <div className="space-y-3">
+                       {[
+                         { label: "Manage Student Records", key: "manageStudents" },
+                         { label: "Personnel & Staff Onboarding", key: "manageStaff" },
+                         { label: "Pedagogical & Financial Reporting", key: "generateReports" },
+                         { label: "Full Dashboard Governance", key: "fullControl" },
+                       ].map(perm => (
+                         <div key={perm.key} className="flex items-center justify-between py-2 border-b border-accent last:border-0">
+                            <span className="text-sm font-medium">{perm.label}</span>
+                            {viewingUser.permissions[perm.key as keyof SubAdminPermissions] ? (
+                              <CheckCircle2 className="w-5 h-5 text-green-600" />
+                            ) : (
+                              <Badge variant="outline" className="text-[8px] opacity-30">RESTRICTED</Badge>
+                            )}
+                         </div>
+                       ))}
+                    </div>
+                  </div>
+                )}
              </div>
           </div>
           <DialogFooter className="bg-accent/10 p-6 border-t flex justify-end">
