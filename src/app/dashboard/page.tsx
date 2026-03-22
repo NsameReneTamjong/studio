@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -634,7 +633,7 @@ export default function DashboardPage() {
           <CardFooter className="bg-muted/20 p-4 border-t flex justify-between items-center">
              <div className="flex items-center gap-2 text-muted-foreground">
                 <CheckCircle2 className="w-4 h-4 text-green-600" />
-                <p className="text-[10px] uppercase font-bold tracking-widest italic">All results are validated by the principal's office.</p>
+                <p className="text-[10px] uppercase font-black opacity-30 italic">All results are validated by the principal's office.</p>
              </div>
              <Link href="/dashboard/chat">
                <Button variant="link" size="sm" className="text-[10px] uppercase font-black gap-2">
