@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -25,14 +24,17 @@ import {
   AlertCircle,
   Building2,
   Lock,
-  Megaphone
+  Megaphone,
+  Layout,
+  Upload,
+  Globe
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 export default function PlatformSettingsPage() {
-  const { user } = useAuth();
-  const { t, language } = useI18n();
+  const { platformSettings, updatePlatformSettings, t } = useAuth();
+  const { language } = useI18n();
   const { toast } = useToast();
   
   const [loading, setLoading] = useState(false);
@@ -44,7 +46,17 @@ export default function PlatformSettingsPage() {
     librarianFee: "10000",
     adminFee: "25000",
     deadline: "2024-10-31",
+    platformName: platformSettings.name,
+    platformLogo: platformSettings.logo
   });
+
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      platformName: platformSettings.name,
+      platformLogo: platformSettings.logo
+    }));
+  }, [platformSettings]);
 
   const handleUpdateSettings = () => {
     setLoading(true);
@@ -52,17 +64,23 @@ export default function PlatformSettingsPage() {
     setTimeout(() => {
       setLoading(false);
       
+      // Update global branding
+      updatePlatformSettings({
+        name: formData.platformName,
+        logo: formData.platformLogo
+      });
+
       // Notify about settings saved
       toast({
-        title: t("changesSaved"),
-        description: "Global annual charges and payment deadlines have been updated.",
+        title: "Platform Policy Updated",
+        description: "Global branding, annual charges, and payment deadlines have been synchronized.",
       });
 
       // Trigger Automated Global Broadcast
       setTimeout(() => {
         toast({
           title: "Global Broadcast Sent",
-          description: `An official announcement regarding the ${formData.deadline} deadline has been dispatched to all users across all platforms.`,
+          description: `An official announcement regarding platform updates and the ${formData.deadline} deadline has been dispatched.`,
           variant: "default",
         });
       }, 500);
@@ -118,7 +136,7 @@ export default function PlatformSettingsPage() {
             {t("platformSettings")}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Configure global SaaS revenue models, annual user charges, and institutional deadlines.
+            Configure global SaaS branding, revenue models, and institutional deadlines.
           </p>
         </div>
         <Button 
@@ -133,16 +151,71 @@ export default function PlatformSettingsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8 space-y-8">
-          {/* Annual Charges Section */}
+          {/* Global Branding Section */}
           <Card className="border-none shadow-xl overflow-hidden rounded-[2rem]">
             <CardHeader className="bg-primary p-8 text-white">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-white/10 rounded-2xl">
-                  <Coins className="w-8 h-8 text-secondary" />
+                  <Layout className="w-8 h-8 text-secondary" />
                 </div>
                 <div>
-                  <CardTitle className="text-2xl font-black">Annual Access Charges</CardTitle>
-                  <CardDescription className="text-white/60">Define the yearly subscription fee per user role across all school nodes.</CardDescription>
+                  <CardTitle className="text-2xl font-black">Global Branding</CardTitle>
+                  <CardDescription className="text-white/60">Customize the identity of your SaaS platform across all login portals.</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-8 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Platform Display Name</Label>
+                  <Input 
+                    value={formData.platformName}
+                    onChange={(e) => setFormData({...formData, platformName: e.target.value})}
+                    placeholder="e.g. EduIgnite"
+                    className="h-12 bg-accent/30 border-none rounded-xl font-bold"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Platform Logo URL</Label>
+                  <div className="relative">
+                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input 
+                      value={formData.platformLogo}
+                      onChange={(e) => setFormData({...formData, platformLogo: e.target.value})}
+                      placeholder="https://..."
+                      className="h-12 bg-accent/30 border-none pl-10 rounded-xl"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 flex items-center gap-4">
+                <div className="w-16 h-16 rounded-xl bg-white border shadow-inner flex items-center justify-center p-2 shrink-0">
+                  {formData.platformLogo ? (
+                    <img src={formData.platformLogo} alt="Logo Preview" className="w-full h-full object-contain" />
+                  ) : (
+                    <Building2 className="w-8 h-8 text-primary/20" />
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-bold text-primary">Login Portal Preview</p>
+                  <p className="text-[10px] text-muted-foreground leading-relaxed">
+                    This logo and name will appear on the public sign-in page for all users.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Annual Charges Section */}
+          <Card className="border-none shadow-xl overflow-hidden rounded-[2rem]">
+            <CardHeader className="bg-primary/5 border-b p-8">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-primary/10 rounded-2xl">
+                  <Coins className="w-8 h-8 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl font-black text-primary">Annual Access Charges</CardTitle>
+                  <CardDescription>Define the yearly subscription fee per user role across all school nodes.</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -252,7 +325,7 @@ export default function PlatformSettingsPage() {
             </CardHeader>
             <CardContent className="space-y-6 relative z-10">
               <p className="text-sm opacity-70 leading-relaxed font-medium">
-                The EduIgnite SaaS model operates on a per-user, annual subscription basis. These charges fund the core infrastructure, AI processing units, and high-availability server instances.
+                The {formData.platformName} SaaS model operates on a per-user, annual subscription basis. These charges fund the core infrastructure, AI processing units, and high-availability server instances.
               </p>
               
               <div className="space-y-4 pt-4 border-t border-white/10">
@@ -300,7 +373,7 @@ export default function PlatformSettingsPage() {
               </div>
               <div className="pt-4 border-t">
                 <p className="text-[10px] font-black uppercase tracking-widest opacity-40 leading-relaxed italic">
-                  Updating the deadline will trigger a global dispatch to all connected nodes.
+                  Updating the policy will trigger a global dispatch to all connected nodes across the {formData.platformName} network.
                 </p>
               </div>
             </CardContent>

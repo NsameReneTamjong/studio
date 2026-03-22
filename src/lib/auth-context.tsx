@@ -23,6 +23,11 @@ export interface SchoolInfo {
   email: string;
 }
 
+interface PlatformSettings {
+  name: string;
+  logo: string;
+}
+
 interface User {
   id: string;
   name: string;
@@ -31,14 +36,16 @@ interface User {
   schoolId: string | null;
   avatar?: string;
   school?: SchoolInfo;
-  isLicensePaid: boolean; // New field for license enforcement
+  isLicensePaid: boolean; 
 }
 
 interface AuthContextType {
   user: User | null;
+  platformSettings: PlatformSettings;
   login: (role: UserRole, schoolName?: string) => void;
   updateUser: (updates: Partial<User>) => void;
   updateSchool: (updates: Partial<SchoolInfo>) => void;
+  updatePlatformSettings: (updates: Partial<PlatformSettings>) => void;
   markLicensePaid: () => void;
   logout: () => void;
   isAuthenticated: boolean;
@@ -85,12 +92,20 @@ const MOCK_SCHOOLS: Record<string, SchoolInfo> = {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [platformSettings, setPlatformSettings] = useState<PlatformSettings>({
+    name: "EduIgnite",
+    logo: ""
+  });
   const router = useRouter();
 
   useEffect(() => {
     const savedUser = localStorage.getItem("edu-nexus-user");
     if (savedUser) {
       setUser(JSON.parse(savedUser));
+    }
+    const savedPlatform = localStorage.getItem("edu-nexus-platform");
+    if (savedPlatform) {
+      setPlatformSettings(JSON.parse(savedPlatform));
     }
   }, []);
 
@@ -110,7 +125,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       schoolId: role === "SUPER_ADMIN" ? null : schoolId,
       avatar: `https://picsum.photos/seed/${role}/100/100`,
       school,
-      isLicensePaid: role === "SUPER_ADMIN" // Super Admins don't pay license fees
+      isLicensePaid: role === "SUPER_ADMIN"
     };
     setUser(mockUser);
     localStorage.setItem("edu-nexus-user", JSON.stringify(mockUser));
@@ -137,6 +152,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem("edu-nexus-user", JSON.stringify(updatedUser));
   };
 
+  const updatePlatformSettings = (updates: Partial<PlatformSettings>) => {
+    const updated = { ...platformSettings, ...updates };
+    setPlatformSettings(updated);
+    localStorage.setItem("edu-nexus-platform", JSON.stringify(updated));
+  };
+
   const markLicensePaid = () => {
     if (!user) return;
     const updatedUser = { ...user, isLicensePaid: true };
@@ -151,7 +172,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, updateUser, updateSchool, markLicensePaid, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      platformSettings,
+      login, 
+      updateUser, 
+      updateSchool, 
+      updatePlatformSettings,
+      markLicensePaid, 
+      logout, 
+      isAuthenticated: !!user 
+    }}>
       {children}
     </AuthContext.Provider>
   );

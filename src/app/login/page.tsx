@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -67,7 +66,7 @@ const FEATURED_VIDEOS = [
   {
     id: "v1",
     title: "Platform Overview",
-    description: "A comprehensive tour of the EduIgnite ecosystem and its impact on digital transformation in schools.",
+    description: "A comprehensive tour of the platform ecosystem and its impact on digital transformation in schools.",
     thumbnail: "https://picsum.photos/seed/edu-video-1/800/450",
     category: "Intro"
   },
@@ -81,7 +80,7 @@ const FEATURED_VIDEOS = [
 ];
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, platformSettings } = useAuth();
   const { t, setLanguage, language } = useI18n();
   const { toast } = useToast();
   
@@ -165,11 +164,17 @@ export default function LoginPage() {
       <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-2">
           <div className="flex justify-center">
-            <div className="bg-primary p-3 rounded-2xl shadow-lg">
-              <Building2 className="w-8 h-8 text-white" />
+            <div className="bg-primary p-3 rounded-2xl shadow-lg w-16 h-16 flex items-center justify-center overflow-hidden">
+              {platformSettings.logo ? (
+                <img src={platformSettings.logo} alt="Logo" className="w-full h-full object-contain" />
+              ) : (
+                <Building2 className="w-8 h-8 text-white" />
+              )}
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-primary font-headline tracking-tighter">EduIgnite</h1>
+          <h1 className="text-3xl font-bold text-primary font-headline tracking-tighter">
+            {platformSettings.name}
+          </h1>
           <p className="text-muted-foreground uppercase text-[10px] font-black tracking-widest">SaaS Institutional Portal</p>
         </div>
 
@@ -402,7 +407,7 @@ export default function LoginPage() {
                   </div>
                   <div>
                     <DialogTitle className="text-2xl font-black">{t("testimonials")}</DialogTitle>
-                    <DialogDescription className="text-white/60">Discover the impact of EduIgnite across the nation.</DialogDescription>
+                    <DialogDescription className="text-white/60">Discover the impact of the platform across the nation.</DialogDescription>
                   </div>
                 </div>
               </DialogHeader>
