@@ -74,6 +74,12 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       roles: ["SUPER_ADMIN"],
     },
     {
+      label: t("supportRegistry"),
+      icon: Heart,
+      href: "/dashboard/support",
+      roles: ["SUPER_ADMIN"],
+    },
+    {
       label: t("feedback"),
       icon: MessageSquare,
       href: "/dashboard/feedback",
