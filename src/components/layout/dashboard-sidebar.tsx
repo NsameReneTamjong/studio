@@ -33,7 +33,8 @@ import {
   UsersRound,
   CreditCard,
   Settings2,
-  Crown
+  Crown,
+  Lock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -84,6 +85,12 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       icon: MessageSquare,
       href: "/dashboard/feedback",
       roles: ["SUPER_ADMIN", "SCHOOL_ADMIN"],
+    },
+    {
+      label: t("platformSettings"),
+      icon: Settings2,
+      href: "/dashboard/platform-settings",
+      roles: ["SUPER_ADMIN"],
     },
     {
       label: language === 'en' ? 'Community' : 'Communauté',

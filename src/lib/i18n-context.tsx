@@ -108,6 +108,7 @@ const translations: TranslationDict = {
   collectionReceipt: { en: "Collection Receipt", fr: "Reçu de Collection" },
   collectionCode: { en: "Collection Code", fr: "Code de Collection" },
   settings: { en: "School Settings", fr: "Paramètres de l'École" },
+  platformSettings: { en: "Platform Settings", fr: "Paramètres de la Plateforme" },
   founders: { en: "Founders", fr: "Fondateurs" },
   supportRegistry: { en: "Support Ledger", fr: "Registre de Soutien" },
   forgotPassword: { en: "Forgot Password?", fr: "Mot de passe oublié ?" },
