@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -33,7 +32,8 @@ import {
   ShieldCheck,
   Filter,
   Building2,
-  X
+  X,
+  Wallet
 } from "lucide-react";
 import {
   Dialog,
@@ -68,16 +68,16 @@ const CAMEROON_SUBJECTS = [
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
 
 const MOCK_GRADES_TEACHER = [
-  { id: "S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", seq1: 14.5, seq2: 12, coeff: 5 },
-  { id: "S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", seq1: 8, seq2: 10.5, coeff: 5 },
+  { id: "S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", seq1: 14.5, seq2: 12, coeff: 5, isLicensePaid: true },
+  { id: "S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", seq1: 8, seq2: 10.5, coeff: 5, isLicensePaid: true },
 ];
 
 const MOCK_MASTER_REPORTS = [
-  { id: "S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", average: 15.40, rank: "04/42", status: "Published", subjectsValidated: "12/12" },
-  { id: "S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", average: 12.80, rank: "15/38", status: "Published", subjectsValidated: "12/12" },
-  { id: "S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", average: 14.20, rank: "08/40", status: "Validated", subjectsValidated: "11/12" },
-  { id: "S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100", average: 18.20, rank: "01/42", status: "Published", subjectsValidated: "12/12" },
-  { id: "S005", name: "Ethan Hunt", avatar: "https://picsum.photos/seed/s5/100/100", average: 10.50, rank: "35/38", status: "Draft", subjectsValidated: "8/12" },
+  { id: "S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", average: 15.40, rank: "04/42", status: "Published", subjectsValidated: "12/12", isLicensePaid: true },
+  { id: "S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", average: 12.80, rank: "15/38", status: "Published", subjectsValidated: "12/12", isLicensePaid: true },
+  { id: "S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", average: 14.20, rank: "08/40", status: "Validated", subjectsValidated: "11/12", isLicensePaid: false },
+  { id: "S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100", average: 18.20, rank: "01/42", status: "Published", subjectsValidated: "12/12", isLicensePaid: true },
+  { id: "S005", name: "Ethan Hunt", avatar: "https://picsum.photos/seed/s5/100/100", average: 10.50, rank: "35/38", status: "Draft", subjectsValidated: "8/12", isLicensePaid: false },
 ];
 
 export default function GradeBookPage() {
@@ -117,6 +117,18 @@ export default function GradeBookPage() {
       title: "Generating Master PDF",
       description: `Compiling report cards for ${MOCK_MASTER_REPORTS.length} students in ${selectedClass}.`,
     });
+  };
+
+  const handleOpenReport = (student: any) => {
+    if (!student.isLicensePaid) {
+      toast({
+        variant: "destructive",
+        title: "Dossier Locked",
+        description: "This student's report card cannot be generated until their annual license fee is paid.",
+      });
+      return;
+    }
+    setViewingReport(student);
   };
 
   if (isParent) {
@@ -159,36 +171,6 @@ export default function GradeBookPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="border-none shadow-sm bg-blue-50">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-[10px] uppercase font-black text-blue-600 tracking-widest">Averages Ready</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-black text-blue-700">38/42</div>
-              <p className="text-[10px] text-blue-600/60 font-bold mt-1">Validated by Teachers</p>
-            </CardContent>
-          </Card>
-          <Card className="border-none shadow-sm bg-green-50">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-[10px] uppercase font-black text-green-600 tracking-widest">Published Status</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-black text-green-700">85%</div>
-              <p className="text-[10px] text-green-600/60 font-bold mt-1">Visible to Parents</p>
-            </CardContent>
-          </Card>
-          <Card className="border-none shadow-sm bg-amber-50">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-[10px] uppercase font-black text-amber-600 tracking-widest">Pending Sync</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-black text-amber-700">4</div>
-              <p className="text-[10px] text-amber-600/60 font-bold mt-1">Bulletins in Draft</p>
-            </CardContent>
-          </Card>
-        </div>
-
         <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
           <CardHeader className="bg-white border-b p-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -225,9 +207,8 @@ export default function GradeBookPage() {
                 <TableRow className="bg-accent/10 border-b border-accent/20 hover:bg-accent/10">
                   <TableHead className="pl-8 py-4 font-black uppercase text-[10px] tracking-widest">Matricule</TableHead>
                   <TableHead className="font-black uppercase text-[10px] tracking-widest">Student Profile</TableHead>
-                  <TableHead className="text-center font-black uppercase text-[10px] tracking-widest">Subjects</TableHead>
+                  <TableHead className="text-center font-black uppercase text-[10px] tracking-widest">License Status</TableHead>
                   <TableHead className="text-center font-black uppercase text-[10px] tracking-widest">Term Average</TableHead>
-                  <TableHead className="text-center font-black uppercase text-[10px] tracking-widest">Rank</TableHead>
                   <TableHead className="text-center font-black uppercase text-[10px] tracking-widest">Status</TableHead>
                   <TableHead className="pr-8 text-right font-black uppercase text-[10px] tracking-widest">Actions</TableHead>
                 </TableRow>
@@ -248,15 +229,16 @@ export default function GradeBookPage() {
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
-                      <Badge variant="ghost" className="text-[10px] font-black uppercase text-muted-foreground">
-                        {student.subjectsValidated} Val.
-                      </Badge>
+                      {student.isLicensePaid ? (
+                        <Badge className="bg-green-100 text-green-700 border-none text-[9px] font-black uppercase">Active</Badge>
+                      ) : (
+                        <Badge variant="destructive" className="bg-red-100 text-red-700 border-none text-[9px] font-black uppercase gap-1">
+                          <Lock className="w-2.5 h-2.5" /> Suspended
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell className="text-center font-black text-primary text-lg">
                       {student.average.toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-center font-bold text-muted-foreground">
-                      {student.rank}
                     </TableCell>
                     <TableCell className="text-center">
                       <Badge className={cn(
@@ -273,11 +255,11 @@ export default function GradeBookPage() {
                           variant="ghost" 
                           size="icon" 
                           className="rounded-full hover:bg-accent"
-                          onClick={() => setViewingReport(student)}
+                          onClick={() => handleOpenReport(student)}
                         >
-                          <Eye className="w-4 h-4 text-primary" />
+                          {student.isLicensePaid ? <Eye className="w-4 h-4 text-primary" /> : <Lock className="w-4 h-4 text-destructive" />}
                         </Button>
-                        <Button variant="ghost" size="icon" className="rounded-full hover:bg-accent">
+                        <Button variant="ghost" size="icon" className="rounded-full hover:bg-accent" disabled={!student.isLicensePaid}>
                           <Printer className="w-4 h-4 text-muted-foreground" />
                         </Button>
                       </div>
@@ -290,7 +272,7 @@ export default function GradeBookPage() {
           <CardFooter className="bg-muted/20 p-4 border-t flex justify-between items-center">
             <div className="flex items-center gap-2 text-muted-foreground">
                <ShieldCheck className="w-4 h-4 text-primary" />
-               <p className="text-[10px] uppercase font-bold tracking-widest italic">All bulletins are cryptographically signed for institutional validity.</p>
+               <p className="text-[10px] uppercase font-bold tracking-widest italic">License payment is required for official bulletin generation.</p>
             </div>
             <p className="text-[10px] font-black text-primary uppercase">Total Enrolled: 42 Students</p>
           </CardFooter>
@@ -391,7 +373,6 @@ export default function GradeBookPage() {
                     </TableHeader>
                     <TableBody>
                       {CAMEROON_SUBJECTS.map((sub, i) => {
-                        // Generate mock sequence marks around the average for visual fidelity
                         const seq1 = Math.min(20, Math.max(0, viewingReport?.average + (Math.random() * 4 - 2)));
                         const seq2 = Math.min(20, Math.max(0, viewingReport?.average + (Math.random() * 4 - 2)));
                         const subMoy = (seq1 + seq2) / 2;
@@ -512,7 +493,7 @@ export default function GradeBookPage() {
                 <TableHead className="pl-8 py-4">Matricule</TableHead>
                 <TableHead>Student Profile</TableHead>
                 <TableHead className="text-center">Note / 20</TableHead>
-                <TableHead className="text-right pr-8">Appreciation</TableHead>
+                <TableHead className="text-right pr-8">License Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -530,14 +511,21 @@ export default function GradeBookPage() {
                   </TableCell>
                   <TableCell className="text-center">
                     <Input 
+                      disabled={!student.isLicensePaid}
                       defaultValue={student.seq1} 
                       className="w-16 h-9 mx-auto text-center font-bold bg-accent/30 border-none rounded-lg"
                     />
                   </TableCell>
                   <TableCell className="text-right pr-8">
-                    <Badge variant="outline" className={cn("text-[9px] text-white border-none px-3 py-1", getAppreciation(student.seq1).color)}>
-                      {getAppreciation(student.seq1).text}
-                    </Badge>
+                    {student.isLicensePaid ? (
+                      <Badge variant="outline" className={cn("text-[9px] text-white border-none px-3 py-1", getAppreciation(student.seq1).color)}>
+                        {getAppreciation(student.seq1).text}
+                      </Badge>
+                    ) : (
+                      <Badge variant="destructive" className="text-[9px] font-black uppercase gap-1">
+                        <Lock className="w-2.5 h-2.5" /> Suspended
+                      </Badge>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

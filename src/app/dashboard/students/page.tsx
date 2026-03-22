@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -33,7 +32,9 @@ import {
   QrCode,
   ShieldCheck,
   CheckCircle2,
-  UserCheck
+  UserCheck,
+  Lock,
+  Wallet
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
@@ -62,7 +63,8 @@ const MOCK_STUDENTS = [
     class: "Form 5 / 2nde",
     paid: 125000,
     left: 25000,
-    enrolmentYear: "2023"
+    enrolmentYear: "2023",
+    isLicensePaid: true
   },
   { 
     id: "S002", 
@@ -74,7 +76,8 @@ const MOCK_STUDENTS = [
     class: "Upper Sixth / Terminale",
     paid: 150000,
     left: 0,
-    enrolmentYear: "2022"
+    enrolmentYear: "2022",
+    isLicensePaid: true
   },
   { 
     id: "S003", 
@@ -86,7 +89,8 @@ const MOCK_STUDENTS = [
     class: "Lower Sixth / 1ère",
     paid: 45000,
     left: 105000,
-    enrolmentYear: "2023"
+    enrolmentYear: "2023",
+    isLicensePaid: false
   },
   { 
     id: "S004", 
@@ -98,7 +102,8 @@ const MOCK_STUDENTS = [
     class: "Form 5 / 2nde",
     paid: 150000,
     left: 0,
-    enrolmentYear: "2023"
+    enrolmentYear: "2023",
+    isLicensePaid: true
   },
   { 
     id: "S005", 
@@ -110,7 +115,8 @@ const MOCK_STUDENTS = [
     class: "Upper Sixth / Terminale",
     paid: 75000,
     left: 75000,
-    enrolmentYear: "2021"
+    enrolmentYear: "2021",
+    isLicensePaid: false
   },
 ];
 
@@ -587,7 +593,7 @@ export default function StudentsPage() {
                     <>
                       <TableHead className="font-black uppercase text-[10px] tracking-widest">Gender</TableHead>
                       <TableHead className="font-black uppercase text-[10px] tracking-widest text-center">Enrolled</TableHead>
-                      <TableHead className="font-black uppercase text-[10px] tracking-widest pr-8 text-right">Birthday</TableHead>
+                      <TableHead className="font-black uppercase text-[10px] tracking-widest pr-8 text-right">License Status</TableHead>
                     </>
                   )}
                 </TableRow>
@@ -635,7 +641,15 @@ export default function StudentsPage() {
                         <TableCell className="text-center">
                           <Badge className="bg-accent text-primary border-none text-[10px]">{student.enrolmentYear}</Badge>
                         </TableCell>
-                        <TableCell className="text-sm font-medium pr-8 text-right text-muted-foreground">{student.dob}</TableCell>
+                        <TableCell className="text-sm font-medium pr-8 text-right">
+                          {student.isLicensePaid ? (
+                            <Badge className="bg-green-100 text-green-700 border-none text-[9px] font-black uppercase">Active</Badge>
+                          ) : (
+                            <Badge variant="destructive" className="text-[9px] font-black uppercase gap-1">
+                              <Lock className="w-2.5 h-2.5" /> Suspended
+                            </Badge>
+                          )}
+                        </TableCell>
                       </>
                     )}
                   </TableRow>
@@ -789,7 +803,7 @@ export default function StudentsPage() {
             <Button variant="outline" className="flex-1 gap-2 rounded-xl h-12" onClick={() => setAdmissionSuccess(null)}>
               Dismiss
             </Button>
-            <Button className="flex-1 gap-2 rounded-xl h-12 shadow-lg" onClick={() => window.print()}>
+            <Button className="flex-1 gap-2 rounded-xl h-12 shadow-lg font-bold" onClick={() => window.print()}>
               <Printer className="w-5 h-5" /> Print Admission Letter
             </Button>
           </DialogFooter>

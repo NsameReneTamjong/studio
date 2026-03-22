@@ -31,6 +31,7 @@ interface User {
   schoolId: string | null;
   avatar?: string;
   school?: SchoolInfo;
+  isLicensePaid: boolean; // New field for license enforcement
 }
 
 interface AuthContextType {
@@ -38,6 +39,7 @@ interface AuthContextType {
   login: (role: UserRole, schoolName?: string) => void;
   updateUser: (updates: Partial<User>) => void;
   updateSchool: (updates: Partial<SchoolInfo>) => void;
+  markLicensePaid: () => void;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -107,7 +109,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       role,
       schoolId: role === "SUPER_ADMIN" ? null : schoolId,
       avatar: `https://picsum.photos/seed/${role}/100/100`,
-      school
+      school,
+      isLicensePaid: role === "SUPER_ADMIN" // Super Admins don't pay license fees
     };
     setUser(mockUser);
     localStorage.setItem("edu-nexus-user", JSON.stringify(mockUser));
@@ -134,6 +137,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem("edu-nexus-user", JSON.stringify(updatedUser));
   };
 
+  const markLicensePaid = () => {
+    if (!user) return;
+    const updatedUser = { ...user, isLicensePaid: true };
+    setUser(updatedUser);
+    localStorage.setItem("edu-nexus-user", JSON.stringify(updatedUser));
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem("edu-nexus-user");
@@ -141,7 +151,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, updateUser, updateSchool, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, login, updateUser, updateSchool, markLicensePaid, logout, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );

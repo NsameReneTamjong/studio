@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -42,7 +41,8 @@ import {
   BarChart3,
   ArrowRight,
   XCircle,
-  Users
+  Users,
+  Lock
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -69,11 +69,11 @@ const MOCK_FEE_CATEGORY_PERFORMANCE = [
 ];
 
 const MOCK_STUDENT_LEDGER = [
-  { id: "S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", paid: 125000, left: 25000, status: "partial" },
-  { id: "S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", paid: 150000, left: 0, status: "cleared" },
-  { id: "S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", paid: 45000, left: 105000, status: "partial" },
-  { id: "S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100", paid: 150000, left: 0, status: "cleared" },
-  { id: "S005", name: "Ethan Hunt", avatar: "https://picsum.photos/seed/s5/100/100", paid: 75000, left: 75000, status: "partial" },
+  { id: "S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", paid: 125000, left: 25000, status: "partial", isLicensePaid: true },
+  { id: "S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", paid: 150000, left: 0, status: "cleared", isLicensePaid: true },
+  { id: "S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", paid: 45000, left: 105000, status: "partial", isLicensePaid: false },
+  { id: "S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100", paid: 150000, left: 0, status: "cleared", isLicensePaid: true },
+  { id: "S005", name: "Ethan Hunt", avatar: "https://picsum.photos/seed/s5/100/100", paid: 75000, left: 75000, status: "partial", isLicensePaid: false },
 ];
 
 const RECENT_TRANSACTIONS = [
@@ -91,6 +91,7 @@ export default function BursarFeesPage() {
   const [selectedFeeRegistry, setSelectedFeeRegistry] = useState<any>(null);
   
   const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedStudentForPayment, setSelectedStudentForPayment] = useState<any>(null);
 
   const isBursar = user?.role === "BURSAR";
   const isAdmin = user?.role === "SCHOOL_ADMIN";
@@ -103,10 +104,25 @@ export default function BursarFeesPage() {
   };
 
   const handleCollectPayment = () => {
+    if (!selectedStudentForPayment) {
+      toast({ variant: "destructive", title: "Selection Required", description: "Please select a student to record payment." });
+      return;
+    }
+
+    if (!selectedStudentForPayment.isLicensePaid) {
+      toast({ 
+        variant: "destructive", 
+        title: "Account Suspended", 
+        description: "Institutional fees cannot be recorded for students with unpaid annual platform licenses." 
+      });
+      return;
+    }
+
     setIsProcessing(true);
     setTimeout(() => {
       setIsProcessing(false);
       toast({ title: "Payment Recorded", description: "Successfully processed for student." });
+      setSelectedStudentForPayment(null);
     }, 1000);
   };
 
@@ -187,7 +203,6 @@ export default function BursarFeesPage() {
             </Card>
           </div>
 
-          {/* Class Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {MOCK_CLASSES_FINANCE.map((cls) => (
               <Card key={cls.id} className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-all">
@@ -313,13 +328,44 @@ export default function BursarFeesPage() {
                 <CardDescription className="text-white/60">Bursar mode: Record cash or bank deposits directly into the system.</CardDescription>
               </CardHeader>
               <CardContent className="p-8 space-y-6">
-                <div className="space-y-2">
-                  <Label>Student Search</Label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input placeholder="Search by name or ID..." className="pl-10 h-12 bg-accent/30 border-none rounded-xl" />
+                <div className="space-y-4">
+                  <Label>Student Profile</Label>
+                  <div className="grid grid-cols-1 gap-2">
+                    {MOCK_STUDENT_LEDGER.slice(0, 3).map(s => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => setSelectedStudentForPayment(s)}
+                        className={cn(
+                          "flex items-center justify-between p-4 rounded-xl border-2 transition-all text-left group",
+                          selectedStudentForPayment?.id === s.id 
+                            ? "border-primary bg-primary/5" 
+                            : "border-transparent bg-accent/30 hover:border-primary/20"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10 border-2 border-white">
+                            <AvatarImage src={s.avatar} />
+                            <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-bold text-sm">{s.name}</p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <Badge className="bg-white text-primary border-none text-[8px]">{s.id}</Badge>
+                              {!s.isLicensePaid && (
+                                <Badge variant="destructive" className="text-[8px] h-4 gap-1 px-1.5">
+                                  <Lock className="w-2.5 h-2.5" /> License Unpaid
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        {selectedStudentForPayment?.id === s.id && <CheckCircle2 className="w-5 h-5 text-primary" />}
+                      </button>
+                    ))}
                   </div>
                 </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Fee Category</Label>
@@ -336,7 +382,21 @@ export default function BursarFeesPage() {
                     <Input type="number" placeholder="50,000" className="h-12 bg-accent/30 border-none rounded-xl font-bold" />
                   </div>
                 </div>
-                <Button className="w-full h-12 rounded-xl shadow-lg font-bold" onClick={handleCollectPayment} disabled={isProcessing}>
+
+                {selectedStudentForPayment && !selectedStudentForPayment.isLicensePaid && (
+                  <div className="p-4 bg-red-50 rounded-xl border border-red-100 flex gap-3">
+                    <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                    <p className="text-xs text-red-800 leading-relaxed font-medium">
+                      This student has not paid their annual EduIgnite platform license. Financial records are suspended until the license is cleared.
+                    </p>
+                  </div>
+                )}
+
+                <Button 
+                  className="w-full h-12 rounded-xl shadow-lg font-bold" 
+                  onClick={handleCollectPayment} 
+                  disabled={isProcessing || (selectedStudentForPayment && !selectedStudentForPayment.isLicensePaid)}
+                >
                   {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : "Record & Issue Receipt"}
                 </Button>
               </CardContent>
@@ -518,7 +578,14 @@ export default function BursarFeesPage() {
                           <AvatarImage src={student.avatar} alt={student.name} />
                           <AvatarFallback className="bg-primary/5 text-primary text-xs">{student.name.charAt(0)}</AvatarFallback>
                         </Avatar>
-                        <span className="font-bold text-sm text-primary">{student.name}</span>
+                        <div>
+                          <span className="font-bold text-sm text-primary">{student.name}</span>
+                          {!student.isLicensePaid && (
+                            <p className="text-[8px] text-red-600 font-black uppercase flex items-center gap-1 mt-0.5">
+                              <Lock className="w-2 h-2" /> License Unpaid
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell className="text-center font-mono text-xs font-bold text-muted-foreground">{student.id}</TableCell>
@@ -537,6 +604,7 @@ export default function BursarFeesPage() {
                         size="sm" 
                         className="text-[9px] font-black uppercase gap-1"
                         onClick={() => handleDownloadReport(`Statement: ${student.name}`)}
+                        disabled={!student.isLicensePaid}
                       >
                         <Download className="w-3 h-3" /> Statement
                       </Button>

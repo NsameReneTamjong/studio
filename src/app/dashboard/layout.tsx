@@ -1,11 +1,10 @@
-
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { DashboardSidebar } from "@/components/layout/dashboard-sidebar";
-import { Menu, Building2, Heart, Youtube, MessageSquare, Send, CheckCircle2, Loader2, Info, ExternalLink } from "lucide-react";
+import { Menu, Building2, Heart, Youtube, MessageSquare, Send, CheckCircle2, Loader2, Info, ExternalLink, Lock, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { 
@@ -23,6 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 const TUTORIAL_LINKS: Record<string, string> = {
   STUDENT: "https://youtube.com/watch?v=eduignite-student",
@@ -36,6 +36,7 @@ const TUTORIAL_LINKS: Record<string, string> = {
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const { toast } = useToast();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
@@ -78,6 +79,48 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (!user) return null;
 
   const isSuperAdmin = user.role === "SUPER_ADMIN";
+  const isLicensePaid = user.isLicensePaid;
+  const isSubscriptionPage = pathname === "/dashboard/subscription";
+
+  // Enforcement logic: If license not paid, restrict access to everything except the subscription page
+  if (!isLicensePaid && !isSuperAdmin && !isSubscriptionPage) {
+    return (
+      <div className="flex h-screen overflow-hidden bg-background">
+        <aside className="hidden md:flex w-64 shrink-0 h-full">
+          <DashboardSidebar />
+        </aside>
+        <div className="flex-1 flex flex-col items-center justify-center p-8 bg-accent/10">
+          <Card className="max-w-md w-full border-none shadow-2xl rounded-[2rem] overflow-hidden">
+            <CardHeader className="bg-primary p-8 text-white text-center">
+              <div className="flex justify-center mb-4">
+                <div className="p-4 bg-white/10 rounded-full">
+                  <Lock className="w-12 h-12 text-secondary" />
+                </div>
+              </div>
+              <CardTitle className="text-2xl font-black">Dashboard Locked</CardTitle>
+              <CardDescription className="text-white/60">Annual Institutional License Required</CardDescription>
+            </CardHeader>
+            <CardContent className="p-8 text-center space-y-6">
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Your account dashboard has been locked because the annual EduIgnite license fee for the current academic session is outstanding. 
+              </p>
+              <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 flex gap-3 text-left">
+                <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <p className="text-[11px] text-amber-800 font-medium">
+                  Administrative actions (Grades, Finance, Library) are suspended until the license is activated.
+                </p>
+              </div>
+              <Button asChild className="w-full h-14 rounded-2xl shadow-lg font-black uppercase tracking-widest text-xs gap-2">
+                <Link href="/dashboard/subscription">
+                  <Wallet className="w-5 h-5" /> Activate License Now
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">

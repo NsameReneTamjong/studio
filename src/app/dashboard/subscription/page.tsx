@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -40,12 +39,11 @@ const ROLE_FEES: Record<string, string> = {
 };
 
 export default function SubscriptionPage() {
-  const { user } = useAuth();
+  const { user, markLicensePaid } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
   
   const [isProcessing, setIsProcessing] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState<'pending' | 'paid'>('pending');
   const [paymentData, setPaymentData] = useState({
     method: "mtn",
     number: "",
@@ -53,6 +51,7 @@ export default function SubscriptionPage() {
 
   const userFee = ROLE_FEES[user?.role || "STUDENT"] || "5000";
   const deadline = "2024-10-31";
+  const paymentStatus = user?.isLicensePaid ? 'paid' : 'pending';
 
   const handlePaySubscription = () => {
     if (!paymentData.number) {
@@ -68,12 +67,12 @@ export default function SubscriptionPage() {
     // Simulated payment delay
     setTimeout(() => {
       setIsProcessing(false);
-      setPaymentStatus('paid');
+      markLicensePaid();
       toast({
         title: language === 'en' ? "Payment Successful" : "Paiement Réussi",
         description: language === 'en' 
-          ? "Your annual institutional license has been activated." 
-          : "Votre licence institutionnelle annuelle a été activée.",
+          ? "Your annual institutional license has been activated. You can now access all dashboard modules." 
+          : "Votre licence institutionnelle annuelle a été activée. Vous pouvez maintenant accéder à tous les modules.",
       });
     }, 2000);
   };
