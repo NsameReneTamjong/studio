@@ -31,7 +31,9 @@ import {
   Activity,
   ArrowRight,
   Download,
-  Filter
+  Filter,
+  UserCheck,
+  CheckCircle2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -54,6 +56,7 @@ import {
   Area
 } from "recharts";
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 // --- MOCK DATA FOR SUPER ADMIN PLATFORM REVIEW ---
 
@@ -104,12 +107,24 @@ const TOP_SCHOOLS = [
   { id: "S004", name: "Lycée de Maroua", domain: "maroua.edu", users: 900, revenue: "1.2M", status: "Suspended" },
 ];
 
+// --- MOCK DATA FOR PARENT DASHBOARD ---
+const CHILDREN_PERFORMANCE = [
+  { name: 'Alice Thompson', average: 15.4, attendance: 98, fill: 'hsl(var(--primary))' },
+  { name: 'Diana Prince', average: 18.2, attendance: 100, fill: 'hsl(var(--secondary))' },
+];
+
+const CHILDREN_TABLE_DATA = [
+  { id: "S001", name: "Alice Thompson", class: "Form 5 / 2nde", average: "15.40", attendance: "98%", status: "Excellent", avatar: "https://picsum.photos/seed/alice/100/100" },
+  { id: "S004", name: "Diana Prince", class: "Form 5 / 2nde", average: "18.20", attendance: "100%", status: "Superior", avatar: "https://picsum.photos/seed/diana/100/100" },
+];
+
 export default function DashboardPage() {
   const { user } = useAuth();
   const { t, language } = useI18n();
   const [timeframe, setTimeframe] = useState("monthly");
 
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
+  const isParent = user?.role === "PARENT";
 
   const getRevenueData = () => {
     switch (timeframe) {
@@ -355,7 +370,7 @@ export default function DashboardPage() {
     );
   }
 
-  // --- INSTITUTIONAL ROLE VIEW (Existing logic for School Admin, Teacher, Student, etc.) ---
+  // --- INSTITUTIONAL ROLE VIEW ---
   
   const paymentStatusData = [
     { name: 'Paid in Full', value: 450, color: '#10b981' },
@@ -412,6 +427,8 @@ export default function DashboardPage() {
               ? (language === "en" ? "Institutional Oversight: Monitor financial, library, and academic health." : "Supervision Institutionnelle : Surveillez la santé financière, bibliothécaire et académique.")
               : user?.role === "BURSAR" 
               ? (language === "en" ? "Manage institutional financial health and fee tracking." : "Gérez la santé financière et le suivi des frais.")
+              : user?.role === "PARENT"
+              ? (language === "en" ? "Monitor your children's academic progress and institutional standing." : "Surveillez les progrès académiques et le statut institutionnel de vos enfants.")
               : (language === "en" ? "Here's what's happening in EduIgnite today." : "Voici ce qui se passe dans EduIgnite aujourd'hui.")}
           </p>
         </div>
@@ -439,10 +456,15 @@ export default function DashboardPage() {
                 ? (language === "en" ? "Revenue & Resource Analytics" : "Analyses des Revenus et Ressources")
                 : user?.role === "BURSAR" 
                 ? (language === "en" ? "Revenue Distribution" : "Répartition des Revenus")
+                : user?.role === "PARENT"
+                ? (language === "en" ? "Children Performance Comparison" : "Comparaison des Performances des Enfants")
                 : (language === "en" ? "Upcoming Schedule" : "Emploi du Temps à Venir")}
             </CardTitle>
+            <CardDescription>
+              {isParent ? (language === 'en' ? "Visual overview of academic averages across siblings." : "Aperçu visuel des moyennes académiques entre frères et sœurs.") : ""}
+            </CardDescription>
           </CardHeader>
-          <CardContent className="h-[300px]">
+          <CardContent className="h-[350px]">
             {(user?.role === "BURSAR" || user?.role === "SCHOOL_ADMIN") ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={revenueByCategory}>
@@ -454,6 +476,19 @@ export default function DashboardPage() {
                     formatter={(value: number) => [`${value.toLocaleString()} XAF`, 'Amount']}
                   />
                   <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} barSize={40} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : isParent ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={CHILDREN_PERFORMANCE}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 600 }} />
+                  <YAxis domain={[0, 20]} axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                  <RechartsTooltip 
+                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}
+                    formatter={(value: number) => [`${value.toFixed(2)} / 20`, 'Average']}
+                  />
+                  <Bar dataKey="average" radius={[8, 8, 0, 0]} barSize={60} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -528,6 +563,86 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {isParent && (
+        <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
+          <CardHeader className="bg-white border-b p-6 flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-primary" /> Children's Academic Standing
+              </CardTitle>
+              <CardDescription>Consolidated status of term averages and institutional compliance.</CardDescription>
+            </div>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/dashboard/children" className="gap-2">View Full Dossiers <ChevronRight className="w-4 h-4" /></Link>
+            </Button>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader className="bg-accent/10">
+                <TableRow className="uppercase text-[10px] font-black tracking-widest border-b border-accent/20">
+                  <TableHead className="pl-8 py-4">Student Profile</TableHead>
+                  <TableHead>Academic Level</TableHead>
+                  <TableHead className="text-center">Term Average</TableHead>
+                  <TableHead className="text-center">Attendance</TableHead>
+                  <TableHead className="text-right pr-8">Performance Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {CHILDREN_TABLE_DATA.map((child) => (
+                  <TableRow key={child.id} className="hover:bg-accent/5">
+                    <TableCell className="pl-8 py-4">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent">
+                          <AvatarImage src={child.avatar} alt={child.name} />
+                          <AvatarFallback className="bg-primary/5 text-primary text-xs">{child.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-sm text-primary leading-none mb-1">{child.name}</span>
+                          <span className="text-[10px] font-mono text-muted-foreground">{child.id}</span>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-[10px] font-bold border-primary/10 text-primary">{child.class}</Badge>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <span className="font-black text-primary text-lg">{child.average}</span>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="text-xs font-bold text-muted-foreground">{child.attendance}</span>
+                        <div className="w-12 h-1 bg-accent rounded-full overflow-hidden">
+                          <div className="h-full bg-green-500" style={{ width: child.attendance }} />
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right pr-8">
+                      <Badge className={cn(
+                        "text-[9px] font-black uppercase border-none px-3",
+                        child.status === 'Superior' ? "bg-primary text-white" : "bg-green-100 text-green-700"
+                      )}>
+                        {child.status}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+          <CardFooter className="bg-muted/20 p-4 border-t flex justify-between items-center">
+             <div className="flex items-center gap-2 text-muted-foreground">
+                <CheckCircle2 className="w-4 h-4 text-green-600" />
+                <p className="text-[10px] uppercase font-bold tracking-widest italic">All results are validated by the principal's office.</p>
+             </div>
+             <Link href="/dashboard/chat">
+               <Button variant="link" size="sm" className="text-[10px] uppercase font-black gap-2">
+                 <MessageSquare className="w-3 h-3" /> Contact Teachers
+               </Button>
+             </Link>
+          </CardFooter>
+        </Card>
+      )}
     </div>
   );
 }
