@@ -120,6 +120,12 @@ const translations: TranslationDict = {
   otpSent: { en: "A 6-digit code was sent to your email.", fr: "Un code à 6 chiffres a été envoyé à votre email." },
   confirmNewPassword: { en: "Confirm New Password", fr: "Confirmer le nouveau mot de passe" },
   updatePassword: { en: "Update Password", fr: "Mettre à jour le mot de passe" },
+  subscription: { en: "My License", fr: "Ma Licence" },
+  paySubscription: { en: "Pay Annual Fee", fr: "Payer les Frais Annuels" },
+  subscriptionStatus: { en: "License Status", fr: "Statut de la Licence" },
+  unpaid: { en: "Unpaid", fr: "Non payé" },
+  paid: { en: "Paid", fr: "Payé" },
+  amountToPay: { en: "Amount Due", fr: "Montant à Payer" },
 };
 
 interface I18nContextType {

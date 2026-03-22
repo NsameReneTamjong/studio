@@ -34,7 +34,8 @@ import {
   CreditCard,
   Settings2,
   Crown,
-  Lock
+  Lock,
+  Wallet
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -114,6 +115,12 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: t("overview"),
       icon: LayoutDashboard,
       href: "/dashboard",
+      roles: ["SCHOOL_ADMIN", "TEACHER", "STUDENT", "PARENT", "BURSAR", "LIBRARIAN"],
+    },
+    {
+      label: t("subscription"),
+      icon: Wallet,
+      href: "/dashboard/subscription",
       roles: ["SCHOOL_ADMIN", "TEACHER", "STUDENT", "PARENT", "BURSAR", "LIBRARIAN"],
     },
     {
