@@ -145,32 +145,19 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-4">
-              {isCreateAccount ? (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="matricule">{t("matricule")}</Label>
-                    <Input id="matricule" placeholder="e.g. S001" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password">{t("password")}</Label>
-                    <Input id="password" type="password" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="confirm-password">{t("confirmPassword")}</Label>
-                    <Input id="confirm-password" type="password" />
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">{t("email")}</Label>
-                    <Input id="email" type="email" placeholder="name@school.edu" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password">{t("password")}</Label>
-                    <Input id="password" type="password" />
-                  </div>
-                </>
+              <div className="space-y-2">
+                <Label htmlFor="matricule">{t("matricule")}</Label>
+                <Input id="matricule" placeholder={role === "SUPER_ADMIN" ? "Admin ID" : "e.g. S001"} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">{t("password")}</Label>
+                <Input id="password" type="password" />
+              </div>
+              {isCreateAccount && (
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-password">{t("confirmPassword")}</Label>
+                  <Input id="confirm-password" type="password" />
+                </div>
               )}
             </div>
           </CardContent>
