@@ -24,7 +24,8 @@ import {
   Clock,
   AlertCircle,
   Building2,
-  Lock
+  Lock,
+  Megaphone
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -50,11 +51,22 @@ export default function PlatformSettingsPage() {
     // Simulated update delay
     setTimeout(() => {
       setLoading(false);
+      
+      // Notify about settings saved
       toast({
         title: t("changesSaved"),
-        description: "Global annual charges and payment deadlines have been updated across the platform.",
+        description: "Global annual charges and payment deadlines have been updated.",
       });
-    }, 1200);
+
+      // Trigger Automated Global Broadcast
+      setTimeout(() => {
+        toast({
+          title: "Global Broadcast Sent",
+          description: `An official announcement regarding the ${formData.deadline} deadline has been dispatched to all users across all platforms.`,
+          variant: "default",
+        });
+      }, 500);
+    }, 1500);
   };
 
   const FeeInput = ({ 
@@ -218,7 +230,7 @@ export default function PlatformSettingsPage() {
                 <div className="p-4 bg-amber-50 rounded-xl border border-amber-100 flex gap-3">
                   <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                   <p className="text-xs text-amber-800 leading-relaxed font-medium">
-                    Once this deadline passes, accounts with outstanding "SaaS Access" balances will be automatically flagged for license suspension across all nodes.
+                    Once this deadline is saved, an automated announcement will be broadcasted to all users. Outstanding balances will lead to flagged license suspension after this date.
                   </p>
                 </div>
               </div>
@@ -261,8 +273,35 @@ export default function PlatformSettingsPage() {
               <div className="pt-6 border-t border-white/10">
                 <div className="p-4 bg-white/5 rounded-2xl border border-white/10 flex items-center gap-3">
                    <ShieldCheck className="w-6 h-6 text-secondary" />
-                   <p className="text-[10px] uppercase font-black tracking-widest opacity-60">Verified SaaS Policy</p>
+                   <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Verified SaaS Policy</p>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Verification Status */}
+          <Card className="border-none shadow-sm bg-white rounded-3xl">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Megaphone className="w-4 h-4 text-primary" />
+                Broadcast Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="opacity-60">Global Reach</span>
+                  <span className="font-bold">22,650 Users</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="opacity-60">Auto-Announcement</span>
+                  <Badge className="bg-green-100 text-green-700 border-none font-black text-[8px]">ENABLED</Badge>
+                </div>
+              </div>
+              <div className="pt-4 border-t">
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-40 leading-relaxed italic">
+                  Updating the deadline will trigger a global dispatch to all connected nodes.
+                </p>
               </div>
             </CardContent>
           </Card>
