@@ -72,7 +72,7 @@ const translations: TranslationDict = {
   newPassword: { en: "New Password", fr: "Nouveau mot de passe" },
   updateProfile: { en: "Update Profile", fr: "Mettre à jour le profil" },
   changesSaved: { en: "Changes Saved", fr: "Changements Enregistrés" },
-  profileUpdateSuccess: { en: "Your profile has been updated successfully.", fr: "Votre profil a été mis à jour avec succès." },
+  profileUpdateSuccess: { en: "Your profile has been updated successfully.", fr: "Votre profil a été mi à jour avec succès." },
   addSubject: { en: "Add Optional Subject", fr: "Ajouter une Matière Facultative" },
   viewMaterials: { en: "View Materials", fr: "Voir les Supports" },
   materials: { en: "Course Materials", fr: "Supports de Cours" },
@@ -114,6 +114,11 @@ const translations: TranslationDict = {
   resetPassword: { en: "Reset Password", fr: "Réinitialiser" },
   backToLogin: { en: "Back to Login", fr: "Retour à la connexion" },
   verificationId: { en: "Verification ID", fr: "ID de vérification" },
+  enterOtp: { en: "Enter OTP Code", fr: "Entrer le code OTP" },
+  verifyOtp: { en: "Verify Code", fr: "Vérifier le code" },
+  otpSent: { en: "A 6-digit code was sent to your email.", fr: "Un code à 6 chiffres a été envoyé à votre email." },
+  confirmNewPassword: { en: "Confirm New Password", fr: "Confirmer le nouveau mot de passe" },
+  updatePassword: { en: "Update Password", fr: "Mettre à jour le mot de passe" },
 };
 
 interface I18nContextType {
