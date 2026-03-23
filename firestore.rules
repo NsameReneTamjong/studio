@@ -1,261 +1,55 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    /**
-     * EDUIGNITE SECURITY RULES - PROTOTYPE MODE
-     *
-     * Core Philosophy:
-     * This ruleset enforces a multi-tier authorization model centered around unique system identifiers (Matricules) 
-     * and Firebase Auth UIDs. It distinguishes between Platform-level (Super Admin) and School-level operations.
-     *
-     * Data Structure:
-     * 1. Global Registry: /users and specific profile collections (/student_profiles, etc.) are indexed by Firebase UID.
-     * 2. School Isolation: School-specific data (Courses, Classes, Grades) is nested under /schools/{schoolId}.
-     * 3. Role Verification: Roles are verified via the /users document or existence in the /platform_admins collection.
-     *
-     * Key Security Decisions:
-     * - Authorization Independence: Critical fields (schoolId, studentUserId, teacherUserId) are denormalized 
-     *   onto documents to allow for fast, non-recursive security checks.
-     * - Immutable Relational Fields: Once a student or teacher is assigned to a school or a grade is linked 
-     *   to an enrollment, those link fields are made immutable to prevent data hijacking.
-     * - Progressive Access: Students can view their own profiles, enrollments, and grades. Teachers manage 
-     *   their own classes and assignments. School Admins manage the entire school context.
-     */
-
-    // --- GLOBAL HELPER FUNCTIONS ---
-
+    // --- HELPER FUNCTIONS ---
     function isSignedIn() {
       return request.auth != null;
     }
-
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    // Checks if the user exists in the platform_admins collection (DBAC)
+    
     function isPlatformAdmin() {
       return isSignedIn() && exists(/databases/$(database)/documents/platform_admins/$(request.auth.uid));
     }
 
-    // Retrieves the current user's document data
-    function currentUserData() {
-      // Use 'getAfter' for reads in 'create' operations if needed, otherwise 'get' is sufficient for existing docs
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
-    }
-
-    // Checks if a user is an admin of a specific school
-    function isSchoolAdmin(schoolId) {
-      return isSignedIn() && (
-        isPlatformAdmin() || 
-        get(/databases/$(database)/documents/schools/$(schoolId)).data.adminUserIds[request.auth.uid] == true
-      );
-    }
-
-    // Checks if a user belongs to a specific school (Student, Teacher, or Staff)
-    function isSchoolMember(schoolId) {
-      return isSignedIn() && (
-        isSchoolAdmin(schoolId) || 
-        currentUserData().schoolId == schoolId
-      );
-    }
-
     // --- COLLECTION RULES ---
 
-    /**
-     * @description Platform Admin Registry. Existence implies Super Admin status.
-     * @path /platform_admins/{platformAdminUid}
-     * @allow get: if isSignedIn(); (create, update, delete): if isPlatformAdmin();
-     * @deny create: if !isPlatformAdmin();
-     * @principle Role-based access control via dedicated collection.
-     */
-    match /platform_admins/{platformAdminUid} {
-      allow get: if isSignedIn();
-      allow list: if isPlatformAdmin();
-      allow create, update, delete: if isPlatformAdmin();
+    // Matricule Registry - Uniqueness Enforcement
+    match /matricules/{matricule} {
+      allow read: if isSignedIn();
+      // Only allow creation if it doesn't exist (ensures uniqueness)
+      allow create: if isSignedIn(); 
+      allow update, delete: if isPlatformAdmin();
     }
 
-    /**
-     * @description Counters for platform-level matricule generation.
-     * @path /platform_matricule_counters/{yearRoleCode}
-     * @allow (get, update): if isPlatformAdmin();
-     * @deny (all): if !isPlatformAdmin();
-     * @principle Restricts system configuration to platform administrators.
-     */
-    match /platform_matricule_counters/{yearRoleCode} {
-      allow get, list, update: if isPlatformAdmin();
-      allow create, delete: if isPlatformAdmin();
+    // Counters
+    match /counters/{counterId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn(); // In production, restrict to specific roles/functions
     }
 
-    /**
-     * @description Core School configuration and admin mapping.
-     * @path /schools/{schoolId}
-     * @allow get: if isSignedIn(); create: if isPlatformAdmin(); update: if isSchoolAdmin(schoolId);
-     * @deny delete: if !isPlatformAdmin();
-     * @principle Authorizes school management to designated admins or platform owners.
-     */
+    match /schools/{schoolId}/counters/{counterId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
+    // Schools
     match /schools/{schoolId} {
-      allow get, list: if isSignedIn();
+      allow read: if isSignedIn();
       allow create: if isPlatformAdmin();
-      allow update: if isSchoolAdmin(schoolId) && (request.resource.data.id == resource.data.id);
-      allow delete: if isPlatformAdmin();
-
-      /**
-       * @description School-specific matricule counters.
-       * @path /schools/{schoolId}/matricule_counters/{yearRoleCode}
-       * @allow (get, update): if isSchoolAdmin(schoolId);
-       */
-      match /matricule_counters/{yearRoleCode} {
-        allow get, list, create, update, delete: if isSchoolAdmin(schoolId);
-      }
-
-      /**
-       * @description Academic courses offered by the school.
-       * @path /schools/{schoolId}/courses/{courseId}
-       * @allow list: if isSchoolMember(schoolId); write: if isSchoolAdmin(schoolId);
-       */
-      match /courses/{courseId} {
-        allow get, list: if isSchoolMember(schoolId);
-        allow create: if isSchoolAdmin(schoolId) && request.resource.data.schoolId == schoolId;
-        allow update: if isSchoolAdmin(schoolId) && (resource != null);
-        allow delete: if isSchoolAdmin(schoolId) && (resource != null);
-      }
-
-      /**
-       * @description Class sections. Access granted to school members; updates by assigned teachers.
-       * @path /schools/{schoolId}/classes/{classId}
-       */
-      match /classes/{classId} {
-        allow get, list: if isSchoolMember(schoolId);
-        allow create: if isSchoolAdmin(schoolId);
-        allow update: if isSchoolAdmin(schoolId) || (isOwner(resource.data.teacherId) && resource != null);
-        allow delete: if isSchoolAdmin(schoolId) && resource != null;
-      }
-
-      /**
-       * @description Student enrollments in classes. 
-       * @path /schools/{schoolId}/enrollments/{enrollmentId}
-       */
-      match /enrollments/{enrollmentId} {
-        allow get: if isSchoolMember(schoolId);
-        allow list: if isSchoolAdmin(schoolId) || isOwner(currentUserData().id); 
-        allow create: if isSchoolAdmin(schoolId);
-        allow update: if isSchoolAdmin(schoolId) && resource != null;
-        allow delete: if isSchoolAdmin(schoolId) && resource != null;
-      }
-
-      /**
-       * @description Class assignments.
-       * @path /schools/{schoolId}/assignments/{assignmentId}
-       */
-      match /assignments/{assignmentId} {
-        allow get, list: if isSchoolMember(schoolId);
-        allow create: if isSchoolAdmin(schoolId) || isOwner(request.resource.data.teacherUserId);
-        allow update: if isSchoolAdmin(schoolId) || (isOwner(resource.data.teacherUserId) && resource != null);
-        allow delete: if isSchoolAdmin(schoolId) || (isOwner(resource.data.teacherUserId) && resource != null);
-      }
-
-      /**
-       * @description Student grades for assignments.
-       * @path /schools/{schoolId}/grades/{gradeId}
-       */
-      match /grades/{gradeId} {
-        allow get: if isSchoolAdmin(schoolId) || isOwner(resource.data.studentUserId) || isOwner(resource.data.teacherUserId);
-        allow list: if isSchoolMember(schoolId);
-        allow create: if isSchoolAdmin(schoolId) || isOwner(request.resource.data.teacherUserId);
-        allow update: if isSchoolAdmin(schoolId) || (isOwner(resource.data.teacherUserId) && resource != null);
-        allow delete: if isSchoolAdmin(schoolId) || (isOwner(resource.data.teacherUserId) && resource != null);
-      }
-
-      /**
-       * @description Individual class sessions/meetings.
-       * @path /schools/{schoolId}/sessions/{classSessionId}
-       */
-      match /sessions/{classSessionId} {
-        allow get, list: if isSchoolMember(schoolId);
-        allow create: if isSchoolAdmin(schoolId) || isOwner(request.resource.data.teacherUserId);
-        allow update: if isSchoolAdmin(schoolId) || (isOwner(resource.data.teacherUserId) && resource != null);
-        allow delete: if isSchoolAdmin(schoolId) || (isOwner(resource.data.teacherUserId) && resource != null);
-      }
-
-      /**
-       * @description Attendance records for sessions.
-       * @path /schools/{schoolId}/attendance/{attendanceId}
-       */
-      match /attendance/{attendanceId} {
-        allow get: if isSchoolAdmin(schoolId) || isOwner(resource.data.studentUserId) || isOwner(resource.data.teacherUserId);
-        allow list: if isSchoolMember(schoolId);
-        allow create: if isSchoolAdmin(schoolId) || isOwner(request.resource.data.teacherUserId);
-        allow update: if isSchoolAdmin(schoolId) || (isOwner(resource.data.teacherUserId) && resource != null);
-        allow delete: if isSchoolAdmin(schoolId) || (isOwner(resource.data.teacherUserId) && resource != null);
-      }
+      allow update: if isSignedIn(); // Add specific logic for school admin
     }
 
-    /**
-     * @description Global User collection. Key for authentication and role identification.
-     * @path /users/{userId}
-     * @allow get: if isSignedIn(); update: if isOwner(userId);
-     * @deny update: if request.resource.data.role != resource.data.role;
-     * @principle Self-read/update for profiles; immutability for roles and matricules.
-     */
-    match /users/{userId} {
-      allow get: if isSignedIn();
-      allow list: if isPlatformAdmin();
-      allow create: if isPlatformAdmin() || isOwner(userId);
-      allow update: if (isOwner(userId) || isPlatformAdmin()) && 
-                    (request.resource.data.role == resource.data.role) && 
-                    (request.resource.data.id == resource.data.id);
-      allow delete: if isPlatformAdmin();
+    // Users
+    match /users/{uid} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.auth.uid == uid;
+      allow update: if isSignedIn() && request.auth.uid == uid;
     }
-
-    /**
-     * @description Specialized student profiles.
-     * @path /student_profiles/{studentUid}
-     * @allow get: if isOwner(studentUid) || isSchoolAdmin(resource.data.schoolId);
-     * @principle Path-based ownership combined with school-based administrative access.
-     */
-    match /student_profiles/{studentUid} {
-      allow get: if isOwner(studentUid) || isSchoolAdmin(resource.data.schoolId);
-      allow list: if isSignedIn(); 
-      allow create: if isOwner(studentUid) || isPlatformAdmin();
-      allow update: if (isOwner(studentUid) || isSchoolAdmin(resource.data.schoolId)) && resource != null;
-      allow delete: if isPlatformAdmin();
-    }
-
-    /**
-     * @description Specialized teacher profiles.
-     * @path /teacher_profiles/{teacherUid}
-     */
-    match /teacher_profiles/{teacherUid} {
-      allow get: if isOwner(teacherUid) || isSchoolAdmin(resource.data.schoolId);
-      allow list: if isSignedIn();
-      allow create: if isOwner(teacherUid) || isPlatformAdmin();
-      allow update: if (isOwner(teacherUid) || isSchoolAdmin(resource.data.schoolId)) && resource != null;
-      allow delete: if isPlatformAdmin();
-    }
-
-    /**
-     * @description Specialized staff profiles.
-     * @path /staff_profiles/{staffUid}
-     */
-    match /staff_profiles/{staffUid} {
-      allow get: if isOwner(staffUid) || isSchoolAdmin(resource.data.schoolId);
-      allow list: if isSignedIn();
-      allow create: if isOwner(staffUid) || isPlatformAdmin();
-      allow update: if (isOwner(staffUid) || isSchoolAdmin(resource.data.schoolId)) && resource != null;
-      allow delete: if isPlatformAdmin();
-    }
-
-    /**
-     * @description Specialized parent profiles.
-     * @path /parent_profiles/{parentUid}
-     */
-    match /parent_profiles/{parentUid} {
-      allow get: if isOwner(parentUid) || isSchoolAdmin(resource.data.schoolId);
-      allow list: if isSignedIn();
-      allow create: if isOwner(parentUid) || isPlatformAdmin();
-      allow update: if (isOwner(parentUid) || isSchoolAdmin(resource.data.schoolId)) && resource != null;
-      allow delete: if isPlatformAdmin();
+    
+    // Platform Admins
+    match /platform_admins/{uid} {
+      allow read: if isSignedIn();
+      allow write: if isPlatformAdmin();
     }
   }
 }
