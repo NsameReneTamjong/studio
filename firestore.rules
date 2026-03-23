@@ -24,10 +24,20 @@ service cloud.firestore {
       allow write: if isPlatformAdmin();
     }
 
+    // Public Marketing Assets
+    match /testimonials/{testimonialId} {
+      allow read: if true;
+      allow write: if isPlatformAdmin();
+    }
+
+    match /featured_videos/{videoId} {
+      allow read: if true;
+      allow write: if isPlatformAdmin();
+    }
+
     // Matricule Registry - Uniqueness Enforcement
     match /matricules/{matricule} {
       allow read: if isSignedIn();
-      // Only allow creation if it doesn't exist (ensures uniqueness)
       allow create: if isSignedIn(); 
       allow update, delete: if isPlatformAdmin();
     }
@@ -35,7 +45,7 @@ service cloud.firestore {
     // Counters
     match /counters/{counterId} {
       allow read: if isSignedIn();
-      allow write: if isSignedIn(); // In production, restrict to specific roles/functions
+      allow write: if isSignedIn();
     }
 
     match /schools/{schoolId}/counters/{counterId} {
@@ -47,7 +57,7 @@ service cloud.firestore {
     match /schools/{schoolId} {
       allow read: if isSignedIn();
       allow create: if isPlatformAdmin();
-      allow update: if isSignedIn(); // Add specific logic for school admin
+      allow update: if isSignedIn();
     }
 
     // Users
@@ -60,7 +70,6 @@ service cloud.firestore {
     // Platform Admins
     match /platform_admins/{uid} {
       allow read: if isSignedIn();
-      // Allow creation of own record for initialization or by existing admin
       allow write: if isPlatformAdmin() || (isSignedIn() && request.auth.uid == uid);
     }
   }

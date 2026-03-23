@@ -33,7 +33,7 @@
       "description": "Platform user identified by their unique matricule.",
       "properties": {
         "id": { "type": "string", "description": "The generated Matricule." },
-        "uid": { "type": "string", "description": "Firebase Auth UID." },
+        "uid": { "type": "string", "firebase": "auth.uid" },
         "role": { "type": "string", "enum": ["CEO", "CTO", "COO", "INV", "SCHOOL_ADMIN", "SUB_ADMIN", "BURSAR", "LIBRARIAN", "TEACHER", "STUDENT", "PARENT"] },
         "schoolId": { "type": "string", "description": "Reference to School.id." },
         "year": { "type": "string", "description": "YY format." },
@@ -41,47 +41,64 @@
         "fullName": { "type": "string" }
       },
       "required": ["id", "uid", "role", "year", "email"]
+    },
+    "Testimonial": {
+      "title": "Testimonial",
+      "type": "object",
+      "properties": {
+        "author": { "type": "string" },
+        "role": { "type": "string" },
+        "avatar": { "type": "string" },
+        "content": { "type": "string" },
+        "schoolName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "FeaturedVideo": {
+      "title": "FeaturedVideo",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "thumbnail": { "type": "string" },
+        "youtubeId": { "type": "string" },
+        "category": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
     }
   },
   "auth": {
     "providers": ["password"]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/counters/platform_{year}_{roleCode}",
-        "definition": {
-          "entityName": "Counter",
-          "description": "Global counters for platform-level roles (CEO, CTO, etc.)."
+    "/counters/platform_{year}_{roleCode}": {
+      "schema": "#/entities/Counter",
+      "description": "Global counters for platform-level roles."
+    },
+    "/schools/{schoolId}/counters/{year}_{roleCode}": {
+      "schema": "#/entities/Counter",
+      "description": "School-specific counters for roles."
+    },
+    "/users/{uid}": {
+      "schema": "#/entities/User",
+      "description": "User records indexed by Auth UID."
+    },
+    "/matricules/{matricule}": {
+      "schema": {
+        "type": "object",
+        "properties": {
+          "uid": { "type": "string" }
         }
       },
-      {
-        "path": "/schools/{schoolId}/counters/{year}_{roleCode}",
-        "definition": {
-          "entityName": "Counter",
-          "description": "School-specific counters for roles (Teacher, Student, etc.)."
-        }
-      },
-      {
-        "path": "/users/{uid}",
-        "definition": {
-          "entityName": "User",
-          "description": "User records indexed by Auth UID."
-        }
-      },
-      {
-        "path": "/matricules/{matricule}",
-        "definition": {
-          "entityName": "MatriculeRegistry",
-          "description": "A registry to ensure global uniqueness of matricules. Maps Matricule -> UID.",
-          "schema": {
-            "type": "object",
-            "properties": {
-              "uid": { "type": "string" }
-            }
-          }
-        }
-      }
-    ]
+      "description": "Registry to ensure global uniqueness of matricules."
+    },
+    "/testimonials/{testimonialId}": {
+      "schema": "#/entities/Testimonial",
+      "description": "Publicly visible testimonials published by Super Admin."
+    },
+    "/featured_videos/{videoId}": {
+      "schema": "#/entities/FeaturedVideo",
+      "description": "Publicly visible YouTube videos managed by CEO."
+    }
   }
 }

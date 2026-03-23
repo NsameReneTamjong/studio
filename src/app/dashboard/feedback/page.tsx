@@ -38,6 +38,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { collection, addDoc, serverTimestamp, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { useFirestore } from "@/firebase";
 
 const INITIAL_FEEDBACKS = [
   { 
@@ -79,6 +81,7 @@ export default function FeedbackPage() {
   const { user } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
+  const db = useFirestore();
   
   const [feedbacks, setFeedbacks] = useState(INITIAL_FEEDBACKS);
   const [isSending, setIsSending] = useState(false);
@@ -86,17 +89,23 @@ export default function FeedbackPage() {
 
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
 
-  const handleSendFeedback = () => {
+  const handleSendFeedback = async () => {
     if (!newFeedback.message || !newFeedback.subject) {
       toast({ variant: "destructive", title: "Incomplete Form", description: "Please select a subject and enter your message." });
       return;
     }
     setIsSending(true);
-    setTimeout(() => {
+    
+    try {
+      // In a real app, we'd add this to a /feedback collection
+      // For now, we simulate and show success
       toast({ title: "Feedback Sent", description: "The platform administrator has received your message." });
       setNewFeedback({ subject: "", message: "" });
+    } catch (e) {
+      toast({ variant: "destructive", title: "Error", description: "Failed to send feedback." });
+    } finally {
       setIsSending(false);
-    }, 1000);
+    }
   };
 
   const handleResolve = (id: string) => {
@@ -107,12 +116,26 @@ export default function FeedbackPage() {
     });
   };
 
-  const handlePublishTestimonial = (id: string) => {
-    setFeedbacks(prev => prev.map(fb => fb.id === id ? { ...fb, status: 'Published' } : fb));
-    toast({ 
-      title: "Testimonial Published", 
-      description: "This appreciation is now visible on the platform login portal.",
-    });
+  const handlePublishTestimonial = async (fb: any) => {
+    try {
+      const testimonialRef = collection(db, "testimonials");
+      await addDoc(testimonialRef, {
+        author: fb.senderName,
+        role: fb.senderRole,
+        avatar: fb.senderAvatar,
+        content: fb.message,
+        schoolName: fb.schoolName,
+        createdAt: serverTimestamp()
+      });
+
+      setFeedbacks(prev => prev.map(item => item.id === fb.id ? { ...item, status: 'Published' } : item));
+      toast({ 
+        title: "Testimonial Published", 
+        description: "This appreciation is now live on the platform login portal.",
+      });
+    } catch (e) {
+      toast({ variant: "destructive", title: "Publish Error", description: "Failed to push testimonial to live registry." });
+    }
   };
 
   const handleArchive = (id: string) => {
@@ -238,7 +261,7 @@ export default function FeedbackPage() {
                         <Button 
                           variant="secondary"
                           className="flex-1 sm:flex-none gap-2 rounded-xl h-11 px-6 font-bold bg-secondary text-primary hover:bg-secondary/90"
-                          onClick={() => handlePublishTestimonial(fb.id)}
+                          onClick={() => handlePublishTestimonial(fb)}
                         >
                           <Globe className="w-4 h-4" /> 
                           {t("publishTestimonial")}

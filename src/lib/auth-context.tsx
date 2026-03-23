@@ -4,7 +4,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useFirebase, useUser, errorEmitter, FirestorePermissionError } from "@/firebase";
-import { doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { collection, doc, getDoc, setDoc, onSnapshot, serverTimestamp, query, orderBy } from "firebase/firestore";
 import { signInAnonymously, signOut } from "firebase/auth";
 import { generateSchoolMatricule, generatePlatformMatricule, registerMatricule } from "@/lib/matricule";
 
@@ -33,6 +33,26 @@ interface PlatformSettings {
   logo: string;
 }
 
+export interface Testimonial {
+  id: string;
+  author: string;
+  role: string;
+  avatar: string;
+  content: string;
+  schoolName: string;
+  createdAt: any;
+}
+
+export interface FeaturedVideo {
+  id: string;
+  title: string;
+  description: string;
+  thumbnail: string;
+  youtubeId: string;
+  category: string;
+  createdAt: any;
+}
+
 interface User {
   id: string; // The Matricule
   uid: string; // Firebase Auth UID
@@ -48,6 +68,8 @@ interface User {
 interface AuthContextType {
   user: User | null;
   platformSettings: PlatformSettings;
+  testimonials: Testimonial[];
+  featuredVideos: FeaturedVideo[];
   login: (role: UserRole, schoolId?: string) => Promise<void>;
   updateUser: (updates: Partial<User>) => void;
   updateSchool: (updates: Partial<SchoolInfo>) => void;
@@ -106,6 +128,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     name: "EduIgnite",
     logo: ""
   });
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [featuredVideos, setFeaturedVideos] = useState<FeaturedVideo[]>([]);
   const router = useRouter();
 
   // Sync Global Platform Settings
@@ -119,11 +143,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       },
       (serverError) => {
-        // Log the error but don't emit a global permission error for branding
-        // This prevents the app from locking up if branding is restricted or missing initially
         console.warn("Platform branding could not be loaded, using defaults.", serverError);
       }
     );
+    return () => unsubscribe();
+  }, [firestore]);
+
+  // Sync Public Testimonials
+  useEffect(() => {
+    const q = query(collection(firestore, "testimonials"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setTestimonials(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Testimonial)));
+    });
+    return () => unsubscribe();
+  }, [firestore]);
+
+  // Sync Public Videos
+  useEffect(() => {
+    const q = query(collection(firestore, "featured_videos"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setFeaturedVideos(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FeaturedVideo)));
+    });
     return () => unsubscribe();
   }, [firestore]);
 
@@ -206,7 +246,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           errorEmitter.emit('permission-error', permissionError);
         });
 
-        // Register Super Admin in platform_admins collection to grant system authority
         if (role === "SUPER_ADMIN") {
           await setDoc(doc(firestore, "platform_admins", uid), {
             uid,
@@ -291,6 +330,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <AuthContext.Provider value={{ 
       user: userData, 
       platformSettings,
+      testimonials,
+      featuredVideos,
       login, 
       updateUser, 
       updateSchool, 
