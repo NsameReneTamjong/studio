@@ -60,7 +60,8 @@ service cloud.firestore {
     // Platform Admins
     match /platform_admins/{uid} {
       allow read: if isSignedIn();
-      allow write: if isPlatformAdmin();
+      // Allow creation of own record for initialization or by existing admin
+      allow write: if isPlatformAdmin() || (isSignedIn() && request.auth.uid == uid);
     }
   }
 }

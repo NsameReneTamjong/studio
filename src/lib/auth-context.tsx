@@ -4,7 +4,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useFirebase, useUser, errorEmitter, FirestorePermissionError } from "@/firebase";
-import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
+import { doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
 import { signInAnonymously, signOut } from "firebase/auth";
 import { generateSchoolMatricule, generatePlatformMatricule, registerMatricule } from "@/lib/matricule";
 
@@ -118,12 +118,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setPlatformSettings(docSnap.data() as PlatformSettings);
         }
       },
-      async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-          path: docRef.path,
-          operation: 'get',
-        });
-        errorEmitter.emit('permission-error', permissionError);
+      (serverError) => {
+        // Log the error but don't emit a global permission error for branding
+        // This prevents the app from locking up if branding is restricted or missing initially
+        console.warn("Platform branding could not be loaded, using defaults.", serverError);
       }
     );
     return () => unsubscribe();
@@ -207,6 +205,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
           errorEmitter.emit('permission-error', permissionError);
         });
+
+        // Register Super Admin in platform_admins collection to grant system authority
+        if (role === "SUPER_ADMIN") {
+          await setDoc(doc(firestore, "platform_admins", uid), {
+            uid,
+            role: "CEO",
+            createdAt: serverTimestamp()
+          });
+        }
 
         await registerMatricule(firestore, matricule, uid);
       }
