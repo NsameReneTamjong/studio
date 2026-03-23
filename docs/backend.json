@@ -38,9 +38,24 @@
         "schoolId": { "type": "string", "description": "Reference to School.id." },
         "year": { "type": "string", "description": "YY format." },
         "email": { "type": "string", "format": "email" },
-        "fullName": { "type": "string" }
+        "fullName": { "type": "string" },
+        "isLicensePaid": { "type": "boolean" }
       },
       "required": ["id", "uid", "role", "year", "email"]
+    },
+    "Announcement": {
+      "title": "Announcement",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "target": { "type": "string" },
+        "schoolId": { "type": "string" },
+        "senderUid": { "type": "string" },
+        "senderName": { "type": "string" },
+        "senderRole": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
     },
     "Testimonial": {
       "title": "Testimonial",
@@ -99,6 +114,10 @@
     "/featured_videos/{videoId}": {
       "schema": "#/entities/FeaturedVideo",
       "description": "Publicly visible YouTube videos managed by CEO."
+    },
+    "/schools/{schoolId}/announcements/{announcementId}": {
+      "schema": "#/entities/Announcement",
+      "description": "School-specific broadcasts."
     }
   }
 }

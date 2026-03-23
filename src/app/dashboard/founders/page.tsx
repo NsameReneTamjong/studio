@@ -15,14 +15,11 @@ import {
   Crown, 
   ShieldCheck, 
   Mail, 
-  Briefcase, 
   Trash2, 
   MoreVertical, 
   Plus, 
   Settings2,
   Fingerprint,
-  Activity,
-  User,
   CheckCircle2,
   Loader2,
   Ban,
@@ -64,60 +61,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-
-interface Permissions {
-  manageSchools: boolean;
-  manageTeam: boolean;
-  viewAnalytics: boolean;
-  manageSupport: boolean;
-}
-
-interface Founder {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  avatar: string;
-  status: string;
-  joined: string;
-  isPrimary: boolean;
-  permissions: Permissions;
-}
-
-const INITIAL_FOUNDERS: Founder[] = [
-  { 
-    id: "FND-001", 
-    name: "EduIgnite Primary Founder", 
-    email: "ceo@eduignite.io", 
-    role: "CEO", 
-    avatar: "https://picsum.photos/seed/ceo/100/100", 
-    status: "Active", 
-    joined: "Jan 2023", 
-    isPrimary: true,
-    permissions: {
-      manageSchools: true,
-      manageTeam: true,
-      viewAnalytics: true,
-      manageSupport: true
-    }
-  },
-  { 
-    id: "FND-002", 
-    name: "Dr. Aris Tesla", 
-    email: "cto@eduignite.io", 
-    role: "CTO", 
-    avatar: "https://picsum.photos/seed/cto/100/100", 
-    status: "Active", 
-    joined: "Mar 2023", 
-    isPrimary: false,
-    permissions: {
-      manageSchools: true,
-      manageTeam: false,
-      viewAnalytics: true,
-      manageSupport: true
-    }
-  },
-];
+import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { collection, addDoc, serverTimestamp, deleteDoc, doc, updateDoc, query, where } from "firebase/firestore";
 
 const ROLES = ["CEO", "CTO", "COO", "CFO", "Investor", "Board Member", "Adviser"];
 
@@ -125,10 +70,10 @@ export default function FoundersManagementPage() {
   const { user } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
+  const db = useFirestore();
   
-  const [founders, setFounders] = useState<Founder[]>(INITIAL_FOUNDERS);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [editingFounder, setEditingFounder] = useState<Founder | null>(null);
+  const [editingFounder, setEditingFounder] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   
   const [newFounderData, setNewFounderData] = useState({
@@ -143,123 +88,61 @@ export default function FoundersManagementPage() {
     }
   });
 
-  const [editFormData, setEditFormData] = useState({
-    name: "",
-    email: "",
-    role: "",
-    permissions: {
-      manageSchools: false,
-      manageTeam: false,
-      viewAnalytics: false,
-      manageSupport: false
-    }
-  });
+  const foundersQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collection(db, "platform_admins"));
+  }, [db]);
 
-  // Only the primary founder can add others
-  const isPrimaryFounder = true; 
+  const { data: founders, isLoading } = useCollection(foundersQuery);
 
-  const handleAddFounder = () => {
+  const handleAddFounder = async () => {
     if (!newFounderData.name || !newFounderData.email) {
-      toast({ variant: "destructive", title: "Missing Information", description: "Name and email are required." });
+      toast({ variant: "destructive", title: "Missing Info", description: "Name and email are required." });
       return;
     }
 
     setIsProcessing(true);
-    setTimeout(() => {
-      const newFounder: Founder = {
-        id: `FND-${Math.floor(100 + Math.random() * 900)}`,
-        name: newFounderData.name,
-        email: newFounderData.email,
-        role: newFounderData.role,
-        permissions: newFounderData.permissions,
-        avatar: `https://picsum.photos/seed/${newFounderData.name}/100/100`,
+    try {
+      await addDoc(collection(db, "platform_admins"), {
+        ...newFounderData,
         status: "Active",
-        joined: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-        isPrimary: false
-      };
-
-      setFounders(prev => [...prev, newFounder]);
-      setIsAddModalOpen(false);
-      setIsProcessing(false);
-      setNewFounderData({ 
-        name: "", 
-        email: "", 
-        role: "COO",
-        permissions: { manageSchools: false, manageTeam: false, viewAnalytics: true, manageSupport: false }
+        joined: serverTimestamp(),
+        createdAt: serverTimestamp(),
+        isPrimary: false,
+        avatar: `https://picsum.photos/seed/${newFounderData.name}/100/100`,
       });
-      toast({ title: "Founder Added", description: `${newFounderData.name} has been onboarded as ${newFounderData.role} with defined permissions.` });
-    }, 1000);
-  };
 
-  const handleUpdateFounder = () => {
-    if (!editFormData.name || !editFormData.email) {
-      toast({ variant: "destructive", title: "Missing Information", description: "Name and email are required." });
-      return;
-    }
-
-    if (!editingFounder) return;
-
-    setIsProcessing(true);
-    setTimeout(() => {
-      setFounders(prev => prev.map(f => 
-        f.id === editingFounder.id 
-          ? { ...f, name: editFormData.name, email: editFormData.email, role: editFormData.role, permissions: editFormData.permissions } 
-          : f
-      ));
-      setEditingFounder(null);
+      setIsAddModalOpen(false);
+      setNewFounderData({ name: "", email: "", role: "COO", permissions: { manageSchools: false, manageTeam: false, viewAnalytics: true, manageSupport: false } });
+      toast({ title: "Founder Added", description: `${newFounderData.name} has been onboarded.` });
+    } catch (e) {
+      toast({ variant: "destructive", title: "Error", description: "Failed to onboard founder." });
+    } finally {
       setIsProcessing(false);
-      toast({ title: "Profile Updated", description: `${editFormData.name}'s credentials and permissions have been synchronized.` });
-    }, 800);
+    }
   };
 
-  const handleRemoveFounder = (id: string) => {
-    setFounders(prev => prev.filter(f => f.id !== id));
-    toast({ variant: "destructive", title: "Founder Removed", description: "The access credentials have been revoked." });
+  const handleRemoveFounder = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, "platform_admins", id));
+      toast({ variant: "destructive", title: "Founder Removed", description: "Access has been revoked." });
+    } catch (e) {
+      toast({ variant: "destructive", title: "Error", description: "Failed to remove founder." });
+    }
   };
 
-  const handleToggleStatus = (id: string) => {
-    setFounders(prev => prev.map(f => {
-      if (f.id === id) {
-        const newStatus = f.status === "Active" ? "Suspended" : "Active";
-        toast({
-          title: `Status: ${newStatus}`,
-          description: `Access for ${f.name} has been ${newStatus.toLowerCase()}.`
-        });
-        return { ...f, status: newStatus };
-      }
-      return f;
-    }));
+  const handleToggleStatus = async (founder: any) => {
+    const newStatus = founder.status === "Active" ? "Suspended" : "Active";
+    try {
+      await updateDoc(doc(db, "platform_admins", founder.id), { status: newStatus });
+      toast({ title: `Status: ${newStatus}`, description: `Access for ${founder.name} has been ${newStatus.toLowerCase()}.` });
+    } catch (e) {
+      toast({ variant: "destructive", title: "Error", description: "Failed to update status." });
+    }
   };
 
-  const openEditModal = (founder: Founder) => {
-    setEditFormData({
-      name: founder.name,
-      email: founder.email,
-      role: founder.role,
-      permissions: { ...founder.permissions }
-    });
-    setEditingFounder(founder);
-  };
-
-  const PermissionToggle = ({ 
-    id, 
-    label, 
-    description, 
-    checked, 
-    onChange, 
-    icon: Icon 
-  }: { 
-    id: string; 
-    label: string; 
-    description: string; 
-    checked: boolean; 
-    onChange: (val: boolean) => void;
-    icon: any;
-  }) => (
-    <div className={cn(
-      "flex items-start gap-3 p-3 rounded-xl border-2 transition-all",
-      checked ? "border-primary bg-primary/5 shadow-sm" : "border-accent bg-white hover:border-accent-foreground/10"
-    )}>
+  const PermissionToggle = ({ id, label, description, checked, onChange, icon: Icon }: any) => (
+    <div className={cn("flex items-start gap-3 p-3 rounded-xl border-2 transition-all", checked ? "border-primary bg-primary/5 shadow-sm" : "border-accent bg-white")}>
       <Checkbox id={id} checked={checked} onCheckedChange={(v) => onChange(!!v)} className="mt-1" />
       <Label htmlFor={id} className="flex-1 cursor-pointer space-y-1">
         <div className="flex items-center gap-2">
@@ -279,325 +162,112 @@ export default function FoundersManagementPage() {
             <div className="p-2 bg-primary rounded-xl shadow-lg text-white">
               <Crown className="w-6 h-6 text-secondary" />
             </div>
-            {language === 'en' ? "Leadership & Founders" : "Équipe Dirigeante"}
+            Leadership & Founders
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Manage core platform executive roles and granular operational permissions.
-          </p>
+          <p className="text-muted-foreground mt-1">Manage core platform executive roles and operational permissions.</p>
         </div>
         
-        {isPrimaryFounder && (
-          <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl">
-                <UserPlus className="w-5 h-5" /> Onboard Team Member
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-              <DialogHeader className="bg-primary p-8 text-white">
-                <DialogTitle className="text-2xl font-black">Onboard Founder</DialogTitle>
-                <DialogDescription className="text-white/60">Initialize executive platform access and define operational authority.</DialogDescription>
-              </DialogHeader>
-              <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto">
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="col-span-2 space-y-2">
-                    <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Full Name</Label>
-                    <Input 
-                      placeholder="e.g. John Doe" 
-                      className="h-12 bg-accent/30 border-none rounded-xl"
-                      value={newFounderData.name}
-                      onChange={(e) => setNewFounderData({...newFounderData, name: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Primary Email</Label>
-                    <Input 
-                      placeholder="name@eduignite.io" 
-                      className="h-12 bg-accent/30 border-none rounded-xl"
-                      value={newFounderData.email}
-                      onChange={(e) => setNewFounderData({...newFounderData, email: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Executive Role</Label>
-                    <Select value={newFounderData.role} onValueChange={(v) => setNewFounderData({...newFounderData, role: v})}>
-                      <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {ROLES.map(role => <SelectItem key={role} value={role}>{role}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
+        <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+          <DialogTrigger asChild>
+            <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl"><UserPlus className="w-5 h-5" /> Onboard Team Member</Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+            <DialogHeader className="bg-primary p-8 text-white">
+              <DialogTitle className="text-2xl font-black">Onboard Founder</DialogTitle>
+              <DialogDescription className="text-white/60">Initialize executive platform access.</DialogDescription>
+            </DialogHeader>
+            <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto">
+              <div className="grid grid-cols-2 gap-6">
+                <div className="col-span-2 space-y-2">
+                  <Label>Full Name</Label>
+                  <Input value={newFounderData.name} onChange={(e) => setNewFounderData({...newFounderData, name: e.target.value})} placeholder="e.g. John Doe" className="h-12 bg-accent/30 border-none rounded-xl" />
                 </div>
-
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 border-b pb-2">
-                    <Lock className="w-4 h-4 text-primary" />
-                    <h3 className="text-sm font-black uppercase text-primary tracking-widest">Operational Authority</h3>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <PermissionToggle 
-                      id="p-schools" 
-                      label="Manage Schools" 
-                      description="Can add, edit, and decommission institutional nodes."
-                      icon={Globe}
-                      checked={newFounderData.permissions.manageSchools}
-                      onChange={(v) => setNewFounderData({...newFounderData, permissions: {...newFounderData.permissions, manageSchools: v}})}
-                    />
-                    <PermissionToggle 
-                      id="p-team" 
-                      label="Manage Team" 
-                      description="Can onboard and manage other platform founders."
-                      icon={UserPlus}
-                      checked={newFounderData.permissions.manageTeam}
-                      onChange={(v) => setNewFounderData({...newFounderData, permissions: {...newFounderData.permissions, manageTeam: v}})}
-                    />
-                    <PermissionToggle 
-                      id="p-analytics" 
-                      label="View Analytics" 
-                      description="Access to global platform revenue and demographics."
-                      icon={TrendingUp}
-                      checked={newFounderData.permissions.viewAnalytics}
-                      onChange={(v) => setNewFounderData({...newFounderData, permissions: {...newFounderData.permissions, viewAnalytics: v}})}
-                    />
-                    <PermissionToggle 
-                      id="p-support" 
-                      label="Handle Support" 
-                      description="Can resolve and archive institutional feedback."
-                      icon={MessageSquare}
-                      checked={newFounderData.permissions.manageSupport}
-                      onChange={(v) => setNewFounderData({...newFounderData, permissions: {...newFounderData.permissions, manageSupport: v}})}
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label>Primary Email</Label>
+                  <Input value={newFounderData.email} onChange={(e) => setNewFounderData({...newFounderData, email: e.target.value})} placeholder="name@eduignite.io" className="h-12 bg-accent/30 border-none rounded-xl" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Executive Role</Label>
+                  <Select value={newFounderData.role} onValueChange={(v) => setNewFounderData({...newFounderData, role: v})}>
+                    <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue /></SelectTrigger>
+                    <SelectContent>{ROLES.map(role => <SelectItem key={role} value={role}>{role}</SelectItem>)}</SelectContent>
+                  </Select>
                 </div>
               </div>
-              <DialogFooter className="bg-accent/20 p-6 border-t border-accent flex sm:flex-row gap-3">
-                <Button variant="ghost" className="flex-1 h-12 rounded-xl" onClick={() => setIsAddModalOpen(false)}>{t("cancel")}</Button>
-                <Button className="flex-1 h-12 rounded-xl shadow-lg font-bold" onClick={handleAddFounder} disabled={isProcessing}>
-                  {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify & Onboard"}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-none shadow-sm bg-primary text-white">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-[10px] uppercase font-black opacity-60 tracking-widest leading-none">Core Team</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-black text-secondary">{founders.length} <span className="text-xs font-medium opacity-40">Founders</span></div>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-sm bg-white">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-[10px] uppercase font-black text-muted-foreground tracking-widest leading-none">Platform Nodes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-black text-primary">24 <span className="text-xs font-medium opacity-40">Schools</span></div>
-          </CardContent>
-        </Card>
+              <div className="space-y-4">
+                <h3 className="text-sm font-black uppercase text-primary tracking-widest border-b pb-2">Operational Authority</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <PermissionToggle id="p-schools" label="Manage Schools" description="Control institutional nodes." icon={Globe} checked={newFounderData.permissions.manageSchools} onChange={(v: boolean) => setNewFounderData({...newFounderData, permissions: {...newFounderData.permissions, manageSchools: v}})} />
+                  <PermissionToggle id="p-team" label="Manage Team" description="Founder management." icon={UserPlus} checked={newFounderData.permissions.manageTeam} onChange={(v: boolean) => setNewFounderData({...newFounderData, permissions: {...newFounderData.permissions, manageTeam: v}})} />
+                  <PermissionToggle id="p-analytics" label="View Analytics" description="Platform financials." icon={TrendingUp} checked={newFounderData.permissions.viewAnalytics} onChange={(v: boolean) => setNewFounderData({...newFounderData, permissions: {...newFounderData.permissions, viewAnalytics: v}})} />
+                  <PermissionToggle id="p-support" label="Handle Support" description="Feedback registry." icon={MessageSquare} checked={newFounderData.permissions.manageSupport} onChange={(v: boolean) => setNewFounderData({...newFounderData, permissions: {...newFounderData.permissions, manageSupport: v}})} />
+                </div>
+              </div>
+            </div>
+            <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+              <Button className="w-full h-12 rounded-xl shadow-lg font-bold" onClick={handleAddFounder} disabled={isProcessing}>{isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify & Onboard"}</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
-        <CardHeader className="bg-white border-b p-6 flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-primary" /> Executive Registry
-            </CardTitle>
-            <CardDescription>Comprehensive management of the platform leadership hierarchy.</CardDescription>
-          </div>
+        <CardHeader className="bg-white border-b p-6">
+          <CardTitle className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-primary" /> Executive Registry
+          </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader className="bg-accent/10">
-              <TableRow className="uppercase text-[10px] font-black tracking-widest border-b border-accent/20">
-                <TableHead className="pl-8 py-4">Founder Profile</TableHead>
-                <TableHead>Strategic Role</TableHead>
-                <TableHead>Permissions Summary</TableHead>
-                <TableHead className="text-center">Status</TableHead>
-                <TableHead className="text-right pr-8">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {founders.map((founder) => (
-                <TableRow key={founder.id} className="hover:bg-accent/5 transition-colors border-b border-accent/10">
-                  <TableCell className="pl-8 py-4">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent">
-                        <AvatarImage src={founder.avatar} alt={founder.name} />
-                        <AvatarFallback className="bg-primary/5 text-primary text-xs">{founder.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex flex-col">
-                        <span className="font-bold text-sm text-primary leading-none mb-1">{founder.name}</span>
-                        <span className="text-[10px] font-mono text-muted-foreground">{founder.email}</span>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className="bg-secondary/20 text-primary border-none font-black text-[10px] uppercase">
-                      {founder.role}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {founder.permissions.manageSchools && <Badge className="bg-blue-100 text-blue-700 border-none text-[8px] h-4">SCHOOLS</Badge>}
-                      {founder.permissions.manageTeam && <Badge className="bg-purple-100 text-purple-700 border-none text-[8px] h-4">TEAM</Badge>}
-                      {founder.permissions.viewAnalytics && <Badge className="bg-green-100 text-green-700 border-none text-[8px] h-4">ANALYTICS</Badge>}
-                      {founder.permissions.manageSupport && <Badge className="bg-amber-100 text-amber-700 border-none text-[8px] h-4">SUPPORT</Badge>}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Badge className={cn(
-                      "text-[9px] font-black uppercase tracking-tighter border-none px-3",
-                      founder.status === 'Active' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                    )}>
-                      {founder.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right pr-8">
-                    {!founder.isPrimary ? (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-accent">
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl border-accent">
-                          <DropdownMenuLabel className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Administrative</DropdownMenuLabel>
-                          <DropdownMenuItem 
-                            className="gap-2 cursor-pointer" 
-                            onSelect={(e) => { e.preventDefault(); openEditModal(founder); }}
-                          >
-                            <Pencil className="w-4 h-4 text-primary" /> Edit Designation
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => handleToggleStatus(founder.id)}>
-                            {founder.status === 'Active' ? (
-                              <><Ban className="w-4 h-4 text-amber-600" /> Suspend Access</>
-                            ) : (
-                              <><CheckCircle2 className="w-4 h-4 text-green-600" /> Reactivate Access</>
-                            )}
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="gap-2 cursor-pointer text-destructive focus:bg-destructive/5" onClick={() => handleRemoveFounder(founder.id)}>
-                            <Trash2 className="w-4 h-4" /> Remove Team Member
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    ) : (
-                      <Badge variant="outline" className="text-[8px] opacity-30 border-none uppercase flex items-center gap-1">
-                        <Crown className="w-2.5 h-2.5" /> Primary Owner
-                      </Badge>
-                    )}
-                  </TableCell>
+          {isLoading ? (
+            <div className="flex justify-center p-20"><Loader2 className="w-12 h-12 animate-spin text-primary opacity-20" /></div>
+          ) : (
+            <Table>
+              <TableHeader className="bg-accent/10">
+                <TableRow className="uppercase text-[10px] font-black tracking-widest">
+                  <TableHead className="pl-8 py-4">Founder Profile</TableHead>
+                  <TableHead>Strategic Role</TableHead>
+                  <TableHead className="text-center">Status</TableHead>
+                  <TableHead className="text-right pr-8">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {founders?.map((founder) => (
+                  <TableRow key={founder.id} className="hover:bg-accent/5 transition-colors border-b border-accent/10">
+                    <TableCell className="pl-8 py-4">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent">
+                          <AvatarImage src={founder.avatar} alt={founder.name} />
+                          <AvatarFallback className="bg-primary/5 text-primary text-xs">{founder.name?.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-sm text-primary leading-none mb-1">{founder.name}</span>
+                          <span className="text-[10px] text-muted-foreground">{founder.email}</span>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell><Badge variant="secondary" className="bg-secondary/20 text-primary border-none font-black text-[10px] uppercase">{founder.role}</Badge></TableCell>
+                    <TableCell className="text-center">
+                      <Badge className={cn("text-[9px] font-black uppercase border-none px-3", founder.status === 'Active' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}>{founder.status}</Badge>
+                    </TableCell>
+                    <TableCell className="text-right pr-8">
+                      {!founder.isPrimary && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 rounded-full"><MoreVertical className="w-4 h-4" /></Button></DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-56 rounded-xl">
+                            <DropdownMenuItem onClick={() => handleToggleStatus(founder)}>{founder.status === 'Active' ? 'Suspend Access' : 'Reactivate Access'}</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive" onClick={() => handleRemoveFounder(founder.id)}>Remove Team Member</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
-        <CardFooter className="bg-muted/20 p-4 border-t flex justify-between items-center">
-           <div className="flex items-center gap-2 text-muted-foreground">
-              <Fingerprint className="w-4 h-4 text-primary" />
-              <p className="text-[10px] uppercase font-bold tracking-widest italic">All founder actions are logged in the secure platform audit trail.</p>
-           </div>
-           <Badge variant="outline" className="text-[10px] font-black border-primary/10 text-primary uppercase">Jan 2023 - Present</Badge>
-        </CardFooter>
       </Card>
-
-      {/* Edit Founder Dialog */}
-      <Dialog open={!!editingFounder} onOpenChange={() => setEditingFounder(null)}>
-        <DialogContent className="sm:max-w-xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-          <DialogHeader className="bg-primary p-8 text-white">
-            <div className="flex justify-between items-center">
-              <div>
-                <DialogTitle className="text-2xl font-black">Edit Designation</DialogTitle>
-                <DialogDescription className="text-white/60">Modify profile parameters and access authority for {editingFounder?.name}.</DialogDescription>
-              </div>
-              <Button variant="ghost" size="icon" onClick={() => setEditingFounder(null)} className="text-white hover:bg-white/10 rounded-full">
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
-          </DialogHeader>
-          <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto">
-            <div className="grid grid-cols-2 gap-6">
-              <div className="col-span-2 space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Full Legal Name</Label>
-                <Input 
-                  className="h-12 bg-accent/30 border-none rounded-xl font-bold"
-                  value={editFormData.name}
-                  onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Executive Email</Label>
-                <Input 
-                  className="h-12 bg-accent/30 border-none rounded-xl"
-                  value={editFormData.email}
-                  onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Strategic Role</Label>
-                <Select value={editFormData.role} onValueChange={(v) => setEditFormData({...editFormData, role: v})}>
-                  <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {ROLES.map(role => <SelectItem key={role} value={role}>{role}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 border-b pb-2">
-                <ShieldAlert className="w-4 h-4 text-primary" />
-                <h3 className="text-sm font-black uppercase text-primary tracking-widest">Adjust Authority</h3>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <PermissionToggle 
-                  id="e-schools" 
-                  label="Manage Schools" 
-                  description="Onboarding and node management."
-                  icon={Globe}
-                  checked={editFormData.permissions.manageSchools}
-                  onChange={(v) => setEditFormData({...editFormData, permissions: {...editFormData.permissions, manageSchools: v}})}
-                />
-                <PermissionToggle 
-                  id="e-team" 
-                  label="Manage Team" 
-                  description="Founder onboarding and editing."
-                  icon={UserPlus}
-                  checked={editFormData.permissions.manageTeam}
-                  onChange={(v) => setEditFormData({...editFormData, permissions: {...editFormData.permissions, manageTeam: v}})}
-                />
-                <PermissionToggle 
-                  id="e-analytics" 
-                  label="View Analytics" 
-                  description="Global SaaS financial access."
-                  icon={TrendingUp}
-                  checked={editFormData.permissions.viewAnalytics}
-                  onChange={(v) => setEditFormData({...editFormData, permissions: {...editFormData.permissions, viewAnalytics: v}})}
-                />
-                <PermissionToggle 
-                  id="e-support" 
-                  label="Handle Support" 
-                  description="Feedback ticket lifecycle management."
-                  icon={MessageSquare}
-                  checked={editFormData.permissions.manageSupport}
-                  onChange={(v) => setEditFormData({...editFormData, permissions: {...editFormData.permissions, manageSupport: v}})}
-                />
-              </div>
-            </div>
-          </div>
-          <DialogFooter className="bg-accent/20 p-6 border-t border-accent flex sm:flex-row gap-3">
-            <Button variant="ghost" className="flex-1 h-12 rounded-xl" onClick={() => setEditingFounder(null)}>Discard</Button>
-            <Button className="flex-1 h-12 rounded-xl shadow-lg font-bold gap-2" onClick={handleUpdateFounder} disabled={isProcessing}>
-              {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              Commit Changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

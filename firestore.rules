@@ -11,16 +11,17 @@ service cloud.firestore {
       return isSignedIn() && exists(/databases/$(database)/documents/platform_admins/$(request.auth.uid));
     }
 
+    function isSchoolAdmin(schoolId) {
+      return isSignedIn() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'SCHOOL_ADMIN' &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.schoolId == schoolId;
+    }
+
     // --- COLLECTION RULES ---
 
     // Global Platform Settings
     match /settings/platform {
-      allow read: if true; // Publicly readable for login page branding
-      allow write: if isPlatformAdmin();
-    }
-
-    match /settings/{settingId} {
-      allow read: if isSignedIn();
+      allow read: if true; 
       allow write: if isPlatformAdmin();
     }
 
@@ -35,7 +36,27 @@ service cloud.firestore {
       allow write: if isPlatformAdmin();
     }
 
-    // Matricule Registry - Uniqueness Enforcement
+    // Users
+    match /users/{uid} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.auth.uid == uid;
+      allow update: if isSignedIn() && request.auth.uid == uid;
+    }
+    
+    // Schools
+    match /schools/{schoolId} {
+      allow read: if isSignedIn();
+      allow create: if isPlatformAdmin();
+      allow update: if isPlatformAdmin() || isSchoolAdmin(schoolId);
+    }
+
+    // Announcements
+    match /schools/{schoolId}/announcements/{announcementId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isSchoolAdmin(schoolId) || isPlatformAdmin();
+    }
+
+    // Matricule Registry
     match /matricules/{matricule} {
       allow read: if isSignedIn();
       allow create: if isSignedIn(); 
@@ -44,30 +65,13 @@ service cloud.firestore {
 
     // Counters
     match /counters/{counterId} {
-      allow read: if isSignedIn();
-      allow write: if isSignedIn();
+      allow read, write: if isSignedIn();
     }
 
     match /schools/{schoolId}/counters/{counterId} {
-      allow read: if isSignedIn();
-      allow write: if isSignedIn();
-    }
-
-    // Schools
-    match /schools/{schoolId} {
-      allow read: if isSignedIn();
-      allow create: if isPlatformAdmin();
-      allow update: if isSignedIn();
-    }
-
-    // Users
-    match /users/{uid} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && request.auth.uid == uid;
-      allow update: if isSignedIn() && request.auth.uid == uid;
+      allow read, write: if isSignedIn();
     }
     
-    // Platform Admins
     match /platform_admins/{uid} {
       allow read: if isSignedIn();
       allow write: if isPlatformAdmin() || (isSignedIn() && request.auth.uid == uid);
