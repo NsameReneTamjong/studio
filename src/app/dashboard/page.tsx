@@ -24,6 +24,7 @@ import {
   Tooltip as RechartsTooltip, 
   ResponsiveContainer 
 } from "recharts";
+import { cn } from "@/lib/utils";
 
 const MONTHLY_REVENUE = [
   { name: 'Jan', revenue: 1200000 },
