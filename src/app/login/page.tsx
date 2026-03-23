@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth, UserRole } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,12 @@ import {
   MessageSquare,
   Video,
   User,
-  Fingerprint
+  Fingerprint,
+  ArrowLeft,
+  CheckCircle2,
+  AlertCircle,
+  Mail,
+  Smartphone
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -29,44 +34,44 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
+
+type AuthMode = "login" | "activate" | "forgot";
+type ForgotStep = "identify" | "confirmation" | "otp" | "reset";
 
 export default function LoginPage() {
-  const { login, register, platformSettings, testimonials, featuredVideos } = useAuth();
+  const { login, activateAccount, platformSettings, testimonials, featuredVideos } = useAuth();
   const { t, setLanguage, language } = useI18n();
   const { toast } = useToast();
   
-  const [isRegistering, setIsRegistering] = useState(false);
+  const [mode, setAuthMode] = useState<AuthMode>("login");
+  const [forgotStep, setForgotStep] = useState<ForgotStep>("identify");
   const [isProcessing, setIsProcessing] = useState(false);
   
-  // Auth Form State
+  // Form State
   const [authData, setAuthData] = useState({
-    name: "",
     matricule: "",
     password: "",
-    role: "STUDENT" as UserRole,
+    confirmPassword: "",
+    email: "", // Used for identification in recovery
+    otp: "",
   });
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
     try {
-      if (isRegistering) {
-        if (!authData.name) {
-          toast({ variant: "destructive", title: "Missing Name", description: "Full name is required." });
+      if (mode === "activate") {
+        if (authData.password !== authData.confirmPassword) {
+          toast({ variant: "destructive", title: "Passwords Mismatch", description: "Please ensure both passwords match." });
           return;
         }
-        // For self-registration, we default to a test school or specific platform role
-        await register(authData.name, authData.password, authData.role);
-        toast({ title: "Welcome to EduIgnite", description: "Your Matricule has been generated. Redirecting..." });
+        await activateAccount(authData.matricule, authData.password);
+        toast({ title: "Account Activated", description: "Redirecting to your dashboard..." });
       } else {
-        if (!authData.matricule) {
-          toast({ variant: "destructive", title: "Missing Matricule", description: "Please enter your ID to sign in." });
-          return;
-        }
         await login(authData.matricule, authData.password);
         toast({ title: "Welcome back", description: "Successfully signed in." });
       }
@@ -74,10 +79,109 @@ export default function LoginPage() {
       toast({
         variant: "destructive",
         title: "Authentication Failed",
-        description: "Invalid Matricule or Password. Please contact your administration if the issue persists."
+        description: error.message || "Invalid credentials. Check your Matricule or Password."
       });
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleForgotFlow = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsProcessing(true);
+    
+    // Simulating the 4-step recovery logic
+    setTimeout(() => {
+      setIsProcessing(false);
+      if (forgotStep === "identify") {
+        setForgotStep("confirmation");
+      } else if (forgotStep === "confirmation") {
+        setForgotStep("otp");
+        toast({ title: t("otpSent") });
+      } else if (forgotStep === "otp") {
+        if (authData.otp === "123456") { // Demo OTP
+          setForgotStep("reset");
+        } else {
+          toast({ variant: "destructive", title: "Invalid Code", description: "Please enter 123456 for this demo." });
+        }
+      } else if (forgotStep === "reset") {
+        if (authData.password === authData.confirmPassword) {
+          toast({ title: "Password Reset", description: "Your new password is now active. Please login." });
+          setAuthMode("login");
+          setForgotStep("identify");
+        } else {
+          toast({ variant: "destructive", title: "Passwords Mismatch" });
+        }
+      }
+    }, 1000);
+  };
+
+  const renderForgotFlow = () => {
+    switch (forgotStep) {
+      case "identify":
+        return (
+          <form onSubmit={handleForgotFlow} className="space-y-5">
+            <div className="space-y-2">
+              <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest flex items-center gap-2">
+                <Fingerprint className="w-3 h-3"/> {t("matricule")}
+              </Label>
+              <Input required className="h-12 bg-accent/30 border-none rounded-xl font-black uppercase" value={authData.matricule} onChange={(e) => setAuthData({...authData, matricule: e.target.value})} />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest flex items-center gap-2">
+                <Mail className="w-3 h-3"/> Registered Email
+              </Label>
+              <Input required type="email" className="h-12 bg-accent/30 border-none rounded-xl" value={authData.email} onChange={(e) => setAuthData({...authData, email: e.target.value})} />
+            </div>
+            <Button type="submit" disabled={isProcessing} className="w-full h-14 font-black uppercase tracking-widest bg-primary rounded-2xl">
+              {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : "Verify Identity"}
+            </Button>
+          </form>
+        );
+      case "confirmation":
+        return (
+          <div className="space-y-6 text-center">
+            <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto border-2 border-green-100">
+              <CheckCircle2 className="w-10 h-10 text-green-600" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-xl font-bold">Identity Confirmed</h3>
+              <p className="text-sm text-muted-foreground">We found your record. We will send a verification code to your registered email.</p>
+            </div>
+            <Button onClick={handleForgotFlow} disabled={isProcessing} className="w-full h-14 font-black uppercase tracking-widest bg-primary rounded-2xl">
+              {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : "Send OTP Code"}
+            </Button>
+          </div>
+        );
+      case "otp":
+        return (
+          <form onSubmit={handleForgotFlow} className="space-y-5">
+            <div className="space-y-2 text-center">
+              <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Enter 6-Digit Code</Label>
+              <Input required maxLength={6} placeholder="000000" className="h-16 text-center text-3xl font-black tracking-[0.5em] bg-accent/30 border-none rounded-xl" value={authData.otp} onChange={(e) => setAuthData({...authData, otp: e.target.value})} />
+              <p className="text-[10px] text-muted-foreground mt-2">Check your email for the recovery code.</p>
+            </div>
+            <Button type="submit" disabled={isProcessing} className="w-full h-14 font-black uppercase tracking-widest bg-primary rounded-2xl">
+              {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : "Verify Code"}
+            </Button>
+          </form>
+        );
+      case "reset":
+        return (
+          <form onSubmit={handleForgotFlow} className="space-y-5">
+            <div className="space-y-2">
+              <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">New Password</Label>
+              <Input required type="password" placeholder="••••••••" className="h-12 bg-accent/30 border-none rounded-xl font-bold" value={authData.password} onChange={(e) => setAuthData({...authData, password: e.target.value})} />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Confirm New Password</Label>
+              <Input required type="password" placeholder="••••••••" className="h-12 bg-accent/30 border-none rounded-xl font-bold" value={authData.confirmPassword} onChange={(e) => setAuthData({...authData, confirmPassword: e.target.value})} />
+            </div>
+            <Button type="submit" disabled={isProcessing} className="w-full h-14 font-black uppercase tracking-widest bg-primary rounded-2xl">
+              {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : "Reset & Login"}
+            </Button>
+          </form>
+        );
     }
   };
 
@@ -121,53 +225,28 @@ export default function LoginPage() {
 
         <Card className="border-none shadow-2xl overflow-hidden rounded-[2.5rem] bg-white/80 backdrop-blur-xl border border-white">
           <CardHeader className="pb-8 text-center space-y-1">
-            <CardTitle className="text-3xl font-black text-primary">
-              {isRegistering ? "Join Platform" : "Access Portal"}
-            </CardTitle>
+            <div className="flex items-center gap-2 justify-center mb-2">
+              {mode !== "login" && (
+                <Button variant="ghost" size="icon" className="rounded-full h-8 w-8" onClick={() => { setAuthMode("login"); setForgotStep("identify"); }}>
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+              )}
+              <CardTitle className="text-3xl font-black text-primary">
+                {mode === "login" ? "Access Portal" : mode === "activate" ? t("createAccount") : "Recover Access"}
+              </CardTitle>
+            </div>
             <CardDescription>
-              {isRegistering 
-                ? "Generate your institutional identity." 
-                : "Sign in with your Unique Matricule ID."}
+              {mode === "login" ? "Sign in with your Unique Matricule ID." : mode === "activate" ? "Activate your pre-assigned institutional identity." : `Step ${["identify", "confirmation", "otp", "reset"].indexOf(forgotStep) + 1} of 4`}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleAuth} className="space-y-5">
-              {isRegistering ? (
-                <>
-                  <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                    <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest flex items-center gap-2">
-                      <User className="w-3 h-3"/> Full Legal Name
-                    </Label>
-                    <Input 
-                      required
-                      placeholder="e.g. John Doe" 
-                      className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary font-bold"
-                      value={authData.name}
-                      onChange={(e) => setAuthData({...authData, name: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2 animate-in fade-in duration-500">
-                    <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest flex items-center gap-2">
-                      <ShieldCheck className="w-3 h-3"/> Your Role
-                    </Label>
-                    <Select value={authData.role} onValueChange={(v) => setAuthData({...authData, role: v as UserRole})}>
-                      <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl">
-                        <SelectItem value="STUDENT">Student</SelectItem>
-                        <SelectItem value="TEACHER">Teacher</SelectItem>
-                        <SelectItem value="PARENT">Parent</SelectItem>
-                        <SelectItem value="SCHOOL_ADMIN">New School Admin</SelectItem>
-                        <SelectItem value="SUPER_ADMIN">Platform Executive</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </>
-              ) : (
+            {mode === "forgot" ? (
+              renderForgotFlow()
+            ) : (
+              <form onSubmit={handleAuth} className="space-y-5">
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest flex items-center gap-2">
-                    <Fingerprint className="w-3 h-3"/> Matricule ID
+                    <Fingerprint className="w-3 h-3"/> {t("matricule")}
                   </Label>
                   <Input 
                     required
@@ -177,38 +256,65 @@ export default function LoginPage() {
                     onChange={(e) => setAuthData({...authData, matricule: e.target.value})}
                   />
                 </div>
-              )}
 
-              <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest flex items-center gap-2">
-                  <Lock className="w-3 h-3"/> Security Password
-                </Label>
-                <Input 
-                  required
-                  type="password" 
-                  placeholder="••••••••"
-                  className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary font-bold"
-                  value={authData.password}
-                  onChange={(e) => setAuthData({...authData, password: e.target.value})}
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest flex items-center gap-2">
+                    <Lock className="w-3 h-3"/> {mode === "activate" ? "New Security Password" : t("password")}
+                  </Label>
+                  <Input 
+                    required
+                    type="password" 
+                    placeholder="••••••••"
+                    className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary font-bold"
+                    value={authData.password}
+                    onChange={(e) => setAuthData({...authData, password: e.target.value})}
+                  />
+                </div>
 
-              <Button 
-                type="submit"
-                disabled={isProcessing}
-                className="w-full h-14 text-base font-black uppercase tracking-widest shadow-xl rounded-2xl transition-all active:scale-95 bg-primary hover:bg-primary/90 mt-4"
-              >
-                {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : (isRegistering ? "Register & Generate ID" : "Sign In to Portal")}
-              </Button>
-            </form>
+                {mode === "activate" && (
+                  <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                    <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest flex items-center gap-2">
+                      <Lock className="w-3 h-3"/> {t("confirmPassword")}
+                    </Label>
+                    <Input 
+                      required
+                      type="password" 
+                      placeholder="••••••••"
+                      className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary font-bold"
+                      value={authData.confirmPassword}
+                      onChange={(e) => setAuthData({...authData, confirmPassword: e.target.value})}
+                    />
+                  </div>
+                )}
+
+                {mode === "login" && (
+                  <div className="flex justify-end">
+                    <Button variant="link" type="button" className="text-xs font-bold text-primary/60 p-0 h-auto" onClick={() => setAuthMode("forgot")}>
+                      {t("forgotPassword")}
+                    </Button>
+                  </div>
+                )}
+
+                <Button 
+                  type="submit"
+                  disabled={isProcessing}
+                  className="w-full h-14 text-base font-black uppercase tracking-widest shadow-xl rounded-2xl transition-all active:scale-95 bg-primary hover:bg-primary/90 mt-4"
+                >
+                  {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : (mode === "login" ? "Sign In to Portal" : "Set Password & Activate")}
+                </Button>
+              </form>
+            )}
           </CardContent>
           <CardFooter className="pb-8 pt-2">
             <Button 
               variant="ghost" 
               className="w-full text-sm font-bold text-primary hover:bg-primary/5 rounded-xl h-12"
-              onClick={() => setIsRegistering(!isRegistering)}
+              onClick={() => {
+                setAuthMode(mode === "login" ? "activate" : "login");
+                setForgotStep("identify");
+              }}
             >
-              {isRegistering ? "Already have an ID? Login" : "New to the platform? Join Now"}
+              {mode === "login" ? t("dontHaveAccount") : t("alreadyHaveAccount")}
             </Button>
           </CardFooter>
         </Card>
@@ -234,7 +340,6 @@ export default function LoginPage() {
                 </div>
               </DialogHeader>
               <div className="p-8 space-y-10 max-h-[75vh] overflow-y-auto bg-background">
-                {/* Media and Testimonials dynamically loaded */}
                 <div className="space-y-6">
                   <h3 className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2 border-b border-primary/10 pb-2">
                     <Video className="w-4 h-4" /> Featured Media
@@ -255,6 +360,31 @@ export default function LoginPage() {
                           <p className="text-xs text-muted-foreground">{video.description}</p>
                         </div>
                       </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <h3 className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2 border-b border-primary/10 pb-2">
+                    <Quote className="w-4 h-4" /> Success Stories
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {testimonials.map((test) => (
+                      <Card key={test.id} className="border-none shadow-sm bg-accent/30">
+                        <CardContent className="p-6 space-y-4">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10 border-2 border-white">
+                              <AvatarImage src={test.avatar} />
+                              <AvatarFallback>{test.author.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-bold text-sm text-primary">{test.author}</p>
+                              <p className="text-[10px] text-muted-foreground uppercase font-black">{test.schoolName}</p>
+                            </div>
+                          </div>
+                          <p className="text-xs italic leading-relaxed text-muted-foreground">"{test.content}"</p>
+                        </CardContent>
+                      </Card>
                     ))}
                   </div>
                 </div>

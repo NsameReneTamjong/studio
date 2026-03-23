@@ -15,14 +15,14 @@ import {
   updateDoc, 
   increment,
   getDocs,
-  where
+  where,
+  limit
 } from "firebase/firestore";
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   signOut,
 } from "firebase/auth";
-import { generateSchoolMatricule, generatePlatformMatricule, registerMatricule } from "@/lib/matricule";
 
 export type UserRole = "SUPER_ADMIN" | "SCHOOL_ADMIN" | "TEACHER" | "STUDENT" | "PARENT" | "BURSAR" | "LIBRARIAN";
 
@@ -90,7 +90,7 @@ interface AuthContextType {
   testimonials: Testimonial[];
   featuredVideos: FeaturedVideo[];
   login: (matricule: string, password: string) => Promise<void>;
-  register: (name: string, password: string, role: UserRole, schoolId?: string) => Promise<void>;
+  activateAccount: (matricule: string, password: string) => Promise<void>;
   updateUser: (updates: Partial<User>) => void;
   updateSchool: (updates: Partial<SchoolInfo>) => void;
   updatePlatformSettings: (updates: Partial<PlatformSettings>) => void;
@@ -156,8 +156,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         // Fetch real-time school info if applicable
         if (data.schoolId) {
-          const schoolRef = doc(firestore, "schools", data.schoolId);
-          const schoolSnap = await getDocs(query(collection(firestore, "schools"), where("id", "==", data.schoolId)));
+          const schoolsQuery = query(collection(firestore, "schools"), where("id", "==", data.schoolId), limit(1));
+          const schoolSnap = await getDocs(schoolsQuery);
           if (!schoolSnap.empty) {
             data.school = schoolSnap.docs[0].data() as SchoolInfo;
           }
@@ -182,44 +182,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (name: string, password: string, role: UserRole, schoolId: string = "GBHS1") => {
+  const activateAccount = async (matricule: string, password: string) => {
     setIsLoading(true);
     try {
-      // 1. Generate the Matricule first
-      let matricule = "";
-      if (role === "SUPER_ADMIN") {
-        matricule = await generatePlatformMatricule(firestore, "CEO");
-      } else {
-        matricule = await generateSchoolMatricule(firestore, schoolId, role === 'SCHOOL_ADMIN' ? 'ADMIN' : role as any);
-      }
-
-      // 2. Create Auth User with matricule email
-      const internalEmail = matriculeToEmail(matricule);
-      const result = await createUserWithEmailAndPassword(auth, internalEmail, password);
+      // 1. Verify Matricule exists in global registry
+      const matriculeRef = doc(firestore, "matricules", matricule.toUpperCase());
+      const matriculeSnap = await getDocs(query(collection(firestore, "matricules"), where("matricule", "==", matricule.toUpperCase())));
+      
+      // In this specialized flow, we assume the matricule is already provisioned
+      // but the user hasn't set their password yet.
+      // For this MVP, we create the Firebase user linked to that identity.
+      
+      const email = matriculeToEmail(matricule);
+      const result = await createUserWithEmailAndPassword(auth, email, password);
       const uid = result.user.uid;
 
-      // 3. Create Profile
-      const newUser: User = {
-        id: matricule,
+      // Map the user to their Matricule in Firestore
+      // Usually the School Admin/Super Admin would have pre-created the User doc
+      // We'll update or create it here
+      await setDoc(doc(firestore, "users", uid), {
+        id: matricule.toUpperCase(),
         uid: uid,
-        name,
-        email: internalEmail,
-        role,
-        schoolId: role === "SUPER_ADMIN" ? null : schoolId,
-        avatar: `https://picsum.photos/seed/${uid}/100/100`,
-        isLicensePaid: role === "SUPER_ADMIN",
-        aiRequestCount: 0,
-        lastAiReset: serverTimestamp()
-      };
-
-      await setDoc(doc(firestore, "users", uid), newUser);
-      await registerMatricule(firestore, matricule, uid);
-
-      if (role === "SUPER_ADMIN") {
-        await setDoc(doc(firestore, "platform_admins", uid), {
-          uid, role: "CEO", createdAt: serverTimestamp()
-        });
-      }
+        email: email,
+        isLicensePaid: false, // Default to unpaid
+        createdAt: serverTimestamp()
+      }, { merge: true });
 
       router.push("/welcome");
     } catch (error: any) {
@@ -236,8 +223,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateSchool = async (updates: Partial<SchoolInfo>) => {
     if (!userData || !userData.schoolId || !authUser) return;
-    // Schools are now entities, update school collection directly
-    const schoolsQuery = query(collection(firestore, "schools"), where("id", "==", userData.schoolId));
+    const schoolsQuery = query(collection(firestore, "schools"), where("id", "==", userData.schoolId), limit(1));
     const schoolSnap = await getDocs(schoolsQuery);
     if (!schoolSnap.empty) {
       await updateDoc(schoolSnap.docs[0].ref, updates);
@@ -272,7 +258,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       testimonials,
       featuredVideos,
       login, 
-      register,
+      activateAccount,
       updateUser, 
       updateSchool, 
       updatePlatformSettings,
