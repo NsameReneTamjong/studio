@@ -70,7 +70,7 @@ const translations: TranslationDict = {
   changePassword: { en: "Change Password", fr: "Changer le mot de passe" },
   currentPassword: { en: "Current Password", fr: "Mot de passe actuel" },
   newPassword: { en: "New Password", fr: "Nouveau mot de passe" },
-  updateProfile: { en: "Update Profile", fr: "Mettre à jour le profil" },
+  updatePassword: { en: "Update Password", fr: "Mettre à jour le mot de passe" },
   changesSaved: { en: "Changes Saved", fr: "Changements Enregistrés" },
   profileUpdateSuccess: { en: "Your profile has been updated successfully.", fr: "Votre profil a été mi à jour avec succès." },
   addSubject: { en: "Add Optional Subject", fr: "Ajouter une Matière Facultative" },
@@ -129,6 +129,10 @@ const translations: TranslationDict = {
   whatPeopleSay: { en: "See what people say about EduIgnite", fr: "Découvrez ce qu'on dit d'EduIgnite" },
   testimonials: { en: "Community Testimonials", fr: "Témoignages de la Communauté" },
   publishTestimonial: { en: "Publish as Testimonial", fr: "Publier comme Témoignage" },
+  liveClasses: { en: "Live Classes", fr: "Classes en Direct" },
+  startClass: { en: "Start Live Session", fr: "Démarrer une Session" },
+  joinClass: { en: "Join Live Class", fr: "Rejoindre la Classe" },
+  cameraDenied: { en: "Camera Access Denied", fr: "Accès Caméra Refusé" },
 };
 
 interface I18nContextType {

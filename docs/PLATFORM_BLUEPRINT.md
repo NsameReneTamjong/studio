@@ -1,3 +1,4 @@
+
 # EduIgnite SaaS Master Blueprint
 
 This document contains the comprehensive logic, design system, and feature set required to recreate the **EduIgnite SaaS Platform** in Google AI Studio or similar environments.
@@ -38,16 +39,21 @@ This document contains the comprehensive logic, design system, and feature set r
   3. OTP (6-digit verification code input)
   4. Reset (Set new credentials)
 
+### D. Live Pedagogy (Virtual Classroom)
+- **Broadcasting**: Teachers can initialize high-fidelity live video sessions with real-time hardware (camera/mic) integration.
+- **Interaction**: Integrated session chat and participant list for real-time student-teacher interaction.
+- **Compliance**: All live sessions are logged under the institutional security protocol for quality audit.
+
 ## 4. Role-Specific Functionalities
 
 | Role | Key Modules |
 |------|-------------|
 | **SUPER_ADMIN** | Node Monitoring, Global Pricing, Platform Branding, Support Ledger. |
 | **SCHOOL_ADMIN** | Community Sections (Anglophone/Technical), ID Card Generation, Staff Onboarding. |
-| **TEACHER** | Gradebook (Cameroon Standards), AI Student Feedback, Timetable Sync. |
+| **TEACHER** | Gradebook (Cameroon Standards), AI Student Feedback, Timetable Sync, Live Classes. |
 | **BURSAR** | Fee Collection (Tuition/Uniforms), Arrears Tracking, Receipt Issuance. |
 | **PARENT** | Child Dashboard, Performance Charts, Teacher Chat. |
-| **STUDENT** | MCQ Exams (with Timer), Course Materials, Result Certificates. |
+| **STUDENT** | Live Online Classes, MCQ Exams (with Timer), Course Materials, Result Certificates. |
 | **LIBRARIAN** | Book Catalog, Circulation Management, Membership Audit. |
 
 ## 5. UI/UX Signature Elements
