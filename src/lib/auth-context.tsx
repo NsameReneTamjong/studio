@@ -4,8 +4,14 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useFirebase, useUser, errorEmitter, FirestorePermissionError } from "@/firebase";
-import { collection, doc, getDoc, setDoc, onSnapshot, serverTimestamp, query, orderBy } from "firebase/firestore";
-import { signInAnonymously, signOut } from "firebase/auth";
+import { collection, doc, getDoc, setDoc, onSnapshot, serverTimestamp, query, orderBy, updateDoc, increment } from "firebase/firestore";
+import { 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signOut,
+  onAuthStateChanged,
+  User as FirebaseUser
+} from "firebase/auth";
 import { generateSchoolMatricule, generatePlatformMatricule, registerMatricule } from "@/lib/matricule";
 
 export type UserRole = "SUPER_ADMIN" | "SCHOOL_ADMIN" | "TEACHER" | "STUDENT" | "PARENT" | "BURSAR" | "LIBRARIAN";
@@ -63,6 +69,8 @@ interface User {
   avatar?: string;
   school?: SchoolInfo;
   isLicensePaid: boolean; 
+  aiRequestCount?: number;
+  lastAiReset?: any;
 }
 
 interface AuthContextType {
@@ -70,11 +78,13 @@ interface AuthContextType {
   platformSettings: PlatformSettings;
   testimonials: Testimonial[];
   featuredVideos: FeaturedVideo[];
-  login: (role: UserRole, schoolId?: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string, role: UserRole, schoolId?: string) => Promise<void>;
   updateUser: (updates: Partial<User>) => void;
   updateSchool: (updates: Partial<SchoolInfo>) => void;
   updatePlatformSettings: (updates: Partial<PlatformSettings>) => void;
   markLicensePaid: () => void;
+  incrementAiRequest: () => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -99,23 +109,6 @@ const MOCK_SCHOOLS: Record<string, SchoolInfo> = {
     postalCode: "B.P. 4015",
     phone: "+237 233 42 10 15",
     email: "contact@lyceedejoss.cm"
-  },
-  "S002": {
-    id: "S002",
-    name: "GBHS Yaoundé",
-    motto: "Excellence through Bilingualism",
-    logo: "https://picsum.photos/seed/gbhs-logo/200/200",
-    banner: "https://picsum.photos/seed/gbhs-banner/1200/600",
-    description: "A leading bilingual institution in the heart of the capital city, shaping the future of Cameroonian youth.",
-    location: "Yaoundé, Centre",
-    region: "Centre",
-    division: "Mfoundi",
-    subDivision: "Yaoundé I",
-    cityVillage: "Yaoundé",
-    address: "Essos, Avenue de l'Indépendance",
-    postalCode: "B.P. 1105",
-    phone: "+237 222 30 45 60",
-    email: "info@gbhsyaounde.edu"
   }
 };
 
@@ -132,45 +125,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [featuredVideos, setFeaturedVideos] = useState<FeaturedVideo[]>([]);
   const router = useRouter();
 
-  // Sync Global Platform Settings
   useEffect(() => {
     const docRef = doc(firestore, 'settings', 'platform');
-    const unsubscribe = onSnapshot(
-      docRef, 
-      (docSnap) => {
-        if (docSnap.exists()) {
-          setPlatformSettings(docSnap.data() as PlatformSettings);
-        }
-      },
-      (serverError) => {
-        console.warn("Platform branding could not be loaded, using defaults.", serverError);
-      }
-    );
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) setPlatformSettings(docSnap.data() as PlatformSettings);
+    });
     return () => unsubscribe();
   }, [firestore]);
 
-  // Sync Public Testimonials
   useEffect(() => {
     const q = query(collection(firestore, "testimonials"), orderBy("createdAt", "desc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    return onSnapshot(q, (snapshot) => {
       setTestimonials(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Testimonial)));
     });
-    return () => unsubscribe();
   }, [firestore]);
 
-  // Sync Public Videos
   useEffect(() => {
     const q = query(collection(firestore, "featured_videos"), orderBy("createdAt", "desc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    return onSnapshot(q, (snapshot) => {
       setFeaturedVideos(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FeaturedVideo)));
     });
-    return () => unsubscribe();
   }, [firestore]);
 
-  // Sync User Profile from Firestore
   useEffect(() => {
     if (isAuthLoading) return;
-
     if (!authUser) {
       setUserData(null);
       setIsLoading(false);
@@ -178,92 +156,68 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const userDocRef = doc(firestore, "users", authUser.uid);
-    const unsubscribe = onSnapshot(
-      userDocRef, 
-      (docSnap) => {
-        if (docSnap.exists()) {
-          setUserData(docSnap.data() as User);
-        } else {
-          setUserData(null);
-        }
-        setIsLoading(false);
-      },
-      async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-          path: userDocRef.path,
-          operation: 'get',
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        setIsLoading(false);
+    return onSnapshot(userDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data() as User;
+        setUserData(data);
       }
-    );
-
-    return () => unsubscribe();
+      setIsLoading(false);
+    }, (e) => setIsLoading(false));
   }, [authUser, isAuthLoading, firestore]);
 
-  const login = async (role: UserRole, schoolId: string = "S001") => {
+  const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const result = await signInAnonymously(auth);
+      await signInWithEmailAndPassword(auth, email, password);
+      router.push("/dashboard");
+    } catch (error: any) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const register = async (name: string, email: string, password: string, role: UserRole, schoolId: string = "S001") => {
+    setIsLoading(true);
+    try {
+      const result = await createUserWithEmailAndPassword(auth, email, password);
       const uid = result.user.uid;
 
-      const userDocRef = doc(firestore, "users", uid);
-      const userDoc = await getDoc(userDocRef);
-
-      if (!userDoc.exists()) {
-        let matricule = "";
-        if (role === "SUPER_ADMIN") {
-          matricule = await generatePlatformMatricule(firestore, "CEO");
-        } else {
-          matricule = await generateSchoolMatricule(firestore, schoolId, role === 'SCHOOL_ADMIN' ? 'ADMIN' : role as any);
-        }
-
-        const school = role === "SUPER_ADMIN" ? undefined : MOCK_SCHOOLS[schoolId] || MOCK_SCHOOLS["S001"];
-        
-        const newUser: User = {
-          id: matricule,
-          uid: uid,
-          name: role === "SUPER_ADMIN" ? "EduIgnite Super Admin" : 
-                role === "SCHOOL_ADMIN" ? `${school?.name} Principal` :
-                role === "TEACHER" ? "Sarah Smith" : 
-                role === "PARENT" ? "Robert Parent" : 
-                role === "BURSAR" ? "Finance Manager" :
-                role === "LIBRARIAN" ? "Resource Librarian" : "John Doe",
-          email: `${role.toLowerCase()}@eduignite.io`,
-          role,
-          schoolId: role === "SUPER_ADMIN" ? null : schoolId,
-          avatar: `https://picsum.photos/seed/${role}/100/100`,
-          school,
-          isLicensePaid: role === "SUPER_ADMIN"
-        };
-
-        await setDoc(userDocRef, newUser).catch(async (e) => {
-          const permissionError = new FirestorePermissionError({
-            path: userDocRef.path,
-            operation: 'create',
-            requestResourceData: newUser
-          });
-          errorEmitter.emit('permission-error', permissionError);
-        });
-
-        if (role === "SUPER_ADMIN") {
-          await setDoc(doc(firestore, "platform_admins", uid), {
-            uid,
-            role: "CEO",
-            createdAt: serverTimestamp()
-          });
-        }
-
-        await registerMatricule(firestore, matricule, uid);
+      let matricule = "";
+      if (role === "SUPER_ADMIN") {
+        matricule = await generatePlatformMatricule(firestore, "CEO");
+      } else {
+        matricule = await generateSchoolMatricule(firestore, schoolId, role === 'SCHOOL_ADMIN' ? 'ADMIN' : role as any);
       }
+
+      const school = role === "SUPER_ADMIN" ? undefined : MOCK_SCHOOLS[schoolId] || MOCK_SCHOOLS["S001"];
+      
+      const newUser: User = {
+        id: matricule,
+        uid: uid,
+        name,
+        email,
+        role,
+        schoolId: role === "SUPER_ADMIN" ? null : schoolId,
+        avatar: `https://picsum.photos/seed/${uid}/100/100`,
+        school,
+        isLicensePaid: role === "SUPER_ADMIN",
+        aiRequestCount: 0,
+        lastAiReset: serverTimestamp()
+      };
+
+      await setDoc(doc(firestore, "users", uid), newUser);
+      await registerMatricule(firestore, matricule, uid);
 
       if (role === "SUPER_ADMIN") {
-        router.push("/dashboard");
-      } else {
-        router.push("/welcome");
+        await setDoc(doc(firestore, "platform_admins", uid), {
+          uid, role: "CEO", createdAt: serverTimestamp()
+        });
       }
-    } catch (error) {
-      console.error("Login failed:", error);
+
+      router.push("/welcome");
+    } catch (error: any) {
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -271,53 +225,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateUser = async (updates: Partial<User>) => {
     if (!authUser) return;
-    const userDocRef = doc(firestore, "users", authUser.uid);
-    await setDoc(userDocRef, updates, { merge: true }).catch(async (e) => {
-      const permissionError = new FirestorePermissionError({
-        path: userDocRef.path,
-        operation: 'update',
-        requestResourceData: updates
-      });
-      errorEmitter.emit('permission-error', permissionError);
-    });
+    await updateDoc(doc(firestore, "users", authUser.uid), updates);
   };
 
   const updateSchool = async (updates: Partial<SchoolInfo>) => {
     if (!userData || !userData.school || !authUser) return;
     const updatedSchool = { ...userData.school, ...updates };
-    const userDocRef = doc(firestore, "users", authUser.uid);
-    await setDoc(userDocRef, { school: updatedSchool }, { merge: true }).catch(async (e) => {
-      const permissionError = new FirestorePermissionError({
-        path: userDocRef.path,
-        operation: 'update',
-        requestResourceData: { school: updatedSchool }
-      });
-      errorEmitter.emit('permission-error', permissionError);
-    });
+    await updateDoc(doc(firestore, "users", authUser.uid), { school: updatedSchool });
   };
 
   const updatePlatformSettings = async (updates: Partial<PlatformSettings>) => {
-    const docRef = doc(firestore, 'settings', 'platform');
-    await setDoc(docRef, updates, { merge: true }).catch(async (e) => {
-      const permissionError = new FirestorePermissionError({
-        path: docRef.path,
-        operation: 'update',
-        requestResourceData: updates
-      });
-      errorEmitter.emit('permission-error', permissionError);
-    });
+    await updateDoc(doc(firestore, 'settings', 'platform'), updates);
   };
 
   const markLicensePaid = async () => {
     if (!authUser) return;
-    const userDocRef = doc(firestore, "users", authUser.uid);
-    await setDoc(userDocRef, { isLicensePaid: true }, { merge: true }).catch(async (e) => {
-      const permissionError = new FirestorePermissionError({
-        path: userDocRef.path,
-        operation: 'update',
-        requestResourceData: { isLicensePaid: true }
-      });
-      errorEmitter.emit('permission-error', permissionError);
+    await updateDoc(doc(firestore, "users", authUser.uid), { isLicensePaid: true });
+  };
+
+  const incrementAiRequest = async () => {
+    if (!authUser) return;
+    await updateDoc(doc(firestore, "users", authUser.uid), {
+      aiRequestCount: increment(1)
     });
   };
 
@@ -333,10 +262,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       testimonials,
       featuredVideos,
       login, 
+      register,
       updateUser, 
       updateSchool, 
       updatePlatformSettings,
       markLicensePaid, 
+      incrementAiRequest,
       logout, 
       isAuthenticated: !!authUser && !!userData,
       isLoading: isLoading || isAuthLoading
@@ -348,8 +279,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
+  if (context === undefined) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 };

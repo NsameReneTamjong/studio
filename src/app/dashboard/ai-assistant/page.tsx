@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sparkles, Send, Loader2, Bot, User, BookOpen, Calculator, BrainCircuit, Lightbulb } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Sparkles, Send, Loader2, Bot, User, BookOpen, Calculator, BrainCircuit, Lightbulb, AlertCircle, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -22,8 +23,10 @@ interface Message {
   timestamp: Date;
 }
 
+const DAILY_LIMIT = 10;
+
 export default function AiAssistantPage() {
-  const { user } = useAuth();
+  const { user, incrementAiRequest } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -47,9 +50,22 @@ export default function AiAssistantPage() {
     }
   }, [messages]);
 
+  const requestCount = user?.aiRequestCount || 0;
+  const remainingRequests = Math.max(0, DAILY_LIMIT - requestCount);
+  const isLimitReached = user?.role === "STUDENT" && remainingRequests === 0;
+
   const onSend = async (queryText?: string) => {
     const finalQuery = queryText || input;
     if (!finalQuery.trim() || isLoading) return;
+
+    if (isLimitReached) {
+      toast({
+        variant: "destructive",
+        title: "Daily Limit Reached",
+        description: "Students are limited to 10 AI requests per day to ensure fair usage."
+      });
+      return;
+    }
 
     const userMessage: Message = {
       id: Math.random().toString(36).substr(2, 9),
@@ -79,6 +95,11 @@ export default function AiAssistantPage() {
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+      
+      // Increment request count for billing/tracking
+      if (user?.role === "STUDENT") {
+        await incrementAiRequest();
+      }
     } catch (error) {
       toast({
         variant: "destructive",
@@ -89,17 +110,6 @@ export default function AiAssistantPage() {
       setIsLoading(false);
     }
   };
-
-  const getRoleIcon = () => {
-    switch(user?.role) {
-      case 'STUDENT': return <BrainCircuit className="w-6 h-6 text-secondary" />;
-      case 'TEACHER': return <Lightbulb className="w-6 h-6 text-secondary" />;
-      case 'PARENT': return <Heart className="w-6 h-6 text-secondary" />;
-      default: return <Sparkles className="w-6 h-6 text-secondary" />;
-    }
-  };
-
-  const Heart = ({ className }: { className?: string }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>;
 
   return (
     <div className="flex flex-col h-[calc(100vh-140px)] gap-6">
@@ -117,10 +127,25 @@ export default function AiAssistantPage() {
               : `Votre aide dédiée pour tout ce qui concerne EduIgnite.`}
           </p>
         </div>
+
+        {user?.role === "STUDENT" && (
+          <Card className="border-none shadow-sm bg-accent/30 py-2 px-4 flex items-center gap-4 rounded-2xl">
+            <div className="space-y-1">
+              <div className="flex items-center justify-between gap-8">
+                <span className="text-[10px] font-black uppercase text-primary/60 tracking-widest">Daily Energy</span>
+                <span className="text-[10px] font-black text-primary">{remainingRequests} / {DAILY_LIMIT}</span>
+              </div>
+              <Progress value={(remainingRequests / DAILY_LIMIT) * 100} className="h-1.5 w-32" />
+            </div>
+            <div className="p-2 bg-primary rounded-lg text-secondary">
+              <Zap className="w-4 h-4 fill-current" />
+            </div>
+          </Card>
+        )}
       </div>
 
       <div className="flex-1 flex flex-col min-h-0">
-        <Card className="flex-1 flex flex-col border-none shadow-xl overflow-hidden bg-white/50">
+        <Card className="flex-1 flex flex-col border-none shadow-xl overflow-hidden bg-white/50 rounded-[2rem]">
           <ScrollArea className="flex-1 p-4 md:p-6">
             <div className="space-y-6 max-w-4xl mx-auto">
               {messages.map((msg) => (
@@ -133,14 +158,14 @@ export default function AiAssistantPage() {
                 >
                   <Avatar className={cn(
                     "h-8 w-8 md:h-10 md:w-10 border-2 shrink-0",
-                    msg.role === "assistant" ? "border-primary bg-primary" : "border-white"
+                    msg.role === "assistant" ? "border-primary bg-primary" : "border-white shadow-sm"
                   )}>
                     {msg.role === "assistant" ? (
                       <Bot className="w-5 h-5 md:w-6 md:h-6 text-white" />
                     ) : (
                       <>
                         <AvatarImage src={user?.avatar} />
-                        <AvatarFallback><User className="w-5 h-5" /></AvatarFallback>
+                        <AvatarFallback className="bg-accent text-primary font-bold">{user?.name?.charAt(0)}</AvatarFallback>
                       </>
                     )}
                   </Avatar>
@@ -156,7 +181,7 @@ export default function AiAssistantPage() {
                     )}>
                       {msg.content}
                     </div>
-                    {msg.suggestions && msg.suggestions.length > 0 && (
+                    {msg.suggestions && msg.suggestions.length > 0 && !isLimitReached && (
                       <div className="flex flex-wrap gap-2 mt-3">
                         {msg.suggestions.map((sug, i) => (
                           <Button 
@@ -172,7 +197,7 @@ export default function AiAssistantPage() {
                         ))}
                       </div>
                     )}
-                    <span className="text-[9px] text-muted-foreground mt-1 opacity-60">
+                    <span className="text-[9px] text-muted-foreground mt-1 opacity-60 px-1">
                       {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
@@ -182,8 +207,17 @@ export default function AiAssistantPage() {
             </div>
           </ScrollArea>
 
-          <div className="p-4 md:p-6 bg-white border-t space-y-4">
-            {messages.length === 1 && (
+          <div className="p-4 md:p-8 bg-white border-t space-y-4">
+            {isLimitReached && (
+              <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-100 rounded-2xl text-red-800 text-xs animate-in slide-in-from-bottom-2">
+                <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
+                <p className="font-medium leading-relaxed">
+                  You have used all your AI credits for today. Your daily energy will be restored at midnight.
+                </p>
+              </div>
+            )}
+
+            {!isLimitReached && messages.length === 1 && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-w-4xl mx-auto mb-2">
                 {[
                   { label: language === 'en' ? 'Study Tips' : 'Conseils d\'étude', icon: BrainCircuit, role: 'STUDENT' },
@@ -193,13 +227,13 @@ export default function AiAssistantPage() {
                 ].filter(p => p.role === 'ANY' || p.role === user?.role).map((p, i) => (
                   <Button 
                     key={i} 
-                    variant="accent" 
-                    className="h-auto py-3 px-4 flex-col gap-2 bg-accent/30 hover:bg-accent border-none text-primary"
+                    variant="ghost" 
+                    className="h-auto py-4 px-4 flex-col gap-2 bg-accent/30 hover:bg-accent border-none text-primary rounded-2xl transition-all hover:scale-105 active:scale-95"
                     onClick={() => onSend(p.label)}
                     disabled={isLoading}
                   >
-                    <p.icon className="w-4 h-4" />
-                    <span className="text-[10px] font-bold uppercase">{p.label}</span>
+                    <p.icon className="w-5 h-5" />
+                    <span className="text-[10px] font-black uppercase tracking-tight">{p.label}</span>
                   </Button>
                 ))}
               </div>
@@ -207,24 +241,24 @@ export default function AiAssistantPage() {
             
             <div className="flex items-center gap-3 max-w-4xl mx-auto">
               <Input
-                placeholder={language === 'en' ? "Ask me anything about your school life..." : "Posez-moi une question sur votre vie scolaire..."}
-                className="flex-1 h-12 md:h-14 bg-accent/20 border-none px-6 text-base focus-visible:ring-primary rounded-2xl"
+                placeholder={isLimitReached ? "Credits depleted..." : (language === 'en' ? "Ask me anything about your school life..." : "Posez-moi une question sur votre vie scolaire...")}
+                className="flex-1 h-12 md:h-14 bg-accent/20 border-none px-6 text-base focus-visible:ring-primary rounded-2xl font-medium"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && onSend()}
-                disabled={isLoading}
+                disabled={isLoading || isLimitReached}
               />
               <Button 
                 size="icon" 
-                className="h-12 w-12 md:h-14 md:w-14 rounded-2xl shadow-lg shrink-0 transition-transform active:scale-95" 
+                className="h-12 w-12 md:h-14 md:w-14 rounded-2xl shadow-xl shrink-0 transition-transform active:scale-95 bg-primary hover:bg-primary/90" 
                 onClick={() => onSend()}
-                disabled={isLoading || !input.trim()}
+                disabled={isLoading || !input.trim() || isLimitReached}
               >
                 {isLoading ? <Loader2 className="w-5 h-5 md:w-6 md:h-6 animate-spin" /> : <Send className="w-5 h-5 md:w-6 md:h-6" />}
               </Button>
             </div>
-            <p className="text-[9px] text-center text-muted-foreground opacity-60">
-              EduIgnite AI can make mistakes. Check important information.
+            <p className="text-[9px] text-center text-muted-foreground opacity-40 uppercase font-black tracking-widest">
+              EduIgnite Flash AI • Context Aware Assistant
             </p>
           </div>
         </Card>
