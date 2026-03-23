@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -123,12 +122,6 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       icon: Wallet,
       href: "/dashboard/subscription",
       roles: ["SCHOOL_ADMIN", "TEACHER", "STUDENT", "PARENT", "BURSAR", "LIBRARIAN"],
-    },
-    {
-      label: t("liveClasses"),
-      icon: Video,
-      href: "/dashboard/live-classes",
-      roles: ["TEACHER", "STUDENT"],
     },
     {
       label: t("students"),

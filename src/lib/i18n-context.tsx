@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
@@ -129,10 +128,6 @@ const translations: TranslationDict = {
   whatPeopleSay: { en: "See what people say about EduIgnite", fr: "Découvrez ce qu'on dit d'EduIgnite" },
   testimonials: { en: "Community Testimonials", fr: "Témoignages de la Communauté" },
   publishTestimonial: { en: "Publish as Testimonial", fr: "Publier comme Témoignage" },
-  liveClasses: { en: "Live Classes", fr: "Classes en Direct" },
-  startClass: { en: "Start Live Session", fr: "Démarrer une Session" },
-  joinClass: { en: "Join Live Class", fr: "Rejoindre la Classe" },
-  cameraDenied: { en: "Camera Access Denied", fr: "Accès Caméra Refusé" },
 };
 
 interface I18nContextType {
@@ -164,9 +159,11 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <I18nContext.Provider value={{ language, setLanguage: handleSetLanguage, t }}>
-      {children}
-    </I18nContext.Provider>
+    <div onClick={() => {}}>
+      <I18nContext.Provider value={{ language, setLanguage: handleSetLanguage, t }}>
+        {children}
+      </I18nContext.Provider>
+    </div>
   );
 };
 
