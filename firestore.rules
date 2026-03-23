@@ -41,7 +41,6 @@ service cloud.firestore {
       allow write: if isPlatformAdmin();
     }
 
-    // Public Marketing Assets
     match /testimonials/{testimonialId} {
       allow read: if true;
       allow write: if isPlatformAdmin();
@@ -55,8 +54,8 @@ service cloud.firestore {
     // Users
     match /users/{uid} {
       allow read: if isSignedIn();
-      allow create: if true; // Allow initial registration
-      allow update: if isPlatformAdmin() || (isSignedIn() && request.auth.uid == uid);
+      allow create: if true; 
+      allow update: if isPlatformAdmin() || (isSignedIn() && request.auth.uid == uid) || isSchoolAdmin(resource.data.schoolId);
     }
     
     // Schools
@@ -65,39 +64,46 @@ service cloud.firestore {
       allow create: if isPlatformAdmin();
       allow update: if isPlatformAdmin();
       allow delete: if isPlatformAdmin();
+      
+      // Sub-collections inside schools
+      match /courses/{courseId} {
+        allow read: if isSignedIn() && getUserData().schoolId == docId;
+        allow write: if isSchoolAdmin(docId);
+      }
+      
+      match /assignments/{assignmentId} {
+        allow read: if isSignedIn() && getUserData().schoolId == docId;
+        allow write: if isTeacher(docId) || isSchoolAdmin(docId);
+      }
+
+      match /grades/{gradeId} {
+        allow read: if isSignedIn() && (getUserData().schoolId == docId && (getUserData().role != 'STUDENT' || getUserData().uid == resource.data.studentUid));
+        allow write: if isTeacher(docId) || isSchoolAdmin(docId);
+      }
+
+      match /payments/{paymentId} {
+        allow read: if isSignedIn() && (getUserData().schoolId == docId && (getUserData().role != 'STUDENT' || getUserData().uid == resource.data.studentUid));
+        allow write: if isBursar(docId) || isSchoolAdmin(docId);
+      }
+
+      match /announcements/{annId} {
+        allow read: if isSignedIn() && getUserData().schoolId == docId;
+        allow write: if isTeacher(docId) || isSchoolAdmin(docId) || isBursar(docId);
+      }
+
+      match /counters/{counterId} {
+        allow read, write: if isSignedIn() && getUserData().schoolId == docId;
+      }
     }
 
-    // Academic Data (Courses, Grades)
-    match /schools/{schoolId}/courses/{courseId} {
-      allow read: if isSignedIn() && getUserData().schoolId == schoolId;
-      allow write: if isSchoolAdmin(schoolId);
-    }
-
-    match /schools/{schoolId}/grades/{gradeId} {
-      allow read: if isSignedIn() && (getUserData().schoolId == schoolId && (getUserData().role != 'STUDENT' || getUserData().uid == resource.data.studentUid));
-      allow write: if isTeacher(schoolId) || isSchoolAdmin(schoolId);
-    }
-
-    // Financial Data (Payments)
-    match /schools/{schoolId}/payments/{paymentId} {
-      allow read: if isSignedIn() && (getUserData().schoolId == schoolId && (getUserData().role != 'STUDENT' || getUserData().uid == resource.data.studentUid));
-      allow write: if isBursar(schoolId) || isSchoolAdmin(schoolId);
-    }
-
-    // Matricule Registry
     match /matricules/{matricule} {
       allow read: if true;
       allow create: if true; 
       allow update, delete: if isPlatformAdmin();
     }
 
-    // Counters
     match /counters/{counterId} {
-      allow read, write: if true; // Internal logic handles transactions
-    }
-
-    match /schools/{schoolId}/counters/{counterId} {
-      allow read, write: if true;
+      allow read, write: if isPlatformAdmin();
     }
     
     match /platform_admins/{uid} {

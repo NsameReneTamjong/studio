@@ -51,12 +51,24 @@
       "title": "Course",
       "type": "object",
       "properties": {
-        "code": { "type": "string" },
+        "id": { "type": "string" },
         "name": { "type": "string" },
         "teacherUid": { "type": "string" },
         "teacherName": { "type": "string" },
-        "class": { "type": "string" },
-        "type": { "type": "string", "enum": ["compulsory", "optional"] }
+        "targetClass": { "type": "string" },
+        "type": { "type": "string", "enum": ["compulsory", "optional"] },
+        "color": { "type": "string" }
+      }
+    },
+    "Assignment": {
+      "title": "Assignment",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "courseId": { "type": "string" },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "maxMarks": { "type": "number" },
+        "instructions": { "type": "string" }
       }
     },
     "Grade": {
@@ -65,7 +77,7 @@
       "properties": {
         "studentUid": { "type": "string" },
         "studentName": { "type": "string" },
-        "courseCode": { "type": "string" },
+        "courseId": { "type": "string" },
         "seq1": { "type": "number" },
         "seq2": { "type": "number" },
         "term": { "type": "number" },
@@ -111,6 +123,10 @@
       "schema": "#/entities/Course",
       "description": "Subjects offered by a school."
     },
+    "/schools/{schoolId}/assignments/{assignmentId}": {
+      "schema": "#/entities/Assignment",
+      "description": "Tasks created by teachers."
+    },
     "/schools/{schoolId}/grades/{gradeId}": {
       "schema": "#/entities/Grade",
       "description": "Academic performance records."
@@ -119,24 +135,16 @@
       "schema": "#/entities/Payment",
       "description": "Financial transaction ledger."
     },
-    "/matricules/{matricule}": {
+    "/schools/{schoolId}/announcements/{annId}": {
       "schema": {
         "type": "object",
         "properties": {
-          "uid": { "type": "string" }
+          "title": { "type": "string" },
+          "content": { "type": "string" },
+          "target": { "type": "string" }
         }
       },
-      "description": "Registry to ensure global uniqueness of matricules."
-    },
-    "/platform_admins/{uid}": {
-      "schema": {
-        "type": "object",
-        "properties": {
-          "role": { "type": "string" },
-          "status": { "type": "string" }
-        }
-      },
-      "description": "Privileged platform-level administrators."
+      "description": "Institutional broadcast messages."
     }
   }
 }
