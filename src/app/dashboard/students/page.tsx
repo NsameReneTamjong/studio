@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -34,7 +35,8 @@ import {
   CheckCircle2,
   UserCheck,
   Lock,
-  Wallet
+  Wallet,
+  Loader2
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
@@ -51,100 +53,23 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-
-const MOCK_STUDENTS = [
-  { 
-    id: "S001", 
-    name: "Alice Thompson", 
-    gender: "Female", 
-    dob: "15/05/2008", 
-    email: "alice.t@school.edu", 
-    avatar: "https://picsum.photos/seed/s1/100/100",
-    class: "Form 5 / 2nde",
-    paid: 125000,
-    left: 25000,
-    enrolmentYear: "2023",
-    isLicensePaid: true
-  },
-  { 
-    id: "S002", 
-    name: "Bob Richards", 
-    gender: "Male", 
-    dob: "22/11/2006", 
-    email: "bob.r@school.edu", 
-    avatar: "https://picsum.photos/seed/s2/100/100",
-    class: "Upper Sixth / Terminale",
-    paid: 150000,
-    left: 0,
-    enrolmentYear: "2022",
-    isLicensePaid: true
-  },
-  { 
-    id: "S003", 
-    name: "Charlie Davis", 
-    gender: "Male", 
-    dob: "10/03/2007", 
-    email: "charlie.d@school.edu", 
-    avatar: "https://picsum.photos/seed/s3/100/100",
-    class: "Lower Sixth / 1ère",
-    paid: 45000,
-    left: 105000,
-    enrolmentYear: "2023",
-    isLicensePaid: false
-  },
-  { 
-    id: "S004", 
-    name: "Diana Prince", 
-    gender: "Female", 
-    dob: "05/01/2008", 
-    email: "diana.p@school.edu", 
-    avatar: "https://picsum.photos/seed/s4/100/100",
-    class: "Form 5 / 2nde",
-    paid: 150000,
-    left: 0,
-    enrolmentYear: "2023",
-    isLicensePaid: true
-  },
-  { 
-    id: "S005", 
-    name: "Ethan Hunt", 
-    gender: "Male", 
-    dob: "30/09/2006", 
-    email: "ethan.h@school.edu", 
-    avatar: "https://picsum.photos/seed/s5/100/100",
-    class: "Upper Sixth / Terminale",
-    paid: 75000,
-    left: 75000,
-    enrolmentYear: "2021",
-    isLicensePaid: false
-  },
-];
-
-const MOCK_GUARDIANS = [
-  { id: "G001", name: "Mr. Robert Thompson", phone: "+237 677 00 11 22", email: "robert.t@gmail.com" },
-  { id: "G002", name: "Mrs. Sarah Richards", phone: "+237 699 33 44 55", email: "sarah.r@yahoo.fr" },
-  { id: "G003", name: "M. Paul Davis", phone: "+237 655 66 77 88", email: "paul.davis@work.com" },
-];
+import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { collection, query, where, orderBy, addDoc, serverTimestamp, setDoc, doc } from "firebase/firestore";
+import { generateSchoolMatricule, registerMatricule } from "@/lib/matricule";
 
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
-const YEARS = ["2021", "2022", "2023", "2024"];
+const YEARS = ["2024", "2025", "2026"];
 
 export default function StudentsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const db = useFirestore();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [classFilter, setClassFilter] = useState("all");
-  const [genderFilter, setGenderFilter] = useState("all");
-  const [yearFilter, setYearFilter] = useState("all");
-  const [feeType, setFeeType] = useState("tuition");
-
-  // Add Student State
   const [isAdmissionOpen, setIsAdmissionOpen] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [admissionSuccess, setAdmissionSuccess] = useState<any>(null);
-  const [isNewGuardian, setIsNewGuardian] = useState(false);
-  const [selectedGuardianId, setSelectedGuardianId] = useState("");
-  const [guardianSearchTerm, setGuardianSearchTerm] = useState("");
   
   const [admissionForm, setAdmissionForm] = useState({
     name: "",
@@ -157,65 +82,69 @@ export default function StudentsPage() {
     parentPhone: "",
     class: "2nde / Form 5",
     section: "A",
-    enrolmentYear: "2024"
+    enrolmentYear: "2026"
   });
 
-  const filtered = MOCK_STUDENTS.filter(s => {
-    const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         s.id.toLowerCase().includes(searchTerm.toLowerCase());
+  const studentsQuery = useMemoFirebase(() => {
+    if (!db || !user?.schoolId) return null;
+    let q = query(
+      collection(db, "users"), 
+      where("schoolId", "==", user.schoolId),
+      where("role", "==", "STUDENT")
+    );
+    return q;
+  }, [db, user?.schoolId]);
+
+  const { data: students, isLoading } = useCollection(studentsQuery);
+
+  const filtered = students?.filter(s => {
+    const matchesSearch = s.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         s.id?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesClass = classFilter === "all" || s.class === classFilter;
-    const matchesGender = genderFilter === "all" || s.gender === genderFilter;
-    const matchesYear = yearFilter === "all" || s.enrolmentYear === yearFilter;
-    
-    return matchesSearch && matchesClass && matchesGender && matchesYear;
-  });
-
-  const filteredGuardians = MOCK_GUARDIANS.filter(g => 
-    g.name.toLowerCase().includes(guardianSearchTerm.toLowerCase()) ||
-    g.phone.includes(guardianSearchTerm)
-  );
+    return matchesSearch && matchesClass;
+  }) || [];
   
   const isBursar = user?.role === "BURSAR";
   const isAdmin = ["SUPER_ADMIN", "SCHOOL_ADMIN"].includes(user?.role || "");
-  
-  const handleExport = (type: 'PDF' | 'Excel') => {
-    toast({
-      title: `Exporting Registry`,
-      description: `The list of ${filtered.length} students is being generated as ${type}.`,
-    });
-  };
 
-  const handleAdmission = () => {
-    if (!admissionForm.name || !admissionForm.parentName) {
-      toast({ variant: "destructive", title: "Missing Information", description: "Student Name and Parent Name are required." });
+  const handleAdmission = async () => {
+    if (!admissionForm.name || !user?.schoolId) {
+      toast({ variant: "destructive", title: "Missing Info", description: "Name is required." });
       return;
     }
 
-    const newStudent = {
-      id: `S-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
-      ...admissionForm,
-      avatar: `https://picsum.photos/seed/${admissionForm.name}/100/100`,
-      paid: 0,
-      left: 150000
-    };
+    setIsProcessing(true);
+    try {
+      // 1. Generate Intelligent Matricule
+      const matricule = await generateSchoolMatricule(db, user.schoolId, "STUDENT");
+      
+      // 2. Create User Record (Shadow record until activation)
+      const tempUid = `TEMP_${matricule}`;
+      const newStudentData = {
+        id: matricule,
+        uid: tempUid,
+        name: admissionForm.name,
+        email: `${matricule.toLowerCase()}@eduignite.io`,
+        role: "STUDENT",
+        schoolId: user.schoolId,
+        class: admissionForm.class,
+        section: admissionForm.section,
+        enrolmentYear: admissionForm.enrolmentYear,
+        gender: admissionForm.gender,
+        isLicensePaid: false,
+        createdAt: serverTimestamp()
+      };
 
-    setIsAdmissionOpen(false);
-    setAdmissionSuccess(newStudent);
-    toast({
-      title: "Student Admitted",
-      description: `Admission record created for ${admissionForm.name}.`,
-    });
-  };
+      await setDoc(doc(db, "users", tempUid), newStudentData);
+      await registerMatricule(db, matricule, tempUid);
 
-  const handleGuardianSelect = (id: string) => {
-    setSelectedGuardianId(id);
-    const guardian = MOCK_GUARDIANS.find(g => g.id === id);
-    if (guardian) {
-      setAdmissionForm({
-        ...admissionForm,
-        parentName: guardian.name,
-        parentPhone: guardian.phone
-      });
+      setAdmissionSuccess(newStudentData);
+      setIsAdmissionOpen(false);
+      toast({ title: "Admission Validated", description: `Unique Matricule: ${matricule}` });
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Admission Error", description: e.message });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -227,586 +156,146 @@ export default function StudentsPage() {
             <div className="p-2 bg-primary rounded-xl shadow-lg">
               <Users className="w-6 h-6 text-secondary" />
             </div>
-            {isBursar ? "Financial Student Records" : "Student Registry"}
+            Institutional Registry
           </h1>
-          <p className="text-muted-foreground mt-1">
-            {isBursar 
-              ? "Monitor student payment statuses and outstanding balances." 
-              : "Institutional records for all enrolled students."}
-          </p>
+          <p className="text-muted-foreground mt-1">Manage official student records and new admissions.</p>
         </div>
-        <div className="flex gap-2">
-          {isAdmin && (
-            <Dialog open={isAdmissionOpen} onOpenChange={(open) => {
-              setIsAdmissionOpen(open);
-              if (!open) {
-                setIsNewGuardian(false);
-                setSelectedGuardianId("");
-                setGuardianSearchTerm("");
-              }
-            }}>
-              <DialogTrigger asChild>
-                <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl">
-                  <UserPlus className="w-5 h-5" /> Add New Student
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-3xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-                <DialogHeader className="bg-primary p-8 text-white">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-white/10 rounded-2xl">
-                      <GraduationCap className="w-8 h-8 text-secondary" />
-                    </div>
-                    <div>
-                      <DialogTitle className="text-2xl font-black">Student Admission Suite</DialogTitle>
-                      <DialogDescription className="text-white/60">Onboard a new student into the institutional registry.</DialogDescription>
-                    </div>
-                  </div>
-                </DialogHeader>
-                <Tabs defaultValue="profile" className="w-full">
-                  <TabsList className="grid grid-cols-3 w-full rounded-none bg-accent/30 h-12">
-                    <TabsTrigger value="profile">Student Profile</TabsTrigger>
-                    <TabsTrigger value="parent">Guardian Details</TabsTrigger>
-                    <TabsTrigger value="academic">Academic Class</TabsTrigger>
-                  </TabsList>
-                  
-                  <div className="p-8 max-h-[60vh] overflow-y-auto">
-                    <TabsContent value="profile" className="space-y-6 mt-0">
-                      <div className="grid grid-cols-2 gap-6">
-                        <div className="col-span-2 space-y-2">
-                          <Label>Full Name</Label>
-                          <Input value={admissionForm.name} onChange={(e) => setAdmissionForm({...admissionForm, name: e.target.value})} placeholder="e.g. Alice Thompson" className="h-11 rounded-xl" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Gender</Label>
-                          <Select value={admissionForm.gender} onValueChange={(v) => setAdmissionForm({...admissionForm, gender: v})}>
-                            <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Male">Male</SelectItem>
-                              <SelectItem value="Female">Female</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Date of Birth</Label>
-                          <Input type="date" value={admissionForm.dob} onChange={(e) => setAdmissionForm({...admissionForm, dob: e.target.value})} className="h-11 rounded-xl" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Email (Optional)</Label>
-                          <Input value={admissionForm.email} onChange={(e) => setAdmissionForm({...admissionForm, email: e.target.value})} placeholder="student@school.edu" className="h-11 rounded-xl" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Student Phone</Label>
-                          <Input value={admissionForm.phone} onChange={(e) => setAdmissionForm({...admissionForm, phone: e.target.value})} placeholder="+237 ..." className="h-11 rounded-xl" />
-                        </div>
-                        <div className="col-span-2 space-y-2">
-                          <Label>Residential Address</Label>
-                          <Input value={admissionForm.address} onChange={(e) => setAdmissionForm({...admissionForm, address: e.target.value})} placeholder="City, Quarter" className="h-11 rounded-xl" />
-                        </div>
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="parent" className="space-y-6 mt-0">
-                      <div className="space-y-6">
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-0.5">
-                            <Label className="text-base">Guardian Information</Label>
-                            <p className="text-xs text-muted-foreground">Select from database or add a new record.</p>
-                          </div>
-                          <Button 
-                            variant="secondary" 
-                            size="sm" 
-                            onClick={() => setIsNewGuardian(!isNewGuardian)}
-                            className={cn(
-                              "gap-2 rounded-xl h-10 px-4",
-                              isNewGuardian ? "bg-primary text-white" : "bg-secondary text-primary"
-                            )}
-                          >
-                            {isNewGuardian ? <Search className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                            {isNewGuardian ? "Back to Search" : "Add New Guardian"}
-                          </Button>
-                        </div>
-
-                        {!isNewGuardian ? (
-                          <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
-                            <div className="relative">
-                              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                              <Input 
-                                placeholder="Search existing guardians by name or phone..." 
-                                className="pl-10 h-12 bg-accent/30 border-none rounded-xl"
-                                value={guardianSearchTerm}
-                                onChange={(e) => setGuardianSearchTerm(e.target.value)}
-                              />
-                            </div>
-                            
-                            <div className="grid grid-cols-1 gap-2 max-h-[200px] overflow-y-auto p-1">
-                              {filteredGuardians.map(g => (
-                                <button
-                                  key={g.id}
-                                  type="button"
-                                  onClick={() => handleGuardianSelect(g.id)}
-                                  className={cn(
-                                    "flex items-center justify-between p-4 rounded-xl border-2 transition-all text-left group",
-                                    selectedGuardianId === g.id 
-                                      ? "border-primary bg-primary/5" 
-                                      : "border-transparent bg-white hover:border-accent shadow-sm"
-                                  )}
-                                >
-                                  <div className="flex items-center gap-3">
-                                    <div className={cn(
-                                      "p-2 rounded-full",
-                                      selectedGuardianId === g.id ? "bg-primary text-white" : "bg-accent text-primary"
-                                    )}>
-                                      <User className="w-4 h-4" />
-                                    </div>
-                                    <div>
-                                      <p className="font-bold text-sm">{g.name}</p>
-                                      <p className="text-[10px] text-muted-foreground">{g.phone} • {g.email}</p>
-                                    </div>
-                                  </div>
-                                  {selectedGuardianId === g.id && <CheckCircle2 className="w-5 h-5 text-primary" />}
-                                </button>
-                              ))}
-                              {filteredGuardians.length === 0 && (
-                                <div className="text-center py-8 text-muted-foreground italic text-sm">
-                                  No records found. Click "Add New Guardian" to register a new parent.
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="grid grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-2">
-                            <div className="col-span-2 space-y-2">
-                              <Label>Parent / Guardian Full Name</Label>
-                              <Input 
-                                value={admissionForm.parentName} 
-                                onChange={(e) => setAdmissionForm({...admissionForm, parentName: e.target.value})} 
-                                placeholder="e.g. Mr. Robert Thompson" 
-                                className="h-11 rounded-xl" 
-                              />
-                            </div>
-                            <div className="col-span-2 space-y-2">
-                              <Label>Guardian Primary Contact</Label>
-                              <Input 
-                                value={admissionForm.parentPhone} 
-                                onChange={(e) => setAdmissionForm({...admissionForm, parentPhone: e.target.value})} 
-                                placeholder="+237 ..." 
-                                className="h-11 rounded-xl" 
-                              />
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 flex gap-3">
-                          <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
-                          <p className="text-xs text-blue-800 leading-relaxed">
-                            {selectedGuardianId 
-                              ? `Student will be linked to ${admissionForm.parentName}'s existing account.` 
-                              : "Registering a new guardian will create their first portal account credentials."}
-                          </p>
-                        </div>
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="academic" className="space-y-6 mt-0">
-                      <div className="grid grid-cols-2 gap-6">
-                        <div className="col-span-2 space-y-2">
-                          <Label>Target Academic Class</Label>
-                          <Select value={admissionForm.class} onValueChange={(v) => setAdmissionForm({...admissionForm, class: v})}>
-                            <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              {CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Assigned Section</Label>
-                          <Select value={admissionForm.section} onValueChange={(v) => setAdmissionForm({...admissionForm, section: v})}>
-                            <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="A">Section A</SelectItem>
-                              <SelectItem value="B">Section B</SelectItem>
-                              <SelectItem value="C">Section C</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Enrolment Year</Label>
-                          <Select value={admissionForm.enrolmentYear} onValueChange={(v) => setAdmissionForm({...admissionForm, enrolmentYear: v})}>
-                            <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              {YEARS.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                    </TabsContent>
-                  </div>
-                </Tabs>
-                <DialogFooter className="bg-accent/20 p-6 border-t border-accent flex sm:flex-row gap-3">
-                  <Button variant="ghost" className="flex-1 rounded-xl h-12" onClick={() => setIsAdmissionOpen(false)}>Cancel</Button>
-                  <Button onClick={handleAdmission} className="flex-1 rounded-xl h-12 shadow-lg font-bold">Validate Admission</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-        <Card className="border-none shadow-sm bg-white">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs uppercase font-bold text-muted-foreground tracking-widest">Filtered Result</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-black text-primary">{filtered.length} Students</div>
-          </CardContent>
-        </Card>
-        
-        {isBursar && (
-          <Card className="border-none shadow-sm bg-red-50">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs uppercase font-bold text-red-600 tracking-widest">Total Outstanding</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-black text-red-700">
-                {filtered.reduce((acc, curr) => acc + curr.left, 0).toLocaleString()} XAF
-              </div>
-            </CardContent>
-          </Card>
+        {isAdmin && (
+          <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl" onClick={() => setIsAdmissionOpen(true)}>
+            <UserPlus className="w-5 h-5" /> New Admission
+          </Button>
         )}
       </div>
 
       <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
         <CardHeader className="bg-white border-b p-6">
-          <div className="space-y-6">
-            <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input 
-                  placeholder="Search by name or Matricule..." 
-                  className="pl-10 h-12 bg-accent/20 border-none rounded-xl" 
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              
-              <div className="flex flex-wrap items-center gap-2">
-                <Button 
-                  variant="secondary" 
-                  className="gap-2 h-12 rounded-xl bg-primary text-white hover:bg-primary/90"
-                  onClick={() => handleExport('PDF')}
-                >
-                  <FileDown className="w-4 h-4" /> Export PDF
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="gap-2 h-12 rounded-xl border-primary/20"
-                  onClick={() => handleExport('Excel')}
-                >
-                  <FileType className="w-4 h-4" /> Export Excel
-                </Button>
-              </div>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search by name or Matricule..." 
+                className="pl-10 h-12 bg-accent/20 border-none rounded-xl" 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-accent/10 rounded-2xl border border-accent">
-              <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-black text-muted-foreground flex items-center gap-2">
-                  <Layers className="w-3 h-3"/> Class Level
-                </Label>
-                <Select value={classFilter} onValueChange={setClassFilter}>
-                  <SelectTrigger className="bg-white border-none h-10 rounded-lg shadow-sm">
-                    <SelectValue placeholder="All Classes" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Classes</SelectItem>
-                    {CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-black text-muted-foreground flex items-center gap-2">
-                  <VenetianMask className="w-3 h-3"/> Gender
-                </Label>
-                <Select value={genderFilter} onValueChange={setGenderFilter}>
-                  <SelectTrigger className="bg-white border-none h-10 rounded-lg shadow-sm">
-                    <SelectValue placeholder="All Genders" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Genders</SelectItem>
-                    <SelectItem value="Male">Male</SelectItem>
-                    <SelectItem value="Female">Female</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-black text-muted-foreground flex items-center gap-2">
-                  <Calendar className="w-3 h-3"/> Enrolment Year
-                </Label>
-                <Select value={yearFilter} onValueChange={setYearFilter}>
-                  <SelectTrigger className="bg-white border-none h-10 rounded-lg shadow-sm">
-                    <SelectValue placeholder="All Years" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Years</SelectItem>
-                    {YEARS.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {isBursar && (
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-black text-muted-foreground flex items-center gap-2">
-                    <Coins className="w-3 h-3"/> Fee Category
-                  </Label>
-                  <Select value={feeType} onValueChange={setFeeType}>
-                    <SelectTrigger className="bg-white border-none h-10 rounded-lg shadow-sm">
-                      <SelectValue placeholder="Fee Type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="tuition">Tuition Fees</SelectItem>
-                      <SelectItem value="uniform">Uniform Package</SelectItem>
-                      <SelectItem value="exams">Exam Fees</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
+            <Select value={classFilter} onValueChange={setClassFilter}>
+              <SelectTrigger className="w-[200px] h-12 bg-accent/20 border-none rounded-xl">
+                <SelectValue placeholder="All Classes" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Classes</SelectItem>
+                {CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
+          {isLoading ? (
+            <div className="flex justify-center p-20"><Loader2 className="w-12 h-12 animate-spin text-primary opacity-20" /></div>
+          ) : (
             <Table>
-              <TableHeader>
-                <TableRow className="bg-accent/10 border-b border-accent/20">
-                  <TableHead className="w-[120px] font-black uppercase text-[10px] tracking-widest pl-8 py-4">Matricule</TableHead>
-                  <TableHead className="font-black uppercase text-[10px] tracking-widest">Student Profile</TableHead>
-                  <TableHead className="font-black uppercase text-[10px] tracking-widest">Academic Class</TableHead>
-                  
-                  {isBursar ? (
-                    <>
-                      <TableHead className="font-black uppercase text-[10px] tracking-widest text-right">Paid (XAF)</TableHead>
-                      <TableHead className="font-black uppercase text-[10px] tracking-widest text-right pr-8">Balance (XAF)</TableHead>
-                    </>
-                  ) : (
-                    <>
-                      <TableHead className="font-black uppercase text-[10px] tracking-widest">Gender</TableHead>
-                      <TableHead className="font-black uppercase text-[10px] tracking-widest text-center">Enrolled</TableHead>
-                      <TableHead className="font-black uppercase text-[10px] tracking-widest pr-8 text-right">License Status</TableHead>
-                    </>
-                  )}
+              <TableHeader className="bg-accent/10">
+                <TableRow className="uppercase text-[10px] font-black tracking-widest border-b border-accent/20">
+                  <TableHead className="pl-8 py-4">Matricule</TableHead>
+                  <TableHead>Student Profile</TableHead>
+                  <TableHead>Academic Level</TableHead>
+                  <TableHead className="text-center">License</TableHead>
+                  <TableHead className="text-right pr-8">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((student) => (
-                  <TableRow key={student.id} className="group hover:bg-accent/5 transition-colors border-b border-accent/10">
-                    <TableCell className="font-mono text-xs font-bold text-primary pl-8">{student.id}</TableCell>
+                {filtered.map((s) => (
+                  <TableRow key={s.id} className="hover:bg-accent/5 transition-colors border-b border-accent/10">
+                    <TableCell className="pl-8 font-mono text-xs font-bold text-primary">{s.id}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent">
-                          <AvatarImage src={student.avatar} alt={student.name} />
-                          <AvatarFallback className="bg-primary/5 text-primary text-xs">
-                            <User className="h-4 w-4" />
-                          </AvatarFallback>
+                          <AvatarFallback className="bg-primary/5 text-primary text-xs">{s.name?.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
-                          <span className="font-bold text-sm text-primary leading-none mb-1">{student.name}</span>
-                          <span className="text-[10px] text-muted-foreground">{student.email}</span>
+                          <span className="font-bold text-sm text-primary leading-none mb-1">{s.name}</span>
+                          <span className="text-[10px] text-muted-foreground">{s.email}</span>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="text-[10px] border-primary/20 text-primary font-bold">
-                        {student.class}
-                      </Badge>
+                      <Badge variant="outline" className="text-[10px] font-bold border-primary/10 text-primary">{s.class}</Badge>
                     </TableCell>
-                    
-                    {isBursar ? (
-                      <>
-                        <TableCell className="text-right">
-                          <span className="text-sm font-black text-green-600">
-                            {student.paid.toLocaleString()}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right pr-8">
-                          <span className={`text-sm font-black ${student.left > 0 ? 'text-red-600' : 'text-primary opacity-30'}`}>
-                            {student.left.toLocaleString()}
-                          </span>
-                        </TableCell>
-                      </>
-                    ) : (
-                      <>
-                        <TableCell className="text-xs font-bold text-muted-foreground uppercase">{student.gender}</TableCell>
-                        <TableCell className="text-center">
-                          <Badge className="bg-accent text-primary border-none text-[10px]">{student.enrolmentYear}</Badge>
-                        </TableCell>
-                        <TableCell className="text-sm font-medium pr-8 text-right">
-                          {student.isLicensePaid ? (
-                            <Badge className="bg-green-100 text-green-700 border-none text-[9px] font-black uppercase">Active</Badge>
-                          ) : (
-                            <Badge variant="destructive" className="text-[9px] font-black uppercase gap-1">
-                              <Lock className="w-2.5 h-2.5" /> Suspended
-                            </Badge>
-                          )}
-                        </TableCell>
-                      </>
-                    )}
+                    <TableCell className="text-center">
+                      {s.isLicensePaid ? (
+                        <Badge className="bg-green-100 text-green-700 border-none text-[9px] font-black uppercase">Active</Badge>
+                      ) : (
+                        <Badge variant="destructive" className="bg-red-100 text-red-700 border-none text-[9px] font-black uppercase gap-1">
+                          <Lock className="w-2.5 h-2.5" /> Unpaid
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right pr-8">
+                      <Button variant="ghost" size="icon" className="rounded-full"><Info className="w-4 h-4 text-primary" /></Button>
+                    </TableCell>
                   </TableRow>
                 ))}
-                {filtered.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={isBursar ? 5 : 6} className="h-64 text-center">
-                      <div className="flex flex-col items-center justify-center text-muted-foreground space-y-2">
-                        <Users className="w-12 h-12 opacity-10" />
-                        <p className="font-bold">No students match your active filters.</p>
-                        <Button variant="link" onClick={() => { setClassFilter("all"); setGenderFilter("all"); setYearFilter("all"); setSearchTerm(""); }}>
-                          Clear all filters
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )}
               </TableBody>
             </Table>
-          </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* SUCCESS & PRINTABLE ADMISSION FORM */}
-      <Dialog open={!!admissionSuccess} onOpenChange={() => setAdmissionSuccess(null)}>
-        <DialogContent className="sm:max-w-5xl max-h-[95vh] overflow-y-auto p-0 border-none shadow-2xl rounded-3xl">
-          <DialogHeader className="bg-green-600 p-8 text-white no-print">
-            <div className="flex items-center gap-4">
-              <div className="bg-white/20 p-3 rounded-2xl">
-                <FileCheck className="w-8 h-8" />
-              </div>
-              <div>
-                <DialogTitle className="text-2xl font-black">Admission Confirmed!</DialogTitle>
-                <DialogDescription className="text-white/80">The student has been successfully enrolled. Print the formal admission letter below.</DialogDescription>
-              </div>
-            </div>
+      {/* ADMISSION DIALOG */}
+      <Dialog open={isAdmissionOpen} onOpenChange={setIsAdmissionOpen}>
+        <DialogContent className="sm:max-w-xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="bg-primary p-8 text-white">
+            <DialogTitle className="text-2xl font-black">Student Admission</DialogTitle>
+            <DialogDescription className="text-white/60">Initialize institutional registry record.</DialogDescription>
           </DialogHeader>
-
-          <div id="printable-admission-form" className="p-12 bg-white font-serif text-black min-h-[1000px] relative overflow-hidden print:p-0">
-            {/* Form Header */}
-            <div className="flex flex-col items-center text-center space-y-4 border-b-2 border-black pb-8 mb-8">
-              <Building2 className="w-16 h-16 text-primary/20 absolute top-12 right-12 opacity-50" />
-              <div className="space-y-1 uppercase tracking-tight text-[10px] font-bold">
-                <p>Republic of Cameroon</p>
-                <p>Peace - Work - Fatherland</p>
-                <div className="h-px bg-black w-12 mx-auto my-1" />
-                <p>{user?.school?.name || "Lycée de Joss"}</p>
-                <p>{user?.school?.location || "Douala, Littoral"}</p>
-              </div>
-              <h1 className="text-2xl font-black uppercase underline decoration-2 underline-offset-8 mt-4">
-                Official Student Admission & Enrollment Form
-              </h1>
+          <div className="p-8 space-y-6">
+            <div className="space-y-2">
+              <Label>Full Student Name</Label>
+              <Input value={admissionForm.name} onChange={(e) => setAdmissionForm({...admissionForm, name: e.target.value})} placeholder="e.g. Jean Dupont" className="h-12 bg-accent/30 border-none rounded-xl" />
             </div>
-
-            {/* Main Content Sections */}
-            <div className="grid grid-cols-12 gap-8">
-              {/* Profile Side */}
-              <div className="col-span-3 space-y-6">
-                <div className="w-full aspect-square border-2 border-black rounded-lg overflow-hidden bg-accent/10 flex items-center justify-center">
-                  <img src={admissionSuccess?.avatar} alt="Student" className="w-full h-full object-cover" />
-                </div>
-                <div className="p-3 bg-black/5 text-center rounded border border-black/10">
-                  <p className="text-[9px] uppercase font-bold opacity-60">Admission No. (Matricule)</p>
-                  <p className="text-sm font-mono font-black">{admissionSuccess?.id}</p>
-                </div>
-                <div className="space-y-4 text-[11px]">
-                  <h4 className="font-black uppercase border-b border-black/20 pb-1">Academic Assignment</h4>
-                  <div className="space-y-2">
-                    <p><span className="font-bold">Class Level:</span> {admissionSuccess?.class}</p>
-                    <p><span className="font-bold">Section:</span> {admissionSuccess?.section}</p>
-                    <p><span className="font-bold">Enrolment Year:</span> {admissionSuccess?.enrolmentYear}</p>
-                    <p><span className="font-bold">Campus:</span> Main Campus</p>
-                  </div>
-                </div>
-                <div className="pt-4 flex flex-col items-center">
-                   <QrCode className="w-24 h-24 opacity-20" />
-                   <p className="text-[8px] font-bold uppercase mt-2 opacity-40">Scan for Verification</p>
-                </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Class Level</Label>
+                <Select value={admissionForm.class} onValueChange={(v) => setAdmissionForm({...admissionForm, class: v})}>
+                  <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue /></SelectTrigger>
+                  <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                </Select>
               </div>
-
-              {/* Data Side */}
-              <div className="col-span-9 space-y-8">
-                {/* Personal Section */}
-                <section className="space-y-3">
-                  <h3 className="bg-black text-white text-[10px] font-black uppercase px-3 py-1 flex items-center gap-2">
-                    <User className="w-3 h-3" /> Section I: Student Profile
-                  </h3>
-                  <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-[12px]">
-                    <p><span className="font-bold uppercase opacity-50 text-[9px] block">Full Legal Name</span> {admissionSuccess?.name}</p>
-                    <p><span className="font-bold uppercase opacity-50 text-[9px] block">Gender</span> {admissionSuccess?.gender}</p>
-                    <p><span className="font-bold uppercase opacity-50 text-[9px] block">Date of Birth</span> {admissionSuccess?.dob}</p>
-                    <p><span className="font-bold uppercase opacity-50 text-[9px] block">Contact Number</span> {admissionSuccess?.phone || 'N/A'}</p>
-                    <p className="col-span-2"><span className="font-bold uppercase opacity-50 text-[9px] block">Home Address</span> {admissionSuccess?.address}</p>
-                  </div>
-                </section>
-
-                {/* Guardian Section */}
-                <section className="space-y-3">
-                  <h3 className="bg-black text-white text-[10px] font-black uppercase px-3 py-1 flex items-center gap-2">
-                    <Heart className="w-3 h-3" /> Section II: Guardian Information
-                  </h3>
-                  <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-[12px]">
-                    <p><span className="font-bold uppercase opacity-50 text-[9px] block">Parent / Guardian Name</span> {admissionSuccess?.parentName}</p>
-                    <p><span className="font-bold uppercase opacity-50 text-[9px] block">Primary Phone</span> {admissionSuccess?.parentPhone}</p>
-                  </div>
-                </section>
-
-                {/* Status Section */}
-                <section className="space-y-3">
-                  <h3 className="bg-black text-white text-[10px] font-black uppercase px-3 py-1 flex items-center gap-2">
-                    <ShieldCheck className="w-3 h-3" /> Section III: Enrolment Terms
-                  </h3>
-                  <div className="p-4 border-2 border-black/10 rounded bg-accent/5">
-                    <p className="text-[11px] leading-relaxed italic">
-                      The student named above is hereby admitted to <strong>{user?.school?.name || 'this institution'}</strong> for the 2024/2025 academic session. This admission is subject to the validation of original birth certificates and previous academic transcripts. The student and guardian agree to abide by the institutional code of conduct and financial policies.
-                    </p>
-                  </div>
-                </section>
+              <div className="space-y-2">
+                <Label>Admission Year</Label>
+                <Select value={admissionForm.enrolmentYear} onValueChange={(v) => setAdmissionForm({...admissionForm, enrolmentYear: v})}>
+                  <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue /></SelectTrigger>
+                  <SelectContent>{YEARS.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent>
+                </Select>
               </div>
-            </div>
-
-            {/* Signature Section */}
-            <div className="mt-16 grid grid-cols-2 gap-20">
-              <div className="space-y-10">
-                <div className="h-px bg-black w-full" />
-                <div className="text-center">
-                  <p className="font-bold text-[10px] uppercase">Parent / Guardian Signature</p>
-                  <p className="text-[8px] opacity-40 italic">Acceptance of Terms & Admission</p>
-                </div>
-              </div>
-              <div className="space-y-10 relative">
-                <div className="absolute top-[-60px] left-1/2 -translate-x-1/2 opacity-10">
-                   <Signature className="w-16 h-16 -rotate-12" />
-                </div>
-                <div className="h-px bg-black w-full" />
-                <div className="text-center">
-                  <p className="font-bold text-[10px] uppercase">Registrar / Principal</p>
-                  <p className="text-[10px] font-black">EduIgnite Institutional Verification</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="absolute bottom-8 inset-x-0 text-center">
-               <p className="text-[9px] uppercase font-black opacity-20 tracking-[0.3em]">
-                 OFFICIAL ENROLLMENT DOSSIER • EduIgnite SaaS Admission Suite
-               </p>
             </div>
           </div>
-
-          <DialogFooter className="bg-accent/10 p-6 border-t no-print flex sm:flex-row gap-3">
-            <Button variant="outline" className="flex-1 gap-2 rounded-xl h-12" onClick={() => setAdmissionSuccess(null)}>
-              Dismiss
-            </Button>
-            <Button className="flex-1 gap-2 rounded-xl h-12 shadow-lg font-bold" onClick={() => window.print()}>
-              <Printer className="w-5 h-5" /> Print Admission Letter
+          <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+            <Button className="w-full h-12 rounded-xl shadow-lg font-bold" onClick={handleAdmission} disabled={isProcessing}>
+              {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : "Admit & Generate Matricule"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ADMISSION RECEIPT */}
+      <Dialog open={!!admissionSuccess} onOpenChange={() => setAdmissionSuccess(null)}>
+        <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="bg-green-600 p-8 text-white">
+            <div className="flex items-center gap-4">
+              <CheckCircle2 className="w-10 h-10" />
+              <DialogTitle className="text-2xl font-black">Admission Success</DialogTitle>
+            </div>
+          </DialogHeader>
+          <div className="p-8 space-y-6 text-center">
+            <p className="text-sm text-muted-foreground">Provide this ID to the student. They will use it to activate their account.</p>
+            <div className="p-6 bg-primary/5 rounded-2xl border-2 border-primary/10">
+              <p className="text-xs font-black uppercase text-muted-foreground tracking-widest">Permanent Matricule</p>
+              <p className="text-4xl font-mono font-black text-primary">{admissionSuccess?.id}</p>
+            </div>
+            <Button onClick={() => window.print()} className="w-full h-12 rounded-xl shadow-lg font-bold gap-2"><Printer className="w-4 h-4" /> Print Admission Letter</Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
