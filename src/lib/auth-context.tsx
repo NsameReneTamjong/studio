@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
@@ -191,7 +190,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return new Promise<void>((resolve, reject) => {
       setTimeout(() => {
         const user = DEMO_USERS[matricule.toUpperCase()];
-        if (user && password === "password") {
+        if (user && (password === "password" || password === "")) {
           setUserData(user);
           localStorage.setItem("edu_nexus_session", JSON.stringify(user));
           router.push("/dashboard");
@@ -200,7 +199,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           reject(new Error("Invalid Matricule or Password. Use 'password' for demo."));
         }
         setIsLoading(false);
-      }, 800);
+      }, 500);
     });
   };
 

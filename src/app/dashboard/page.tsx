@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
@@ -13,7 +12,8 @@ import {
   Loader2,
   ShieldCheck,
   Wallet,
-  GraduationCap
+  GraduationCap,
+  TrendingUp
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -32,12 +32,6 @@ const MONTHLY_REVENUE = [
   { name: 'Apr', revenue: 1800000 },
   { name: 'May', revenue: 2100000 },
   { name: 'Jun', revenue: 1950000 },
-];
-
-const MOCK_SCHOOLS = [
-  { id: "EDU-GBH-1024", name: "GBHS Deido", principal: "M. Fonka", status: "Active" },
-  { id: "EDU-LYC-8821", name: "Lycée de Joss", principal: "Dr. Jean Dupont", status: "Active" },
-  { id: "EDU-COL-3312", name: "Collège Libermann", principal: "Fr. Thomas", status: "Suspended" },
 ];
 
 export default function DashboardPage() {
@@ -163,25 +157,58 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-primary font-headline">Welcome, {user.name}</h1>
-        <p className="text-muted-foreground mt-1">Institutional Dashboard: {user.school?.name || "EduIgnite Node"}</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-primary font-headline">Welcome, {user.name}</h1>
+          <p className="text-muted-foreground mt-1">Institutional Dashboard: {user.school?.name || "EduIgnite Node"}</p>
+        </div>
+        <div className="bg-green-50 px-4 py-2 rounded-xl border border-green-100 flex items-center gap-3">
+          <ShieldCheck className="w-5 h-5 text-green-600" />
+          <p className="text-xs font-bold text-green-700">Official Node Active</p>
+        </div>
       </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Role Registry", value: user.role, icon: ShieldCheck, color: "text-blue-600" },
+          { label: "Role Registry", value: user.role.replace('_', ' '), icon: ShieldCheck, color: "text-blue-600" },
           { label: "License Status", value: user.isLicensePaid ? "Active" : "Locked", icon: Wallet, color: "text-green-600" },
           { label: "Matricule", value: user.id, icon: GraduationCap, color: "text-purple-600" },
           { label: "AI Requests", value: user.aiRequestCount || 0, icon: Activity, color: "text-amber-600" },
         ].map((stat, i) => (
-          <Card key={i} className="border-none shadow-sm">
+          <Card key={i} className="border-none shadow-sm group hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{stat.label}</CardTitle>
-              <stat.icon className={`w-4 h-4 ${stat.color}`} />
+              <stat.icon className={cn("w-4 h-4 transition-transform group-hover:scale-110", stat.color)} />
             </CardHeader>
-            <CardContent><div className="text-2xl font-bold">{stat.value}</div></CardContent>
+            <CardContent><div className="text-2xl font-bold text-primary">{stat.value}</div></CardContent>
           </Card>
         ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <Card className="lg:col-span-2 border-none shadow-xl overflow-hidden rounded-[2rem]">
+          <CardHeader className="bg-primary/5 p-8 border-b">
+            <CardTitle className="text-primary flex items-center gap-2"><TrendingUp className="w-5 h-5"/> Activity Insight</CardTitle>
+            <CardDescription>Visual summary of institutional engagement.</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[300px] pt-10">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={MONTHLY_REVENUE}>
+                <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.1} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-sm rounded-[2rem] bg-secondary/10 flex flex-col items-center justify-center text-center p-8 space-y-4">
+          <div className="p-4 bg-white rounded-2xl shadow-xl">
+            <ShieldCheck className="w-12 h-12 text-primary" />
+          </div>
+          <div>
+            <h3 className="text-xl font-black text-primary uppercase tracking-tighter leading-none">Verified Identity</h3>
+            <p className="text-xs text-muted-foreground mt-2 leading-relaxed">Your account is secured with a unique institutional matricule. All actions are logged for integrity.</p>
+          </div>
+        </Card>
       </div>
     </div>
   );
