@@ -12,13 +12,16 @@ service cloud.firestore {
     }
 
     function isPlatformAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/platform_admins/$(request.auth.uid));
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/platform_admins/$(request.auth.uid)) ||
+        getUserData().role == 'SUPER_ADMIN'
+      );
     }
 
     function isSchoolAdmin(schoolId) {
       return isSignedIn() && 
-        getUserData().role == 'SCHOOL_ADMIN' &&
-        getUserData().schoolId == schoolId;
+        (getUserData().role == 'SCHOOL_ADMIN' || getUserData().role == 'SUPER_ADMIN') &&
+        (getUserData().schoolId == schoolId || getUserData().role == 'SUPER_ADMIN');
     }
 
     // --- COLLECTION RULES ---
