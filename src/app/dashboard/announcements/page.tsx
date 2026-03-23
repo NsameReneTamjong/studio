@@ -13,63 +13,59 @@ import { Megaphone, Send, Globe, Building2, Clock, Trash2, User, Users, Graduati
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, addDoc, serverTimestamp, deleteDoc, doc, query, orderBy } from "firebase/firestore";
 import { cn } from "@/lib/utils";
+
+const MOCK_ANNOUNCEMENTS = [
+  {
+    id: "1",
+    title: "End of Term Sequence 2",
+    content: "The academic council has scheduled Sequence 2 evaluations starting from next Monday. All students are advised to clear their records.",
+    target: "everyone",
+    senderName: "Principal Fonka",
+    senderRole: "SCHOOL_ADMIN",
+    senderAvatar: "https://picsum.photos/seed/admin/100/100",
+    createdAt: new Date(),
+    senderUid: "admin-1"
+  }
+];
 
 export default function AnnouncementsPage() {
   const { user } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
-  const db = useFirestore();
   
   const [isSending, setIsSending] = useState(false);
   const [formData, setFormData] = useState({ title: "", content: "", target: "everyone" });
+  const [announcements, setAnnouncements] = useState(MOCK_ANNOUNCEMENTS);
 
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
   const canPost = ["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER", "BURSAR", "LIBRARIAN"].includes(user?.role || "");
 
-  const announcementsQuery = useMemoFirebase(() => {
-    if (!db || !user?.schoolId) return null;
-    return query(
-      collection(db, "schools", user.schoolId, "announcements"),
-      orderBy("createdAt", "desc")
-    );
-  }, [db, user?.schoolId]);
-
-  const { data: announcements, isLoading: isAnnouncementsLoading } = useCollection(announcementsQuery);
-
   const handleSend = async () => {
-    if (!formData.title || !formData.content || !user?.schoolId) return;
+    if (!formData.title || !formData.content) return;
     setIsSending(true);
     
-    try {
-      await addDoc(collection(db, "schools", user.schoolId, "announcements"), {
+    setTimeout(() => {
+      const newAnn = {
+        id: Math.random().toString(),
         ...formData,
-        senderUid: user.uid,
-        senderName: user.name,
-        senderRole: user.role,
-        senderAvatar: user.avatar || "",
-        createdAt: serverTimestamp()
-      });
+        senderUid: user?.id || "demo",
+        senderName: user?.name || "Demo User",
+        senderRole: user?.role || "USER",
+        senderAvatar: user?.avatar || "",
+        createdAt: new Date()
+      };
       
+      setAnnouncements([newAnn, ...announcements]);
       toast({ title: "Announcement Published", description: `The message has been broadcasted to ${formData.target.replace('_', ' ')}.` });
       setFormData({ title: "", content: "", target: "everyone" });
-    } catch (e) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to publish announcement." });
-    } finally {
       setIsSending(false);
-    }
+    }, 800);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!user?.schoolId) return;
-    try {
-      await deleteDoc(doc(db, "schools", user.schoolId, "announcements", id));
-      toast({ title: "Removed", description: "Announcement deleted successfully." });
-    } catch (e) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to delete." });
-    }
+  const handleDelete = (id: string) => {
+    setAnnouncements(announcements.filter(a => a.id !== id));
+    toast({ title: "Removed", description: "Announcement deleted successfully." });
   };
 
   const getTargetIcon = (target: string) => {
@@ -99,7 +95,7 @@ export default function AnnouncementsPage() {
                 </Badge>
               </div>
               <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                <Clock className="w-3 h-3" /> {ann.createdAt?.toDate ? ann.createdAt.toDate().toLocaleString() : "Just now"}
+                <Clock className="w-3 h-3" /> {ann.createdAt.toLocaleString()}
               </p>
             </div>
           </div>
@@ -115,7 +111,7 @@ export default function AnnouncementsPage() {
           {ann.content}
         </p>
       </CardContent>
-      {(isSuperAdmin || user?.uid === ann.senderUid) && (
+      {(isSuperAdmin || user?.id === ann.senderUid) && (
         <CardFooter className="pt-0 justify-end">
           <Button 
             variant="ghost" 
@@ -216,11 +212,8 @@ export default function AnnouncementsPage() {
         <h2 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
           <Megaphone className="w-5 h-5" /> Recent Dispatches
         </h2>
-        {isAnnouncementsLoading ? (
-          <div className="flex justify-center p-12">
-            <Loader2 className="w-8 h-8 animate-spin text-primary opacity-20" />
-          </div>
-        ) : announcements && announcements.length > 0 ? (
+        
+        {announcements.length > 0 ? (
           <div className="grid grid-cols-1 gap-4">
             {announcements.map((ann) => (
               <AnnouncementCard key={ann.id} ann={ann} />
