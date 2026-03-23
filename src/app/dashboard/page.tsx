@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -33,7 +34,8 @@ import {
   Filter,
   UserCheck,
   CheckCircle2,
-  MessageSquare
+  MessageSquare,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -119,9 +121,18 @@ const CHILDREN_TABLE_DATA = [
 ];
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const { t, language } = useI18n();
   const [timeframe, setTimeframe] = useState("monthly");
+
+  if (isLoading || !user) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-4">
+        <Loader2 className="w-8 h-8 animate-spin text-primary opacity-20" />
+        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Preparing Workspace...</p>
+      </div>
+    );
+  }
 
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
   const isParent = user?.role === "PARENT";
@@ -233,7 +244,7 @@ export default function DashboardPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={getRevenueData()}>
                   <defs>
-                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="colorRevenue" x1="0" x1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.1}/>
                       <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
                     </linearGradient>
