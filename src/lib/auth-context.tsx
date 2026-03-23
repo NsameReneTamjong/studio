@@ -105,6 +105,29 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const matriculeToEmail = (matricule: string) => `${matricule.toLowerCase()}@eduignite.io`;
 
+/**
+ * Derives the intended User Role from a Matricule string.
+ */
+function deriveRoleFromMatricule(m: string): { role: UserRole; schoolId: string | null } {
+  const upper = m.toUpperCase();
+  
+  // Platform Level (CEO, CTO, etc)
+  if (upper.startsWith("EDUI")) {
+    return { role: "SUPER_ADMIN", schoolId: null };
+  }
+
+  // School Level - Heuristic for role codes
+  // Logic based on src/lib/matricule.ts format: [SchoolBase][YY][RoleCode][Seq]
+  if (upper.includes("T")) return { role: "TEACHER", schoolId: upper.split(/[0-9]/)[0] };
+  if (upper.includes("B")) return { role: "BURSAR", schoolId: upper.split(/[0-9]/)[0] };
+  if (upper.includes("L")) return { role: "LIBRARIAN", schoolId: upper.split(/[0-9]/)[0] };
+  if (upper.includes("P")) return { role: "PARENT", schoolId: upper.split(/[0-9]/)[0] };
+  if (upper.includes("S")) return { role: "STUDENT", schoolId: upper.split(/[0-9]/)[0] };
+  
+  // Default to School Admin if it's a short code like GBHS26
+  return { role: "SCHOOL_ADMIN", schoolId: upper.replace(/[0-9]/g, '') };
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { auth, firestore } = useFirebase();
   const { user: authUser, isUserLoading: isAuthLoading } = useUser();
@@ -184,16 +207,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     try {
       const email = matriculeToEmail(matricule);
+      const { role, schoolId } = deriveRoleFromMatricule(matricule);
+      
       const result = await createUserWithEmailAndPassword(auth, email, password);
       const uid = result.user.uid;
 
-      await setDoc(doc(firestore, "users", uid), {
+      const userProfile = {
         id: matricule.toUpperCase(),
         uid: uid,
+        name: role === "SUPER_ADMIN" ? "Platform CEO" : "New User",
         email: email,
-        isLicensePaid: false,
-        createdAt: serverTimestamp()
-      }, { merge: true });
+        role: role,
+        schoolId: schoolId,
+        isLicensePaid: role === "SUPER_ADMIN", // CEO is always exempt from license locks
+        createdAt: serverTimestamp(),
+        avatar: `https://picsum.photos/seed/${matricule}/150/150`
+      };
+
+      await setDoc(doc(firestore, "users", uid), userProfile, { merge: true });
+
+      // If it's a platform admin, register them in the secondary authority collection
+      if (role === "SUPER_ADMIN") {
+        await setDoc(doc(firestore, "platform_admins", uid), {
+          name: "Platform CEO",
+          email: email,
+          role: "CEO",
+          status: "Active",
+          isPrimary: true,
+          permissions: {
+            manageSchools: true,
+            manageTeam: true,
+            viewAnalytics: true,
+            manageSupport: true
+          },
+          joined: serverTimestamp()
+        });
+      }
 
       router.push("/welcome");
     } catch (error: any) {
