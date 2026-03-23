@@ -3,26 +3,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useFirebase, useUser } from "@/firebase";
-import { 
-  collection, 
-  doc, 
-  setDoc, 
-  onSnapshot, 
-  serverTimestamp, 
-  query, 
-  orderBy, 
-  updateDoc, 
-  increment,
-  getDocs,
-  where,
-  limit
-} from "firebase/firestore";
-import { 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  signOut,
-} from "firebase/auth";
 
 export type UserRole = "SUPER_ADMIN" | "SCHOOL_ADMIN" | "TEACHER" | "STUDENT" | "PARENT" | "BURSAR" | "LIBRARIAN";
 
@@ -57,7 +37,6 @@ export interface Testimonial {
   avatar: string;
   content: string;
   schoolName: string;
-  createdAt: any;
 }
 
 export interface FeaturedVideo {
@@ -67,12 +46,10 @@ export interface FeaturedVideo {
   thumbnail: string;
   youtubeId: string;
   category: string;
-  createdAt: any;
 }
 
 interface User {
-  id: string; // The Matricule
-  uid: string; // Firebase Auth UID
+  id: string; 
   name: string;
   email: string;
   role: UserRole;
@@ -81,7 +58,6 @@ interface User {
   school?: SchoolInfo;
   isLicensePaid: boolean; 
   aiRequestCount?: number;
-  lastAiReset?: any;
 }
 
 interface AuthContextType {
@@ -103,187 +79,166 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const matriculeToEmail = (matricule: string) => `${matricule.toLowerCase()}@eduignite.io`;
+const DEMO_SCHOOL: SchoolInfo = {
+  id: "GBHS",
+  name: "GBHS Deido",
+  motto: "Discipline - Work - Success",
+  logo: "https://picsum.photos/seed/edu1/200/200",
+  banner: "https://picsum.photos/seed/school-banner/1200/400",
+  description: "One of the premier government institutions in Douala, dedicated to excellence.",
+  location: "Douala, Littoral",
+  region: "Littoral",
+  division: "Wouri",
+  subDivision: "Douala 1er",
+  cityVillage: "Douala",
+  address: "Rue de Deido, BP 123",
+  phone: "+237 670 00 00 00",
+  email: "contact@gbhsdeido.cm",
+  status: "Active"
+};
 
-/**
- * Derives the intended User Role from a Matricule string.
- */
-function deriveRoleFromMatricule(m: string): { role: UserRole; schoolId: string | null } {
-  const upper = m.toUpperCase();
-  
-  // Platform Level (CEO, CTO, etc)
-  if (upper.startsWith("EDUI")) {
-    return { role: "SUPER_ADMIN", schoolId: null };
+const DEMO_USERS: Record<string, User> = {
+  "EDUI26CEO001": {
+    id: "EDUI26CEO001",
+    name: "Platform CEO",
+    email: "ceo@eduignite.io",
+    role: "SUPER_ADMIN",
+    schoolId: null,
+    isLicensePaid: true,
+    avatar: "https://picsum.photos/seed/ceo/150/150"
+  },
+  "GBHS26": {
+    id: "GBHS26",
+    name: "Principal Fonka",
+    email: "principal@gbhsdeido.cm",
+    role: "SCHOOL_ADMIN",
+    schoolId: "GBHS",
+    school: DEMO_SCHOOL,
+    isLicensePaid: true,
+    avatar: "https://picsum.photos/seed/admin/150/150"
+  },
+  "GBHS26T001": {
+    id: "GBHS26T001",
+    name: "Dr. Aris Tesla",
+    email: "tesla@gbhsdeido.cm",
+    role: "TEACHER",
+    schoolId: "GBHS",
+    school: DEMO_SCHOOL,
+    isLicensePaid: true,
+    avatar: "https://picsum.photos/seed/teacher/150/150"
+  },
+  "GBHS26S001": {
+    id: "GBHS26S001",
+    name: "Alice Thompson",
+    email: "alice@gbhsdeido.cm",
+    role: "STUDENT",
+    schoolId: "GBHS",
+    school: DEMO_SCHOOL,
+    isLicensePaid: true,
+    avatar: "https://picsum.photos/seed/student/150/150"
+  },
+  "GBHS26B001": {
+    id: "GBHS26B001",
+    name: "Mme. Ngono Celine",
+    email: "ngono@gbhsdeido.cm",
+    role: "BURSAR",
+    schoolId: "GBHS",
+    school: DEMO_SCHOOL,
+    isLicensePaid: true,
+    avatar: "https://picsum.photos/seed/bursar/150/150"
+  },
+  "GBHS26L001": {
+    id: "GBHS26L001",
+    name: "Mr. Ebong",
+    email: "ebong@gbhsdeido.cm",
+    role: "LIBRARIAN",
+    schoolId: "GBHS",
+    school: DEMO_SCHOOL,
+    isLicensePaid: true,
+    avatar: "https://picsum.photos/seed/librarian/150/150"
+  },
+  "GBHS26P001": {
+    id: "GBHS26P001",
+    name: "Mr. Robert Thompson",
+    email: "robert@thompson.com",
+    role: "PARENT",
+    schoolId: "GBHS",
+    school: DEMO_SCHOOL,
+    isLicensePaid: true,
+    avatar: "https://picsum.photos/seed/parent/150/150"
   }
-
-  // School Level - Heuristic for role codes
-  // Logic based on src/lib/matricule.ts format: [SchoolBase][YY][RoleCode][Seq]
-  if (upper.includes("T")) return { role: "TEACHER", schoolId: upper.split(/[0-9]/)[0] };
-  if (upper.includes("B")) return { role: "BURSAR", schoolId: upper.split(/[0-9]/)[0] };
-  if (upper.includes("L")) return { role: "LIBRARIAN", schoolId: upper.split(/[0-9]/)[0] };
-  if (upper.includes("P")) return { role: "PARENT", schoolId: upper.split(/[0-9]/)[0] };
-  if (upper.includes("S")) return { role: "STUDENT", schoolId: upper.split(/[0-9]/)[0] };
-  
-  // Default to School Admin if it's a short code like GBHS26
-  return { role: "SCHOOL_ADMIN", schoolId: upper.replace(/[0-9]/g, '') };
-}
+};
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { auth, firestore } = useFirebase();
-  const { user: authUser, isUserLoading: isAuthLoading } = useUser();
   const [userData, setUserData] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [platformSettings, setPlatformSettings] = useState<PlatformSettings>({
     name: "EduIgnite",
-    logo: ""
+    logo: "https://picsum.photos/seed/edu1/200/200"
   });
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
-  const [featuredVideos, setFeaturedVideos] = useState<FeaturedVideo[]>([]);
   const router = useRouter();
 
   useEffect(() => {
-    const docRef = doc(firestore, 'settings', 'platform');
-    const unsubscribe = onSnapshot(docRef, (docSnap) => {
-      if (docSnap.exists()) setPlatformSettings(docSnap.data() as PlatformSettings);
-    });
-    return () => unsubscribe();
-  }, [firestore]);
-
-  useEffect(() => {
-    const q = query(collection(firestore, "testimonials"), orderBy("createdAt", "desc"));
-    return onSnapshot(q, (snapshot) => {
-      setTestimonials(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Testimonial)));
-    });
-  }, [firestore]);
-
-  useEffect(() => {
-    const q = query(collection(firestore, "featured_videos"), orderBy("createdAt", "desc"));
-    return onSnapshot(q, (snapshot) => {
-      setFeaturedVideos(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FeaturedVideo)));
-    });
-  }, [firestore]);
-
-  useEffect(() => {
-    if (isAuthLoading) return;
-    if (!authUser) {
-      setUserData(null);
-      setIsLoading(false);
-      return;
+    const savedUser = localStorage.getItem("edu_nexus_session");
+    if (savedUser) {
+      setUserData(JSON.parse(savedUser));
     }
-
-    const userDocRef = doc(firestore, "users", authUser.uid);
-    return onSnapshot(userDocRef, async (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data() as User;
-        
-        if (data.schoolId) {
-          const schoolsQuery = query(collection(firestore, "schools"), where("id", "==", data.schoolId), limit(1));
-          const schoolSnap = await getDocs(schoolsQuery);
-          if (!schoolSnap.empty) {
-            data.school = { ...schoolSnap.docs[0].data(), id: schoolSnap.docs[0].id } as SchoolInfo;
-          }
-        }
-        
-        setUserData(data);
-      }
-      setIsLoading(false);
-    });
-  }, [authUser, isAuthLoading, firestore]);
+    setIsLoading(false);
+  }, []);
 
   const login = async (matricule: string, password: string) => {
     setIsLoading(true);
-    try {
-      const email = matriculeToEmail(matricule);
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push("/dashboard");
-    } catch (error: any) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const activateAccount = async (matricule: string, password: string) => {
-    setIsLoading(true);
-    try {
-      const email = matriculeToEmail(matricule);
-      const { role, schoolId } = deriveRoleFromMatricule(matricule);
-      
-      const result = await createUserWithEmailAndPassword(auth, email, password);
-      const uid = result.user.uid;
-
-      const userProfile = {
-        id: matricule.toUpperCase(),
-        uid: uid,
-        name: role === "SUPER_ADMIN" ? "Platform CEO" : "New User",
-        email: email,
-        role: role,
-        schoolId: schoolId,
-        isLicensePaid: role === "SUPER_ADMIN", // CEO is always exempt from license locks
-        createdAt: serverTimestamp(),
-        avatar: `https://picsum.photos/seed/${matricule}/150/150`
-      };
-
-      await setDoc(doc(firestore, "users", uid), userProfile, { merge: true });
-
-      // If it's a platform admin, register them in the secondary authority collection
-      if (role === "SUPER_ADMIN") {
-        await setDoc(doc(firestore, "platform_admins", uid), {
-          name: "Platform CEO",
-          email: email,
-          role: "CEO",
-          status: "Active",
-          isPrimary: true,
-          permissions: {
-            manageSchools: true,
-            manageTeam: true,
-            viewAnalytics: true,
-            manageSupport: true
-          },
-          joined: serverTimestamp()
-        });
-      }
-
-      router.push("/welcome");
-    } catch (error: any) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const updateUser = async (updates: Partial<User>) => {
-    if (!authUser) return;
-    await updateDoc(doc(firestore, "users", authUser.uid), updates);
-  };
-
-  const updateSchool = async (updates: Partial<SchoolInfo>) => {
-    if (!userData || !userData.schoolId || !authUser) return;
-    const schoolsQuery = query(collection(firestore, "schools"), where("id", "==", userData.schoolId), limit(1));
-    const schoolSnap = await getDocs(schoolsQuery);
-    if (!schoolSnap.empty) {
-      await updateDoc(schoolSnap.docs[0].ref, updates);
-    }
-  };
-
-  const updatePlatformSettings = async (updates: Partial<PlatformSettings>) => {
-    await setDoc(doc(firestore, 'settings', 'platform'), updates, { merge: true });
-  };
-
-  const markLicensePaid = async () => {
-    if (!authUser) return;
-    await updateDoc(doc(firestore, "users", authUser.uid), { isLicensePaid: true });
-  };
-
-  const incrementAiRequest = async () => {
-    if (!authUser) return;
-    await updateDoc(doc(firestore, "users", authUser.uid), {
-      aiRequestCount: increment(1)
+    return new Promise<void>((resolve, reject) => {
+      setTimeout(() => {
+        const user = DEMO_USERS[matricule.toUpperCase()];
+        if (user && password === "password") {
+          setUserData(user);
+          localStorage.setItem("edu_nexus_session", JSON.stringify(user));
+          router.push("/dashboard");
+          resolve();
+        } else {
+          reject(new Error("Invalid Matricule or Password. Use 'password' for demo."));
+        }
+        setIsLoading(false);
+      }, 800);
     });
   };
 
+  const activateAccount = async (matricule: string, password: string) => {
+    return login(matricule, password);
+  };
+
+  const updateUser = async (updates: Partial<User>) => {
+    if (!userData) return;
+    const updated = { ...userData, ...updates };
+    setUserData(updated);
+    localStorage.setItem("edu_nexus_session", JSON.stringify(updated));
+  };
+
+  const updateSchool = async (updates: Partial<SchoolInfo>) => {
+    if (!userData || !userData.school) return;
+    const updatedSchool = { ...userData.school, ...updates };
+    const updatedUser = { ...userData, school: updatedSchool };
+    setUserData(updatedUser);
+    localStorage.setItem("edu_nexus_session", JSON.stringify(updatedUser));
+  };
+
+  const updatePlatformSettings = async (updates: Partial<PlatformSettings>) => {
+    setPlatformSettings(prev => ({ ...prev, ...updates }));
+  };
+
+  const markLicensePaid = async () => {
+    await updateUser({ isLicensePaid: true });
+  };
+
+  const incrementAiRequest = async () => {
+    if (!userData) return;
+    await updateUser({ aiRequestCount: (userData.aiRequestCount || 0) + 1 });
+  };
+
   const logout = async () => {
-    await signOut(auth);
+    setUserData(null);
+    localStorage.removeItem("edu_nexus_session");
     router.push("/login");
   };
 
@@ -291,8 +246,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <AuthContext.Provider value={{ 
       user: userData, 
       platformSettings,
-      testimonials,
-      featuredVideos,
+      testimonials: [
+        { id: "1", author: "M. Fonka", role: "Principal", avatar: "https://picsum.photos/seed/t1/100/100", content: "EduIgnite has transformed how we track student attendance and fees.", schoolName: "GBHS Deido" },
+        { id: "2", author: "Mme. Celine", role: "Bursar", avatar: "https://picsum.photos/seed/b1/100/100", content: "The digital receipt system saved us weeks of manual auditing.", schoolName: "Lycée de Joss" }
+      ],
+      featuredVideos: [
+        { id: "1", title: "Digital Transformation", description: "How schools are evolving with EduIgnite.", thumbnail: "https://picsum.photos/seed/vid1/400/225", youtubeId: "dQw4w9WgXcQ", category: "Platform" }
+      ],
       login, 
       activateAccount,
       updateUser, 
@@ -301,8 +261,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       markLicensePaid, 
       incrementAiRequest,
       logout, 
-      isAuthenticated: !!authUser && !!userData,
-      isLoading: isLoading || isAuthLoading
+      isAuthenticated: !!userData,
+      isLoading
     }}>
       {children}
     </AuthContext.Provider>

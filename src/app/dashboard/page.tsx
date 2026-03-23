@@ -1,61 +1,30 @@
 
 "use client";
 
-import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
   Users, 
-  GraduationCap, 
-  BookOpen, 
-  AlertCircle, 
-  TrendingUp, 
-  Calendar as CalendarIcon,
-  Award,
-  Heart,
-  ChevronRight,
-  Clock,
-  Coins,
-  Wallet,
-  Globe,
-  Activity,
-  Download,
-  Building2,
-  ShieldCheck,
-  CheckCircle2,
-  MessageSquare,
+  Building2, 
+  Activity, 
+  MessageSquare, 
+  Globe, 
   Loader2,
-  Library,
-  Book,
-  ArrowUpRight
+  ShieldCheck,
+  Wallet,
+  GraduationCap
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import Link from "next/link";
 import { 
-  BarChart, 
-  Bar, 
+  AreaChart, 
+  Area, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
   Tooltip as RechartsTooltip, 
-  ResponsiveContainer, 
-  PieChart, 
-  Pie, 
-  Cell,
-  Legend,
-  AreaChart,
-  Area
+  ResponsiveContainer 
 } from "recharts";
-import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, query, orderBy, limit } from "firebase/firestore";
 
-// Mock Analytic Charts (kept for visual structure, but using real data for stats)
 const MONTHLY_REVENUE = [
   { name: 'Jan', revenue: 1200000 },
   { name: 'Feb', revenue: 1450000 },
@@ -65,31 +34,17 @@ const MONTHLY_REVENUE = [
   { name: 'Jun', revenue: 1950000 },
 ];
 
+const MOCK_SCHOOLS = [
+  { id: "EDU-GBH-1024", name: "GBHS Deido", principal: "M. Fonka", status: "Active" },
+  { id: "EDU-LYC-8821", name: "Lycée de Joss", principal: "Dr. Jean Dupont", status: "Active" },
+  { id: "EDU-COL-3312", name: "Collège Libermann", principal: "Fr. Thomas", status: "Suspended" },
+];
+
 export default function DashboardPage() {
-  const { user, isLoading: isAuthLoading } = useAuth();
-  const { t, language } = useI18n();
-  const db = useFirestore();
+  const { user, isLoading } = useAuth();
+  const { t } = useI18n();
 
-  // Real Data Subscriptions for Admin
-  const schoolsQuery = useMemoFirebase(() => {
-    if (!db || user?.role !== "SUPER_ADMIN") return null;
-    return query(collection(db, "schools"), orderBy("createdAt", "desc"), limit(5));
-  }, [db, user?.role]);
-  const { data: schoolsData, isLoading: isSchoolsLoading } = useCollection(schoolsQuery);
-
-  const usersQuery = useMemoFirebase(() => {
-    if (!db || user?.role !== "SUPER_ADMIN") return null;
-    return collection(db, "users");
-  }, [db, user?.role]);
-  const { data: allUsers } = useCollection(usersQuery);
-
-  const feedbackQuery = useMemoFirebase(() => {
-    if (!db || user?.role !== "SUPER_ADMIN") return null;
-    return query(collection(db, "feedback"), limit(5), orderBy("createdAt", "desc"));
-  }, [db, user?.role]);
-  const { data: recentFeedback } = useCollection(feedbackQuery);
-
-  if (isAuthLoading || !user) {
+  if (isLoading || !user) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
         <Loader2 className="w-12 h-12 animate-spin text-primary opacity-20" />
@@ -116,32 +71,30 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="border-none shadow-sm bg-primary text-white overflow-hidden relative group">
+          <Card className="border-none shadow-sm bg-primary text-white overflow-hidden">
             <CardHeader className="pb-2">
-              <CardTitle className="text-[10px] uppercase font-black opacity-60 tracking-widest leading-none">Global Users</CardTitle>
+              <CardTitle className="text-[10px] uppercase font-black opacity-60 tracking-widest">Global Users</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-black text-secondary">{allUsers?.length || 0}</div>
-              <p className="text-[9px] font-bold mt-2 uppercase flex items-center gap-1">
-                <Users className="w-3 h-3" /> Across all instances
-              </p>
+              <div className="text-3xl font-black text-secondary">22,482</div>
+              <p className="text-[9px] font-bold mt-2 uppercase flex items-center gap-1"><Users className="w-3 h-3" /> Across all instances</p>
             </CardContent>
           </Card>
 
-          <Card className="border-none shadow-sm bg-white hover:shadow-md transition-all">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-[10px] uppercase font-black text-muted-foreground tracking-widest leading-none">Active Schools</CardTitle>
+          <Card className="border-none shadow-sm bg-white">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Active Schools</CardTitle>
               <Building2 className="w-4 h-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-black text-primary">{schoolsData?.length || 0}</div>
+              <div className="text-3xl font-black text-primary">124</div>
               <p className="text-[9px] font-bold mt-2 uppercase text-muted-foreground">Provisioned Nodes</p>
             </CardContent>
           </Card>
 
-          <Card className="border-none shadow-sm bg-white hover:shadow-md transition-all">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-[10px] uppercase font-black text-muted-foreground tracking-widest leading-none">System Load</CardTitle>
+          <Card className="border-none shadow-sm bg-white">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">System Load</CardTitle>
               <Activity className="w-4 h-4 text-green-600" />
             </CardHeader>
             <CardContent>
@@ -150,13 +103,13 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-none shadow-sm bg-white hover:shadow-md transition-all">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-[10px] uppercase font-black text-muted-foreground tracking-widest leading-none">Open Tickets</CardTitle>
+          <Card className="border-none shadow-sm bg-white">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Open Tickets</CardTitle>
               <MessageSquare className="w-4 h-4 text-secondary" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-black text-primary">{recentFeedback?.filter(f => f.status === 'New').length || 0}</div>
+              <div className="text-3xl font-black text-primary">12</div>
               <p className="text-[9px] font-bold mt-2 uppercase text-muted-foreground">Admin Feedback</p>
             </CardContent>
           </Card>
@@ -178,8 +131,8 @@ export default function DashboardPage() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 600 }} />
-                  <RechartsTooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                  <RechartsTooltip />
                   <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={4} fill="url(#colorRev)" />
                 </AreaChart>
               </ResponsiveContainer>
@@ -187,73 +140,32 @@ export default function DashboardPage() {
           </Card>
 
           <Card className="lg:col-span-4 border-none shadow-sm h-fit">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Recent Activity</CardTitle>
-            </CardHeader>
+            <CardHeader className="pb-2"><CardTitle className="text-base">Recent Activity</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              {recentFeedback?.map(fb => (
-                <div key={fb.id} className="flex gap-3 items-start p-2 rounded-lg hover:bg-accent/30 transition-colors">
+              {[
+                { school: "GBHS Deido", text: "New student registry initialized." },
+                { school: "Lycée de Joss", text: "Subscription renewal completed." }
+              ].map((act, i) => (
+                <div key={i} className="flex gap-3 items-start p-2 rounded-lg hover:bg-accent/30 transition-colors">
                   <div className="w-2 h-2 mt-1.5 rounded-full bg-secondary shrink-0" />
                   <div className="flex-1">
-                    <p className="text-xs font-bold text-primary">{fb.schoolName}</p>
-                    <p className="text-[10px] text-muted-foreground line-clamp-1">{fb.message}</p>
+                    <p className="text-xs font-bold text-primary">{act.school}</p>
+                    <p className="text-[10px] text-muted-foreground">{act.text}</p>
                   </div>
                 </div>
               ))}
-              {(!recentFeedback || recentFeedback.length === 0) && <p className="text-xs text-muted-foreground italic text-center py-10">No recent activity logs.</p>}
             </CardContent>
           </Card>
         </div>
-
-        <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
-          <CardHeader className="bg-white border-b p-6 flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-primary" /> Institutional Nodes
-              </CardTitle>
-              <CardDescription>Live health status of school instances.</CardDescription>
-            </div>
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/dashboard/schools" className="gap-2">Manage All <ChevronRight className="w-4 h-4" /></Link>
-            </Button>
-          </CardHeader>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader className="bg-accent/10">
-                <TableRow className="uppercase text-[10px] font-black tracking-widest border-b border-accent/20">
-                  <TableHead className="pl-8 py-4">School Profile</TableHead>
-                  <TableHead>Principal</TableHead>
-                  <TableHead className="text-center">Matricule</TableHead>
-                  <TableHead className="text-right pr-8">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {schoolsData?.map((school) => (
-                  <TableRow key={school.id} className="hover:bg-accent/5">
-                    <TableCell className="pl-8 py-4 font-bold text-sm text-primary">{school.name}</TableCell>
-                    <TableCell className="text-xs">{school.principal}</TableCell>
-                    <TableCell className="text-center font-mono font-black text-xs">{school.id}</TableCell>
-                    <TableCell className="text-right pr-8">
-                      <Badge className={cn("text-[9px] uppercase font-black", school.status === 'Active' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}>
-                        {school.status}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
       </div>
     );
   }
 
-  // --- ROLE-SPECIFIC STATS (PLACEHOLDER FOR NOW) ---
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold text-primary font-headline">Welcome, {user.name}</h1>
-        <p className="text-muted-foreground mt-1">Institutional Dashboard: {user.school?.name || "Initializing..."}</p>
+        <p className="text-muted-foreground mt-1">Institutional Dashboard: {user.school?.name || "EduIgnite Node"}</p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
