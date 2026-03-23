@@ -1,7 +1,12 @@
+
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useFirebase, useUser } from "@/firebase";
+import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
+import { signInAnonymously, signOut } from "firebase/auth";
+import { generateSchoolMatricule, generatePlatformMatricule, registerMatricule } from "@/lib/matricule";
 
 export type UserRole = "SUPER_ADMIN" | "SCHOOL_ADMIN" | "TEACHER" | "STUDENT" | "PARENT" | "BURSAR" | "LIBRARIAN";
 
@@ -12,7 +17,7 @@ export interface SchoolInfo {
   logo: string;
   banner: string;
   description: string;
-  location: string; // Combined display location
+  location: string;
   region: string;
   division: string;
   subDivision: string;
@@ -29,7 +34,8 @@ interface PlatformSettings {
 }
 
 interface User {
-  id: string;
+  id: string; // The Matricule
+  uid: string; // Firebase Auth UID
   name: string;
   email: string;
   role: UserRole;
@@ -42,13 +48,14 @@ interface User {
 interface AuthContextType {
   user: User | null;
   platformSettings: PlatformSettings;
-  login: (role: UserRole, schoolName?: string) => void;
+  login: (role: UserRole, schoolId?: string) => Promise<void>;
   updateUser: (updates: Partial<User>) => void;
   updateSchool: (updates: Partial<SchoolInfo>) => void;
   updatePlatformSettings: (updates: Partial<PlatformSettings>) => void;
   markLicensePaid: () => void;
-  logout: () => void;
+  logout: () => Promise<void>;
   isAuthenticated: boolean;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -91,89 +98,140 @@ const MOCK_SCHOOLS: Record<string, SchoolInfo> = {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const { auth, firestore } = useFirebase();
+  const { user: authUser, isUserLoading: isAuthLoading } = useUser();
+  const [userData, setUserData] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [platformSettings, setPlatformSettings] = useState<PlatformSettings>({
     name: "EduIgnite",
     logo: ""
   });
   const router = useRouter();
 
+  // Sync Global Platform Settings
   useEffect(() => {
-    const savedUser = localStorage.getItem("edu-nexus-user");
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+    const docRef = doc(firestore, 'settings', 'platform');
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        setPlatformSettings(docSnap.data() as PlatformSettings);
+      }
+    });
+    return () => unsubscribe();
+  }, [firestore]);
+
+  // Sync User Profile from Firestore
+  useEffect(() => {
+    if (isAuthLoading) return;
+
+    if (!authUser) {
+      setUserData(null);
+      setIsLoading(false);
+      return;
     }
-    const savedPlatform = localStorage.getItem("edu-nexus-platform");
-    if (savedPlatform) {
-      setPlatformSettings(JSON.parse(savedPlatform));
+
+    const userDocRef = doc(firestore, "users", authUser.uid);
+    const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        setUserData(docSnap.data() as User);
+      } else {
+        // If auth user exists but no Firestore doc, we might need to create it
+        // (usually handled during registration/first login)
+        setUserData(null);
+      }
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [authUser, isAuthLoading, firestore]);
+
+  const login = async (role: UserRole, schoolId: string = "S001") => {
+    setIsLoading(true);
+    try {
+      // In this prototype, we use anonymous sign-in to demonstrate the backend
+      // In a real app, this would be signInWithEmailAndPassword
+      const result = await signInAnonymously(auth);
+      const uid = result.user.uid;
+
+      // Check if user already exists
+      const userDocRef = doc(firestore, "users", uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (!userDoc.exists()) {
+        // Generate a real matricule
+        let matricule = "";
+        if (role === "SUPER_ADMIN") {
+          matricule = await generatePlatformMatricule(firestore, "CEO");
+        } else {
+          matricule = await generateSchoolMatricule(firestore, schoolId, role === 'SCHOOL_ADMIN' ? 'ADMIN' : role as any);
+        }
+
+        const school = role === "SUPER_ADMIN" ? undefined : MOCK_SCHOOLS[schoolId] || MOCK_SCHOOLS["S001"];
+        
+        const newUser: User = {
+          id: matricule,
+          uid: uid,
+          name: role === "SUPER_ADMIN" ? "EduIgnite Super Admin" : 
+                role === "SCHOOL_ADMIN" ? `${school?.name} Principal` :
+                role === "TEACHER" ? "Sarah Smith" : 
+                role === "PARENT" ? "Robert Parent" : 
+                role === "BURSAR" ? "Finance Manager" :
+                role === "LIBRARIAN" ? "Resource Librarian" : "John Doe",
+          email: `${role.toLowerCase()}@eduignite.io`,
+          role,
+          schoolId: role === "SUPER_ADMIN" ? null : schoolId,
+          avatar: `https://picsum.photos/seed/${role}/100/100`,
+          school,
+          isLicensePaid: role === "SUPER_ADMIN"
+        };
+
+        await setDoc(userDocRef, newUser);
+        await registerMatricule(firestore, matricule, uid);
+      }
+
+      if (role === "SUPER_ADMIN") {
+        router.push("/dashboard");
+      } else {
+        router.push("/welcome");
+      }
+    } catch (error) {
+      console.error("Login failed:", error);
+    } finally {
+      setIsLoading(false);
     }
-  }, []);
-
-  const login = (role: UserRole, schoolId: string = "S001") => {
-    const school = role === "SUPER_ADMIN" ? undefined : MOCK_SCHOOLS[schoolId] || MOCK_SCHOOLS["S001"];
-    
-    const mockUser: User = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: role === "SUPER_ADMIN" ? "EduIgnite Super Admin" : 
-            role === "SCHOOL_ADMIN" ? `${school?.name} Principal` :
-            role === "TEACHER" ? "Sarah Smith" : 
-            role === "PARENT" ? "Robert Parent" : 
-            role === "BURSAR" ? "Finance Manager" :
-            role === "LIBRARIAN" ? "Resource Librarian" : "John Doe",
-      email: `${role.toLowerCase()}@eduignite.io`,
-      role,
-      schoolId: role === "SUPER_ADMIN" ? null : schoolId,
-      avatar: `https://picsum.photos/seed/${role}/100/100`,
-      school,
-      isLicensePaid: role === "SUPER_ADMIN"
-    };
-    setUser(mockUser);
-    localStorage.setItem("edu-nexus-user", JSON.stringify(mockUser));
-    
-    if (role === "SUPER_ADMIN") {
-      router.push("/dashboard");
-    } else {
-      router.push("/welcome");
-    }
   };
 
-  const updateUser = (updates: Partial<User>) => {
-    if (!user) return;
-    const updatedUser = { ...user, ...updates };
-    setUser(updatedUser);
-    localStorage.setItem("edu-nexus-user", JSON.stringify(updatedUser));
+  const updateUser = async (updates: Partial<User>) => {
+    if (!authUser) return;
+    const userDocRef = doc(firestore, "users", authUser.uid);
+    await setDoc(userDocRef, updates, { merge: true });
   };
 
-  const updateSchool = (updates: Partial<SchoolInfo>) => {
-    if (!user || !user.school) return;
-    const updatedSchool = { ...user.school, ...updates };
-    const updatedUser = { ...user, school: updatedSchool };
-    setUser(updatedUser);
-    localStorage.setItem("edu-nexus-user", JSON.stringify(updatedUser));
+  const updateSchool = async (updates: Partial<SchoolInfo>) => {
+    if (!userData || !userData.school || !authUser) return;
+    const updatedSchool = { ...userData.school, ...updates };
+    const userDocRef = doc(firestore, "users", authUser.uid);
+    await setDoc(userDocRef, { school: updatedSchool }, { merge: true });
   };
 
-  const updatePlatformSettings = (updates: Partial<PlatformSettings>) => {
-    const updated = { ...platformSettings, ...updates };
-    setPlatformSettings(updated);
-    localStorage.setItem("edu-nexus-platform", JSON.stringify(updated));
+  const updatePlatformSettings = async (updates: Partial<PlatformSettings>) => {
+    const docRef = doc(firestore, 'settings', 'platform');
+    await setDoc(docRef, updates, { merge: true });
   };
 
-  const markLicensePaid = () => {
-    if (!user) return;
-    const updatedUser = { ...user, isLicensePaid: true };
-    setUser(updatedUser);
-    localStorage.setItem("edu-nexus-user", JSON.stringify(updatedUser));
+  const markLicensePaid = async () => {
+    if (!authUser) return;
+    const userDocRef = doc(firestore, "users", authUser.uid);
+    await setDoc(userDocRef, { isLicensePaid: true }, { merge: true });
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("edu-nexus-user");
+  const logout = async () => {
+    await signOut(auth);
     router.push("/login");
   };
 
   return (
     <AuthContext.Provider value={{ 
-      user, 
+      user: userData, 
       platformSettings,
       login, 
       updateUser, 
@@ -181,7 +239,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       updatePlatformSettings,
       markLicensePaid, 
       logout, 
-      isAuthenticated: !!user 
+      isAuthenticated: !!authUser && !!userData,
+      isLoading: isLoading || isAuthLoading
     }}>
       {children}
     </AuthContext.Provider>
