@@ -3,14 +3,24 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useFirebase, useUser, errorEmitter, FirestorePermissionError } from "@/firebase";
-import { collection, doc, getDoc, setDoc, onSnapshot, serverTimestamp, query, orderBy, updateDoc, increment } from "firebase/firestore";
+import { useFirebase, useUser } from "@/firebase";
+import { 
+  collection, 
+  doc, 
+  setDoc, 
+  onSnapshot, 
+  serverTimestamp, 
+  query, 
+  orderBy, 
+  updateDoc, 
+  increment,
+  getDocs,
+  where
+} from "firebase/firestore";
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   signOut,
-  onAuthStateChanged,
-  User as FirebaseUser
 } from "firebase/auth";
 import { generateSchoolMatricule, generatePlatformMatricule, registerMatricule } from "@/lib/matricule";
 
@@ -32,6 +42,7 @@ export interface SchoolInfo {
   postalCode?: string;
   phone: string;
   email: string;
+  status: string;
 }
 
 interface PlatformSettings {
@@ -78,8 +89,8 @@ interface AuthContextType {
   platformSettings: PlatformSettings;
   testimonials: Testimonial[];
   featuredVideos: FeaturedVideo[];
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string, role: UserRole, schoolId?: string) => Promise<void>;
+  login: (matricule: string, password: string) => Promise<void>;
+  register: (name: string, password: string, role: UserRole, schoolId?: string) => Promise<void>;
   updateUser: (updates: Partial<User>) => void;
   updateSchool: (updates: Partial<SchoolInfo>) => void;
   updatePlatformSettings: (updates: Partial<PlatformSettings>) => void;
@@ -92,25 +103,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const MOCK_SCHOOLS: Record<string, SchoolInfo> = {
-  "S001": {
-    id: "S001",
-    name: "Lycée de Joss",
-    motto: "Discipline - Travail - Succès",
-    logo: "https://picsum.photos/seed/joss-logo/200/200",
-    banner: "https://picsum.photos/seed/joss-banner/1200/600",
-    description: "One of the most prestigious secondary institutions in Douala, committed to academic excellence since 1950.",
-    location: "Douala, Littoral",
-    region: "Littoral",
-    division: "Wouri",
-    subDivision: "Douala I",
-    cityVillage: "Douala",
-    address: "Rue de Joss, Bonanjo",
-    postalCode: "B.P. 4015",
-    phone: "+237 233 42 10 15",
-    email: "contact@lyceedejoss.cm"
-  }
-};
+// Helper to create internal email from matricule
+const matriculeToEmail = (matricule: string) => `${matricule.toLowerCase()}@eduignite.io`;
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { auth, firestore } = useFirebase();
@@ -156,18 +150,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const userDocRef = doc(firestore, "users", authUser.uid);
-    return onSnapshot(userDocRef, (docSnap) => {
+    return onSnapshot(userDocRef, async (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data() as User;
+        
+        // Fetch real-time school info if applicable
+        if (data.schoolId) {
+          const schoolRef = doc(firestore, "schools", data.schoolId);
+          const schoolSnap = await getDocs(query(collection(firestore, "schools"), where("id", "==", data.schoolId)));
+          if (!schoolSnap.empty) {
+            data.school = schoolSnap.docs[0].data() as SchoolInfo;
+          }
+        }
+        
         setUserData(data);
       }
       setIsLoading(false);
     }, (e) => setIsLoading(false));
   }, [authUser, isAuthLoading, firestore]);
 
-  const login = async (email: string, password: string) => {
+  const login = async (matricule: string, password: string) => {
     setIsLoading(true);
     try {
+      const email = matriculeToEmail(matricule);
       await signInWithEmailAndPassword(auth, email, password);
       router.push("/dashboard");
     } catch (error: any) {
@@ -177,12 +182,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (name: string, email: string, password: string, role: UserRole, schoolId: string = "S001") => {
+  const register = async (name: string, password: string, role: UserRole, schoolId: string = "GBHS1") => {
     setIsLoading(true);
     try {
-      const result = await createUserWithEmailAndPassword(auth, email, password);
-      const uid = result.user.uid;
-
+      // 1. Generate the Matricule first
       let matricule = "";
       if (role === "SUPER_ADMIN") {
         matricule = await generatePlatformMatricule(firestore, "CEO");
@@ -190,17 +193,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         matricule = await generateSchoolMatricule(firestore, schoolId, role === 'SCHOOL_ADMIN' ? 'ADMIN' : role as any);
       }
 
-      const school = role === "SUPER_ADMIN" ? undefined : MOCK_SCHOOLS[schoolId] || MOCK_SCHOOLS["S001"];
-      
+      // 2. Create Auth User with matricule email
+      const internalEmail = matriculeToEmail(matricule);
+      const result = await createUserWithEmailAndPassword(auth, internalEmail, password);
+      const uid = result.user.uid;
+
+      // 3. Create Profile
       const newUser: User = {
         id: matricule,
         uid: uid,
         name,
-        email,
+        email: internalEmail,
         role,
         schoolId: role === "SUPER_ADMIN" ? null : schoolId,
         avatar: `https://picsum.photos/seed/${uid}/100/100`,
-        school,
         isLicensePaid: role === "SUPER_ADMIN",
         aiRequestCount: 0,
         lastAiReset: serverTimestamp()
@@ -229,9 +235,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateSchool = async (updates: Partial<SchoolInfo>) => {
-    if (!userData || !userData.school || !authUser) return;
-    const updatedSchool = { ...userData.school, ...updates };
-    await updateDoc(doc(firestore, "users", authUser.uid), { school: updatedSchool });
+    if (!userData || !userData.schoolId || !authUser) return;
+    // Schools are now entities, update school collection directly
+    const schoolsQuery = query(collection(firestore, "schools"), where("id", "==", userData.schoolId));
+    const schoolSnap = await getDocs(schoolsQuery);
+    if (!schoolSnap.empty) {
+      await updateDoc(schoolSnap.docs[0].ref, updates);
+    }
   };
 
   const updatePlatformSettings = async (updates: Partial<PlatformSettings>) => {

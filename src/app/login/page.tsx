@@ -10,19 +10,10 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { 
   ShieldCheck, 
-  GraduationCap, 
-  Presentation, 
   Building2, 
   UserCircle, 
-  Briefcase,
   Languages,
-  Coins,
-  Library,
-  ArrowLeft,
-  KeyRound,
-  Mail,
   Loader2,
-  CheckCircle2,
   Lock,
   Play,
   Quote,
@@ -30,7 +21,7 @@ import {
   MessageSquare,
   Video,
   User,
-  School
+  Fingerprint
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -41,7 +32,6 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function LoginPage() {
@@ -55,34 +45,36 @@ export default function LoginPage() {
   // Auth Form State
   const [authData, setAuthData] = useState({
     name: "",
-    email: "",
+    matricule: "",
     password: "",
     role: "STUDENT" as UserRole,
-    schoolId: "S001"
   });
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!authData.email || !authData.password) return;
-    
     setIsProcessing(true);
     try {
       if (isRegistering) {
         if (!authData.name) {
-          toast({ variant: "destructive", title: "Missing Name", description: "Full name is required for registration." });
+          toast({ variant: "destructive", title: "Missing Name", description: "Full name is required." });
           return;
         }
-        await register(authData.name, authData.email, authData.password, authData.role, authData.schoolId);
-        toast({ title: "Welcome to EduIgnite", description: "Your account has been created successfully." });
+        // For self-registration, we default to a test school or specific platform role
+        await register(authData.name, authData.password, authData.role);
+        toast({ title: "Welcome to EduIgnite", description: "Your Matricule has been generated. Redirecting..." });
       } else {
-        await login(authData.email, authData.password);
+        if (!authData.matricule) {
+          toast({ variant: "destructive", title: "Missing Matricule", description: "Please enter your ID to sign in." });
+          return;
+        }
+        await login(authData.matricule, authData.password);
         toast({ title: "Welcome back", description: "Successfully signed in." });
       }
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Authentication Failed",
-        description: error.message || "Please check your credentials and try again."
+        description: "Invalid Matricule or Password. Please contact your administration if the issue persists."
       });
     } finally {
       setIsProcessing(false);
@@ -130,64 +122,31 @@ export default function LoginPage() {
         <Card className="border-none shadow-2xl overflow-hidden rounded-[2.5rem] bg-white/80 backdrop-blur-xl border border-white">
           <CardHeader className="pb-8 text-center space-y-1">
             <CardTitle className="text-3xl font-black text-primary">
-              {isRegistering ? "Create Profile" : "Access Portal"}
+              {isRegistering ? "Join Platform" : "Access Portal"}
             </CardTitle>
             <CardDescription>
               {isRegistering 
-                ? "Join your institution's digital ecosystem." 
-                : "Sign in to manage your academic journey."}
+                ? "Generate your institutional identity." 
+                : "Sign in with your Unique Matricule ID."}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleAuth} className="space-y-5">
-              {isRegistering && (
-                <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-                  <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest flex items-center gap-2">
-                    <User className="w-3 h-3"/> Full Legal Name
-                  </Label>
-                  <Input 
-                    required
-                    placeholder="e.g. John Doe" 
-                    className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary font-bold"
-                    value={authData.name}
-                    onChange={(e) => setAuthData({...authData, name: e.target.value})}
-                  />
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest flex items-center gap-2">
-                  <Mail className="w-3 h-3"/> Institutional Email
-                </Label>
-                <Input 
-                  required
-                  type="email"
-                  placeholder="name@school.cm" 
-                  className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary font-bold"
-                  value={authData.email}
-                  onChange={(e) => setAuthData({...authData, email: e.target.value})}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest flex items-center gap-2">
-                    <Lock className="w-3 h-3"/> Security Password
-                  </Label>
-                </div>
-                <Input 
-                  required
-                  type="password" 
-                  placeholder="••••••••"
-                  className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary font-bold"
-                  value={authData.password}
-                  onChange={(e) => setAuthData({...authData, password: e.target.value})}
-                />
-              </div>
-
-              {isRegistering && (
-                <div className="grid grid-cols-2 gap-4 animate-in fade-in duration-500">
-                  <div className="space-y-2">
+              {isRegistering ? (
+                <>
+                  <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                    <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest flex items-center gap-2">
+                      <User className="w-3 h-3"/> Full Legal Name
+                    </Label>
+                    <Input 
+                      required
+                      placeholder="e.g. John Doe" 
+                      className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary font-bold"
+                      value={authData.name}
+                      onChange={(e) => setAuthData({...authData, name: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2 animate-in fade-in duration-500">
                     <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest flex items-center gap-2">
                       <ShieldCheck className="w-3 h-3"/> Your Role
                     </Label>
@@ -199,34 +158,47 @@ export default function LoginPage() {
                         <SelectItem value="STUDENT">Student</SelectItem>
                         <SelectItem value="TEACHER">Teacher</SelectItem>
                         <SelectItem value="PARENT">Parent</SelectItem>
-                        <SelectItem value="BURSAR">Bursar</SelectItem>
-                        <SelectItem value="LIBRARIAN">Librarian</SelectItem>
-                        <SelectItem value="SCHOOL_ADMIN">School Admin</SelectItem>
+                        <SelectItem value="SCHOOL_ADMIN">New School Admin</SelectItem>
+                        <SelectItem value="SUPER_ADMIN">Platform Executive</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest flex items-center gap-2">
-                      <School className="w-3 h-3"/> Institution
-                    </Label>
-                    <Select value={authData.schoolId} onValueChange={(v) => setAuthData({...authData, schoolId: v})}>
-                      <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl">
-                        <SelectItem value="S001">Lycée de Joss</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                </>
+              ) : (
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest flex items-center gap-2">
+                    <Fingerprint className="w-3 h-3"/> Matricule ID
+                  </Label>
+                  <Input 
+                    required
+                    placeholder="e.g. GBHS126S0001" 
+                    className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary font-black uppercase"
+                    value={authData.matricule}
+                    onChange={(e) => setAuthData({...authData, matricule: e.target.value})}
+                  />
                 </div>
               )}
+
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest flex items-center gap-2">
+                  <Lock className="w-3 h-3"/> Security Password
+                </Label>
+                <Input 
+                  required
+                  type="password" 
+                  placeholder="••••••••"
+                  className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary font-bold"
+                  value={authData.password}
+                  onChange={(e) => setAuthData({...authData, password: e.target.value})}
+                />
+              </div>
 
               <Button 
                 type="submit"
                 disabled={isProcessing}
                 className="w-full h-14 text-base font-black uppercase tracking-widest shadow-xl rounded-2xl transition-all active:scale-95 bg-primary hover:bg-primary/90 mt-4"
               >
-                {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : (isRegistering ? "Confirm Registration" : "Sign In to Portal")}
+                {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : (isRegistering ? "Register & Generate ID" : "Sign In to Portal")}
               </Button>
             </form>
           </CardContent>
@@ -236,7 +208,7 @@ export default function LoginPage() {
               className="w-full text-sm font-bold text-primary hover:bg-primary/5 rounded-xl h-12"
               onClick={() => setIsRegistering(!isRegistering)}
             >
-              {isRegistering ? "Already have an account? Login" : "Don't have an account? Join Now"}
+              {isRegistering ? "Already have an ID? Login" : "New to the platform? Join Now"}
             </Button>
           </CardFooter>
         </Card>
@@ -262,77 +234,29 @@ export default function LoginPage() {
                 </div>
               </DialogHeader>
               <div className="p-8 space-y-10 max-h-[75vh] overflow-y-auto bg-background">
-                
-                {/* Video Gallery */}
+                {/* Media and Testimonials dynamically loaded */}
                 <div className="space-y-6">
                   <h3 className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2 border-b border-primary/10 pb-2">
                     <Video className="w-4 h-4" /> Featured Media
                   </h3>
-                  {featuredVideos.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {featuredVideos.map((video) => (
-                        <div key={video.id} className="group space-y-3">
-                          <div className="aspect-video bg-black rounded-2xl overflow-hidden shadow-lg relative cursor-pointer">
-                            <a href={`https://youtube.com/watch?v=${video.youtubeId}`} target="_blank" rel="noopener noreferrer" className="absolute inset-0 flex items-center justify-center z-10">
-                              <div className="w-14 h-14 bg-red-600 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform">
-                                <Play className="w-6 h-6 text-white fill-white ml-1" />
-                              </div>
-                            </a>
-                            <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover opacity-60 transition-opacity group-hover:opacity-40" />
-                            <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full z-10">
-                              <p className="text-[8px] text-white font-black uppercase tracking-widest">{video.category}</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {featuredVideos.map((video) => (
+                      <div key={video.id} className="group space-y-3">
+                        <div className="aspect-video bg-black rounded-2xl overflow-hidden shadow-lg relative cursor-pointer">
+                          <a href={`https://youtube.com/watch?v=${video.youtubeId}`} target="_blank" rel="noopener noreferrer" className="absolute inset-0 flex items-center justify-center z-10">
+                            <div className="w-14 h-14 bg-red-600 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform">
+                              <Play className="w-6 h-6 text-white fill-white ml-1" />
                             </div>
-                          </div>
-                          <div className="px-1">
-                            <h4 className="font-bold text-primary text-sm mb-1">{video.title}</h4>
-                            <p className="text-xs text-muted-foreground leading-relaxed">{video.description}</p>
-                          </div>
+                          </a>
+                          <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover opacity-60" />
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-center py-10 text-muted-foreground italic">No videos featured yet.</p>
-                  )}
-                </div>
-
-                {/* Testimonials List */}
-                <div className="space-y-6">
-                  <h3 className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2 border-b border-primary/10 pb-2">
-                    <Quote className="w-4 h-4" /> Institutional Feedback
-                  </h3>
-                  {testimonials.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-6">
-                      {testimonials.map((test) => (
-                        <Card key={test.id} className="border-none shadow-sm bg-accent/30 relative rounded-3xl">
-                          <div className="absolute -top-3 -left-3 p-2 bg-white rounded-xl shadow-md border border-accent">
-                            <Quote className="w-4 h-4 text-primary" />
-                          </div>
-                          <CardContent className="p-6 pt-8 space-y-4">
-                            <p className="text-muted-foreground leading-relaxed italic text-sm md:text-base">
-                              "{test.content}"
-                            </p>
-                            <div className="flex items-center justify-between pt-4 border-t border-primary/10">
-                              <div className="flex items-center gap-3">
-                                <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
-                                  <AvatarImage src={test.avatar} />
-                                  <AvatarFallback className="bg-primary text-white font-bold">{test.author.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <p className="text-sm font-black text-primary leading-none">{test.author}</p>
-                                  <p className="text-[10px] text-muted-foreground mt-1 uppercase font-bold">{test.role}, {test.schoolName}</p>
-                                </div>
-                              </div>
-                              <div className="flex gap-0.5">
-                                {[1,2,3,4,5].map(i => <Star key={i} className="w-3 h-3 text-amber-500 fill-amber-500" />)}
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-center py-10 text-muted-foreground italic">No published testimonials yet.</p>
-                  )}
+                        <div>
+                          <h4 className="font-bold text-primary text-sm">{video.title}</h4>
+                          <p className="text-xs text-muted-foreground">{video.description}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </DialogContent>
