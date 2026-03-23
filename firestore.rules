@@ -74,6 +74,11 @@ service cloud.firestore {
       match /assignments/{assignmentId} {
         allow read: if isSignedIn() && getUserData().schoolId == docId;
         allow write: if isTeacher(docId) || isSchoolAdmin(docId);
+
+        match /submissions/{studentUid} {
+          allow read: if isSignedIn() && (request.auth.uid == studentUid || isTeacher(docId) || isSchoolAdmin(docId));
+          allow write: if isSignedIn() && (request.auth.uid == studentUid || isTeacher(docId));
+        }
       }
 
       match /grades/{gradeId} {

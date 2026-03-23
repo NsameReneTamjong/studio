@@ -66,9 +66,28 @@
       "properties": {
         "title": { "type": "string" },
         "courseId": { "type": "string" },
+        "courseName": { "type": "string" },
+        "targetClass": { "type": "string" },
+        "teacherUid": { "type": "string" },
         "dueDate": { "type": "string", "format": "date-time" },
         "maxMarks": { "type": "number" },
-        "instructions": { "type": "string" }
+        "instructions": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Submission": {
+      "title": "Submission",
+      "type": "object",
+      "properties": {
+        "assignmentId": { "type": "string" },
+        "studentUid": { "type": "string" },
+        "studentName": { "type": "string" },
+        "studentMatricule": { "type": "string" },
+        "content": { "type": "string" },
+        "submittedAt": { "type": "string", "format": "date-time" },
+        "grade": { "type": "number" },
+        "feedback": { "type": "string" },
+        "status": { "type": "string", "enum": ["submitted", "graded"] }
       }
     },
     "Grade": {
@@ -126,6 +145,10 @@
     "/schools/{schoolId}/assignments/{assignmentId}": {
       "schema": "#/entities/Assignment",
       "description": "Tasks created by teachers."
+    },
+    "/schools/{schoolId}/assignments/{assignmentId}/submissions/{studentUid}": {
+      "schema": "#/entities/Submission",
+      "description": "Student work for a specific task."
     },
     "/schools/{schoolId}/grades/{gradeId}": {
       "schema": "#/entities/Grade",
