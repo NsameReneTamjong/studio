@@ -21,21 +21,8 @@ service cloud.firestore {
         getUserData().schoolId == schoolId;
     }
 
-    function isBursar(schoolId) {
-      return isSignedIn() && 
-        getUserData().role == 'BURSAR' &&
-        getUserData().schoolId == schoolId;
-    }
-
-    function isTeacher(schoolId) {
-      return isSignedIn() && 
-        getUserData().role == 'TEACHER' &&
-        getUserData().schoolId == schoolId;
-    }
-
     // --- COLLECTION RULES ---
 
-    // Global Platform Settings (Public Read for Branding)
     match /settings/platform {
       allow read: if true; 
       allow write: if isPlatformAdmin();
@@ -51,69 +38,76 @@ service cloud.firestore {
       allow write: if isPlatformAdmin();
     }
 
-    // Users
+    match /feedback/{fbId} {
+      allow read: if isPlatformAdmin();
+      allow create: if isSignedIn();
+      allow update, delete: if isPlatformAdmin();
+    }
+
+    match /support/{supId} {
+      allow read: if isPlatformAdmin();
+      allow create: if isSignedIn();
+      allow update, delete: if isPlatformAdmin();
+    }
+
     match /users/{uid} {
       allow read: if isSignedIn();
       allow create: if true; 
       allow update: if isPlatformAdmin() || (isSignedIn() && request.auth.uid == uid) || isSchoolAdmin(resource.data.schoolId);
     }
     
-    // Schools
     match /schools/{docId} {
       allow read: if isSignedIn();
       allow create: if isPlatformAdmin();
-      allow update: if isPlatformAdmin();
-      allow delete: if isPlatformAdmin();
+      allow update: if isPlatformAdmin() || isSchoolAdmin(resource.data.id);
       
-      // Sub-collections inside schools
       match /courses/{courseId} {
-        allow read: if isSignedIn() && getUserData().schoolId == docId;
+        allow read: if isSignedIn();
         allow write: if isSchoolAdmin(docId);
       }
       
       match /assignments/{assignmentId} {
-        allow read: if isSignedIn() && getUserData().schoolId == docId;
-        allow write: if isTeacher(docId) || isSchoolAdmin(docId);
+        allow read: if isSignedIn();
+        allow write: if isSignedIn();
 
         match /submissions/{studentUid} {
-          allow read: if isSignedIn() && (request.auth.uid == studentUid || isTeacher(docId) || isSchoolAdmin(docId));
-          allow write: if isSignedIn() && (request.auth.uid == studentUid || isTeacher(docId));
+          allow read, write: if isSignedIn();
         }
       }
 
       match /grades/{gradeId} {
-        allow read: if isSignedIn() && (getUserData().schoolId == docId && (getUserData().role != 'STUDENT' || getUserData().uid == resource.data.studentUid));
-        allow write: if isTeacher(docId) || isSchoolAdmin(docId);
+        allow read: if isSignedIn();
+        allow write: if isSignedIn();
       }
 
       match /payments/{paymentId} {
-        allow read: if isSignedIn() && (getUserData().schoolId == docId && (getUserData().role != 'STUDENT' || getUserData().uid == resource.data.studentUid));
-        allow write: if isBursar(docId) || isSchoolAdmin(docId);
+        allow read: if isSignedIn();
+        allow write: if isSignedIn();
       }
 
       match /announcements/{annId} {
-        allow read: if isSignedIn() && getUserData().schoolId == docId;
-        allow write: if isTeacher(docId) || isSchoolAdmin(docId) || isBursar(docId);
+        allow read: if isSignedIn();
+        allow write: if isSignedIn();
       }
 
       match /counters/{counterId} {
-        allow read, write: if isSignedIn() && getUserData().schoolId == docId;
+        allow read, write: if isSignedIn();
       }
+    }
+
+    match /platform_admins/{uid} {
+      allow read: if isSignedIn();
+      allow write: if isPlatformAdmin() || (isSignedIn() && request.auth.uid == uid);
     }
 
     match /matricules/{matricule} {
       allow read: if true;
-      allow create: if true; 
+      allow create: if true;
       allow update, delete: if isPlatformAdmin();
     }
 
     match /counters/{counterId} {
       allow read, write: if isPlatformAdmin();
-    }
-    
-    match /platform_admins/{uid} {
-      allow read: if isSignedIn();
-      allow write: if isPlatformAdmin() || (isSignedIn() && request.auth.uid == uid);
     }
   }
 }

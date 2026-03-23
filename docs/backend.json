@@ -47,72 +47,32 @@
       },
       "required": ["id", "uid", "role", "email"]
     },
-    "Course": {
-      "title": "Course",
+    "Feedback": {
+      "title": "Feedback",
       "type": "object",
       "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "teacherUid": { "type": "string" },
-        "teacherName": { "type": "string" },
-        "targetClass": { "type": "string" },
-        "type": { "type": "string", "enum": ["compulsory", "optional"] },
-        "color": { "type": "string" }
-      }
-    },
-    "Assignment": {
-      "title": "Assignment",
-      "type": "object",
-      "properties": {
-        "title": { "type": "string" },
-        "courseId": { "type": "string" },
-        "courseName": { "type": "string" },
-        "targetClass": { "type": "string" },
-        "teacherUid": { "type": "string" },
-        "dueDate": { "type": "string", "format": "date-time" },
-        "maxMarks": { "type": "number" },
-        "instructions": { "type": "string" },
+        "schoolId": { "type": "string" },
+        "schoolName": { "type": "string" },
+        "senderName": { "type": "string" },
+        "senderRole": { "type": "string" },
+        "subject": { "type": "string" },
+        "message": { "type": "string" },
+        "status": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" }
       }
     },
-    "Submission": {
-      "title": "Submission",
+    "Support": {
+      "title": "Support",
       "type": "object",
       "properties": {
-        "assignmentId": { "type": "string" },
-        "studentUid": { "type": "string" },
-        "studentName": { "type": "string" },
-        "studentMatricule": { "type": "string" },
-        "content": { "type": "string" },
-        "submittedAt": { "type": "string", "format": "date-time" },
-        "grade": { "type": "number" },
-        "feedback": { "type": "string" },
-        "status": { "type": "string", "enum": ["submitted", "graded"] }
-      }
-    },
-    "Grade": {
-      "title": "Grade",
-      "type": "object",
-      "properties": {
-        "studentUid": { "type": "string" },
-        "studentName": { "type": "string" },
-        "courseId": { "type": "string" },
-        "seq1": { "type": "number" },
-        "seq2": { "type": "number" },
-        "term": { "type": "number" },
-        "year": { "type": "string" }
-      }
-    },
-    "Payment": {
-      "title": "Payment",
-      "type": "object",
-      "properties": {
-        "studentUid": { "type": "string" },
-        "studentName": { "type": "string" },
+        "uid": { "type": "string" },
+        "userName": { "type": "string" },
         "amount": { "type": "number" },
-        "type": { "type": "string", "enum": ["tuition", "uniform", "exams", "license"] },
         "method": { "type": "string" },
-        "date": { "type": "string", "format": "date-time" }
+        "phone": { "type": "string" },
+        "message": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
       }
     }
   },
@@ -130,6 +90,14 @@
       },
       "description": "Global platform branding settings."
     },
+    "/feedback/{fbId}": {
+      "schema": "#/entities/Feedback",
+      "description": "Global support and appreciation messages."
+    },
+    "/support/{supId}": {
+      "schema": "#/entities/Support",
+      "description": "Financial community contributions."
+    },
     "/users/{uid}": {
       "schema": "#/entities/User",
       "description": "User records indexed by Auth UID."
@@ -137,37 +105,6 @@
     "/schools/{docId}": {
       "schema": "#/entities/School",
       "description": "Registry of school nodes."
-    },
-    "/schools/{schoolId}/courses/{courseId}": {
-      "schema": "#/entities/Course",
-      "description": "Subjects offered by a school."
-    },
-    "/schools/{schoolId}/assignments/{assignmentId}": {
-      "schema": "#/entities/Assignment",
-      "description": "Tasks created by teachers."
-    },
-    "/schools/{schoolId}/assignments/{assignmentId}/submissions/{studentUid}": {
-      "schema": "#/entities/Submission",
-      "description": "Student work for a specific task."
-    },
-    "/schools/{schoolId}/grades/{gradeId}": {
-      "schema": "#/entities/Grade",
-      "description": "Academic performance records."
-    },
-    "/schools/{schoolId}/payments/{paymentId}": {
-      "schema": "#/entities/Payment",
-      "description": "Financial transaction ledger."
-    },
-    "/schools/{schoolId}/announcements/{annId}": {
-      "schema": {
-        "type": "object",
-        "properties": {
-          "title": { "type": "string" },
-          "content": { "type": "string" },
-          "target": { "type": "string" }
-        }
-      },
-      "description": "Institutional broadcast messages."
     }
   }
 }
