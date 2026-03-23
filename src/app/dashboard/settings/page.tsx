@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth, type SchoolInfo } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -9,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Building2, Save, Loader2, Image as ImageIcon, MapPin, Quote, FileText, Globe, Upload, Phone, Mail, Hash, ShieldCheck, CheckCircle2, Map } from "lucide-react";
+import { Building2, Save, Loader2, Image as ImageIcon, MapPin, Quote, FileText, Upload, Phone, Mail, Hash, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function SchoolSettingsPage() {
@@ -19,20 +20,40 @@ export default function SchoolSettingsPage() {
   
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: user?.school?.name || "",
-    motto: user?.school?.motto || "",
-    description: user?.school?.description || "",
-    region: user?.school?.region || "",
-    division: user?.school?.division || "",
-    subDivision: user?.school?.subDivision || "",
-    cityVillage: user?.school?.cityVillage || "",
-    address: user?.school?.address || "",
-    postalCode: user?.school?.postalCode || "",
-    phone: user?.school?.phone || "",
-    email: user?.school?.email || "",
-    logo: user?.school?.logo || "",
-    banner: user?.school?.banner || "",
+    name: "",
+    motto: "",
+    description: "",
+    region: "",
+    division: "",
+    subDivision: "",
+    cityVillage: "",
+    address: "",
+    postalCode: "",
+    phone: "",
+    email: "",
+    logo: "",
+    banner: "",
   });
+
+  useEffect(() => {
+    if (user?.school) {
+      setFormData({
+        name: user.school.name || "",
+        motto: user.school.motto || "",
+        description: user.school.description || "",
+        region: user.school.region || "",
+        division: user.school.division || "",
+        subDivision: user.school.subDivision || "",
+        cityVillage: user.school.cityVillage || "",
+        address: user.school.address || "",
+        postalCode: user.school.postalCode || "",
+        phone: user.school.phone || "",
+        email: user.school.email || "",
+        logo: user.school.logo || "",
+        banner: user.school.banner || "",
+      });
+    }
+  }, [user?.school]);
 
   const logoInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
@@ -41,50 +62,40 @@ export default function SchoolSettingsPage() {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 2 * 1024 * 1024) {
-        toast({
-          variant: "destructive",
-          title: "File too large",
-          description: "Please select an image smaller than 2MB."
-        });
+        toast({ variant: "destructive", title: "File too large", description: "Please select an image smaller than 2MB." });
         return;
       }
 
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData(prev => ({ ...prev, [type]: reader.result as string }));
-        toast({
-          title: "Image Uploaded",
-          description: `${type.charAt(0).toUpperCase() + type.slice(1)} preview updated from device.`
-        });
+        toast({ title: "Image Uploaded", description: `${type.charAt(0).toUpperCase() + type.slice(1)} preview updated.` });
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleUpdateSettings = () => {
+  const handleUpdateSettings = async () => {
     if (!formData.name) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "School name is required.",
-      });
+      toast({ variant: "destructive", title: "Error", description: "School name is required." });
       return;
     }
 
     setLoading(true);
-    // Simulated update delay
-    setTimeout(() => {
-      // Create a combined location string for display components
+    try {
       const location = `${formData.cityVillage}, ${formData.region}`;
-      updateSchool({ ...formData, location } as Partial<SchoolInfo>);
-      setLoading(false);
+      await updateSchool({ ...formData, location } as Partial<SchoolInfo>);
       toast({
         title: t("changesSaved"),
         description: language === 'en' 
           ? "Institutional settings updated successfully. Branding is now live across the platform." 
           : "Les paramètres institutionnels ont été mis à jour avec succès. L'image de marque est maintenant active.",
       });
-    }, 1200);
+    } catch (e) {
+      toast({ variant: "destructive", title: "Save Failed", description: "Failed to update school settings." });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -97,15 +108,9 @@ export default function SchoolSettingsPage() {
             </div>
             {t("settings")}
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your school's professional identity, contact registry, and branding assets.
-          </p>
+          <p className="text-muted-foreground mt-1">Manage your school's professional identity, contact registry, and branding assets.</p>
         </div>
-        <Button 
-          onClick={handleUpdateSettings} 
-          disabled={loading} 
-          className="h-12 px-8 shadow-xl font-black uppercase tracking-widest text-xs gap-2 rounded-2xl"
-        >
+        <Button onClick={handleUpdateSettings} disabled={loading} className="h-12 px-8 shadow-xl font-black uppercase tracking-widest text-xs gap-2 rounded-2xl">
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           Commit All Changes
         </Button>
@@ -113,219 +118,78 @@ export default function SchoolSettingsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-8 space-y-8">
-          {/* Identity Section */}
           <Card className="border-none shadow-sm overflow-hidden rounded-3xl">
             <CardHeader className="bg-primary/5 border-b p-6">
-              <CardTitle className="flex items-center gap-2 text-primary text-lg">
-                <FileText className="w-5 h-5" />
-                Institutional Identity
-              </CardTitle>
+              <CardTitle className="flex items-center gap-2 text-primary text-lg"><FileText className="w-5 h-5" /> Institutional Identity</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">School Name</Label>
-                <Input 
-                  value={formData.name} 
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="bg-accent/30 border-none h-12 rounded-xl focus-visible:ring-primary font-bold text-lg"
-                />
+                <Label className="text-[10px] font-black uppercase text-muted-foreground">School Name</Label>
+                <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="bg-accent/30 border-none h-12 rounded-xl font-bold text-lg" />
               </div>
-              
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                  <Quote className="w-3 h-3" /> Motto / Official Slogan
-                </Label>
-                <Input 
-                  value={formData.motto} 
-                  onChange={(e) => setFormData({...formData, motto: e.target.value})}
-                  className="bg-accent/30 border-none h-11 rounded-xl focus-visible:ring-primary italic"
-                  placeholder="e.g. Discipline - Work - Success"
-                />
+                <Label className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-2"><Quote className="w-3 h-3" /> Motto / Official Slogan</Label>
+                <Input value={formData.motto} onChange={(e) => setFormData({...formData, motto: e.target.value})} className="bg-accent/30 border-none h-11 rounded-xl italic" placeholder="e.g. Discipline - Work - Success" />
               </div>
-
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">About the Institution</Label>
-                <Textarea 
-                  value={formData.description} 
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  className="bg-accent/30 border-none min-h-[120px] rounded-xl focus-visible:ring-primary leading-relaxed"
-                  placeholder="Official description used on the landing page..."
-                />
+                <Label className="text-[10px] font-black uppercase text-muted-foreground">About the Institution</Label>
+                <Textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="bg-accent/30 border-none min-h-[120px] rounded-xl leading-relaxed" placeholder="Official description..." />
               </div>
             </CardContent>
           </Card>
 
-          {/* Contact & Location Section */}
           <Card className="border-none shadow-sm overflow-hidden rounded-3xl">
             <CardHeader className="bg-primary/5 border-b p-6">
-              <CardTitle className="flex items-center gap-2 text-primary text-lg">
-                <MapPin className="w-5 h-5" />
-                Registry & Contact Details
-              </CardTitle>
+              <CardTitle className="flex items-center gap-2 text-primary text-lg"><MapPin className="w-5 h-5" /> Registry & Contact Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Region</Label>
-                  <Input 
-                    value={formData.region} 
-                    onChange={(e) => setFormData({...formData, region: e.target.value})}
-                    className="bg-accent/30 border-none h-11 rounded-xl"
-                    placeholder="e.g. Littoral"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Division</Label>
-                  <Input 
-                    value={formData.division} 
-                    onChange={(e) => setFormData({...formData, division: e.target.value})}
-                    className="bg-accent/30 border-none h-11 rounded-xl"
-                    placeholder="e.g. Wouri"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Sub-division</Label>
-                  <Input 
-                    value={formData.subDivision} 
-                    onChange={(e) => setFormData({...formData, subDivision: e.target.value})}
-                    className="bg-accent/30 border-none h-11 rounded-xl"
-                    placeholder="e.g. Douala I"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">City / Village</Label>
-                  <Input 
-                    value={formData.cityVillage} 
-                    onChange={(e) => setFormData({...formData, cityVillage: e.target.value})}
-                    className="bg-accent/30 border-none h-11 rounded-xl"
-                    placeholder="e.g. Douala"
-                  />
-                </div>
-                <div className="col-span-2 space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Full Physical Address</Label>
-                  <Input 
-                    value={formData.address} 
-                    onChange={(e) => setFormData({...formData, address: e.target.value})}
-                    className="bg-accent/30 border-none h-11 rounded-xl"
-                    placeholder="e.g. Rue 1.024, Quarter Bonanjo"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                    <Hash className="w-3 h-3" /> Postal Code / B.P.
-                  </Label>
-                  <Input 
-                    value={formData.postalCode} 
-                    onChange={(e) => setFormData({...formData, postalCode: e.target.value})}
-                    className="bg-accent/30 border-none h-11 rounded-xl"
-                    placeholder="e.g. B.P. 1234"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                    <Phone className="w-3 h-3" /> Official Phone Number
-                  </Label>
-                  <Input 
-                    value={formData.phone} 
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    className="bg-accent/30 border-none h-11 rounded-xl"
-                    placeholder="+237 ..."
-                  />
-                </div>
-                <div className="col-span-2 space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                    <Mail className="w-3 h-3" /> Official Email
-                  </Label>
-                  <Input 
-                    value={formData.email} 
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    className="bg-accent/30 border-none h-11 rounded-xl"
-                    placeholder="contact@school.cm"
-                  />
-                </div>
+                <div className="space-y-2"><Label>Region</Label><Input value={formData.region} onChange={(e) => setFormData({...formData, region: e.target.value})} className="bg-accent/30 border-none h-11 rounded-xl" /></div>
+                <div className="space-y-2"><Label>Division</Label><Input value={formData.division} onChange={(e) => setFormData({...formData, division: e.target.value})} className="bg-accent/30 border-none h-11 rounded-xl" /></div>
+                <div className="space-y-2"><Label>Sub-division</Label><Input value={formData.subDivision} onChange={(e) => setFormData({...formData, subDivision: e.target.value})} className="bg-accent/30 border-none h-11 rounded-xl" /></div>
+                <div className="space-y-2"><Label>City / Village</Label><Input value={formData.cityVillage} onChange={(e) => setFormData({...formData, cityVillage: e.target.value})} className="bg-accent/30 border-none h-11 rounded-xl" /></div>
+                <div className="col-span-2 space-y-2"><Label>Full Physical Address</Label><Input value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} className="bg-accent/30 border-none h-11 rounded-xl" /></div>
+                <div className="space-y-2"><Label>Postal Code / B.P.</Label><Input value={formData.postalCode} onChange={(e) => setFormData({...formData, postalCode: e.target.value})} className="bg-accent/30 border-none h-11 rounded-xl" /></div>
+                <div className="space-y-2"><Label>Official Phone</Label><Input value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="bg-accent/30 border-none h-11 rounded-xl" /></div>
+                <div className="col-span-2 space-y-2"><Label>Official Email</Label><Input value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="bg-accent/30 border-none h-11 rounded-xl" /></div>
               </div>
             </CardContent>
           </Card>
         </div>
 
         <div className="lg:col-span-4 space-y-8">
-          {/* Visual Branding Section */}
           <Card className="border-none shadow-sm overflow-hidden rounded-3xl">
             <CardHeader className="bg-primary/5 border-b p-6">
-              <CardTitle className="flex items-center gap-2 text-primary text-lg">
-                <ImageIcon className="w-5 h-5" />
-                Visual Branding
-              </CardTitle>
+              <CardTitle className="flex items-center gap-2 text-primary text-lg"><ImageIcon className="w-5 h-5" /> Visual Branding</CardTitle>
             </CardHeader>
             <CardContent className="space-y-8 pt-6">
               <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Institutional Logo</Label>
-                <div 
-                  className="group relative w-32 h-32 mx-auto bg-accent/20 rounded-2xl border-2 border-dashed border-accent flex items-center justify-center cursor-pointer overflow-hidden transition-all hover:border-primary"
-                  onClick={() => logoInputRef.current?.click()}
-                >
+                <Label className="text-[10px] font-black uppercase text-muted-foreground">Institutional Logo</Label>
+                <div className="group relative w-32 h-32 mx-auto bg-accent/20 rounded-2xl border-2 border-dashed border-accent flex items-center justify-center cursor-pointer overflow-hidden transition-all hover:border-primary" onClick={() => logoInputRef.current?.click()}>
                   <input type="file" ref={logoInputRef} className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, 'logo')} />
-                  {formData.logo ? (
-                    <img src={formData.logo} alt="Logo" className="w-full h-full object-contain p-2" />
-                  ) : (
-                    <Upload className="w-8 h-8 text-muted-foreground" />
-                  )}
-                  <div className="absolute inset-0 bg-primary/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <Upload className="w-6 h-6 text-white" />
-                  </div>
+                  {formData.logo ? <img src={formData.logo} alt="Logo" className="w-full h-full object-contain p-2" /> : <Upload className="w-8 h-8 text-muted-foreground" />}
+                  <div className="absolute inset-0 bg-primary/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><Upload className="w-6 h-6 text-white" /></div>
                 </div>
-                <p className="text-[10px] text-center text-muted-foreground">PNG/JPG up to 2MB. Recommended 200x200px.</p>
               </div>
-
               <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Landing Page Banner</Label>
-                <div 
-                  className="group relative aspect-video bg-accent/20 rounded-2xl border-2 border-dashed border-accent flex items-center justify-center cursor-pointer overflow-hidden transition-all hover:border-primary"
-                  onClick={() => bannerInputRef.current?.click()}
-                >
+                <Label className="text-[10px] font-black uppercase text-muted-foreground">Landing Page Banner</Label>
+                <div className="group relative aspect-video bg-accent/20 rounded-2xl border-2 border-dashed border-accent flex items-center justify-center cursor-pointer overflow-hidden transition-all hover:border-primary" onClick={() => bannerInputRef.current?.click()}>
                   <input type="file" ref={bannerInputRef} className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, 'banner')} />
-                  {formData.banner ? (
-                    <img src={formData.banner} alt="Banner" className="w-full h-full object-cover" />
-                  ) : (
-                    <Upload className="w-10 h-10 text-muted-foreground" />
-                  )}
-                  <div className="absolute inset-0 bg-primary/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <Upload className="w-8 h-8 text-white" />
-                  </div>
+                  {formData.banner ? <img src={formData.banner} alt="Banner" className="w-full h-full object-cover" /> : <Upload className="w-10 h-10 text-muted-foreground" />}
+                  <div className="absolute inset-0 bg-primary/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><Upload className="w-8 h-8 text-white" /></div>
                 </div>
-                <p className="text-[10px] text-center text-muted-foreground">Landscape image up to 5MB.</p>
               </div>
             </CardContent>
           </Card>
 
-          {/* Verification Status */}
           <Card className="border-none shadow-sm bg-gradient-to-br from-primary to-primary/90 text-white rounded-3xl">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-secondary" />
-                Live Integrity Check
-              </CardTitle>
-            </CardHeader>
+            <CardHeader><CardTitle className="text-white flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-secondary" /> Integrity Status</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="opacity-60">Identity Complete</span>
-                  <CheckCircle2 className="w-4 h-4 text-green-400" />
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="opacity-60">Contact Registry</span>
-                  <CheckCircle2 className="w-4 h-4 text-green-400" />
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="opacity-60">Visual Assets</span>
-                  <CheckCircle2 className="w-4 h-4 text-green-400" />
-                </div>
+                <div className="flex items-center justify-between text-xs"><span className="opacity-60">Identity Complete</span><CheckCircle2 className="w-4 h-4 text-green-400" /></div>
+                <div className="flex items-center justify-between text-xs"><span className="opacity-60">Contact Registry</span><CheckCircle2 className="w-4 h-4 text-green-400" /></div>
               </div>
-              <div className="pt-4 border-t border-white/10">
-                <p className="text-[10px] font-black uppercase tracking-widest opacity-40 leading-relaxed italic">
-                  Changes committed here will be immediately visible to all students, staff, and parents.
-                </p>
-              </div>
+              <div className="pt-4 border-t border-white/10"><p className="text-[10px] font-black uppercase tracking-widest opacity-40 italic">Updates committed here are immediate.</p></div>
             </CardContent>
           </Card>
         </div>

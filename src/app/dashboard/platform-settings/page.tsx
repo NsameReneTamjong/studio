@@ -10,32 +10,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Settings2, 
   Save, 
   Loader2, 
   Coins, 
-  Calendar, 
-  GraduationCap, 
-  User, 
-  Presentation, 
-  Briefcase, 
-  Library, 
   ShieldCheck, 
-  Clock,
-  AlertCircle,
-  Building2,
-  Lock,
-  Megaphone,
+  Building2, 
+  Globe, 
+  Video, 
+  Plus, 
+  Trash2, 
+  Play,
+  Quote,
   Layout,
-  Upload,
-  Globe,
-  Video,
-  Plus,
-  Trash2,
-  ExternalLink,
   Star,
-  Quote
+  X
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -56,7 +47,6 @@ export default function PlatformSettingsPage() {
     bursarFee: "10000",
     librarianFee: "10000",
     adminFee: "25000",
-    deadline: "2024-10-31",
     platformName: platformSettings.name,
     platformLogo: platformSettings.logo
   });
@@ -76,11 +66,10 @@ export default function PlatformSettingsPage() {
     }));
   }, [platformSettings]);
 
-  const handleUpdateSettings = () => {
+  const handleUpdateSettings = async () => {
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      updatePlatformSettings({
+    try {
+      await updatePlatformSettings({
         name: formData.platformName,
         logo: formData.platformLogo
       });
@@ -88,13 +77,16 @@ export default function PlatformSettingsPage() {
         title: "Platform Policy Updated",
         description: "Branding and institutional parameters synchronized.",
       });
-    }, 1500);
+    } catch (e) {
+      toast({ variant: "destructive", title: "Update Failed", description: "Failed to save settings." });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAddVideo = async () => {
     if (!newVideo.title || !newVideo.youtubeUrl) return;
     
-    // Parse YouTube ID
     let youtubeId = "";
     try {
       const url = new URL(newVideo.youtubeUrl);
@@ -269,9 +261,9 @@ export default function PlatformSettingsPage() {
             </CardHeader>
             <CardContent className="p-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FeeInput id="student-fee" label="Student Platform Fee" value={formData.studentFee} onChange={(v: string) => setFormData({...formData, studentFee: v})} icon={GraduationCap} colorClass="text-blue-600" />
-                <FeeInput id="parent-fee" label="Parent Portal Fee" value={formData.parentFee} onChange={(v: string) => setFormData({...formData, parentFee: v})} icon={User} colorClass="text-amber-600" />
-                <FeeInput id="teacher-fee" label="Teacher Licensing Fee" value={formData.teacherFee} onChange={(v: string) => setFormData({...formData, teacherFee: v})} icon={Presentation} colorClass="text-purple-600" />
+                <FeeInput id="student-fee" label="Student Platform Fee" value={formData.studentFee} onChange={(v: string) => setFormData({...formData, studentFee: v})} icon={ShieldCheck} colorClass="text-blue-600" />
+                <FeeInput id="parent-fee" label="Parent Portal Fee" value={formData.parentFee} onChange={(v: string) => setFormData({...formData, parentFee: v})} icon={ShieldCheck} colorClass="text-amber-600" />
+                <FeeInput id="teacher-fee" label="Teacher Licensing Fee" value={formData.teacherFee} onChange={(v: string) => setFormData({...formData, teacherFee: v})} icon={ShieldCheck} colorClass="text-purple-600" />
                 <FeeInput id="admin-fee" label="School Administrator Fee" value={formData.adminFee} onChange={(v: string) => setFormData({...formData, adminFee: v})} icon={ShieldCheck} colorClass="text-red-600" />
               </div>
             </CardContent>
@@ -280,7 +272,6 @@ export default function PlatformSettingsPage() {
 
         <TabsContent value="marketing" className="space-y-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* YouTube Management */}
             <div className="lg:col-span-7 space-y-6">
               <Card className="border-none shadow-xl rounded-3xl overflow-hidden">
                 <CardHeader className="bg-red-600 text-white p-6">
@@ -313,7 +304,7 @@ export default function PlatformSettingsPage() {
                       </div>
                       <div className="col-span-2 space-y-2">
                         <Label className="text-[10px] font-black uppercase">Description / Event Details</Label>
-                        <Textarea value={newVideo.description} onChange={(e) => setNewVideo({...newVideo, description: e.target.value})} placeholder="Describe the event or video content..." className="border-none bg-white shadow-sm min-h-[80px]" />
+                        <Input value={newVideo.description} onChange={(e) => setNewVideo({...newVideo, description: e.target.value})} placeholder="Describe the event or video content..." className="h-10 border-none bg-white shadow-sm" />
                       </div>
                     </div>
                     <Button onClick={handleAddVideo} className="w-full h-11 bg-red-600 hover:bg-red-700 gap-2">
@@ -345,7 +336,6 @@ export default function PlatformSettingsPage() {
               </Card>
             </div>
 
-            {/* Testimonials Management */}
             <div className="lg:col-span-5 space-y-6">
               <Card className="border-none shadow-xl rounded-3xl overflow-hidden">
                 <CardHeader className="bg-amber-500 text-white p-6">
@@ -362,13 +352,9 @@ export default function PlatformSettingsPage() {
                           <CardContent className="p-4 space-y-3">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-3">
-                                <Avatar className="h-8 w-8 border">
-                                  <AvatarImage src={test.avatar} />
-                                  <AvatarFallback>{test.author.charAt(0)}</AvatarFallback>
-                                </Avatar>
+                                <Badge className="bg-white text-primary border-none font-black text-[8px] uppercase">{test.schoolName}</Badge>
                                 <div>
                                   <p className="text-xs font-black leading-none">{test.author}</p>
-                                  <p className="text-[9px] text-muted-foreground">{test.schoolName}</p>
                                 </div>
                               </div>
                               <Button variant="ghost" size="icon" onClick={() => handleDeleteTestimonial(test.id)} className="h-7 w-7 text-destructive/40 hover:text-destructive"><X className="w-3.5 h-3.5" /></Button>

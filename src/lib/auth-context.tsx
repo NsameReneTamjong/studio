@@ -91,10 +91,10 @@ interface AuthContextType {
   featuredVideos: FeaturedVideo[];
   login: (matricule: string, password: string) => Promise<void>;
   activateAccount: (matricule: string, password: string) => Promise<void>;
-  updateUser: (updates: Partial<User>) => void;
-  updateSchool: (updates: Partial<SchoolInfo>) => void;
-  updatePlatformSettings: (updates: Partial<PlatformSettings>) => void;
-  markLicensePaid: () => void;
+  updateUser: (updates: Partial<User>) => Promise<void>;
+  updateSchool: (updates: Partial<SchoolInfo>) => Promise<void>;
+  updatePlatformSettings: (updates: Partial<PlatformSettings>) => Promise<void>;
+  markLicensePaid: () => Promise<void>;
   incrementAiRequest: () => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
@@ -103,7 +103,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Helper to create internal email from matricule
 const matriculeToEmail = (matricule: string) => `${matricule.toLowerCase()}@eduignite.io`;
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -154,19 +153,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (docSnap.exists()) {
         const data = docSnap.data() as User;
         
-        // Fetch real-time school info if applicable
         if (data.schoolId) {
           const schoolsQuery = query(collection(firestore, "schools"), where("id", "==", data.schoolId), limit(1));
           const schoolSnap = await getDocs(schoolsQuery);
           if (!schoolSnap.empty) {
-            data.school = schoolSnap.docs[0].data() as SchoolInfo;
+            data.school = { ...schoolSnap.docs[0].data(), id: schoolSnap.docs[0].id } as SchoolInfo;
           }
         }
         
         setUserData(data);
       }
       setIsLoading(false);
-    }, (e) => setIsLoading(false));
+    });
   }, [authUser, isAuthLoading, firestore]);
 
   const login = async (matricule: string, password: string) => {
@@ -185,26 +183,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const activateAccount = async (matricule: string, password: string) => {
     setIsLoading(true);
     try {
-      // 1. Verify Matricule exists in global registry
-      const matriculeRef = doc(firestore, "matricules", matricule.toUpperCase());
-      const matriculeSnap = await getDocs(query(collection(firestore, "matricules"), where("matricule", "==", matricule.toUpperCase())));
-      
-      // In this specialized flow, we assume the matricule is already provisioned
-      // but the user hasn't set their password yet.
-      // For this MVP, we create the Firebase user linked to that identity.
-      
       const email = matriculeToEmail(matricule);
       const result = await createUserWithEmailAndPassword(auth, email, password);
       const uid = result.user.uid;
 
-      // Map the user to their Matricule in Firestore
-      // Usually the School Admin/Super Admin would have pre-created the User doc
-      // We'll update or create it here
       await setDoc(doc(firestore, "users", uid), {
         id: matricule.toUpperCase(),
         uid: uid,
         email: email,
-        isLicensePaid: false, // Default to unpaid
+        isLicensePaid: false,
         createdAt: serverTimestamp()
       }, { merge: true });
 
@@ -231,7 +218,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updatePlatformSettings = async (updates: Partial<PlatformSettings>) => {
-    await updateDoc(doc(firestore, 'settings', 'platform'), updates);
+    await setDoc(doc(firestore, 'settings', 'platform'), updates, { merge: true });
   };
 
   const markLicensePaid = async () => {
