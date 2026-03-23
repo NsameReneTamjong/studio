@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useFirebase, useUser } from "@/firebase";
+import { useFirebase, useUser, errorEmitter, FirestorePermissionError } from "@/firebase";
 import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
 import { signInAnonymously, signOut } from "firebase/auth";
 import { generateSchoolMatricule, generatePlatformMatricule, registerMatricule } from "@/lib/matricule";
@@ -111,11 +111,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Sync Global Platform Settings
   useEffect(() => {
     const docRef = doc(firestore, 'settings', 'platform');
-    const unsubscribe = onSnapshot(docRef, (docSnap) => {
-      if (docSnap.exists()) {
-        setPlatformSettings(docSnap.data() as PlatformSettings);
+    const unsubscribe = onSnapshot(
+      docRef, 
+      (docSnap) => {
+        if (docSnap.exists()) {
+          setPlatformSettings(docSnap.data() as PlatformSettings);
+        }
+      },
+      async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'get',
+        });
+        errorEmitter.emit('permission-error', permissionError);
       }
-    });
+    );
     return () => unsubscribe();
   }, [firestore]);
 
@@ -130,16 +140,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const userDocRef = doc(firestore, "users", authUser.uid);
-    const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
-      if (docSnap.exists()) {
-        setUserData(docSnap.data() as User);
-      } else {
-        // If auth user exists but no Firestore doc, we might need to create it
-        // (usually handled during registration/first login)
-        setUserData(null);
+    const unsubscribe = onSnapshot(
+      userDocRef, 
+      (docSnap) => {
+        if (docSnap.exists()) {
+          setUserData(docSnap.data() as User);
+        } else {
+          setUserData(null);
+        }
+        setIsLoading(false);
+      },
+      async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: userDocRef.path,
+          operation: 'get',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        setIsLoading(false);
       }
-      setIsLoading(false);
-    });
+    );
 
     return () => unsubscribe();
   }, [authUser, isAuthLoading, firestore]);
@@ -147,17 +166,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (role: UserRole, schoolId: string = "S001") => {
     setIsLoading(true);
     try {
-      // In this prototype, we use anonymous sign-in to demonstrate the backend
-      // In a real app, this would be signInWithEmailAndPassword
       const result = await signInAnonymously(auth);
       const uid = result.user.uid;
 
-      // Check if user already exists
       const userDocRef = doc(firestore, "users", uid);
       const userDoc = await getDoc(userDocRef);
 
       if (!userDoc.exists()) {
-        // Generate a real matricule
         let matricule = "";
         if (role === "SUPER_ADMIN") {
           matricule = await generatePlatformMatricule(firestore, "CEO");
@@ -184,7 +199,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           isLicensePaid: role === "SUPER_ADMIN"
         };
 
-        await setDoc(userDocRef, newUser);
+        await setDoc(userDocRef, newUser).catch(async (e) => {
+          const permissionError = new FirestorePermissionError({
+            path: userDocRef.path,
+            operation: 'create',
+            requestResourceData: newUser
+          });
+          errorEmitter.emit('permission-error', permissionError);
+        });
+
         await registerMatricule(firestore, matricule, uid);
       }
 
@@ -203,25 +226,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateUser = async (updates: Partial<User>) => {
     if (!authUser) return;
     const userDocRef = doc(firestore, "users", authUser.uid);
-    await setDoc(userDocRef, updates, { merge: true });
+    await setDoc(userDocRef, updates, { merge: true }).catch(async (e) => {
+      const permissionError = new FirestorePermissionError({
+        path: userDocRef.path,
+        operation: 'update',
+        requestResourceData: updates
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    });
   };
 
   const updateSchool = async (updates: Partial<SchoolInfo>) => {
     if (!userData || !userData.school || !authUser) return;
     const updatedSchool = { ...userData.school, ...updates };
     const userDocRef = doc(firestore, "users", authUser.uid);
-    await setDoc(userDocRef, { school: updatedSchool }, { merge: true });
+    await setDoc(userDocRef, { school: updatedSchool }, { merge: true }).catch(async (e) => {
+      const permissionError = new FirestorePermissionError({
+        path: userDocRef.path,
+        operation: 'update',
+        requestResourceData: { school: updatedSchool }
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    });
   };
 
   const updatePlatformSettings = async (updates: Partial<PlatformSettings>) => {
     const docRef = doc(firestore, 'settings', 'platform');
-    await setDoc(docRef, updates, { merge: true });
+    await setDoc(docRef, updates, { merge: true }).catch(async (e) => {
+      const permissionError = new FirestorePermissionError({
+        path: docRef.path,
+        operation: 'update',
+        requestResourceData: updates
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    });
   };
 
   const markLicensePaid = async () => {
     if (!authUser) return;
     const userDocRef = doc(firestore, "users", authUser.uid);
-    await setDoc(userDocRef, { isLicensePaid: true }, { merge: true });
+    await setDoc(userDocRef, { isLicensePaid: true }, { merge: true }).catch(async (e) => {
+      const permissionError = new FirestorePermissionError({
+        path: userDocRef.path,
+        operation: 'update',
+        requestResourceData: { isLicensePaid: true }
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    });
   };
 
   const logout = async () => {

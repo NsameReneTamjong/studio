@@ -13,6 +13,17 @@ service cloud.firestore {
 
     // --- COLLECTION RULES ---
 
+    // Global Platform Settings
+    match /settings/platform {
+      allow read: if true; // Publicly readable for login page branding
+      allow write: if isPlatformAdmin();
+    }
+
+    match /settings/{settingId} {
+      allow read: if isSignedIn();
+      allow write: if isPlatformAdmin();
+    }
+
     // Matricule Registry - Uniqueness Enforcement
     match /matricules/{matricule} {
       allow read: if isSignedIn();
