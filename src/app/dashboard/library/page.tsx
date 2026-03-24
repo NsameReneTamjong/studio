@@ -43,7 +43,10 @@ import {
   FileDown,
   ArrowUpRight,
   CheckCircle,
-  ArrowLeftRight
+  ArrowLeftRight,
+  Gavel,
+  ShieldAlert,
+  CalendarClock
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -80,6 +83,15 @@ export default function LibraryPage() {
   const [loans, setLoans] = useState(INITIAL_LOANS);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Policy State
+  const [policyData, setPolicyData] = useState({
+    loanDuration: "14",
+    dailyFine: "500",
+    maxBooks: "3",
+    gracePeriod: "2",
+    lostBookPenalty: "15000"
+  });
+
   const isLibrarian = user?.role === "LIBRARIAN";
   const isAdmin = user?.role === "SCHOOL_ADMIN";
 
@@ -93,8 +105,19 @@ export default function LibraryPage() {
     toast({ title: "Book Returned", description: "Stock updated." });
   };
 
+  const handleSavePolicy = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      setIsProcessing(false);
+      toast({
+        title: "Policy Synchronized",
+        description: "Library rules and circulation parameters updated across the node.",
+      });
+    }, 1000);
+  };
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
@@ -270,11 +293,116 @@ export default function LibraryPage() {
         </TabsContent>
 
         <TabsContent value="settings" className="mt-8">
-          <div className="p-20 text-center border-2 border-dashed border-accent rounded-3xl">
-             <ShieldCheck className="w-12 h-12 text-primary opacity-20 mx-auto mb-4" />
-             <h3 className="font-bold text-primary">Library Policy Overview</h3>
-             <p className="text-sm text-muted-foreground">Standard Loan: 14 Days • Penalty: 500 XAF/Day</p>
-             <p className="text-[10px] mt-2 italic text-muted-foreground">Admins have read-only access to library governance.</p>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-6">
+              <Card className="border-none shadow-xl overflow-hidden rounded-[2rem]">
+                <CardHeader className="bg-primary p-8 text-white">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-white/10 rounded-2xl">
+                      <Gavel className="w-8 h-8 text-secondary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-2xl font-black">Circulation Rules</CardTitle>
+                      <CardDescription className="text-white/60">Configure institutional borrowing limits and academic timelines.</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-8 space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
+                        <CalendarClock className="w-3.5 h-3.5 text-primary" /> Standard Loan Duration (Days)
+                      </Label>
+                      <Input 
+                        type="number" 
+                        value={policyData.loanDuration}
+                        onChange={(e) => setPolicyData({...policyData, loanDuration: e.target.value})}
+                        className="h-12 bg-accent/30 border-none rounded-xl font-bold"
+                        disabled={isAdmin}
+                      />
+                      <p className="text-[9px] text-muted-foreground italic">Number of days a student can keep a book before penalty starts.</p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
+                        <Coins className="w-3.5 h-3.5 text-amber-600" /> Overdue Fine (XAF/Day)
+                      </Label>
+                      <Input 
+                        type="number" 
+                        value={policyData.dailyFine}
+                        onChange={(e) => setPolicyData({...policyData, dailyFine: e.target.value})}
+                        className="h-12 bg-accent/30 border-none rounded-xl font-bold"
+                        disabled={isAdmin}
+                      />
+                      <p className="text-[9px] text-muted-foreground italic">Daily charge accrued for every day past the return date.</p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
+                        <BookOpen className="w-3.5 h-3.5 text-blue-600" /> Max Concurrent Books
+                      </Label>
+                      <Input 
+                        type="number" 
+                        value={policyData.maxBooks}
+                        onChange={(e) => setPolicyData({...policyData, maxBooks: e.target.value})}
+                        className="h-12 bg-accent/30 border-none rounded-xl font-bold"
+                        disabled={isAdmin}
+                      />
+                      <p className="text-[9px] text-muted-foreground italic">Total number of resources a single user can have out at once.</p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
+                        <ShieldAlert className="w-3.5 h-3.5 text-red-600" /> Lost Book Penalty (XAF)
+                      </Label>
+                      <Input 
+                        type="number" 
+                        value={policyData.lostBookPenalty}
+                        onChange={(e) => setPolicyData({...policyData, lostBookPenalty: e.target.value})}
+                        className="h-12 bg-accent/30 border-none rounded-xl font-bold"
+                        disabled={isAdmin}
+                      />
+                      <p className="text-[9px] text-muted-foreground italic">Flat charge for resources reported as lost or unrecoverable.</p>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter className="bg-accent/20 p-6 border-t border-accent flex justify-end">
+                  <Button 
+                    className="h-12 px-10 rounded-xl shadow-lg font-black uppercase tracking-widest text-xs gap-2"
+                    onClick={handleSavePolicy}
+                    disabled={isProcessing || isAdmin}
+                  >
+                    {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    Update Institutional Policy
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+
+            <div className="space-y-6">
+              <Card className="border-none shadow-sm bg-blue-50">
+                <CardHeader>
+                  <CardTitle className="text-sm font-black text-blue-700 uppercase flex items-center gap-2">
+                    <Info className="w-4 h-4" /> Operational Note
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-xs text-blue-800 leading-relaxed font-medium">
+                    Changes to library policies are logged and take effect for all new loans. Existing loans will maintain their original return dates but will adhere to new daily fine rates.
+                  </p>
+                  <div className="flex items-center gap-2 pt-4 border-t border-blue-100">
+                    <ShieldCheck className="w-4 h-4 text-blue-600" />
+                    <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Secure Registry Active</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="p-8 rounded-[2rem] bg-white border border-accent shadow-inner text-center space-y-4">
+                <QrCode className="w-24 h-24 mx-auto text-primary opacity-10" />
+                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Policy Verification ID</p>
+                <Badge variant="outline" className="font-mono text-primary text-[10px]">POL-{Math.random().toString(36).substr(2, 6).toUpperCase()}</Badge>
+              </div>
+            </div>
           </div>
         </TabsContent>
       </Tabs>
