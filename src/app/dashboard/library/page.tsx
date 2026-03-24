@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -395,13 +394,13 @@ export default function LibraryPage() {
                     <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Secure Registry Active</span>
                   </div>
                 </CardContent>
-              </Card>
 
-              <div className="p-8 rounded-[2rem] bg-white border border-accent shadow-inner text-center space-y-4">
-                <QrCode className="w-24 h-24 mx-auto text-primary opacity-10" />
-                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Policy Verification ID</p>
-                <Badge variant="outline" className="font-mono text-primary text-[10px]">POL-{Math.random().toString(36).substr(2, 6).toUpperCase()}</Badge>
-              </div>
+                <div className="p-8 rounded-[2rem] bg-white border border-accent shadow-inner text-center space-y-4">
+                  <QrCode className="w-24 h-24 mx-auto text-primary opacity-10" />
+                  <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Policy Verification ID</p>
+                  <Badge variant="outline" className="font-mono text-primary text-[10px]">POL-{Math.random().toString(36).substr(2, 6).toUpperCase()}</Badge>
+                </div>
+              </Card>
             </div>
           </div>
         </TabsContent>

@@ -39,13 +39,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 type AuthMode = "login" | "activate" | "forgot";
-type ForgotStep = "identify" | "confirmation" | "otp" | "reset";
 
 const QUICK_DEMO_ACCOUNTS = [
   { label: "Super Admin (CEO)", matricule: "EDUI26CEO001", icon: Crown, color: "bg-primary text-secondary" },
@@ -58,21 +55,17 @@ const QUICK_DEMO_ACCOUNTS = [
 ];
 
 export default function LoginPage() {
-  const { login, activateAccount, platformSettings, testimonials, featuredVideos } = useAuth();
-  const { t, setLanguage, language } = useI18n();
+  const { login, activateAccount, platformSettings } = useAuth();
+  const { setLanguage, language } = useI18n();
   const { toast } = useToast();
   
   const [mode, setAuthMode] = useState<AuthMode>("login");
-  const [forgotStep, setForgotStep] = useState<ForgotStep>("identify");
   const [isProcessing, setIsProcessing] = useState(false);
   
-  // Form State
   const [authData, setAuthData] = useState({
     matricule: "",
     password: "",
     confirmPassword: "",
-    email: "",
-    otp: "",
   });
 
   const handleQuickLogin = async (matricule: string) => {
