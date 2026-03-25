@@ -53,7 +53,8 @@ import {
   Users,
   Pencil,
   UserX,
-  Loader2
+  Loader2,
+  X
 } from "lucide-react";
 import { 
   DropdownMenu, 
@@ -97,7 +98,7 @@ const INITIAL_SUB_SCHOOLS = [
 
 const INITIAL_ADMINS: SchoolAdmin[] = [
   { 
-    id: "ADM-01", 
+    id: "GBHS26", 
     name: "Principal Fonka", 
     role: "Principal", 
     purview: "Whole Institution", 
@@ -106,11 +107,11 @@ const INITIAL_ADMINS: SchoolAdmin[] = [
     permissions: { manageStudents: true, manageStaff: true, generateReports: true, fullControl: true }
   },
   { 
-    id: "ADM-02", 
-    name: "Dr. Aris Tesla", 
+    id: "GBHS26A001", 
+    name: "VP Academics", 
     role: "Vice Principal", 
     purview: "Anglophone Section", 
-    avatar: "https://picsum.photos/seed/t1/100/100",
+    avatar: "https://picsum.photos/seed/subadmin/100/100",
     status: "active",
     permissions: { manageStudents: true, manageStaff: true, generateReports: true, fullControl: false }
   },
@@ -189,6 +190,22 @@ export default function CommunityPage() {
       setNewAdminData({ name: "", id: "", title: "", purview: "Whole Institution", permissions: { manageStudents: false, manageStaff: false, generateReports: false, fullControl: false } });
       toast({ title: "Admin Appointed", description: `${created.name} is now authorized.` });
     }, 1000);
+  };
+
+  const handleUpdateAdmin = () => {
+    if (!editingAdmin) return;
+    setIsProcessing(true);
+    setTimeout(() => {
+      setAdmins(prev => prev.map(a => a.id === editingAdmin.id ? editingAdmin : a));
+      setIsProcessing(false);
+      setEditingAdmin(null);
+      toast({ title: "Hierarchy Updated", description: "Administrator details have been synchronized." });
+    }, 800);
+  };
+
+  const handleRemoveAdmin = (id: string) => {
+    setAdmins(prev => prev.filter(a => a.id !== id));
+    toast({ variant: "destructive", title: "Admin Removed", description: "The administrative record has been decommissioned." });
   };
 
   const PermissionCheckbox = ({ id, label, checked, onChange, icon: Icon }: any) => (
@@ -393,14 +410,94 @@ export default function CommunityPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="bg-accent/10 p-3 border-t flex justify-end gap-2">
-                   <Button variant="ghost" size="icon" className="h-8 w-8 text-primary/40 hover:text-primary"><Pencil className="w-4 h-4"/></Button>
-                   <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive/40 hover:text-destructive"><UserX className="w-4 h-4"/></Button>
+                   <Button variant="ghost" size="icon" className="h-8 w-8 text-primary/40 hover:text-primary" onClick={() => setEditingAdmin({...adm})}>
+                     <Pencil className="w-4 h-4"/>
+                   </Button>
+                   <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive/40 hover:text-destructive" onClick={() => handleRemoveAdmin(adm.id)}>
+                     <UserX className="w-4 h-4"/>
+                   </Button>
                 </CardFooter>
               </Card>
             ))}
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* EDIT ADMIN DIALOG */}
+      <Dialog open={!!editingAdmin} onOpenChange={() => setEditingAdmin(null)}>
+        <DialogContent className="sm:max-w-xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="bg-primary p-8 text-white relative">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/10 rounded-2xl"><Settings2 className="w-8 h-8 text-secondary" /></div>
+              <div>
+                <DialogTitle className="text-2xl font-black">Modify Admin Purview</DialogTitle>
+                <DialogDescription className="text-white/60">Update authority and roles for {editingAdmin?.name}.</DialogDescription>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setEditingAdmin(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+              <X className="w-6 h-6" />
+            </Button>
+          </DialogHeader>
+          <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto">
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label>Strategic Role</Label>
+                <Input value={editingAdmin?.role || ""} onChange={(e) => setEditingAdmin(prev => prev ? {...prev, role: e.target.value} : null)} className="h-12 bg-accent/30 border-none rounded-xl font-bold" />
+              </div>
+              <div className="space-y-2">
+                <Label>Section Purview</Label>
+                <Select value={editingAdmin?.purview} onValueChange={(v) => setEditingAdmin(prev => prev ? {...prev, purview: v} : null)}>
+                  <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Whole Institution">Whole Institution</SelectItem>
+                    {subSchools.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h4 className="text-[10px] font-black uppercase text-primary/40 tracking-widest border-b pb-2">Authority Parameters</h4>
+              <div className="grid grid-cols-2 gap-3">
+                {editingAdmin && (
+                  <>
+                    <PermissionCheckbox 
+                      label="Manage Students" 
+                      icon={GraduationCap} 
+                      checked={editingAdmin.permissions.manageStudents} 
+                      onChange={(v: boolean) => setEditingAdmin({...editingAdmin, permissions: {...editingAdmin.permissions, manageStudents: v}})} 
+                    />
+                    <PermissionCheckbox 
+                      label="Manage Staff" 
+                      icon={Users} 
+                      checked={editingAdmin.permissions.manageStaff} 
+                      onChange={(v: boolean) => setEditingAdmin({...editingAdmin, permissions: {...editingAdmin.permissions, manageStaff: v}})} 
+                    />
+                    <PermissionCheckbox 
+                      label="Generate Reports" 
+                      icon={FileText} 
+                      checked={editingAdmin.permissions.generateReports} 
+                      onChange={(v: boolean) => setEditingAdmin({...editingAdmin, permissions: {...editingAdmin.permissions, generateReports: v}})} 
+                    />
+                    <PermissionCheckbox 
+                      label="Full Control" 
+                      icon={ShieldAlert} 
+                      checked={editingAdmin.permissions.fullControl} 
+                      onChange={(v: boolean) => setEditingAdmin({...editingAdmin, permissions: {...editingAdmin.permissions, fullControl: v}})} 
+                    />
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+            <Button onClick={handleUpdateAdmin} className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3 bg-primary text-white" disabled={isProcessing}>
+              {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <ShieldCheck className="w-5 h-5" />}
+              Commit Authority Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
