@@ -111,9 +111,9 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       roles: ["SCHOOL_ADMIN", "TEACHER", "STUDENT", "PARENT", "BURSAR", "LIBRARIAN"],
     },
     {
-      label: language === 'en' ? 'Community' : 'Communauté',
-      icon: UsersRound,
-      href: "/dashboard/community",
+      label: isAdmin ? (language === 'en' ? 'Manage Institution' : 'Gérer l\'Institution') : (language === 'en' ? 'Community' : 'Communauté'),
+      icon: isAdmin ? Settings2 : UsersRound,
+      href: isAdmin ? "/dashboard/settings" : "/dashboard/community",
       roles: ["SCHOOL_ADMIN"],
     },
     {
@@ -223,12 +223,6 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       icon: Calendar,
       href: "/dashboard/schedule",
       roles: ["TEACHER"],
-    },
-    {
-      label: t("settings"),
-      icon: Settings2,
-      href: "/dashboard/settings",
-      roles: ["SCHOOL_ADMIN"],
     },
     {
       label: t("profile"),

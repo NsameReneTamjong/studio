@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Building2, Save, Loader2, Image as ImageIcon, MapPin, Quote, FileText, Upload, Phone, Mail, Hash, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Building2, Save, Loader2, Image as ImageIcon, MapPin, Quote, FileText, Upload, Phone, Mail, Hash, ShieldCheck, CheckCircle2, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function SchoolSettingsPage() {
@@ -21,6 +21,7 @@ export default function SchoolSettingsPage() {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
+    principal: "",
     motto: "",
     description: "",
     region: "",
@@ -39,6 +40,7 @@ export default function SchoolSettingsPage() {
     if (user?.school) {
       setFormData({
         name: user.school.name || "",
+        principal: user.school.principal || "",
         motto: user.school.motto || "",
         description: user.school.description || "",
         region: user.school.region || "",
@@ -86,10 +88,8 @@ export default function SchoolSettingsPage() {
       const location = `${formData.cityVillage}, ${formData.region}`;
       await updateSchool({ ...formData, location } as Partial<SchoolInfo>);
       toast({
-        title: t("changesSaved"),
-        description: language === 'en' 
-          ? "Institutional settings updated successfully. Branding is now live across the platform." 
-          : "Les paramètres institutionnels ont été mis à jour avec succès. L'image de marque est maintenant active.",
+        title: "Profile Updated",
+        description: "Institutional records have been synchronized successfully.",
       });
     } catch (e) {
       toast({ variant: "destructive", title: "Save Failed", description: "Failed to update school settings." });
@@ -106,13 +106,13 @@ export default function SchoolSettingsPage() {
             <div className="p-2 bg-primary rounded-xl shadow-lg">
               <Building2 className="w-6 h-6 text-secondary" />
             </div>
-            {t("settings")}
+            Manage Institution
           </h1>
-          <p className="text-muted-foreground mt-1">Manage your school's professional identity, contact registry, and branding assets.</p>
+          <p className="text-muted-foreground mt-1">Configure your school's visual identity, pedagogical goals, and contact registry.</p>
         </div>
         <Button onClick={handleUpdateSettings} disabled={loading} className="h-12 px-8 shadow-xl font-black uppercase tracking-widest text-xs gap-2 rounded-2xl">
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          Commit All Changes
+          Commit Profile Changes
         </Button>
       </div>
 
@@ -123,24 +123,33 @@ export default function SchoolSettingsPage() {
               <CardTitle className="flex items-center gap-2 text-primary text-lg"><FileText className="w-5 h-5" /> Institutional Identity</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase text-muted-foreground">School Name</Label>
-                <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="bg-accent/30 border-none h-12 rounded-xl font-bold text-lg" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Official School Name</Label>
+                  <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="bg-accent/30 border-none h-12 rounded-xl font-bold text-lg" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Head of Institution (Principal)</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
+                    <Input value={formData.principal} onChange={(e) => setFormData({...formData, principal: e.target.value})} className="bg-accent/30 border-none h-12 pl-10 rounded-xl font-bold" placeholder="e.g. Principal Fonka" />
+                  </div>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-2"><Quote className="w-3 h-3" /> Motto / Official Slogan</Label>
                 <Input value={formData.motto} onChange={(e) => setFormData({...formData, motto: e.target.value})} className="bg-accent/30 border-none h-11 rounded-xl italic" placeholder="e.g. Discipline - Work - Success" />
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase text-muted-foreground">About the Institution</Label>
-                <Textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="bg-accent/30 border-none min-h-[120px] rounded-xl leading-relaxed" placeholder="Official description..." />
+                <Label className="text-[10px] font-black uppercase text-muted-foreground">About the Institution (Pedagogical Mission)</Label>
+                <Textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="bg-accent/30 border-none min-h-[150px] rounded-xl leading-relaxed" placeholder="Tell students and parents about your school..." />
               </div>
             </CardContent>
           </Card>
 
           <Card className="border-none shadow-sm overflow-hidden rounded-3xl">
             <CardHeader className="bg-primary/5 border-b p-6">
-              <CardTitle className="flex items-center gap-2 text-primary text-lg"><MapPin className="w-5 h-5" /> Registry & Contact Details</CardTitle>
+              <CardTitle className="flex items-center gap-2 text-primary text-lg"><MapPin className="w-5 h-5" /> Registry & Physical Contacts</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -164,32 +173,33 @@ export default function SchoolSettingsPage() {
             </CardHeader>
             <CardContent className="space-y-8 pt-6">
               <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase text-muted-foreground">Institutional Logo</Label>
-                <div className="group relative w-32 h-32 mx-auto bg-accent/20 rounded-2xl border-2 border-dashed border-accent flex items-center justify-center cursor-pointer overflow-hidden transition-all hover:border-primary" onClick={() => logoInputRef.current?.click()}>
+                <Label className="text-[10px] font-black uppercase text-muted-foreground text-center block tracking-widest">Institutional Logo</Label>
+                <div className="group relative w-32 h-32 mx-auto bg-accent/20 rounded-2xl border-2 border-dashed border-accent flex items-center justify-center cursor-pointer overflow-hidden transition-all hover:border-primary shadow-inner" onClick={() => logoInputRef.current?.click()}>
                   <input type="file" ref={logoInputRef} className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, 'logo')} />
                   {formData.logo ? <img src={formData.logo} alt="Logo" className="w-full h-full object-contain p-2" /> : <Upload className="w-8 h-8 text-muted-foreground" />}
                   <div className="absolute inset-0 bg-primary/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><Upload className="w-6 h-6 text-white" /></div>
                 </div>
               </div>
               <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase text-muted-foreground">Landing Page Banner</Label>
-                <div className="group relative aspect-video bg-accent/20 rounded-2xl border-2 border-dashed border-accent flex items-center justify-center cursor-pointer overflow-hidden transition-all hover:border-primary" onClick={() => bannerInputRef.current?.click()}>
+                <Label className="text-[10px] font-black uppercase text-muted-foreground text-center block tracking-widest">Welcome Portal Banner</Label>
+                <div className="group relative aspect-video bg-accent/20 rounded-2xl border-2 border-dashed border-accent flex items-center justify-center cursor-pointer overflow-hidden transition-all hover:border-primary shadow-inner" onClick={() => bannerInputRef.current?.click()}>
                   <input type="file" ref={bannerInputRef} className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, 'banner')} />
                   {formData.banner ? <img src={formData.banner} alt="Banner" className="w-full h-full object-cover" /> : <Upload className="w-10 h-10 text-muted-foreground" />}
-                  <div className="absolute inset-0 bg-primary/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><Upload className="w-8 h-8 text-white" /></div>
+                  <div className="absolute inset-0 bg-primary/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><Upload className="w-6 h-6 text-white" /></div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-none shadow-sm bg-gradient-to-br from-primary to-primary/90 text-white rounded-3xl">
-            <CardHeader><CardTitle className="text-white flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-secondary" /> Integrity Status</CardTitle></CardHeader>
+          <Card className="border-none shadow-sm bg-gradient-to-br from-primary to-primary/90 text-white rounded-[2rem]">
+            <CardHeader><CardTitle className="text-white flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-secondary" /> Management Status</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
-                <div className="flex items-center justify-between text-xs"><span className="opacity-60">Identity Complete</span><CheckCircle2 className="w-4 h-4 text-green-400" /></div>
-                <div className="flex items-center justify-between text-xs"><span className="opacity-60">Contact Registry</span><CheckCircle2 className="w-4 h-4 text-green-400" /></div>
+                <div className="flex items-center justify-between text-xs"><span className="opacity-60">Identity Verified</span><CheckCircle2 className="w-4 h-4 text-green-400" /></div>
+                <div className="flex items-center justify-between text-xs"><span className="opacity-60">Contact Synced</span><CheckCircle2 className="w-4 h-4 text-green-400" /></div>
+                <div className="flex items-center justify-between text-xs"><span className="opacity-60">Node Integrity</span><CheckCircle2 className="w-4 h-4 text-green-400" /></div>
               </div>
-              <div className="pt-4 border-t border-white/10"><p className="text-[10px] font-black uppercase tracking-widest opacity-40 italic">Updates committed here are immediate.</p></div>
+              <div className="pt-4 border-t border-white/10"><p className="text-[9px] font-black uppercase tracking-widest opacity-40 italic">Updates committed here reflect immediately on the institutional portal.</p></div>
             </CardContent>
           </Card>
         </div>
