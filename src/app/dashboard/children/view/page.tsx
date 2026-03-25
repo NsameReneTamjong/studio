@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -45,7 +46,9 @@ import {
   Users,
   Send,
   Scale,
-  Signature
+  Signature,
+  Activity,
+  Lock
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -54,7 +57,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const MOCK_CHILDREN = [
   {
-    id: "S001",
+    id: "GBHS26S001",
     uid: "S1",
     name: "Alice Thompson",
     class: "2nde / Form 5",
@@ -71,6 +74,11 @@ const MOCK_CHILDREN = [
     motto: "Discipline - Work - Success"
   }
 ];
+
+// Teacher Assignment Mapping (Same as Students Page for consistency)
+const TEACHER_ASSIGNMENTS: Record<string, string[]> = {
+  "GBHS26T001": ["Physics", "Chemistry", "Advanced Physics", "General Science"],
+};
 
 const getAppreciation = (note: number) => {
   if (note >= 16) return { text: "Excellence", color: "bg-green-600" };
@@ -137,6 +145,13 @@ const MOCK_SUBJECT_RECORDS = [
   { subject: "History", present: 15, absent: 9, teacher: "Mr. Tabi" },
 ];
 
+const MOCK_STUDENT_ACTIVITIES = [
+  { id: 1, subject: "Physics", action: "Lab Report Submitted", date: "Today, 10:45 AM", status: "Pending Review" },
+  { id: 2, subject: "Physics", action: "Quiz Completed", date: "Yesterday", status: "Graded (18/20)" },
+  { id: 3, subject: "Chemistry", action: "Assignment Handed In", date: "2 days ago", status: "Verified" },
+  { id: 4, subject: "Mathematics", action: "MCQ Attempt", date: "3 days ago", status: "Graded (15/20)" },
+];
+
 export default function StudentDetailsPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -160,21 +175,50 @@ export default function StudentDetailsPage() {
     }, 500);
   }, [studentId]);
 
+  const isTeacher = currentUser?.role === "TEACHER";
+  const mySubjects = useMemo(() => {
+    if (!isTeacher || !currentUser?.id) return [];
+    return TEACHER_ASSIGNMENTS[currentUser.id] || [];
+  }, [isTeacher, currentUser?.id]);
+
+  // FILTERED DATA FOR TEACHERS
+  const filteredGrades = useMemo(() => {
+    if (!isTeacher) return MOCK_GRADES;
+    return MOCK_GRADES.filter(g => mySubjects.includes(g.subject));
+  }, [isTeacher, mySubjects]);
+
+  const filteredAttendance = useMemo(() => {
+    if (!isTeacher) return MOCK_TODAY_ATTENDANCE;
+    return MOCK_TODAY_ATTENDANCE.filter(a => mySubjects.includes(a.subject));
+  }, [isTeacher, mySubjects]);
+
+  const filteredHistory = useMemo(() => {
+    if (!isTeacher) return MOCK_SUBJECT_RECORDS;
+    return MOCK_SUBJECT_RECORDS.filter(r => mySubjects.includes(r.subject));
+  }, [isTeacher, mySubjects]);
+
+  const filteredActivities = useMemo(() => {
+    if (!isTeacher) return MOCK_STUDENT_ACTIVITIES;
+    return MOCK_STUDENT_ACTIVITIES.filter(a => mySubjects.includes(a.subject));
+  }, [isTeacher, mySubjects]);
+
   const studentStats = useMemo(() => {
-    const totalWeighted = MOCK_GRADES.reduce((acc, curr) => acc + (((curr.seq1 + curr.seq2)/2) * curr.coeff), 0);
-    const totalCoeff = MOCK_GRADES.reduce((acc, curr) => acc + curr.coeff, 0);
+    const gradesToCalc = isTeacher ? filteredGrades : MOCK_GRADES;
+    const totalWeighted = gradesToCalc.reduce((acc, curr) => acc + (((curr.seq1 + curr.seq2)/2) * curr.coeff), 0);
+    const totalCoeff = gradesToCalc.reduce((acc, curr) => acc + curr.coeff, 0);
     const avg = totalCoeff > 0 ? totalWeighted / totalCoeff : 0;
+    
     return {
       average: avg.toFixed(2),
       totalCoeff,
       totalWeighted: totalWeighted.toFixed(2),
       attendance: 94.5,
-      position: "4th / 45",
+      position: isTeacher ? "N/A (Subject View)" : "4th / 45",
       classAvg: "12.45",
       highestAvg: "18.20",
       lowestAvg: "06.15"
     };
-  }, []);
+  }, [isTeacher, filteredGrades]);
 
   const handleDownload = (docName: string) => {
     toast({
@@ -225,24 +269,31 @@ export default function StudentDetailsPage() {
                 {student.name}
                 <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200 uppercase hidden md:inline-flex">ACTIVE</Badge>
               </h1>
-              <p className="text-sm md:text-base text-muted-foreground">{student.class} • ID: {student.id}</p>
+              <p className="text-sm md:text-base text-muted-foreground">
+                {student.class} • ID: {student.id} 
+                {isTeacher && <span className="ml-2 font-black text-secondary uppercase text-[10px] bg-primary px-2 py-0.5 rounded-full">Pedagogical View</span>}
+              </p>
             </div>
           </div>
         </div>
-        <div className="flex gap-2 w-full sm:w-auto">
-          <Button variant="outline" className="flex-1 sm:flex-none gap-2" onClick={() => setIsMessageModalOpen(true)}>
-            <Mail className="w-4 h-4" /> {language === 'en' ? 'Contact Teacher' : 'Contacter Enseignant'}
-          </Button>
-          <Button className="flex-1 sm:flex-none gap-2 shadow-lg" onClick={() => setPreviewDoc({ type: 'report' })}>
-            <Printer className="w-4 h-4" /> {t("print")} {t("reportCard")}
-          </Button>
-        </div>
+        {!isTeacher && (
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button variant="outline" className="flex-1 sm:flex-none gap-2" onClick={() => setIsMessageModalOpen(true)}>
+              <Mail className="w-4 h-4" /> {language === 'en' ? 'Contact Teacher' : 'Contacter Enseignant'}
+            </Button>
+            <Button className="flex-1 sm:flex-none gap-2 shadow-lg" onClick={() => setPreviewDoc({ type: 'report' })}>
+              <Printer className="w-4 h-4" /> {t("print")} {t("reportCard")}
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="border-none shadow-sm bg-primary text-white">
           <CardHeader className="pb-2">
-            <CardTitle className="text-[10px] font-black opacity-60 uppercase tracking-widest">{t("termAverage")}</CardTitle>
+            <CardTitle className="text-[10px] font-black opacity-60 uppercase tracking-widest">
+              {isTeacher ? "My Subject Average" : t("termAverage")}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-black text-secondary">{studentStats.average} / 20</div>
@@ -250,19 +301,23 @@ export default function StudentDetailsPage() {
         </Card>
         <Card className="border-none shadow-sm bg-secondary text-primary">
           <CardHeader className="pb-2">
-            <CardTitle className="text-[10px] font-black opacity-60 uppercase tracking-widest">Class Position</CardTitle>
+            <CardTitle className="text-[10px] font-black opacity-60 uppercase tracking-widest">
+              {isTeacher ? "Total Weighted Points" : "Class Position"}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-black">{studentStats.position}</div>
+            <div className="text-3xl font-black">{isTeacher ? studentStats.totalWeighted : studentStats.position}</div>
           </CardContent>
         </Card>
         <Card className="border-none shadow-sm bg-accent text-primary border border-primary/10">
           <CardHeader className="pb-2">
-            <CardTitle className="text-[10px] font-black opacity-60 uppercase tracking-widest">Conduct Status</CardTitle>
+            <CardTitle className="text-[10px] font-black opacity-60 uppercase tracking-widest">
+              {isTeacher ? "Subject Attendance" : "Conduct Status"}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-xl font-black flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-green-600" /> {getConduct(studentStats.attendance)}
+              <CheckCircle2 className="w-5 h-5 text-green-600" /> {isTeacher ? "92.4%" : getConduct(studentStats.attendance)}
             </div>
           </CardContent>
         </Card>
@@ -270,77 +325,87 @@ export default function StudentDetailsPage() {
 
       <Tabs defaultValue="grades" className="w-full">
         <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full bg-white border shadow-sm h-auto p-1 rounded-xl">
-          <TabsTrigger value="profile" className="gap-2 py-2">
-            <User className="w-4 h-4" /> {t("profile")}
-          </TabsTrigger>
+          {!isTeacher && (
+            <TabsTrigger value="profile" className="gap-2 py-2">
+              <User className="w-4 h-4" /> {t("profile")}
+            </TabsTrigger>
+          )}
           <TabsTrigger value="grades" className="gap-2 py-2">
-            <Award className="w-4 h-4" /> {t("grades")}
+            <Award className="w-4 h-4" /> {isTeacher ? "Performance" : t("grades")}
           </TabsTrigger>
-          <TabsTrigger value="schedule" className="gap-2 py-2">
-            <Calendar className="w-4 h-4" /> {t("schedule")}
-          </TabsTrigger>
+          {!isTeacher && (
+            <TabsTrigger value="schedule" className="gap-2 py-2">
+              <Calendar className="w-4 h-4" /> {t("schedule")}
+            </TabsTrigger>
+          )}
           <TabsTrigger value="attendance" className="gap-2 py-2">
             <ClipboardCheck className="w-4 h-4" /> {t("presence")}
           </TabsTrigger>
-          <TabsTrigger value="documents" className="gap-2 py-2">
-            <FileText className="w-4 h-4" /> {t("documents")}
+          <TabsTrigger value="activities" className="gap-2 py-2">
+            <Activity className="w-4 h-4" /> Activities
           </TabsTrigger>
+          {!isTeacher && (
+            <TabsTrigger value="documents" className="gap-2 py-2">
+              <FileText className="w-4 h-4" /> {t("documents")}
+            </TabsTrigger>
+          )}
         </TabsList>
 
-        <TabsContent value="profile" className="mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-2 border-none shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Info className="w-5 h-5 text-primary" /> {t("personalInfo")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-1">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">{t("fullName")}</p>
-                    <p className="font-bold text-lg">{student.name}</p>
+        {!isTeacher && (
+          <TabsContent value="profile" className="mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <Card className="lg:col-span-2 border-none shadow-sm">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Info className="w-5 h-5 text-primary" /> {t("personalInfo")}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-1">
+                      <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">{t("fullName")}</p>
+                      <p className="font-bold text-lg">{student.name}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">{t("matricule")}</p>
+                      <p className="font-mono font-bold text-lg text-primary">{student.id}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">{t("email")}</p>
+                      <p className="font-medium text-primary flex items-center gap-2"><Mail className="w-4 h-4"/> {student.email}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">{language === 'en' ? "Grade" : "Niveau"}</p>
+                      <p className="font-bold">{student.class}</p>
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">{t("matricule")}</p>
-                    <p className="font-mono font-bold text-lg text-primary">{student.id}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">{t("email")}</p>
-                    <p className="font-medium text-primary flex items-center gap-2"><Mail className="w-4 h-4"/> {student.email}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">{language === 'en' ? "Grade" : "Niveau"}</p>
-                    <p className="font-bold">{student.class}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            <Card className="border-none shadow-sm bg-gradient-to-br from-primary to-primary/90 text-white">
-              <CardHeader>
-                <CardTitle className="text-white">{language === 'en' ? "Institutional Status" : "Statut Institutionnel"}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <span className="opacity-70 text-sm">{t("status")}</span>
-                  <Badge className="bg-secondary text-primary border-none uppercase">{student.status || 'Active'}</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="opacity-70 text-sm">{language === 'en' ? "Join Date" : "Date d'Entrée"}</span>
-                  <span className="font-bold text-sm">Oct 12, 2023</span>
-                </div>
-                <div className="pt-6 border-t border-white/10 text-center">
-                  <QrCode className="w-32 h-32 mx-auto text-white/20 mb-2" />
-                  <p className="text-[10px] font-black uppercase font-bold tracking-widest opacity-40">Digital ID Verified</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
+              <Card className="border-none shadow-sm bg-gradient-to-br from-primary to-primary/90 text-white">
+                <CardHeader>
+                  <CardTitle className="text-white">{language === 'en' ? "Institutional Status" : "Statut Institutionnel"}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <span className="opacity-70 text-sm">{t("status")}</span>
+                    <Badge className="bg-secondary text-primary border-none uppercase">{student.status || 'Active'}</Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="opacity-70 text-sm">{language === 'en' ? "Join Date" : "Date d'Entrée"}</span>
+                    <span className="font-bold text-sm">Oct 12, 2023</span>
+                  </div>
+                  <div className="pt-6 border-t border-white/10 text-center">
+                    <QrCode className="w-32 h-32 mx-auto text-white/20 mb-2" />
+                    <p className="text-[10px] font-black uppercase font-bold tracking-widest opacity-40">Digital ID Verified</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        )}
 
         <TabsContent value="grades" className="mt-6 space-y-8">
-          {/* CURRENT TERM SECTION */}
           <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
             <CardHeader className="bg-primary p-8 text-white">
               <div className="flex flex-row items-center justify-between">
@@ -349,13 +414,19 @@ export default function StudentDetailsPage() {
                     <TrendingUp className="w-8 h-8 text-secondary" />
                   </div>
                   <div>
-                    <CardTitle className="text-2xl font-black">Current Term Performance</CardTitle>
-                    <CardDescription className="text-white/60">Verified marks for the active evaluation cycle.</CardDescription>
+                    <CardTitle className="text-2xl font-black">
+                      {isTeacher ? "Subject Performance Records" : "Current Term Performance"}
+                    </CardTitle>
+                    <CardDescription className="text-white/60">
+                      {isTeacher ? "Verified marks for your assigned curriculum." : "Verified marks for the active evaluation cycle."}
+                    </CardDescription>
                   </div>
                 </div>
-                <Button onClick={() => setPreviewDoc({ type: 'report' })} className="gap-2 bg-secondary text-primary shadow-lg border-none hover:bg-secondary/90 hidden sm:flex">
-                  <Eye className="w-4 h-4" /> {t("officialBulletin")}
-                </Button>
+                {!isTeacher && (
+                  <Button onClick={() => setPreviewDoc({ type: 'report' })} className="gap-2 bg-secondary text-primary shadow-lg border-none hover:bg-secondary/90 hidden sm:flex">
+                    <Eye className="w-4 h-4" /> {t("officialBulletin")}
+                  </Button>
+                )}
               </div>
             </CardHeader>
             <CardContent className="p-0 overflow-x-auto">
@@ -366,12 +437,12 @@ export default function StudentDetailsPage() {
                     <TableHead className="text-center font-black uppercase text-[10px] tracking-widest">Seq 1</TableHead>
                     <TableHead className="text-center font-black uppercase text-[10px] tracking-widest">Seq 2</TableHead>
                     <TableHead className="text-center font-black uppercase text-[10px] tracking-widest">Coeff</TableHead>
-                    <TableHead className="font-black uppercase text-[10px] tracking-widest">{t("teacher")}</TableHead>
+                    {!isTeacher && <TableHead className="font-black uppercase text-[10px] tracking-widest">{t("teacher")}</TableHead>}
                     <TableHead className="text-right pr-8 font-black uppercase text-[10px] tracking-widest">{t("status")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {MOCK_GRADES.map((grade: any, idx: number) => {
+                  {filteredGrades.map((grade: any, idx: number) => {
                     const avg = (grade.seq1 + grade.seq2) / 2;
                     return (
                       <TableRow key={idx} className="hover:bg-accent/5 border-b border-accent/10">
@@ -379,12 +450,14 @@ export default function StudentDetailsPage() {
                         <TableCell className="text-center font-black text-lg">{grade.seq1.toFixed(2)}</TableCell>
                         <TableCell className="text-center font-black text-lg">{grade.seq2.toFixed(2)}</TableCell>
                         <TableCell className="text-center font-bold text-muted-foreground italic">{grade.coeff}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
-                            <User className="w-3.5 h-3.5 text-primary/40" />
-                            {grade.teacher}
-                          </div>
-                        </TableCell>
+                        {!isTeacher && (
+                          <TableCell>
+                            <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
+                              <User className="w-3.5 h-3.5 text-primary/40" />
+                              {grade.teacher}
+                            </div>
+                          </TableCell>
+                        )}
                         <TableCell className="text-right pr-8">
                           <Badge className={cn(
                             "text-[9px] font-black uppercase px-3 border-none",
@@ -401,97 +474,23 @@ export default function StudentDetailsPage() {
             </CardContent>
             <CardFooter className="bg-primary/5 p-6 flex justify-between items-center border-t">
                <div className="text-xs font-bold text-primary italic leading-tight">
-                  <p>{language === 'en' ? "Calculated on school coefficients." : "Calculé sur les coefficients scolaires."}</p>
-                  <p className="text-secondary">{language === 'en' ? "Discipline Grade:" : "Note de conduite:"} {getConduct(studentStats.attendance)}</p>
+                  <p>{isTeacher ? "Displaying subject-specific coefficients." : "Calculated on school coefficients."}</p>
                </div>
                <div className="text-right">
-                  <p className="text-[10px] uppercase font-black text-muted-foreground">{t("termAverage")}</p>
+                  <p className="text-[10px] uppercase font-black text-muted-foreground">{isTeacher ? "Subject Average" : t("termAverage")}</p>
                   <p className="text-2xl font-black text-primary">{studentStats.average} / 20</p>
                </div>
             </CardFooter>
           </Card>
-
-          {/* HISTORY SECTION */}
-          <div className="space-y-6">
-            <h2 className="text-xl font-bold text-primary flex items-center gap-2">
-              <History className="w-5 h-5" /> Previous Terms History
-            </h2>
-            <Card className="border-none shadow-sm overflow-hidden rounded-3xl">
-              <CardContent className="p-0 overflow-x-auto">
-                <Table className="min-w-[650px]">
-                  <TableHeader className="bg-accent/30 uppercase text-[10px] font-black tracking-widest">
-                    <TableRow>
-                      <TableHead className="pl-8 py-4">Academic Period</TableHead>
-                      <TableHead className="text-center">Term Average</TableHead>
-                      <TableHead className="text-center">Class Position</TableHead>
-                      <TableHead>Class Master</TableHead>
-                      <TableHead className="text-right pr-8">Dossier</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {MOCK_REPORT_HISTORY.map((hist, i) => (
-                      <TableRow key={i} className="hover:bg-accent/5">
-                        <TableCell className="pl-8 py-4">
-                          <div className="flex flex-col">
-                            <span className="font-bold text-primary">{hist.term}</span>
-                            <span className="text-[10px] text-muted-foreground font-black uppercase">Year {hist.year}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center font-black text-primary text-lg">{hist.average} / 20</TableCell>
-                        <TableCell className="text-center">
-                          <Badge variant="outline" className="font-bold text-xs border-primary/10">{hist.position}</Badge>
-                        </TableCell>
-                        <TableCell className="text-xs font-bold text-muted-foreground italic">{hist.classMaster}</TableCell>
-                        <TableCell className="text-right pr-8">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="text-[10px] font-black uppercase gap-2 hover:bg-primary hover:text-white"
-                            onClick={() => setPreviewDoc({ type: 'report', data: hist })}
-                          >
-                            <Eye className="w-3.5 h-3.5" /> View Bulletin
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="schedule" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            {Object.entries(MOCK_SCHEDULE).map(([day, slots]) => (
-              <div key={day} className="space-y-3">
-                <h3 className="font-black text-xs uppercase text-primary border-b pb-2 tracking-widest">{day}</h3>
-                <div className="space-y-2">
-                  {slots.map((slot, i) => (
-                    <Card key={i} className="border-none shadow-sm bg-white hover:ring-1 hover:ring-primary/20 transition-all">
-                      <CardHeader className="p-3 pb-1">
-                        <Badge variant="outline" className="w-fit text-[8px] font-bold py-0 h-4 border-primary/10">{slot.time}</Badge>
-                        <CardTitle className="text-xs font-black text-primary mt-1">{slot.subject}</CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-3 pt-0">
-                        <div className="flex flex-col gap-1 text-[9px] text-muted-foreground font-bold">
-                          <span className="flex items-center gap-1"><MapPin className="w-2.5 h-2.5" /> {slot.room}</span>
-                          <span className="flex items-center gap-1"><User className="w-2.5 h-2.5" /> {slot.teacher}</span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
         </TabsContent>
 
         <TabsContent value="attendance" className="mt-6 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="md:col-span-1 border-none shadow-sm bg-blue-50 h-fit">
               <CardHeader className="pb-2">
-                <CardTitle className="text-[10px] font-black uppercase text-blue-600 tracking-widest">{language === 'en' ? "Aggregate Presence" : "Présence Globale"}</CardTitle>
+                <CardTitle className="text-[10px] font-black uppercase text-blue-600 tracking-widest">
+                  {isTeacher ? "Subject Presence" : "Aggregate Presence"}
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="text-4xl font-black text-blue-700">94.5%</div>
@@ -504,25 +503,18 @@ export default function StudentDetailsPage() {
                     <div className="h-full bg-blue-600" style={{ width: '94.5%' }} />
                   </div>
                 </div>
-                <div className="flex items-center gap-2 text-xs font-bold text-blue-600">
-                  <TrendingUp className="w-4 h-4" /> +2% from last term
-                </div>
               </CardContent>
             </Card>
 
             <div className="md:col-span-2 space-y-6">
-              {/* Today's Live Presence */}
               <Card className="border-none shadow-sm overflow-hidden">
                 <CardHeader className="bg-white border-b flex flex-row items-center justify-between">
                   <div>
                     <CardTitle className="text-sm font-black uppercase text-primary flex items-center gap-2">
-                      <ListChecks className="w-4 h-4" /> {t("todayPresence")}
+                      <ListChecks className="w-4 h-4" /> {isTeacher ? "Subject Session Log" : t("todayPresence")}
                     </CardTitle>
-                    <CardDescription>Live session status for {student.name}</CardDescription>
+                    <CardDescription>Live session status for {isTeacher ? "your courses" : student.name}</CardDescription>
                   </div>
-                  <Badge variant="outline" className="bg-accent/50 text-primary border-none text-[10px] font-black">
-                    {new Date().toLocaleDateString(language === 'en' ? 'en-US' : 'fr-FR', { weekday: 'long', month: 'long', day: 'numeric' })}
-                  </Badge>
                 </CardHeader>
                 <CardContent className="p-0">
                   <Table>
@@ -534,7 +526,7 @@ export default function StudentDetailsPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {MOCK_TODAY_ATTENDANCE.map((att, i) => (
+                      {filteredAttendance.map((att, i) => (
                         <TableRow key={i}>
                           <TableCell className="pl-6 py-3 font-bold text-xs text-primary">{att.subject}</TableCell>
                           <TableCell className="text-[10px] font-mono font-bold text-muted-foreground">{att.time}</TableCell>
@@ -550,13 +542,11 @@ export default function StudentDetailsPage() {
                 </CardContent>
               </Card>
 
-              {/* Subject-wise Statistics */}
               <Card className="border-none shadow-sm overflow-hidden">
                 <CardHeader className="bg-white border-b">
                   <CardTitle className="text-sm font-black uppercase text-primary flex items-center gap-2">
-                    <History className="w-4 h-4" /> {t("cumulativeRecords")}
+                    <History className="w-4 h-4" /> Cumulative Subject Records
                   </CardTitle>
-                  <CardDescription>Aggregate performance across all pedagogical sessions.</CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">
                   <Table>
@@ -565,20 +555,17 @@ export default function StudentDetailsPage() {
                         <TableHead className="pl-6">{t("subjects")}</TableHead>
                         <TableHead className="text-center text-green-600">{t("sessionsPresent")}</TableHead>
                         <TableHead className="text-center text-red-600">{t("sessionsAbsent")}</TableHead>
-                        <TableHead className="text-right pr-6">{t("teacher")}</TableHead>
+                        <TableHead className="text-right pr-6">Attendance %</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {MOCK_SUBJECT_RECORDS.map((rec, i) => (
+                      {filteredHistory.map((rec, i) => (
                         <TableRow key={i}>
                           <TableCell className="pl-6 py-3 font-bold text-xs text-primary">{rec.subject}</TableCell>
                           <TableCell className="text-center font-black text-green-600">{rec.present}</TableCell>
                           <TableCell className="text-center font-black text-red-600">{rec.absent}</TableCell>
-                          <TableCell className="text-right pr-6 text-[10px] font-bold text-muted-foreground italic">
-                            <div className="flex items-center justify-end gap-2">
-                              <User className="w-3 h-3" />
-                              {rec.teacher}
-                            </div>
+                          <TableCell className="text-right pr-6 font-mono font-black text-primary">
+                            {Math.round((rec.present / (rec.present + rec.absent)) * 100)}%
                           </TableCell>
                         </TableRow>
                       ))}
@@ -590,77 +577,128 @@ export default function StudentDetailsPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="documents" className="mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="space-y-6">
-              <h3 className="text-lg font-bold text-primary flex items-center gap-2">
-                <Award className="w-5 h-5" /> {t("reportCard")}
-              </h3>
-              <Card className="border-none shadow-sm group hover:ring-2 hover:ring-primary/20 transition-all">
-                <CardHeader className="flex flex-row items-center gap-4">
-                  <div className="p-3 bg-primary/10 rounded-xl text-primary">
-                    <FileText className="w-8 h-8" />
-                  </div>
-                  <div className="flex-1">
-                    <CardTitle className="text-base">{t("reportCard")} - Current Term</CardTitle>
-                    <CardDescription>{t("academicYear")} 2023/24</CardDescription>
-                  </div>
-                  <Button variant="outline" size="sm" onClick={() => setPreviewDoc({ type: 'report' })} className="gap-2">
-                    <Eye className="w-4 h-4" /> {language === 'en' ? 'View' : 'Voir'}
-                  </Button>
-                </CardHeader>
-              </Card>
-            </div>
+        <TabsContent value="activities" className="mt-6">
+          <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
+            <CardHeader className="bg-white border-b p-6">
+              <CardTitle className="text-lg font-black text-primary uppercase tracking-widest flex items-center gap-2">
+                <Activity className="w-5 h-5" /> Recent Subject Activities
+              </CardTitle>
+              <CardDescription>Chronological log of student interactions and submissions in {isTeacher ? "your subjects" : "all subjects"}.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader className="bg-accent/30 uppercase text-[10px] font-black tracking-widest">
+                  <TableRow>
+                    <TableHead className="pl-8 py-4">Action / Event</TableHead>
+                    <TableHead>Subject</TableHead>
+                    <TableHead className="text-center">Date</TableHead>
+                    <TableHead className="text-right pr-8">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredActivities.map((act) => (
+                    <TableRow key={act.id} className="hover:bg-accent/5 transition-colors border-b border-accent/10">
+                      <TableCell className="pl-8 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-primary/5 rounded-lg border border-primary/10">
+                            <Activity className="w-4 h-4 text-primary" />
+                          </div>
+                          <span className="font-bold text-sm text-primary">{act.action}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-[10px] font-bold uppercase border-primary/10">{act.subject}</Badge>
+                      </TableCell>
+                      <TableCell className="text-center text-[10px] font-bold text-muted-foreground">{act.date}</TableCell>
+                      <TableCell className="text-right pr-8">
+                        <Badge variant="secondary" className="bg-primary/5 text-primary border-none text-[9px] font-black">{act.status}</Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {filteredActivities.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={4} className="h-40 text-center text-muted-foreground italic">No recent activities recorded for your subjects.</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-            <div className="space-y-6">
-              <h3 className="text-lg font-bold text-primary flex items-center gap-2">
-                <CreditCard className="w-5 h-5" /> {t("idCard")}
-              </h3>
-              <div className="flex justify-center">
-                <Card className="w-full max-w-sm border shadow-xl bg-white overflow-hidden relative group cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all" onClick={() => setPreviewDoc({ type: 'id' })}>
-                  <div className="absolute top-0 right-0 p-4 opacity-5">
-                    <GraduationCap className="w-32 h-32" />
-                  </div>
-                  <CardHeader className="border-b bg-accent/5 pb-4">
-                    <div className="flex items-center gap-3">
-                      <Building2 className="w-6 h-6 text-primary" />
-                      <div>
-                        <CardTitle className="text-sm font-bold tracking-tight text-primary">
-                          {currentUser?.school?.name || "GBHS Deido"}
-                        </CardTitle>
-                        <CardDescription className="text-primary/60 text-[10px] uppercase font-bold tracking-widest">{t("idCard")}</CardDescription>
-                      </div>
+        {!isTeacher && (
+          <TabsContent value="documents" className="mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="space-y-6">
+                <h3 className="text-lg font-bold text-primary flex items-center gap-2">
+                  <Award className="w-5 h-5" /> {t("reportCard")}
+                </h3>
+                <Card className="border-none shadow-sm group hover:ring-2 hover:ring-primary/20 transition-all">
+                  <CardHeader className="flex flex-row items-center gap-4">
+                    <div className="p-3 bg-primary/10 rounded-xl text-primary">
+                      <FileText className="w-8 h-8" />
                     </div>
-                  </CardHeader>
-                  <CardContent className="pt-6 pb-6 space-y-4">
-                    <div className="flex gap-6">
-                      <Avatar className="w-20 h-20 rounded-lg overflow-hidden border-2 border-primary/10 shadow-lg shrink-0">
-                        <AvatarImage src={student.avatar} className="object-cover" />
-                        <AvatarFallback className="bg-primary/5 text-primary text-2xl font-black">{student.name?.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div className="space-y-3 flex-1">
-                        <div>
-                          <p className="text-[10px] text-muted-foreground uppercase font-bold">{language === 'en' ? "Student Name" : "Nom de l'élève"}</p>
-                          <p className="font-black text-primary uppercase text-sm leading-tight">{student.name}</p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] text-muted-foreground uppercase font-bold">{t("matricule")}</p>
-                          <p className="font-mono font-bold text-secondary text-sm">{student.id}</p>
-                        </div>
-                      </div>
+                    <div className="flex-1">
+                      <CardTitle className="text-base">{t("reportCard")} - Current Term</CardTitle>
+                      <CardDescription>{t("academicYear")} 2023/24</CardDescription>
                     </div>
-                  </CardContent>
-                  <CardFooter className="bg-accent/10 py-3 flex justify-between items-center text-[10px]">
-                    <span className="flex items-center gap-1 opacity-60 font-bold"><MapPin className="w-3 h-3" /> Douala, Cameroon</span>
-                    <Button variant="ghost" size="sm" className="text-primary hover:bg-white h-7 text-[10px] gap-1 font-bold">
-                      <Eye className="w-3.5 h-3.5" /> Full Suite
+                    <Button variant="outline" size="sm" onClick={() => setPreviewDoc({ type: 'report' })} className="gap-2">
+                      <Eye className="w-4 h-4" /> {language === 'en' ? 'View' : 'Voir'}
                     </Button>
-                  </CardFooter>
+                  </CardHeader>
                 </Card>
               </div>
+
+              <div className="space-y-6">
+                <h3 className="text-lg font-bold text-primary flex items-center gap-2">
+                  <CreditCard className="w-5 h-5" /> {t("idCard")}
+                </h3>
+                <div className="flex justify-center">
+                  <Card className="w-full max-w-sm border shadow-xl bg-white overflow-hidden relative group cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all" onClick={() => setPreviewDoc({ type: 'id' })}>
+                    <div className="absolute top-0 right-0 p-4 opacity-5">
+                      <GraduationCap className="w-32 h-32" />
+                    </div>
+                    <CardHeader className="border-b bg-accent/5 pb-4">
+                      <div className="flex items-center gap-3">
+                        <Building2 className="w-6 h-6 text-primary" />
+                        <div>
+                          <CardTitle className="text-sm font-bold tracking-tight text-primary">
+                            {currentUser?.school?.name || "GBHS Deido"}
+                          </CardTitle>
+                          <CardDescription className="text-primary/60 text-[10px] uppercase font-bold tracking-widest">{t("idCard")}</CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-6 pb-6 space-y-4">
+                      <div className="flex gap-6">
+                        <Avatar className="w-20 h-20 rounded-lg overflow-hidden border-2 border-primary/10 shadow-lg shrink-0">
+                          <AvatarImage src={student.avatar} className="object-cover" />
+                          <AvatarFallback className="bg-primary/5 text-primary text-2xl font-black">{student.name?.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="space-y-3 flex-1">
+                          <div>
+                            <p className="text-[10px] text-muted-foreground uppercase font-bold">{language === 'en' ? "Student Name" : "Nom de l'élève"}</p>
+                            <p className="font-black text-primary uppercase text-sm leading-tight">{student.name}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-muted-foreground uppercase font-bold">{t("matricule")}</p>
+                            <p className="font-mono font-bold text-secondary text-sm">{student.id}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                    <CardFooter className="bg-accent/10 py-3 flex justify-between items-center text-[10px]">
+                      <span className="flex items-center gap-1 opacity-60 font-bold"><MapPin className="w-3 h-3" /> Douala, Cameroon</span>
+                      <Button variant="ghost" size="sm" className="text-primary hover:bg-white h-7 text-[10px] gap-1 font-bold">
+                        <Eye className="w-3.5 h-3.5" /> Full Suite
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                </div>
+              </div>
             </div>
-          </div>
-        </TabsContent>
+          </TabsContent>
+        )}
       </Tabs>
 
       {/* Official Report Card Preview Modal */}
@@ -847,7 +885,7 @@ export default function StudentDetailsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Contact Teacher Dialog remains same */}
+      {/* Contact Teacher Dialog */}
       <Dialog open={isMessageModalOpen} onOpenChange={setIsMessageModalOpen}>
         <DialogContent className="sm:max-w-md rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl">
           <DialogHeader className="bg-primary p-8 text-white">
