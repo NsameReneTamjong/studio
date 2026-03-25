@@ -16,12 +16,12 @@ import {
   Users,
   Send,
   Loader2,
-  CheckCircle2,
   MapPin,
   Briefcase,
   School,
   Phone,
-  Mail
+  Mail,
+  ShieldCheck
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,8 +30,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { useFirestore } from "@/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { collection, addDoc, serverTimestamp, query, where, orderBy } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
@@ -47,22 +47,13 @@ interface EventItem {
   thumbnail?: string;
 }
 
-interface TestimonyItem {
-  id: string;
-  name: string;
-  role: string;
-  message: string;
-  image?: string;
-  school: string;
-}
-
 const EVENTS: EventItem[] = [
   {
     id: "e1",
     type: "video",
     title: "Annual Pedagogical Conference 2024",
     description: "Witness the digital transformation journey of 120+ schools across the region.",
-    url: "https://www.youtube.com/embed/dQw4w9WgXcQ", // Demo embed
+    url: "https://www.youtube.com/embed/dQw4w9WgXcQ", 
   },
   {
     id: "e2",
@@ -87,41 +78,6 @@ const EVENTS: EventItem[] = [
   }
 ];
 
-const TESTIMONIES: TestimonyItem[] = [
-  {
-    id: "t1",
-    name: "Dr. Jean-Pierre Abena",
-    role: "School Principal",
-    school: "Lycée de Joss",
-    message: "EduIgnite hasn't just changed our administration; it has redefined our institutional culture. The clarity in attendance and fee tracking is unprecedented.",
-    image: "https://picsum.photos/seed/p1/100/100"
-  },
-  {
-    id: "t2",
-    name: "Marie-Claire Njoh",
-    role: "Teacher",
-    school: "GBHS Deido",
-    message: "The AI feedback tool is a game-changer. I can now provide personalized academic guidance to all 45 of my students in minutes, not hours.",
-    image: "https://picsum.photos/seed/t1/100/100"
-  },
-  {
-    id: "t3",
-    name: "Alice Thompson",
-    role: "Student",
-    school: "College Alfred Saker",
-    message: "Accessing my notes and taking MCQ exams online has made studying so much more organized. I love the digital certificate I got after my Physics exam!",
-    image: "https://picsum.photos/seed/s1/100/100"
-  },
-  {
-    id: "t4",
-    name: "Robert Tabi",
-    role: "Parent",
-    school: "Inter-Comprehensive",
-    message: "As a busy parent, being able to track my child's performance and pay fees via mobile money from my office is a massive relief.",
-    image: "https://picsum.photos/seed/pa1/100/100"
-  }
-];
-
 export default function CommunityTestimonyPage() {
   const [mounted, setMounted] = useState(false);
   const db = useFirestore();
@@ -138,6 +94,18 @@ export default function CommunityTestimonyPage() {
     division: "",
     subDivision: ""
   });
+
+  // Real-time approved testimonials
+  const testimonialsQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(
+      collection(db, "testimonials"),
+      where("status", "==", "approved"),
+      orderBy("createdAt", "desc")
+    );
+  }, [db]);
+
+  const { data: approvedTestimonies, isLoading: isTestimoniesLoading } = useCollection(testimonialsQuery);
 
   useEffect(() => {
     setMounted(true);
@@ -242,46 +210,24 @@ export default function CommunityTestimonyPage() {
               </h2>
               <p className="text-muted-foreground font-medium">Capturing the moments that define our academic evolution.</p>
             </div>
-            <Button variant="link" className="text-primary font-black uppercase text-xs tracking-widest">
-              View All Archive <ChevronRight className="ml-1 w-4 h-4" />
-            </Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             {EVENTS.map((event, idx) => (
               <Card key={event.id} className={cn(
                 "border-none shadow-xl rounded-[2.5rem] overflow-hidden group hover:shadow-2xl transition-all duration-500 bg-white/50 backdrop-blur-sm",
-                "animate-in fade-in slide-in-from-bottom-10",
-                `delay-[${idx * 150}ms]`
+                "animate-in fade-in slide-in-from-bottom-10"
               )}>
                 <div className="aspect-video relative bg-slate-900">
                   {event.type === "video" ? (
-                    <div className="w-full h-full relative">
-                      <iframe 
-                        src={event.url} 
-                        className="w-full h-full"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                        allowFullScreen
-                      ></iframe>
-                      <div className="absolute top-4 left-4 pointer-events-none">
-                        <Badge className="bg-red-600 text-white border-none font-black uppercase text-[10px] gap-1.5 px-3">
-                          <Video className="w-3 h-3" /> Event Recap
-                        </Badge>
-                      </div>
-                    </div>
+                    <iframe 
+                      src={event.url} 
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                      allowFullScreen
+                    ></iframe>
                   ) : (
-                    <div className="w-full h-full">
-                      <img 
-                        src={event.url} 
-                        alt={event.title} 
-                        className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-                      />
-                      <div className="absolute top-4 left-4">
-                        <Badge className="bg-primary text-white border-none font-black uppercase text-[10px] gap-1.5 px-3">
-                          <ImageIcon className="w-3 h-3" /> Gallery
-                        </Badge>
-                      </div>
-                    </div>
+                    <img src={event.url} alt={event.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
                   )}
                 </div>
                 <CardHeader className="p-8">
@@ -306,43 +252,49 @@ export default function CommunityTestimonyPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {TESTIMONIES.map((test, idx) => (
-              <Card key={test.id} className={cn(
-                "border-none shadow-lg rounded-[2rem] bg-white group hover:-translate-y-2 transition-all duration-500",
-                "animate-in zoom-in-95 fade-in duration-700",
-                `delay-[${idx * 100}ms]`
-              )}>
-                <CardContent className="p-8 space-y-6 flex flex-col h-full">
-                  <div className="p-3 bg-accent rounded-2xl w-fit group-hover:bg-primary group-hover:text-white transition-colors duration-500">
-                    <Quote className="w-6 h-6 text-primary group-hover:text-secondary transition-colors" />
-                  </div>
-                  
-                  <p className="text-sm italic font-medium leading-relaxed text-primary/80 flex-1">
-                    "{test.message}"
-                  </p>
+          {isTestimoniesLoading ? (
+            <div className="flex justify-center p-20"><Loader2 className="w-12 h-12 animate-spin text-primary opacity-20" /></div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {approvedTestimonies?.map((test, idx) => (
+                <Card key={test.id} className="border-none shadow-lg rounded-[2rem] bg-white group hover:-translate-y-2 transition-all duration-500 animate-in zoom-in-95">
+                  <CardContent className="p-8 space-y-6 flex flex-col h-full">
+                    <div className="p-3 bg-accent rounded-2xl w-fit group-hover:bg-primary group-hover:text-white transition-colors duration-500">
+                      <Quote className="w-6 h-6 text-primary group-hover:text-secondary transition-colors" />
+                    </div>
+                    
+                    <p className="text-sm italic font-medium leading-relaxed text-primary/80 flex-1">
+                      "{test.message}"
+                    </p>
 
-                  <div className="pt-6 border-t flex items-center gap-4">
-                    <Avatar className="h-12 w-12 border-2 border-white shadow-md ring-1 ring-accent">
-                      <AvatarImage src={test.image} />
-                      <AvatarFallback className="bg-primary/5 text-primary font-black uppercase text-xs">
-                        {test.name.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="overflow-hidden">
-                      <p className="font-black text-primary text-sm truncate uppercase tracking-tight">{test.name}</p>
-                      <div className="flex items-center gap-1.5 overflow-hidden">
-                        <Badge variant="secondary" className="bg-secondary/20 text-primary border-none text-[8px] font-black h-4 px-1.5">
-                          {test.role}
-                        </Badge>
-                        <span className="text-[10px] text-muted-foreground font-bold truncate">@ {test.school}</span>
+                    <div className="pt-6 border-t flex items-center gap-4">
+                      <Avatar className="h-12 w-12 border-2 border-white shadow-md ring-1 ring-accent">
+                        <AvatarImage src={test.profileImage} />
+                        <AvatarFallback className="bg-primary/5 text-primary font-black uppercase text-xs">
+                          {test.name?.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="overflow-hidden">
+                        <p className="font-black text-primary text-sm truncate uppercase tracking-tight">{test.name}</p>
+                        <div className="flex items-center gap-1.5 overflow-hidden">
+                          <Badge variant="secondary" className="bg-secondary/20 text-primary border-none text-[8px] font-black h-4 px-1.5">
+                            {test.role}
+                          </Badge>
+                          <span className="text-[10px] text-muted-foreground font-bold truncate">@ {test.schoolName}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+              {(!approvedTestimonies || approvedTestimonies.length === 0) && (
+                <div className="col-span-full py-20 text-center border-2 border-dashed rounded-3xl opacity-40">
+                  <Quote className="w-12 h-12 mx-auto mb-4" />
+                  <p>No testimonials have been published yet.</p>
+                </div>
+              )}
+            </div>
+          )}
         </section>
 
         {/* 4. PLACE ORDER FORM SECTION */}
@@ -372,53 +324,20 @@ export default function CommunityTestimonyPage() {
                     </div>
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
-                          Full Name
-                        </Label>
-                        <Input 
-                          required
-                          value={formData.fullName}
-                          onChange={(e) => setFormData({...formData, fullName: e.target.value})}
-                          placeholder="e.g. John Doe" 
-                          className="h-12 bg-accent/30 border-none rounded-xl font-bold"
-                        />
+                        <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Full Name</Label>
+                        <Input required value={formData.fullName} onChange={(e) => setFormData({...formData, fullName: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl" />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
-                          <Briefcase className="w-3.5 h-3.5" /> Occupation
-                        </Label>
-                        <Input 
-                          required
-                          value={formData.occupation}
-                          onChange={(e) => setFormData({...formData, occupation: e.target.value})}
-                          placeholder="e.g. Principal / Director" 
-                          className="h-12 bg-accent/30 border-none rounded-xl font-bold"
-                        />
+                        <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Occupation</Label>
+                        <Input required value={formData.occupation} onChange={(e) => setFormData({...formData, occupation: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl" />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
-                          <Mail className="w-3.5 h-3.5" /> Email Address
-                        </Label>
-                        <Input 
-                          required
-                          type="email"
-                          value={formData.email}
-                          onChange={(e) => setFormData({...formData, email: e.target.value})}
-                          placeholder="name@email.com" 
-                          className="h-12 bg-accent/30 border-none rounded-xl font-bold"
-                        />
+                        <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Email</Label>
+                        <Input required type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl" />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
-                          <Phone className="w-3.5 h-3.5" /> WhatsApp Number
-                        </Label>
-                        <Input 
-                          required
-                          value={formData.whatsappNumber}
-                          onChange={(e) => setFormData({...formData, whatsappNumber: e.target.value})}
-                          placeholder="+237 6XX XX XX XX" 
-                          className="h-12 bg-accent/30 border-none rounded-xl font-bold"
-                        />
+                        <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">WhatsApp Number</Label>
+                        <Input required value={formData.whatsappNumber} onChange={(e) => setFormData({...formData, whatsappNumber: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl" />
                       </div>
                     </div>
                   </div>
@@ -427,65 +346,31 @@ export default function CommunityTestimonyPage() {
                   <div className="space-y-6">
                     <div className="flex items-center gap-3 border-b border-accent pb-2">
                       <School className="w-5 h-5 text-primary" />
-                      <h3 className="text-sm font-black uppercase text-primary tracking-widest">Institution Location</h3>
+                      <h3 className="text-sm font-black uppercase text-primary tracking-widest">Institution</h3>
                     </div>
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">School Name</Label>
-                        <Input 
-                          required
-                          value={formData.schoolName}
-                          onChange={(e) => setFormData({...formData, schoolName: e.target.value})}
-                          placeholder="Official School Name" 
-                          className="h-12 bg-accent/30 border-none rounded-xl font-bold"
-                        />
+                        <Input required value={formData.schoolName} onChange={(e) => setFormData({...formData, schoolName: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl" />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
-                          <MapPin className="w-3.5 h-3.5" /> Region
-                        </Label>
-                        <Input 
-                          required
-                          value={formData.region}
-                          onChange={(e) => setFormData({...formData, region: e.target.value})}
-                          placeholder="e.g. Littoral" 
-                          className="h-12 bg-accent/30 border-none rounded-xl font-bold"
-                        />
+                        <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Region</Label>
+                        <Input required value={formData.region} onChange={(e) => setFormData({...formData, region: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl" />
                       </div>
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Division</Label>
-                        <Input 
-                          required
-                          value={formData.division}
-                          onChange={(e) => setFormData({...formData, division: e.target.value})}
-                          placeholder="e.g. Wouri" 
-                          className="h-12 bg-accent/30 border-none rounded-xl font-bold"
-                        />
+                        <Input required value={formData.division} onChange={(e) => setFormData({...formData, division: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl" />
                       </div>
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Sub Division</Label>
-                        <Input 
-                          required
-                          value={formData.subDivision}
-                          onChange={(e) => setFormData({...formData, subDivision: e.target.value})}
-                          placeholder="e.g. Douala 1er" 
-                          className="h-12 bg-accent/30 border-none rounded-xl font-bold"
-                        />
+                        <Input required value={formData.subDivision} onChange={(e) => setFormData({...formData, subDivision: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl" />
                       </div>
                     </div>
                   </div>
                 </div>
               </CardContent>
               <CardFooter className="p-8 md:p-12 bg-accent/10 border-t border-accent flex flex-col items-center gap-6">
-                <div className="flex items-center gap-3 text-primary/60 text-xs text-center max-w-md italic">
-                  <ShieldCheck className="w-5 h-5 shrink-0" />
-                  "By submitting this order, you are requesting a digital node activation for your institution. Our regional agents will contact you for verification."
-                </div>
-                <Button 
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full md:w-auto px-16 h-16 rounded-2xl bg-primary text-white shadow-2xl font-black uppercase tracking-widest gap-3 transition-all active:scale-95"
-                >
+                <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto px-16 h-16 rounded-2xl bg-primary shadow-2xl font-black uppercase tracking-widest gap-3">
                   {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : <Send className="w-6 h-6" />}
                   Submit My Order
                 </Button>
@@ -493,46 +378,15 @@ export default function CommunityTestimonyPage() {
             </form>
           </Card>
         </section>
-
-        {/* FOOTER CTA */}
-        <section className="bg-primary rounded-[3rem] p-12 md:p-20 text-center relative overflow-hidden shadow-2xl">
-          <div className="absolute top-0 right-0 p-12 opacity-10">
-            <Building2 className="w-64 h-64 rotate-12" />
-          </div>
-          <div className="relative z-10 space-y-8 max-w-2xl mx-auto">
-            <h2 className="text-4xl md:text-5xl font-black text-white leading-tight">
-              Ready to modernize your institution?
-            </h2>
-            <p className="text-white/60 text-lg font-medium">
-              Join 120+ schools already transforming the way they manage education.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button asChild size="lg" className="rounded-2xl h-14 px-10 bg-secondary text-primary hover:bg-secondary/90 shadow-xl font-black uppercase tracking-widest text-xs gap-2 w-full sm:w-auto">
-                <Link href="/login">Get Started Now</Link>
-              </Button>
-              <Button asChild variant="outline" size="lg" className="rounded-2xl h-14 px-10 border-white/20 text-white hover:bg-white/10 font-black uppercase tracking-widest text-xs w-full sm:w-auto">
-                <Link href="/login">Contact Support</Link>
-              </Button>
-            </div>
-          </div>
-        </section>
       </main>
 
-      <footer className="py-12 border-t border-primary/5 bg-white">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-8 opacity-40">
+      <footer className="py-12 border-t border-primary/5 bg-white opacity-40">
+        <div className="max-w-7xl mx-auto px-4 flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
           <div className="flex items-center gap-3">
-            <div className="p-1.5 bg-primary/10 rounded-lg">
-              <Building2 className="w-4 h-4 text-primary" />
-            </div>
-            <p className="text-[10px] font-black uppercase tracking-[0.4em]">EduIgnite SaaS Node</p>
+            <Building2 className="w-4 h-4" />
+            <span>EduIgnite SaaS Node</span>
           </div>
-          <div className="flex items-center gap-8 text-[10px] font-black uppercase tracking-widest">
-            <span>© 2024 EDUIGNITE</span>
-            <div className="flex items-center gap-2">
-              <Globe className="w-3 h-3" />
-              <span>SECURE INFRASTRUCTURE</span>
-            </div>
-          </div>
+          <span>© 2024 EDUIGNITE SECURE INFRASTRUCTURE</span>
         </div>
       </footer>
     </div>

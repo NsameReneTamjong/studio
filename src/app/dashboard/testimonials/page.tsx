@@ -18,7 +18,8 @@ import {
   Loader2,
   ShieldCheck,
   Search,
-  MessageSquare
+  MessageSquare,
+  AlertCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,7 @@ import { collection, query, where, orderBy, doc, updateDoc, deleteDoc } from "fi
 import { Input } from "@/components/ui/input";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
+import Link from "next/link";
 
 export default function TestimonyManagementPage() {
   const { user } = useAuth();
@@ -35,7 +37,7 @@ export default function TestimonyManagementPage() {
   const db = useFirestore();
   const [searchTerm, setSearchTerm] = useState("");
   
-  const isSuperAdmin = user?.role === "SUPER_ADMIN";
+  const isSuperAdmin = user?.role && ["SUPER_ADMIN", "CEO", "CTO", "INV", "Investor"].includes(user.role);
 
   const testimonialsQuery = useMemoFirebase(() => {
     if (!db || !isSuperAdmin) return null;
@@ -81,12 +83,25 @@ export default function TestimonyManagementPage() {
       });
   };
 
+  if (!isSuperAdmin) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6">
+        <div className="p-6 bg-red-50 rounded-full border-2 border-dashed border-red-200">
+          <AlertCircle className="w-16 h-16 text-red-400" />
+        </div>
+        <div className="space-y-2">
+          <h1 className="text-2xl font-black text-primary uppercase">Unauthorized Access</h1>
+          <p className="text-muted-foreground max-w-md">Only platform executives are authorized to moderate community testimonies.</p>
+        </div>
+        <Button asChild className="rounded-xl px-10"><Link href="/dashboard">Return to Dashboard</Link></Button>
+      </div>
+    );
+  }
+
   const filtered = entries?.filter(e => 
     e.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
     e.schoolName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  if (!isSuperAdmin) return null;
 
   return (
     <div className="space-y-8 pb-20">
@@ -159,7 +174,7 @@ export default function TestimonyManagementPage() {
                   <div className="mt-8 pt-6 border-t flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div className="flex items-center gap-2">
                       <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
-                      <span className="text-[10px] font-black text-muted-foreground tracking-widest italic">Identity Matched to ID: {entry.userId}</span>
+                      <span className="text-[10px] font-black text-muted-foreground tracking-widest italic">Verified Account Record</span>
                     </div>
                     <div className="flex gap-2 w-full sm:w-auto">
                       <Button variant="ghost" className="flex-1 sm:flex-none text-destructive hover:bg-red-50 gap-2 h-11 px-6 rounded-xl" onClick={() => handleDelete(entry.id)}>

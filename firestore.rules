@@ -8,17 +8,11 @@ service cloud.firestore {
     }
     
     function getUserData() {
-      let userPath = /databases/$(database)/documents/users/$(request.auth.uid);
-      return exists(userPath) ? get(userPath).data : null;
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
     function isPlatformAdmin() {
       if (!isSignedIn()) return false;
-      
-      // 1. Check platform_admins collection (explicitly defined admins)
-      if (exists(/databases/$(database)/documents/platform_admins/$(request.auth.uid))) return true;
-      
-      // 2. Check user document role synced from app logic
       let userData = getUserData();
       return userData != null && 
              (userData.role in ['SUPER_ADMIN', 'CEO', 'CTO', 'COO', 'INV', 'Investor']);
@@ -27,7 +21,6 @@ service cloud.firestore {
     function isSchoolAdmin(schoolId) {
       if (!isSignedIn()) return false;
       if (isPlatformAdmin()) return true;
-      
       let userData = getUserData();
       return userData != null && 
              (userData.role == 'SCHOOL_ADMIN') &&
@@ -43,17 +36,13 @@ service cloud.firestore {
 
     match /testimonials/{testimonialId} {
       allow create: if isSignedIn();
-      allow read, update, delete: if isPlatformAdmin();
+      allow read: if isPlatformAdmin() || (resource != null && resource.data.status == 'approved');
+      allow update, delete: if isPlatformAdmin();
     }
 
     match /orders/{orderId} {
-      allow create: if true; // Public order form
+      allow create: if true;
       allow read, update, delete: if isPlatformAdmin();
-    }
-
-    match /featured_videos/{videoId} {
-      allow read: if true;
-      allow write: if isPlatformAdmin();
     }
 
     match /feedback/{fbId} {
@@ -87,10 +76,6 @@ service cloud.firestore {
       match /assignments/{assignmentId} {
         allow read: if isSignedIn();
         allow write: if isSignedIn();
-
-        match /submissions/{studentUid} {
-          allow read, write: if isSignedIn();
-        }
       }
 
       match /grades/{gradeId} {
@@ -98,24 +83,9 @@ service cloud.firestore {
         allow write: if isSignedIn();
       }
 
-      match /payments/{paymentId} {
-        allow read: if isSignedIn();
-        allow write: if isSignedIn();
-      }
-
-      match /announcements/{annId} {
-        allow read: if isSignedIn();
-        allow write: if isSignedIn();
-      }
-
       match /counters/{counterId} {
         allow read, write: if isSignedIn();
       }
-    }
-
-    match /platform_admins/{uid} {
-      allow read: if isSignedIn();
-      allow write: if isPlatformAdmin() || (isSignedIn() && request.auth.uid == uid);
     }
 
     match /matricules/{matricule} {
