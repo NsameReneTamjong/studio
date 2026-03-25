@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -45,7 +44,8 @@ import {
   ListChecks,
   Users,
   Send,
-  Scale
+  Scale,
+  Signature
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -461,7 +461,6 @@ export default function StudentDetailsPage() {
           </div>
         </TabsContent>
 
-        {/* ... (other TabsContents remain same) */}
         <TabsContent value="schedule" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             {Object.entries(MOCK_SCHEDULE).map(([day, slots]) => (
