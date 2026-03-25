@@ -3,23 +3,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { 
-  getAuth, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword,
-  onAuthStateChanged,
-  signOut,
-  User as FirebaseUser
-} from "firebase/auth";
-import { 
-  getFirestore, 
-  doc, 
-  setDoc, 
-  getDoc, 
-  onSnapshot,
-  serverTimestamp 
-} from "firebase/firestore";
-import { initializeFirebase } from "@/firebase";
 
 export type UserRole = "SUPER_ADMIN" | "SCHOOL_ADMIN" | "TEACHER" | "STUDENT" | "PARENT" | "BURSAR" | "LIBRARIAN" | "CEO" | "CTO" | "COO" | "INV";
 
@@ -63,8 +46,8 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   platformSettings: PlatformSettings;
-  login: (matricule: string, password?: string) => Promise<void>;
-  activateAccount: (matricule: string, password?: string) => Promise<void>;
+  login: (matricule: string) => Promise<void>;
+  activateAccount: (matricule: string) => Promise<void>;
   updateUser: (updates: Partial<User>) => Promise<void>;
   updateSchool: (updates: Partial<SchoolInfo>) => Promise<void>;
   updatePlatformSettings: (updates: Partial<PlatformSettings>) => Promise<void>;
@@ -114,95 +97,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
   
   const router = useRouter();
-  const { auth, firestore } = initializeFirebase();
 
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        const userDoc = await getDoc(doc(firestore, "users", firebaseUser.uid));
-        if (userDoc.exists()) {
-          setUserData({ ...userDoc.data(), uid: firebaseUser.uid } as User);
-        }
-      } else {
-        setUserData(null);
-      }
-      setIsLoading(false);
-    });
+    // MOCK AUTH: Check local storage for a session
+    const savedUser = localStorage.getItem("eduignite_prototype_session");
+    if (savedUser) {
+      setUserData(JSON.parse(savedUser));
+    }
+    setIsLoading(false);
+  }, []);
 
-    const unsubscribeSettings = onSnapshot(doc(firestore, "settings", "platform"), (snap) => {
-      if (snap.exists()) {
-        setPlatformSettings(snap.data() as PlatformSettings);
-      }
-    });
-
-    return () => {
-      unsubscribeAuth();
-      unsubscribeSettings();
-    };
-  }, [auth, firestore]);
-
-  const login = async (matricule: string, password = "password123") => {
+  const login = async (matricule: string) => {
     setIsLoading(true);
     const m = matricule.toUpperCase();
-    const email = `${m.toLowerCase()}@eduignite.io`;
+    const demoData = DEMO_ACCOUNTS[m] || { name: "Guest User", role: "STUDENT", schoolId: "GBHS", isLicensePaid: true };
+    
+    const mockUser: User = {
+      id: m,
+      uid: `mock_${m}`,
+      name: demoData.name,
+      email: `${m.toLowerCase()}@eduignite.io`,
+      role: demoData.role,
+      schoolId: demoData.schoolId,
+      isLicensePaid: demoData.isLicensePaid,
+      avatar: `https://picsum.photos/seed/${m}/150/150`,
+      school: demoData.schoolId ? DEMO_SCHOOL : undefined
+    };
 
-    try {
-      let userCredential;
-      try {
-        userCredential = await signInWithEmailAndPassword(auth, email, password);
-      } catch (e: any) {
-        if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
-          userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        } else {
-          throw e;
-        }
-      }
-
-      const uid = userCredential.user.uid;
-      const userDocRef = doc(firestore, "users", uid);
-      const userSnap = await getDoc(userDocRef);
-
-      if (!userSnap.exists()) {
-        const demoData = DEMO_ACCOUNTS[m] || { name: "New User", role: "STUDENT", schoolId: null, isLicensePaid: true };
-        const newUser: User = {
-          id: m,
-          uid: uid,
-          name: demoData.name,
-          email: email,
-          role: demoData.role,
-          schoolId: demoData.schoolId,
-          isLicensePaid: demoData.isLicensePaid,
-          avatar: `https://picsum.photos/seed/${m}/150/150`,
-          school: demoData.schoolId ? DEMO_SCHOOL : undefined
-        };
-        await setDoc(userDocRef, newUser);
-        setUserData(newUser);
-      } else {
-        setUserData({ ...userSnap.data(), uid } as User);
-      }
-
-      const role = (userSnap.data()?.role || DEMO_ACCOUNTS[m]?.role);
-      if (["CEO", "CTO", "INV", "SUPER_ADMIN"].includes(role)) {
-        router.push("/dashboard");
-      } else {
-        router.push("/welcome");
-      }
-    } catch (error: any) {
-      console.error("Login Error:", error);
-      throw error;
-    } finally {
-      setIsLoading(false);
+    setUserData(mockUser);
+    localStorage.setItem("eduignite_prototype_session", JSON.stringify(mockUser));
+    
+    if (["CEO", "CTO", "INV", "SUPER_ADMIN"].includes(mockUser.role)) {
+      router.push("/dashboard");
+    } else {
+      router.push("/welcome");
     }
+    setIsLoading(false);
   };
 
-  const activateAccount = async (matricule: string, password?: string) => {
-    return login(matricule, password);
+  const activateAccount = async (matricule: string) => {
+    return login(matricule);
   };
 
   const updateUser = async (updates: Partial<User>) => {
     if (!userData) return;
-    const userRef = doc(firestore, "users", userData.uid);
-    await setDoc(userRef, updates, { merge: true });
+    const newUser = { ...userData, ...updates };
+    setUserData(newUser);
+    localStorage.setItem("eduignite_prototype_session", JSON.stringify(newUser));
   };
 
   const updateSchool = async (updates: Partial<SchoolInfo>) => {
@@ -211,7 +152,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updatePlatformSettings = async (updates: Partial<PlatformSettings>) => {
-    await setDoc(doc(firestore, "settings", "platform"), updates, { merge: true });
+    setPlatformSettings(prev => ({ ...prev, ...updates }));
   };
 
   const markLicensePaid = async () => {
@@ -224,8 +165,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
-    await signOut(auth);
     setUserData(null);
+    localStorage.removeItem("eduignite_prototype_session");
     router.push("/login");
   };
 

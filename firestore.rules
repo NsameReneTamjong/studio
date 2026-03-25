@@ -2,100 +2,11 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // --- HELPER FUNCTIONS ---
-    function isSignedIn() {
-      return request.auth != null;
-    }
+    // PROTOYPE MODE: Open access to all collections for testing
+    // In a production app, these would be restricted by request.auth
     
-    function getUserData() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
-    }
-
-    function isPlatformAdmin() {
-      if (!isSignedIn()) return false;
-      let userData = getUserData();
-      return userData != null && 
-             (userData.role in ['SUPER_ADMIN', 'CEO', 'CTO', 'COO', 'INV', 'Investor']);
-    }
-
-    function isSchoolAdmin(schoolId) {
-      if (!isSignedIn()) return false;
-      if (isPlatformAdmin()) return true;
-      let userData = getUserData();
-      return userData != null && 
-             (userData.role == 'SCHOOL_ADMIN') &&
-             (userData.schoolId == schoolId);
-    }
-
-    // --- COLLECTION RULES ---
-
-    match /settings/platform {
-      allow read: if true; 
-      allow write: if isPlatformAdmin();
-    }
-
-    match /testimonials/{testimonialId} {
-      allow create: if isSignedIn();
-      allow read: if isPlatformAdmin() || (resource != null && resource.data.status == 'approved');
-      allow update, delete: if isPlatformAdmin();
-    }
-
-    match /orders/{orderId} {
-      allow create: if true;
-      allow read, update, delete: if isPlatformAdmin();
-    }
-
-    match /feedback/{fbId} {
-      allow read: if isPlatformAdmin();
-      allow create: if isSignedIn();
-      allow update, delete: if isPlatformAdmin();
-    }
-
-    match /support/{supId} {
-      allow read: if isPlatformAdmin();
-      allow create: if isSignedIn();
-      allow update, delete: if isPlatformAdmin();
-    }
-
-    match /users/{uid} {
-      allow read: if isSignedIn();
-      allow create: if true; 
-      allow update: if isPlatformAdmin() || (isSignedIn() && request.auth.uid == uid);
-    }
-    
-    match /schools/{docId} {
-      allow read: if isSignedIn();
-      allow create: if isPlatformAdmin();
-      allow update: if isPlatformAdmin() || isSchoolAdmin(docId);
-      
-      match /courses/{courseId} {
-        allow read: if isSignedIn();
-        allow write: if isSchoolAdmin(docId);
-      }
-      
-      match /assignments/{assignmentId} {
-        allow read: if isSignedIn();
-        allow write: if isSignedIn();
-      }
-
-      match /grades/{gradeId} {
-        allow read: if isSignedIn();
-        allow write: if isSignedIn();
-      }
-
-      match /counters/{counterId} {
-        allow read, write: if isSignedIn();
-      }
-    }
-
-    match /matricules/{matricule} {
-      allow read: if true;
-      allow create: if true;
-      allow update, delete: if isPlatformAdmin();
-    }
-
-    match /counters/{counterId} {
-      allow read, write: if isPlatformAdmin();
+    match /{document=**} {
+      allow read, write: if true;
     }
   }
 }

@@ -26,8 +26,6 @@ import { cn } from "@/lib/utils";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, query, where, orderBy, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { Input } from "@/components/ui/input";
-import { errorEmitter } from "@/firebase/error-emitter";
-import { FirestorePermissionError } from "@/firebase/errors";
 import Link from "next/link";
 
 export default function TestimonyManagementPage() {
@@ -39,48 +37,35 @@ export default function TestimonyManagementPage() {
   
   const isSuperAdmin = user?.role && ["SUPER_ADMIN", "CEO", "CTO", "INV", "Investor"].includes(user.role);
 
+  // PROTOTYPE QUERY: Fetch all testimonials regardless of status for easier testing
   const testimonialsQuery = useMemoFirebase(() => {
-    if (!db || !isSuperAdmin) return null;
+    if (!db) return null;
     return query(
       collection(db, "testimonials"), 
-      where("status", "==", "pending"),
       orderBy("createdAt", "desc")
     );
-  }, [db, isSuperAdmin]);
+  }, [db]);
 
   const { data: entries, isLoading } = useCollection(testimonialsQuery);
 
   const handleApprove = async (id: string) => {
     if (!db) return;
-    const docRef = doc(db, "testimonials", id);
-    
-    updateDoc(docRef, { status: "approved" })
-      .then(() => {
-        toast({ title: "Testimony Approved", description: "This message is now live on public portals." });
-      })
-      .catch(async (error) => {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: docRef.path,
-          operation: 'update',
-          requestResourceData: { status: "approved" }
-        }));
-      });
+    try {
+      await updateDoc(doc(db, "testimonials", id), { status: "approved" });
+      toast({ title: "Testimony Approved", description: "This message is now live on public portals." });
+    } catch (e) {
+      toast({ variant: "destructive", title: "Action Failed" });
+    }
   };
 
   const handleDelete = async (id: string) => {
     if (!db) return;
-    const docRef = doc(db, "testimonials", id);
-    
-    deleteDoc(docRef)
-      .then(() => {
-        toast({ variant: "destructive", title: "Testimony Removed", description: "Record has been permanently deleted." });
-      })
-      .catch(async (error) => {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: docRef.path,
-          operation: 'delete'
-        }));
-      });
+    try {
+      await deleteDoc(doc(db, "testimonials", id));
+      toast({ variant: "destructive", title: "Testimony Removed" });
+    } catch (e) {
+      toast({ variant: "destructive", title: "Action Failed" });
+    }
   };
 
   if (!isSuperAdmin) {
@@ -99,8 +84,9 @@ export default function TestimonyManagementPage() {
   }
 
   const filtered = entries?.filter(e => 
-    e.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    e.schoolName?.toLowerCase().includes(searchTerm.toLowerCase())
+    (e.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    e.schoolName?.toLowerCase().includes(searchTerm.toLowerCase())) &&
+    e.status === 'pending'
   );
 
   return (
@@ -117,7 +103,7 @@ export default function TestimonyManagementPage() {
         </div>
         <div className="flex items-center gap-3">
            <Badge variant="outline" className="h-10 px-4 rounded-xl border-primary/20 text-primary font-black uppercase tracking-widest">
-             {entries?.length || 0} Pending Submissions
+             {filtered?.length || 0} Pending Submissions
            </Badge>
         </div>
       </div>
