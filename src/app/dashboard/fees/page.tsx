@@ -33,7 +33,8 @@ import {
   CalendarDays,
   FileSpreadsheet,
   CheckCircle,
-  AlertTriangle
+  AlertTriangle,
+  Download
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -496,7 +497,7 @@ export default function FeesPage() {
                   <CheckCircle2 className="w-4 h-4 text-green-600" />
                 </div>
                 <div className="text-2xl md:text-3xl font-black text-green-700">842/1284</div>
-                <p className="text-[10px] text-green-600/60 font-bold mt-1 uppercase">Registered Students</p>
+                <p className="text-[10px] text-blue-600/60 font-bold mt-1 uppercase">Registered Students</p>
               </CardContent>
             </Card>
             <Card className="border-none shadow-sm bg-amber-50">
@@ -505,7 +506,7 @@ export default function FeesPage() {
                   <p className="text-[10px] font-black uppercase text-amber-600 tracking-widest">Active Arrears</p>
                   <AlertCircle className="w-4 h-4 text-amber-600" />
                 </div>
-                <div className="text-2xl md:text-3xl font-black text-amber-700">4.6M XAF</div>
+                <div className="text-2xl md:text-3xl font-black text-2xl md:text-3xl font-black text-amber-700">4.6M XAF</div>
                 <p className="text-[10px] text-amber-600/60 font-bold mt-1 uppercase">Uncollected Revenue</p>
               </CardContent>
             </Card>
