@@ -83,7 +83,7 @@ const DEMO_SCHOOL: SchoolInfo = {
   id: "GBHS",
   name: "GBHS Deido",
   motto: "Discipline - Work - Success",
-  logo: "https://picsum.photos/seed/edu1/200/200",
+  logo: "https://picsum.photos/seed/school-logo-1/200/200", // Distinct School Logo
   banner: "https://picsum.photos/seed/school-banner/1200/400",
   description: "One of the premier government institutions in Douala, dedicated to excellence in pedagogy and character building for the next generation of leaders.",
   location: "Douala, Littoral",
@@ -174,7 +174,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const [platformSettings, setPlatformSettings] = useState<PlatformSettings>({
     name: "EduIgnite",
-    logo: "https://picsum.photos/seed/edu1/200/200"
+    logo: "https://picsum.photos/seed/eduignite-platform/200/200" // Distinct Platform Logo
   });
   const router = useRouter();
 
@@ -195,7 +195,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUserData(user);
           localStorage.setItem("edu_nexus_session", JSON.stringify(user));
           
-          // Destination logic based on user role
           if (user.role === "SUPER_ADMIN") {
             router.push("/dashboard");
           } else {

@@ -130,7 +130,7 @@ const getAppreciation = (note: number) => {
 export default function StudentDetailsPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, platformSettings } = useAuth();
   const { toast } = useToast();
   const { t, language } = useI18n();
   const studentId = searchParams.get("id"); 
@@ -491,7 +491,9 @@ export default function StudentDetailsPage() {
                     <div className="flex items-center gap-3">
                       <Building2 className="w-6 h-6 text-primary" />
                       <div>
-                        <CardTitle className="text-sm font-bold tracking-tight text-primary">GBHS Deido</CardTitle>
+                        <CardTitle className="text-sm font-bold tracking-tight text-primary">
+                          {currentUser?.school?.name || "GBHS Deido"}
+                        </CardTitle>
                         <CardDescription className="text-primary/60 text-[10px] uppercase font-bold tracking-widest">{t("idCard")}</CardDescription>
                       </div>
                     </div>
@@ -561,11 +563,11 @@ export default function StudentDetailsPage() {
                       <p>Peace - Work - Fatherland</p>
                       <div className="h-px bg-black w-8 mx-auto my-1" />
                       <p>Ministry of Secondary Education</p>
-                      <p>GBHS Deido</p>
+                      <p>{currentUser?.school?.name || "Lycée de Joss"}</p>
                     </div>
                     <div className="flex justify-center">
                       <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center p-2 border-2 border-primary/20">
-                         <Building2 className="w-12 h-12 text-primary opacity-50" />
+                         <img src={currentUser?.school?.logo} alt="Logo" className="w-12 h-12 object-contain" />
                       </div>
                     </div>
                     <div className="space-y-1 text-[9px] uppercase font-bold">
@@ -673,14 +675,13 @@ export default function StudentDetailsPage() {
 
                     {/* Ministry & School Header */}
                     <div className="p-3 border-b border-accent flex items-center gap-3 bg-accent/5 shrink-0">
-                      <Building2 className="w-8 h-8 text-primary opacity-20 absolute top-8 right-4" />
-                      <div className="w-12 h-12 bg-white rounded-lg p-1 border shadow-sm flex items-center justify-center shrink-0">
-                        <img src={currentUser?.school?.logo || "https://picsum.photos/seed/edu1/200/200"} alt="Logo" className="w-full h-full object-contain" />
+                      <div className="w-12 h-12 bg-white rounded-lg p-1 border shadow-sm flex items-center justify-center shrink-0 overflow-hidden">
+                        <img src={currentUser?.school?.logo} alt="School Logo" className="w-full h-full object-contain" />
                       </div>
                       <div className="flex-1">
                         <p className="text-[8px] font-black uppercase text-muted-foreground leading-none mb-0.5">Ministry of Secondary Education</p>
-                        <h3 className="text-xs font-black uppercase text-primary leading-tight">{currentUser?.school?.name || "Lycée de Joss"}</h3>
-                        <p className="text-[7px] font-bold text-muted-foreground italic">"Discipline - Work - Success"</p>
+                        <h3 className="text-xs font-black uppercase text-primary leading-tight">{currentUser?.school?.name}</h3>
+                        <p className="text-[7px] font-bold text-muted-foreground italic">"{currentUser?.school?.motto}"</p>
                       </div>
                     </div>
 
@@ -703,10 +704,6 @@ export default function StudentDetailsPage() {
                             <p className="text-xs font-black text-primary">{student.class}</p>
                           </div>
                         </div>
-                      </div>
-                      
-                      <div className="absolute top-4 right-4 rotate-12 opacity-[0.03]">
-                        <GraduationCap className="w-24 h-24" />
                       </div>
                     </div>
 
@@ -760,13 +757,10 @@ export default function StudentDetailsPage() {
                         <div className="space-y-4">
                           <div className="text-[8px] max-w-[200px] leading-relaxed text-muted-foreground font-medium">
                             <p className="font-black text-[7px] uppercase text-primary mb-1">Notice / Avertissement</p>
-                            This card is strictly personal. If found, please return to the school administration or nearest police station.
+                            This card is strictly personal. If found, please return to the school administration.
                           </div>
                         </div>
                         <div className="text-center space-y-1 relative">
-                          <div className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-10">
-                            <Signature className="w-12 h-12 -rotate-12" />
-                          </div>
                           <div className="h-px bg-primary/20 w-24 mx-auto mb-1" />
                           <p className="text-[8px] font-black text-primary uppercase">The Principal</p>
                           <Badge variant="outline" className="text-[7px] border-primary/20 text-primary font-black uppercase">Official Seal</Badge>
@@ -774,10 +768,15 @@ export default function StudentDetailsPage() {
                       </div>
                     </div>
 
-                    <div className="bg-accent/20 p-2 text-center shrink-0">
-                      <p className="text-[7px] font-black text-primary uppercase tracking-[0.3em]">
-                        EduIgnite SaaS Academic Registry System
-                      </p>
+                    {/* PLATFORM BRANDING FOOTER */}
+                    <div className="bg-accent/20 p-2 px-4 flex items-center justify-between shrink-0">
+                      <div className="flex items-center gap-2">
+                        <img src={platformSettings.logo} alt="EduIgnite" className="w-4 h-4 object-contain rounded-sm" />
+                        <p className="text-[7px] font-black text-primary uppercase tracking-widest">
+                          Powered by {platformSettings.name} SaaS
+                        </p>
+                      </div>
+                      <span className="text-[6px] text-muted-foreground font-bold italic">Secure Node Registry</span>
                     </div>
                   </Card>
                   <p className="text-center text-[10px] font-black uppercase text-muted-foreground mt-2 no-print tracking-[0.2em]">Back / Verso</p>

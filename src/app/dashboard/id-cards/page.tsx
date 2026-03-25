@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -49,7 +50,7 @@ const MOCK_STUDENTS = [
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
 
 export default function IdCardsPage() {
-  const { user } = useAuth();
+  const { user, platformSettings } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
   
@@ -115,33 +116,6 @@ export default function IdCardsPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-none shadow-sm bg-accent/30 border border-accent">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-[10px] font-black uppercase text-primary/60 tracking-widest leading-none">Total Enrolled</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-black text-primary">1,284 <span className="text-xs font-medium opacity-40">Students</span></div>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-sm bg-blue-50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-[10px] font-black uppercase text-blue-600 tracking-widest leading-none">IDs Issued</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-black text-blue-700">1,120 <span className="text-xs font-medium opacity-40">Cards</span></div>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-sm bg-green-50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-[10px] font-black uppercase text-green-600 tracking-widest leading-none">Validation Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-black text-green-700">92% <span className="text-xs font-medium opacity-40">Covered</span></div>
-          </CardContent>
-        </Card>
-      </div>
-
       <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
         <CardHeader className="bg-white border-b p-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -165,10 +139,6 @@ export default function IdCardsPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-center gap-2">
-               <span className="text-xs font-bold text-muted-foreground">{selectedStudents.length} selected</span>
-               <Button variant="outline" size="sm" onClick={() => setSelectedStudents([])}>Clear</Button>
-            </div>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -184,7 +154,7 @@ export default function IdCardsPage() {
                 <TableHead className="font-black uppercase text-[10px] tracking-widest py-4">Matricule</TableHead>
                 <TableHead className="font-black uppercase text-[10px] tracking-widest">Student Profile</TableHead>
                 <TableHead className="font-black uppercase text-[10px] tracking-widest">Academic Level</TableHead>
-                <TableHead className="font-black uppercase text-[10px] tracking-widest text-center">Card Status</TableHead>
+                <TableHead className="text-center font-black uppercase text-[10px] tracking-widest">Card Status</TableHead>
                 <TableHead className="pr-8 text-right font-black uppercase text-[10px] tracking-widest">Preview</TableHead>
               </TableRow>
             </TableHeader>
@@ -223,13 +193,6 @@ export default function IdCardsPage() {
             </TableBody>
           </Table>
         </CardContent>
-        <CardFooter className="bg-muted/20 p-4 border-t flex justify-between items-center">
-          <div className="flex items-center gap-2 text-muted-foreground">
-             <ShieldCheck className="w-4 h-4 text-primary" />
-             <p className="text-[10px] uppercase font-bold tracking-widest">Secure institutional card generation active.</p>
-          </div>
-          <p className="text-[10px] font-black text-primary uppercase">Total Records: {filtered.length}</p>
-        </CardFooter>
       </Card>
 
       {/* ID CARD PREVIEW & PRINT DIALOG */}
@@ -282,14 +245,13 @@ export default function IdCardsPage() {
 
                         {/* Ministry & School Header */}
                         <div className="p-3 border-b border-accent flex items-center gap-3 bg-accent/5 shrink-0">
-                          <Building2 className="w-8 h-8 text-primary opacity-20 absolute top-8 right-4" />
-                          <div className="w-12 h-12 bg-white rounded-lg p-1 border shadow-sm flex items-center justify-center shrink-0">
-                            <img src={user?.school?.logo || "https://picsum.photos/seed/edu1/100/100"} alt="Logo" className="w-full h-full object-contain" />
+                          <div className="w-12 h-12 bg-white rounded-lg p-1 border shadow-sm flex items-center justify-center shrink-0 overflow-hidden">
+                            <img src={user?.school?.logo} alt="School Logo" className="w-full h-full object-contain" />
                           </div>
                           <div className="flex-1">
                             <p className="text-[8px] font-black uppercase text-muted-foreground leading-none mb-0.5">Ministry of Secondary Education</p>
-                            <h3 className="text-xs font-black uppercase text-primary leading-tight">{user?.school?.name || "Lycée de Joss"}</h3>
-                            <p className="text-[7px] font-bold text-muted-foreground italic">"Discipline - Work - Success"</p>
+                            <h3 className="text-xs font-black uppercase text-primary leading-tight">{user?.school?.name}</h3>
+                            <p className="text-[7px] font-bold text-muted-foreground italic">"{user?.school?.motto}"</p>
                           </div>
                         </div>
 
@@ -313,10 +275,6 @@ export default function IdCardsPage() {
                               </div>
                             </div>
                           </div>
-                          
-                          <div className="absolute top-4 right-4 rotate-12 opacity-[0.03]">
-                            <GraduationCap className="w-24 h-24" />
-                          </div>
                         </div>
 
                         <div className="bg-primary/5 p-2 flex justify-between items-center border-t border-accent shrink-0">
@@ -329,11 +287,6 @@ export default function IdCardsPage() {
                           </div>
                         </div>
                       </Card>
-                      <div className="absolute -top-3 -right-3 no-print">
-                         <Button size="icon" variant="destructive" className="h-6 w-6 rounded-full shadow-lg" onClick={() => toggleSelect(s.id)}>
-                           <X className="w-3 h-3" />
-                         </Button>
-                      </div>
                       <p className="text-center text-[10px] font-black uppercase text-muted-foreground mt-2 no-print tracking-[0.2em]">Front / Recto</p>
                     </div>
 
@@ -374,13 +327,10 @@ export default function IdCardsPage() {
                             <div className="space-y-4">
                               <div className="text-[8px] max-w-[200px] leading-relaxed text-muted-foreground font-medium">
                                 <p className="font-black text-[7px] uppercase text-primary mb-1">Notice / Avertissement</p>
-                                This card is strictly personal. If found, please return to the school administration or nearest police station.
+                                This card is strictly personal. If found, please return to the school administration.
                               </div>
                             </div>
                             <div className="text-center space-y-1 relative">
-                              <div className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-10">
-                                <Signature className="w-12 h-12 -rotate-12" />
-                              </div>
                               <div className="h-px bg-primary/20 w-24 mx-auto mb-1" />
                               <p className="text-[8px] font-black text-primary uppercase">The Principal</p>
                               <Badge variant="outline" className="text-[7px] border-primary/20 text-primary font-black uppercase">Official Seal</Badge>
@@ -388,10 +338,15 @@ export default function IdCardsPage() {
                           </div>
                         </div>
 
-                        <div className="bg-accent/20 p-2 text-center shrink-0">
-                          <p className="text-[7px] font-black text-primary uppercase tracking-[0.3em]">
-                            EduIgnite SaaS Academic Registry System
-                          </p>
+                        {/* PLATFORM BRANDING FOOTER */}
+                        <div className="bg-accent/20 p-2 px-4 flex items-center justify-between shrink-0">
+                          <div className="flex items-center gap-2">
+                            <img src={platformSettings.logo} alt="EduIgnite" className="w-4 h-4 object-contain rounded-sm" />
+                            <p className="text-[7px] font-black text-primary uppercase tracking-widest">
+                              Powered by {platformSettings.name} SaaS
+                            </p>
+                          </div>
+                          <span className="text-[6px] text-muted-foreground font-bold italic">Secure Node Registry</span>
                         </div>
                       </Card>
                       <p className="text-center text-[10px] font-black uppercase text-muted-foreground mt-2 no-print tracking-[0.2em]">Back / Verso</p>
