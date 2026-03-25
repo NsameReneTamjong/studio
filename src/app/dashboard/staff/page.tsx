@@ -22,7 +22,10 @@ import {
   ShieldCheck,
   Printer,
   Mail,
-  Loader2
+  Loader2,
+  Pencil,
+  Ban,
+  User
 } from "lucide-react";
 import { 
   Dialog, 
@@ -110,7 +113,7 @@ export default function StaffManagementPage() {
 
   const handleDeleteStaff = (uid: string) => {
     setStaff(staff.filter(s => s.uid !== uid));
-    toast({ title: "Removed", description: "Staff record decommissioned." });
+    toast({ variant: "destructive", title: "Access Suspended", description: "Staff record has been moved to inactive registry." });
   };
 
   const getRoleColor = (role: string) => {
@@ -124,7 +127,7 @@ export default function StaffManagementPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
@@ -208,7 +211,32 @@ export default function StaffManagementPage() {
                     </TableCell>
                     <TableCell className="text-center text-xs font-bold text-primary">{s.section}</TableCell>
                     <TableCell className="pr-8 text-right">
-                      <Button variant="ghost" size="icon" onClick={() => handleDeleteStaff(s.uid)} className="text-destructive/20 hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5">
+                            <MoreVertical className="w-4 h-4 text-primary/40 group-hover:text-primary transition-colors" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-xl border-none">
+                          <DropdownMenuLabel className="text-[10px] uppercase font-black opacity-40 px-4 py-2">Dossier Options</DropdownMenuLabel>
+                          <DropdownMenuItem className="gap-3 px-4 py-2.5 cursor-pointer">
+                            <Eye className="w-4 h-4 text-primary/60" /> 
+                            <span className="font-bold text-xs">View Profile</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="gap-3 px-4 py-2.5 cursor-pointer">
+                            <Pencil className="w-4 h-4 text-primary/60" /> 
+                            <span className="font-bold text-xs">Edit Details</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator className="bg-accent" />
+                          <DropdownMenuItem 
+                            className="gap-3 px-4 py-2.5 text-destructive cursor-pointer hover:bg-red-50"
+                            onClick={() => handleDeleteStaff(s.uid)}
+                          >
+                            <Ban className="w-4 h-4" /> 
+                            <span className="font-bold text-xs">Suspend Access</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}
