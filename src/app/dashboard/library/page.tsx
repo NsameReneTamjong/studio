@@ -53,7 +53,8 @@ import {
   BookMarked,
   Filter,
   BarChart3,
-  TrendingUp
+  TrendingUp,
+  Receipt
 } from "lucide-react";
 import { 
   Dialog, 
@@ -88,7 +89,7 @@ const MOCK_STUDENT_HISTORY = [
 ];
 
 const MOCK_REQUESTS = [
-  { id: "REQ-001", userName: "Alice Thompson", userRole: "STUDENT", userAvatar: "https://picsum.photos/seed/s1/100/100", bookTitle: "Things Fall Apart", bookAuthor: "Chinua Achebe", requestDate: "Today, 11:00 AM" }
+  { id: "REQ-001", userId: "GBHS26S001", userName: "Alice Thompson", userRole: "STUDENT", userAvatar: "https://picsum.photos/seed/s1/100/100", bookTitle: "Things Fall Apart", bookAuthor: "Chinua Achebe", requestDate: "Today, 11:00 AM" }
 ];
 
 const MOCK_MEMBERS = [
@@ -97,7 +98,7 @@ const MOCK_MEMBERS = [
 ];
 
 export default function LibraryPage() {
-  const { user } = useAuth();
+  const { user, platformSettings } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
   
@@ -109,18 +110,9 @@ export default function LibraryPage() {
   
   // Modals
   const [selectedLoanDetails, setSelectedLoanDetails] = useState<any>(null);
+  const [issuedReceipt, setIssuedReceipt] = useState<any>(null);
   const [isAddingBook, setIsAddingBook] = useState(false);
   const [editingBook, setEditingBook] = useState<any>(null);
-
-  const [newBookData, setNewBookData] = useState({
-    title: "",
-    author: "",
-    category: "Literature",
-    isbn: "",
-    total: 5,
-    description: "",
-    cover: "https://picsum.photos/seed/newbook/400/600"
-  });
 
   // Policy State
   const [policyData, setPolicyData] = useState({
@@ -135,9 +127,26 @@ export default function LibraryPage() {
   const isAdmin = user?.role === "SCHOOL_ADMIN";
   const isStudent = user?.role === "STUDENT";
 
-  const handleIssueBook = (id: string) => {
-    setRequests(requests.filter(r => r.id !== id));
-    toast({ title: "Book Issued", description: "Resource has been checked out." });
+  const handleIssueBook = (req: any) => {
+    // Calculate due date based on current policy
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + parseInt(policyData.loanDuration));
+
+    const receipt = {
+      id: `IGN-L-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+      userName: req.userName,
+      userId: req.userId || "S001",
+      userRole: req.userRole,
+      bookTitle: req.bookTitle,
+      bookAuthor: req.bookAuthor,
+      collectionCode: `IGN-${Math.floor(100 + Math.random() * 899)}-X`,
+      issueDate: new Date().toLocaleDateString(),
+      dueDate: dueDate.toLocaleDateString(),
+    };
+
+    setIssuedReceipt(receipt);
+    setRequests(requests.filter(r => r.id !== req.id));
+    toast({ title: "Resource Issued", description: "Collection receipt has been generated." });
   };
 
   const handleReturnBook = (id: string) => {
@@ -172,6 +181,16 @@ export default function LibraryPage() {
       });
     }, 1000);
   };
+
+  const [newBookData, setNewBookData] = useState({
+    title: "",
+    author: "",
+    category: "Literature",
+    isbn: "",
+    total: 5,
+    description: "",
+    cover: "https://picsum.photos/seed/newbook/400/600"
+  });
 
   const filteredBooks = books.filter(b => 
     b.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -430,7 +449,7 @@ export default function LibraryPage() {
                       </TableCell>
                       <TableCell className="text-center text-[10px] font-bold text-muted-foreground">{req.requestDate}</TableCell>
                       <TableCell className="text-right pr-8">
-                        <Button className="h-9 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg" onClick={() => handleIssueBook(req.id)}>
+                        <Button className="h-9 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg" onClick={() => handleIssueBook(req)}>
                           <CheckCircle2 className="w-3.5 h-3.5 mr-2" /> Confirm Issue
                         </Button>
                       </TableCell>
@@ -485,7 +504,7 @@ export default function LibraryPage() {
                             Mark Returned
                           </Button>
                         ) : (
-                          <Button variant="ghost" size="sm" className="text-[10px] font-black uppercase" onClick={() => openLoanDetails(loan)}>
+                          <Button variant="ghost" size="sm" className="text-[10px] font-black uppercase" onClick={() => setSelectedLoanDetails({ ...loan, cover: INITIAL_BOOKS.find(b => b.title === loan.bookTitle)?.cover || INITIAL_BOOKS[0].cover })}>
                             View Dossier
                           </Button>
                         )}
@@ -740,6 +759,108 @@ export default function LibraryPage() {
         )}
       </Tabs>
 
+      {/* COLLECTION RECEIPT DIALOG (GEREATED UPON ISSUE) */}
+      <Dialog open={!!issuedReceipt} onOpenChange={() => setIssuedReceipt(null)}>
+        <DialogContent className="sm:max-w-xl p-0 border-none shadow-2xl rounded-[2rem] overflow-hidden">
+          <DialogHeader className="bg-primary p-8 text-white no-print">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-2xl">
+                  <Receipt className="w-8 h-8 text-secondary" />
+                </div>
+                <div>
+                  <DialogTitle className="text-2xl font-black">Collection Receipt</DialogTitle>
+                  <DialogDescription className="text-white/60">Official institutional loan record finalized.</DialogDescription>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setIssuedReceipt(null)} className="text-white/40 hover:text-white">
+                <X className="w-6 h-6" />
+              </Button>
+            </div>
+          </DialogHeader>
+
+          <div className="bg-muted p-6 md:p-10 print:p-0 print:bg-white overflow-hidden">
+            <div id="printable-receipt" className="bg-white p-8 border-2 border-black/10 shadow-sm relative flex flex-col space-y-6 font-serif text-black print:border-none print:shadow-none">
+               {/* Receipt Header */}
+               <div className="flex justify-between items-start border-b-2 border-black pb-4">
+                  <div className="flex items-center gap-3">
+                    <img src={user?.school?.logo} alt="School" className="w-12 h-12 object-contain" />
+                    <div className="space-y-0.5">
+                      <h2 className="font-black text-xs uppercase text-primary leading-tight">{user?.school?.name}</h2>
+                      <p className="text-[8px] font-bold uppercase opacity-60">Library Services Registry</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-black uppercase opacity-40">Receipt No.</p>
+                    <p className="text-sm font-mono font-black">{issuedReceipt?.id}</p>
+                  </div>
+               </div>
+
+               {/* Borrower & Book Matrix */}
+               <div className="grid grid-cols-2 gap-8 py-4">
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Borrower Identity</p>
+                      <p className="font-black text-sm uppercase">{issuedReceipt?.userName}</p>
+                      <p className="text-[9px] font-mono font-bold text-primary">{issuedReceipt?.userId} • {issuedReceipt?.userRole}</p>
+                    </div>
+                    <div>
+                      <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Collection Resource</p>
+                      <p className="font-black text-sm uppercase">{issuedReceipt?.bookTitle}</p>
+                      <p className="text-[9px] font-bold italic">By {issuedReceipt?.bookAuthor}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-4 text-right">
+                    <div>
+                      <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Issue Date</p>
+                      <p className="font-bold text-sm">{issuedReceipt?.issueDate}</p>
+                    </div>
+                    <div className="p-3 bg-primary text-white rounded-xl shadow-inner">
+                      <p className="text-[8px] font-black uppercase opacity-60 tracking-widest">Mandatory Due Date</p>
+                      <p className="font-black text-lg text-secondary underline underline-offset-4 decoration-double">{issuedReceipt?.dueDate}</p>
+                    </div>
+                  </div>
+               </div>
+
+               {/* Institutional Footprint */}
+               <div className="pt-6 border-t border-black/5 flex justify-between items-end">
+                  <div className="flex flex-col items-center gap-2">
+                    <QrCode className="w-16 h-16 opacity-10" />
+                    <p className="text-[7px] font-black uppercase text-muted-foreground opacity-40">Verified Registry</p>
+                  </div>
+                  <div className="text-center space-y-4">
+                    <div className="h-10 w-24 mx-auto bg-primary/5 rounded border-b border-black/20" />
+                    <p className="text-[8px] font-black uppercase text-primary">Librarian Signature</p>
+                  </div>
+               </div>
+
+               {/* Notice */}
+               <div className="bg-accent/30 p-3 rounded-lg text-[8px] leading-relaxed italic text-muted-foreground border border-accent">
+                 "This resource is public property. Failure to return the item by the due date ({issuedReceipt?.dueDate}) will result in institutional fines of {policyData.dailyFine} XAF per day. Take care of the volume."
+               </div>
+
+               <div className="text-center pt-4 border-t border-black/5">
+                  <div className="flex items-center justify-center gap-2">
+                    <img src={platformSettings.logo} alt="EduIgnite" className="w-3 h-3 object-contain opacity-20" />
+                    <p className="text-[7px] font-black uppercase text-muted-foreground opacity-30 tracking-[0.3em]">
+                      Powered by {platformSettings.name} • Secure Node Record
+                    </p>
+                  </div>
+               </div>
+            </div>
+          </div>
+
+          <DialogFooter className="bg-accent/10 p-6 border-t no-print flex sm:flex-row gap-3">
+            <Button variant="outline" className="flex-1 rounded-xl h-12 font-black uppercase tracking-widest text-xs" onClick={() => setIssuedReceipt(null)}>
+              Dismiss
+            </Button>
+            <Button className="flex-1 rounded-xl h-12 shadow-lg font-black uppercase tracking-widest text-xs gap-2 bg-primary text-white" onClick={() => window.print()}>
+              <Printer className="w-4 h-4" /> Print Receipt
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* RESOURCE DOSSIER DIALOG (READ-ONLY) */}
       <Dialog open={!!selectedLoanDetails} onOpenChange={() => setSelectedLoanDetails(null)}>
         <DialogContent className="sm:max-w-2xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
@@ -839,8 +960,4 @@ export default function LibraryPage() {
       </Dialog>
     </div>
   );
-}
-
-function openLoanDetails(loan: any) {
-  // This is a helper wrapper if needed, handled by state in main component
 }
