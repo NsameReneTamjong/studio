@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -36,7 +37,9 @@ import {
   Phone,
   QrCode,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  X,
+  Signature
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -54,7 +57,11 @@ const MOCK_CHILDREN = [
     status: "active",
     isLicensePaid: true,
     avatar: "https://picsum.photos/seed/alice/200/200",
-    createdAt: { toDate: () => new Date() }
+    createdAt: { toDate: () => new Date() },
+    dob: "15/05/2008",
+    guardian: "Mr. Robert Thompson",
+    guardianPhone: "+237 677 00 11 22",
+    address: "Bonapriso, Douala"
   },
   {
     id: "S004",
@@ -66,7 +73,11 @@ const MOCK_CHILDREN = [
     status: "active",
     isLicensePaid: true,
     avatar: "https://picsum.photos/seed/diana/200/200",
-    createdAt: { toDate: () => new Date() }
+    createdAt: { toDate: () => new Date() },
+    dob: "05/01/2008",
+    guardian: "Mrs. Prince",
+    guardianPhone: "+237 6XX XX XX XX",
+    address: "Logbessou, Douala"
   }
 ];
 
@@ -369,41 +380,41 @@ export default function StudentDetailsPage() {
                 <CreditCard className="w-5 h-5" /> {t("idCard")}
               </h3>
               <div className="flex justify-center">
-                <Card className="w-full max-w-sm border shadow-xl bg-gradient-to-br from-primary to-primary/90 text-white overflow-hidden relative">
-                  <div className="absolute top-0 right-0 p-8 opacity-10">
+                <Card className="w-full max-w-sm border shadow-xl bg-white overflow-hidden relative group cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all" onClick={() => setPreviewDoc({ type: 'id' })}>
+                  <div className="absolute top-0 right-0 p-4 opacity-5">
                     <GraduationCap className="w-32 h-32" />
                   </div>
-                  <CardHeader className="border-b border-white/10 pb-4">
+                  <CardHeader className="border-b bg-accent/5 pb-4">
                     <div className="flex items-center gap-3">
-                      <Building2 className="w-6 h-6 text-secondary" />
+                      <Building2 className="w-6 h-6 text-primary" />
                       <div>
-                        <CardTitle className="text-sm font-bold tracking-tight">GBHS Deido</CardTitle>
-                        <CardDescription className="text-white/60 text-[10px] uppercase font-bold tracking-widest">{t("idCard")}</CardDescription>
+                        <CardTitle className="text-sm font-bold tracking-tight text-primary">GBHS Deido</CardTitle>
+                        <CardDescription className="text-primary/60 text-[10px] uppercase font-bold tracking-widest">{t("idCard")}</CardDescription>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent className="pt-6 pb-6 space-y-4">
                     <div className="flex gap-6">
-                      <Avatar className="w-24 h-24 rounded-lg overflow-hidden border-2 border-white/20 shadow-lg shrink-0">
+                      <Avatar className="w-20 h-20 rounded-lg overflow-hidden border-2 border-primary/10 shadow-lg shrink-0">
                         <AvatarImage src={student.avatar} className="object-cover" />
-                        <AvatarFallback className="bg-white/10 text-white text-3xl font-black">{student.name?.charAt(0)}</AvatarFallback>
+                        <AvatarFallback className="bg-primary/5 text-primary text-2xl font-black">{student.name?.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div className="space-y-3 flex-1">
                         <div>
-                          <p className="text-[10px] text-white/50 uppercase font-bold">Student Name</p>
-                          <p className="font-bold text-lg leading-none">{student.name}</p>
+                          <p className="text-[10px] text-muted-foreground uppercase font-bold">Student Name</p>
+                          <p className="font-black text-primary uppercase text-sm leading-tight">{student.name}</p>
                         </div>
                         <div>
-                          <p className="text-[10px] text-white/50 uppercase font-bold">Matricule</p>
-                          <p className="font-mono font-bold text-secondary">{student.id}</p>
+                          <p className="text-[10px] text-muted-foreground uppercase font-bold">Matricule</p>
+                          <p className="font-mono font-bold text-secondary text-sm">{student.id}</p>
                         </div>
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter className="bg-white/5 py-3 flex justify-between items-center text-[10px]">
-                    <span className="flex items-center gap-1 opacity-60"><MapPin className="w-3 h-3" /> Douala, Cameroon</span>
-                    <Button variant="ghost" size="sm" onClick={() => setPreviewDoc({ type: 'id' })} className="text-white hover:bg-white/10 h-7 text-[10px] gap-1">
-                      <Eye className="w-3.5 h-3.5" /> Full Preview
+                  <CardFooter className="bg-accent/10 py-3 flex justify-between items-center text-[10px]">
+                    <span className="flex items-center gap-1 opacity-60 font-bold"><MapPin className="w-3 h-3" /> Douala, Cameroon</span>
+                    <Button variant="ghost" size="sm" className="text-primary hover:bg-white h-7 text-[10px] gap-1 font-bold">
+                      <Eye className="w-3.5 h-3.5" /> Full Suite
                     </Button>
                   </CardFooter>
                 </Card>
@@ -417,17 +428,28 @@ export default function StudentDetailsPage() {
       <Dialog open={!!previewDoc} onOpenChange={() => setPreviewDoc(null)}>
         <DialogContent className="sm:max-w-4xl max-h-[95vh] overflow-y-auto p-0 border-none shadow-2xl">
           <DialogHeader className="p-6 bg-primary text-white no-print">
-            <DialogTitle className="flex items-center gap-2 text-white">
-              <Eye className="w-5 h-5" />
-              {previewDoc?.type === 'report' ? t("reportCard") : 
-               previewDoc?.type === 'receipt' ? t("receipt") : t("idCard")}
-            </DialogTitle>
-            <DialogDescription className="text-white/70">
-              Official institutional document preview. Optimized for high-fidelity printing.
-            </DialogDescription>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-2xl">
+                  <Eye className="w-8 h-8 text-secondary" />
+                </div>
+                <div>
+                  <DialogTitle className="text-2xl font-black text-white">
+                    {previewDoc?.type === 'report' ? t("reportCard") : 
+                     previewDoc?.type === 'receipt' ? t("receipt") : t("idCard")}
+                  </DialogTitle>
+                  <DialogDescription className="text-white/70">
+                    Official institutional document preview. Optimized for high-fidelity printing.
+                  </DialogDescription>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setPreviewDoc(null)} className="text-white">
+                <X className="w-6 h-6" />
+              </Button>
+            </div>
           </DialogHeader>
 
-          <div className="bg-muted p-4 md:p-8">
+          <div className="bg-muted p-4 md:p-8 print:p-0 print:bg-white">
             {previewDoc?.type === 'report' && (
               <div className="bg-white p-6 md:p-10 shadow-sm border border-border min-h-[700px] flex flex-col space-y-6 font-serif text-black relative print:shadow-none print:border-none">
                  <div className="grid grid-cols-3 gap-4 items-start text-center border-b-2 border-black pb-6">
@@ -525,51 +547,155 @@ export default function StudentDetailsPage() {
             )}
 
             {previewDoc?.type === 'id' && (
-              <div className="flex justify-center p-8">
-                <Card className="w-full max-w-md border shadow-xl bg-gradient-to-br from-primary to-primary/90 text-white overflow-hidden relative">
-                  <CardHeader className="border-b border-white/10 pb-4">
-                    <div className="flex items-center gap-3">
-                      <Building2 className="w-8 h-8 text-secondary" />
-                      <div>
-                        <CardTitle className="text-lg font-bold tracking-tight">GBHS Deido</CardTitle>
-                        <CardDescription className="text-white/60 text-xs uppercase font-bold tracking-widest">{t("idCard")}</CardDescription>
+              <div className="flex flex-col gap-12 items-center print:gap-8">
+                {/* ID Card Front */}
+                <div className="relative group card-container">
+                  <Card className="w-[450px] h-[280px] border shadow-xl bg-white overflow-hidden relative border-primary/20 flex flex-col">
+                    {/* Cameroon National Header */}
+                    <div className="bg-primary p-2 flex items-center justify-between text-white text-[7px] font-black uppercase tracking-tighter shrink-0 border-b border-white/10">
+                      <div className="text-left leading-none space-y-0.5">
+                        <p>Republic of Cameroon</p>
+                        <p>Peace - Work - Fatherland</p>
+                      </div>
+                      <div className="flex gap-1 h-3">
+                        <div className="w-2 h-full bg-[#007a5e]" />
+                        <div className="w-2 h-full bg-[#ce1126] flex items-center justify-center"><div className="w-0.5 h-0.5 bg-yellow-400 rounded-full" /></div>
+                        <div className="w-2 h-full bg-[#fcd116]" />
+                      </div>
+                      <div className="text-right leading-none space-y-0.5">
+                        <p>République du Cameroun</p>
+                        <p>Paix - Travail - Patrie</p>
                       </div>
                     </div>
-                  </CardHeader>
-                  <CardContent className="pt-8 pb-8 space-y-6">
-                    <div className="flex gap-8">
-                      <Avatar className="w-32 h-32 rounded-xl overflow-hidden border-4 border-white/20 shadow-2xl shrink-0">
-                        <AvatarImage src={student.avatar} className="object-cover" />
-                        <AvatarFallback className="text-4xl font-black">{student.name?.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div className="space-y-4 flex-1">
-                        <div>
-                          <p className="text-[10px] text-white/50 uppercase font-bold">Student Name</p>
-                          <p className="font-bold text-xl leading-none">{student.name}</p>
+
+                    {/* Ministry & School Header */}
+                    <div className="p-3 border-b border-accent flex items-center gap-3 bg-accent/5 shrink-0">
+                      <Building2 className="w-8 h-8 text-primary opacity-20 absolute top-8 right-4" />
+                      <div className="w-12 h-12 bg-white rounded-lg p-1 border shadow-sm flex items-center justify-center shrink-0">
+                        <img src={currentUser?.school?.logo || "https://picsum.photos/seed/edu1/200/200"} alt="Logo" className="w-full h-full object-contain" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-[8px] font-black uppercase text-muted-foreground leading-none mb-0.5">Ministry of Secondary Education</p>
+                        <h3 className="text-xs font-black uppercase text-primary leading-tight">{currentUser?.school?.name || "Lycée de Joss"}</h3>
+                        <p className="text-[7px] font-bold text-muted-foreground italic">"Discipline - Work - Success"</p>
+                      </div>
+                    </div>
+
+                    <div className="flex-1 p-4 flex gap-6 relative">
+                      <div className="w-28 h-28 rounded-xl border-2 border-primary/10 overflow-hidden shadow-lg shrink-0 bg-accent/5">
+                        <img src={student.avatar} alt={student.name} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-1 flex flex-col justify-center gap-3">
+                        <div className="space-y-0.5">
+                          <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Full Name / Nom Complet</p>
+                          <p className="text-sm font-black text-primary uppercase leading-tight">{student.name}</p>
                         </div>
-                        <div>
-                          <p className="text-[10px] text-white/50 uppercase font-bold">Matricule</p>
-                          <p className="font-mono font-bold text-2xl text-secondary">{student.id}</p>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-0.5">
+                            <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Matricule</p>
+                            <p className="text-sm font-mono font-black text-secondary">{student.id}</p>
+                          </div>
+                          <div className="space-y-0.5">
+                            <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Class / Classe</p>
+                            <p className="text-xs font-black text-primary">{student.class}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="absolute top-4 right-4 rotate-12 opacity-[0.03]">
+                        <GraduationCap className="w-24 h-24" />
+                      </div>
+                    </div>
+
+                    <div className="bg-primary/5 p-2 flex justify-between items-center border-t border-accent shrink-0">
+                      <div className="px-3 py-1 bg-primary text-white rounded-md text-[9px] font-black tracking-widest">
+                        STUDENT ID CARD
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[8px] font-black text-muted-foreground uppercase">Academic Year</span>
+                        <Badge className="bg-secondary text-primary border-none text-[9px] font-black h-5">2023 - 2024</Badge>
+                      </div>
+                    </div>
+                  </Card>
+                  <p className="text-center text-[10px] font-black uppercase text-muted-foreground mt-2 no-print tracking-[0.2em]">Front / Recto</p>
+                </div>
+
+                {/* ID Card Back */}
+                <div className="relative group card-container">
+                  <Card className="w-[450px] h-[280px] border shadow-xl bg-white overflow-hidden relative border-primary/20 flex flex-col">
+                    <div className="bg-primary h-1 w-full shrink-0" />
+                    
+                    <div className="flex-1 p-6 flex flex-col gap-6">
+                      <div className="grid grid-cols-2 gap-8">
+                        <div className="space-y-4">
+                          <div className="space-y-1">
+                            <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Guardian / Tuteur</p>
+                            <p className="text-[10px] font-bold text-primary">{student.guardian || "Not Registered"}</p>
+                            <p className="text-[10px] font-black text-secondary flex items-center gap-1"><Phone className="w-2.5 h-2.5" /> {student.guardianPhone || "---"}</p>
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Date of Birth / Né(e) le</p>
+                            <p className="text-[10px] font-bold text-primary">{student.dob || "---"}</p>
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Residential Address / Adresse</p>
+                            <p className="text-[9px] font-medium text-muted-foreground leading-tight">{student.address || "---"}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-col items-center justify-center gap-4 text-center border-l border-accent pl-8">
+                          <div className="p-2 bg-white border-2 border-accent rounded-xl shadow-inner">
+                            <QrCode className="w-20 h-20 text-primary" />
+                          </div>
+                          <p className="text-[7px] font-black text-muted-foreground uppercase leading-tight tracking-widest">
+                            Scannez pour vérifier l'authenticité<br/>Scan to verify authenticity
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mt-auto flex justify-between items-end border-t border-accent/50 pt-4">
+                        <div className="space-y-4">
+                          <div className="text-[8px] max-w-[200px] leading-relaxed text-muted-foreground font-medium">
+                            <p className="font-black text-[7px] uppercase text-primary mb-1">Notice / Avertissement</p>
+                            This card is strictly personal. If found, please return to the school administration or nearest police station.
+                          </div>
+                        </div>
+                        <div className="text-center space-y-1 relative">
+                          <div className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-10">
+                            <Signature className="w-12 h-12 -rotate-12" />
+                          </div>
+                          <div className="h-px bg-primary/20 w-24 mx-auto mb-1" />
+                          <p className="text-[8px] font-black text-primary uppercase">The Principal</p>
+                          <Badge variant="outline" className="text-[7px] border-primary/20 text-primary font-black uppercase">Official Seal</Badge>
                         </div>
                       </div>
                     </div>
-                  </CardContent>
-                  <CardFooter className="bg-white/5 py-4 flex justify-between items-center">
-                    <span className="flex items-center gap-1 opacity-60 text-xs"><MapPin className="w-4 h-4" /> Douala, Cameroon</span>
-                    <Badge variant="secondary" className="bg-secondary text-primary border-none text-[10px] h-6 px-4">VALID 2024</Badge>
-                  </CardFooter>
-                </Card>
+
+                    <div className="bg-accent/20 p-2 text-center shrink-0">
+                      <p className="text-[7px] font-black text-primary uppercase tracking-[0.3em]">
+                        EduIgnite SaaS Academic Registry System
+                      </p>
+                    </div>
+                  </Card>
+                  <p className="text-center text-[10px] font-black uppercase text-muted-foreground mt-2 no-print tracking-[0.2em]">Back / Verso</p>
+                </div>
               </div>
             )}
           </div>
 
           <DialogFooter className="p-6 bg-white border-t gap-3 sm:gap-0 no-print">
-            <Button variant="outline" onClick={() => window.print()} className="gap-2">
-              <Printer className="w-4 h-4" /> Print
-            </Button>
-            <Button onClick={() => { handleDownload('Bulletin'); setPreviewDoc(null); }} className="gap-2 shadow-lg bg-primary text-white">
-              <Download className="w-4 h-4" /> Download Digital Copy
-            </Button>
+            <div className="flex-1 flex items-center gap-2 text-muted-foreground italic">
+               <Info className="w-4 h-4" />
+               <p className="text-[10px]">Optimized for standard 85.60 × 53.98 mm (CR80) PVC cards.</p>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => window.print()} className="gap-2 rounded-xl">
+                <Printer className="w-4 h-4" /> Print
+              </Button>
+              <Button onClick={() => { handleDownload('ID Card Suite'); setPreviewDoc(null); }} className="gap-2 shadow-lg bg-primary text-white rounded-xl">
+                <Download className="w-4 h-4" /> Download Digital Suite
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
