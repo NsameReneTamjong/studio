@@ -42,10 +42,12 @@ service cloud.firestore {
     }
 
     match /testimonials/{testimonialId} {
-      // 1. Authenticated users can create new testimonials
       allow create: if isSignedIn();
-      
-      // 2. Platform Admins can manage (read/update/delete)
+      allow read, update, delete: if isPlatformAdmin();
+    }
+
+    match /orders/{orderId} {
+      allow create: if true; // Public order form
       allow read, update, delete: if isPlatformAdmin();
     }
 

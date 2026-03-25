@@ -37,7 +37,7 @@
         "id": { "type": "string", "description": "The generated Matricule." },
         "uid": { "type": "string", "firebase": "auth.uid" },
         "name": { "type": "string" },
-        "role": { "type": "string", "enum": ["CEO", "CTO", "COO", "INV", "SCHOOL_ADMIN", "BURSAR", "LIBRARIAN", "TEACHER", "STUDENT", "PARENT"] },
+        "role": { "type": "string", "enum": ["CEO", "CTO", "COO", "INV", "SCHOOL_ADMIN", "BURSAR", "LIBRARIAN", "TEACHER", "STUDENT", "PARENT", "SUPER_ADMIN"] },
         "schoolId": { "type": "string", "description": "Reference to School.id." },
         "email": { "type": "string", "format": "email" },
         "isLicensePaid": { "type": "boolean" },
@@ -90,6 +90,24 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "name", "message", "status", "createdAt"]
+    },
+    "Order": {
+      "title": "Order",
+      "type": "object",
+      "description": "A contact request or platform order.",
+      "properties": {
+        "fullName": { "type": "string" },
+        "occupation": { "type": "string" },
+        "schoolName": { "type": "string" },
+        "whatsappNumber": { "type": "string" },
+        "email": { "type": "string" },
+        "region": { "type": "string" },
+        "division": { "type": "string" },
+        "subDivision": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "processed"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["fullName", "schoolName", "whatsappNumber", "email", "status", "createdAt"]
     }
   },
   "auth": {
@@ -125,6 +143,10 @@
     "/testimonials/{testimonialId}": {
       "schema": "#/entities/Testimonial",
       "description": "Moderated user testimonials."
+    },
+    "/orders/{orderId}": {
+      "schema": "#/entities/Order",
+      "description": "Institutional onboarding orders."
     }
   }
 }
