@@ -607,7 +607,7 @@ export default function StudentDetailsPage() {
               <div>
                 <DialogTitle className="text-2xl font-black">{t("contactTeacher")}</DialogTitle>
                 <DialogDescription className="text-white/60">
-                  {t("sendTo")}: <span className="text-white font-bold">Prof. Sarah Smith</span>
+                  {t("sendTo")}: <span className="text-white font-bold">Prof. Sarah Smith (Lead Teacher)</span>
                 </DialogDescription>
               </div>
             </div>
