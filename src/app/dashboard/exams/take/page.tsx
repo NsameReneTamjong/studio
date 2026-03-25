@@ -96,36 +96,35 @@ export default function TakeExamPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between sticky top-0 z-20 bg-background/95 backdrop-blur-sm py-4 border-b">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.back()} disabled={isSubmitted}>
+      <div className="flex flex-col md:flex-row md:items-center justify-between sticky top-0 z-20 bg-background/95 backdrop-blur-sm py-4 border-b gap-4">
+        <div className="flex items-center gap-2 md:gap-4">
+          <Button variant="ghost" size="icon" onClick={() => router.back()} disabled={isSubmitted} className="shrink-0">
             <ChevronLeft className="w-5 h-5" />
           </Button>
           
-          {/* Student Profile Identity Section */}
-          <div className="flex items-center gap-3 border-l pl-4">
-            <Avatar className="h-8 w-8 md:h-10 md:w-10 ring-2 ring-primary/10">
+          <div className="flex items-center gap-3 border-l pl-2 md:pl-4">
+            <Avatar className="h-8 w-8 md:h-10 md:w-10 ring-2 ring-primary/10 shrink-0">
               <AvatarImage src={user?.avatar} alt={user?.name} />
               <AvatarFallback className="bg-primary/5 text-primary">
                 <User className="h-4 w-4" />
               </AvatarFallback>
             </Avatar>
-            <div className="hidden sm:block">
-              <p className="text-xs font-bold leading-none text-primary">{user?.name}</p>
-              <p className="text-[9px] text-muted-foreground uppercase font-mono mt-1">{user?.id}</p>
+            <div className="hidden sm:block overflow-hidden max-w-[120px]">
+              <p className="text-xs font-bold leading-none text-primary truncate">{user?.name}</p>
+              <p className="text-[9px] text-muted-foreground uppercase font-mono mt-1 truncate">{user?.id}</p>
             </div>
           </div>
 
-          <div className="border-l pl-4">
+          <div className="border-l pl-2 md:pl-4">
             <h1 className="font-bold text-sm md:text-base line-clamp-1">Mid-Term Physics MCQ</h1>
             <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-              Question {currentQuestion + 1} / {MOCK_QUESTIONS.length}
+              {currentQuestion + 1} / {MOCK_QUESTIONS.length}
             </p>
           </div>
         </div>
         
         <div className={cn(
-          "flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full font-mono font-bold text-xs md:text-sm shadow-sm transition-colors",
+          "flex items-center self-end md:self-auto gap-2 px-4 py-2 rounded-full font-mono font-bold text-xs md:text-sm shadow-sm transition-colors shrink-0",
           timeLeft < 300 ? "bg-destructive text-destructive-foreground animate-pulse" : "bg-primary text-white"
         )}>
           <Timer className="w-3 h-3 md:w-4 md:h-4" />
@@ -143,24 +142,24 @@ export default function TakeExamPage() {
         </div>
 
         <Card className="border-none shadow-xl bg-white overflow-hidden">
-          <CardHeader className="pb-8 bg-accent/10 border-b">
+          <CardHeader className="pb-6 bg-accent/10 border-b">
             {question.text && (
-              <CardTitle className="text-xl md:text-2xl leading-relaxed text-primary">
+              <CardTitle className="text-lg md:text-2xl leading-relaxed text-primary">
                 {question.text}
               </CardTitle>
             )}
           </CardHeader>
-          <CardContent className="pt-8 space-y-8">
+          <CardContent className="pt-6 md:pt-8 space-y-6 md:space-y-8">
             {/* MULTIMEDIA QUESTION SUPPORT */}
             {question.imageUrl && (
-              <div className="relative w-full aspect-video rounded-2xl overflow-hidden border-4 border-white shadow-xl bg-accent/30 group">
+              <div className="relative w-full aspect-video rounded-2xl overflow-hidden border-2 md:border-4 border-white shadow-xl bg-accent/30 group">
                 <img 
                   src={question.imageUrl} 
                   alt="Question Diagram" 
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <div className="absolute top-4 right-4">
-                  <Badge variant="secondary" className="bg-white/80 backdrop-blur-md border-none text-primary font-black uppercase text-[9px] px-3">
+                <div className="absolute top-2 right-2 md:top-4 md:right-4">
+                  <Badge variant="secondary" className="bg-white/80 backdrop-blur-md border-none text-primary font-black uppercase text-[8px] md:text-[9px] px-2 md:px-3">
                     Diagram {question.id}
                   </Badge>
                 </div>
@@ -174,33 +173,33 @@ export default function TakeExamPage() {
             >
               {question.options.map((option, idx) => (
                 <div key={idx} className={cn(
-                  "flex items-center space-x-3 p-4 rounded-xl border-2 transition-all cursor-pointer hover:border-primary/50",
+                  "flex items-center space-x-3 p-3 md:p-4 rounded-xl border-2 transition-all cursor-pointer hover:border-primary/50",
                   answers[currentQuestion] === idx 
                     ? "border-primary bg-primary/5 shadow-sm" 
                     : "border-accent bg-background"
                 )} onClick={() => handleSelect(idx)}>
                   <RadioGroupItem value={idx.toString()} id={`opt-${idx}`} className="sr-only" />
                   <div className={cn(
-                    "w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 font-bold transition-colors",
+                    "w-7 h-7 md:w-8 md:h-8 rounded-full border-2 flex items-center justify-center shrink-0 font-bold transition-colors text-sm",
                     answers[currentQuestion] === idx 
                       ? "border-primary bg-primary text-white" 
                       : "border-muted-foreground/30 text-muted-foreground"
                   )}>
                     {String.fromCharCode(65 + idx)}
                   </div>
-                  <Label htmlFor={`opt-${idx}`} className="flex-1 text-base cursor-pointer font-medium leading-tight">
+                  <Label htmlFor={`opt-${idx}`} className="flex-1 text-sm md:text-base cursor-pointer font-medium leading-tight">
                     {option}
                   </Label>
                 </div>
               ))}
             </RadioGroup>
           </CardContent>
-          <CardFooter className="flex justify-between border-t mt-8 pt-6">
+          <CardFooter className="flex flex-col md:flex-row justify-between border-t mt-6 md:mt-8 pt-6 gap-4">
             <Button 
               variant="outline" 
               onClick={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
               disabled={currentQuestion === 0 || isSubmitted}
-              className="gap-2"
+              className="w-full md:w-auto gap-2"
             >
               <ChevronLeft className="w-4 h-4" /> {language === 'en' ? 'Previous' : 'Précédent'}
             </Button>
@@ -209,7 +208,7 @@ export default function TakeExamPage() {
               <Button 
                 onClick={handleSubmit} 
                 disabled={isSubmitted || Object.keys(answers).length < MOCK_QUESTIONS.length}
-                className="gap-2 bg-green-600 hover:bg-green-700 shadow-lg text-white font-bold px-8"
+                className="w-full md:w-auto gap-2 bg-green-600 hover:bg-green-700 shadow-lg text-white font-bold px-8"
               >
                 <Send className="w-4 h-4" /> {t("submitExam")}
               </Button>
@@ -217,7 +216,7 @@ export default function TakeExamPage() {
               <Button 
                 onClick={() => setCurrentQuestion(prev => Math.min(MOCK_QUESTIONS.length - 1, prev + 1))}
                 disabled={isSubmitted || answers[currentQuestion] === undefined}
-                className="gap-2 px-8"
+                className="w-full md:w-auto gap-2 px-8"
               >
                 {language === 'en' ? 'Next' : 'Suivant'} <ChevronRight className="w-4 h-4" />
               </Button>
@@ -226,7 +225,7 @@ export default function TakeExamPage() {
         </Card>
 
         {Object.keys(answers).length < MOCK_QUESTIONS.length && (
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm animate-in fade-in slide-in-from-top-1">
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs md:text-sm animate-in fade-in slide-in-from-top-1">
             <AlertCircle className="w-5 h-5 shrink-0" />
             <p className="font-medium">
               {language === 'en' 

@@ -66,7 +66,7 @@ const MOCK_ONLINE_EXAMS = [
     title: "Quantum Mechanics Mid-Term", 
     subject: "Advanced Physics", 
     teacher: "Dr. Tesla", 
-    startTime: new Date(Date.now() + 86400000).toISOString(), // Tomorrow
+    startTime: new Date(Date.now() + 86400000).toISOString(), 
     endTime: new Date(Date.now() + 86400000 + 3600000).toISOString(),
     duration: 45, 
     questionCount: 20,
@@ -78,18 +78,31 @@ const MOCK_ONLINE_EXAMS = [
     title: "Calculus Differentiation Quiz", 
     subject: "Mathematics", 
     teacher: "Prof. Smith", 
-    startTime: new Date(Date.now() - 1800000).toISOString(), // Started 30 mins ago
-    endTime: new Date(Date.now() + 1800000).toISOString(), // Ends in 30 mins
+    startTime: new Date(Date.now() - 1800000).toISOString(), 
+    endTime: new Date(Date.now() + 1800000).toISOString(), 
     duration: 30, 
     questionCount: 15,
     status: "active",
     instructions: "Answer all questions correctly. Focus on limits and derivatives."
+  },
+  { 
+    id: "E003", 
+    title: "English Vocabulary Speedrun", 
+    subject: "English Literature", 
+    teacher: "Ms. Bennet", 
+    startTime: new Date(Date.now() - 7200000).toISOString(), 
+    endTime: new Date(Date.now() - 3600000).toISOString(), 
+    duration: 15, 
+    questionCount: 10,
+    status: "cancelled", // Mocking a cancelled exam
+    instructions: "Cancelled due to technical maintenance."
   }
 ];
 
 const MOCK_EXAM_HISTORY = [
-  { id: "H1", title: "Wave Motion Quiz", subject: "Physics", score: 18, total: 20, date: "May 12, 2024", teacher: "Dr. Tesla" },
-  { id: "H2", title: "Algebra Sequence 1", subject: "Mathematics", score: 15, total: 20, date: "April 28, 2024", teacher: "Prof. Smith" },
+  { id: "H1", title: "Wave Motion Quiz", subject: "Physics", score: 18, total: 20, date: "May 12, 2024", teacher: "Dr. Tesla", status: "VERIFIED" },
+  { id: "H2", title: "Algebra Sequence 1", subject: "Mathematics", score: 15, total: 20, date: "April 28, 2024", teacher: "Prof. Smith", status: "VERIFIED" },
+  { id: "E003", title: "English Vocabulary Speedrun", subject: "English Literature", score: 0, total: 10, date: "Today", teacher: "Ms. Bennet", status: "CANCELLED" },
 ];
 
 const INITIAL_ONSITE_EXAMS = [
@@ -127,11 +140,11 @@ export default function ExamsPage() {
 
   const isAdmin = user?.role === "SCHOOL_ADMIN";
 
-  // Logic to filter live vs history exams based on current time
+  // Filter out cancelled or finished exams from the live list
   const currentTime = new Date();
   const activeExams = MOCK_ONLINE_EXAMS.filter(exam => {
     const end = new Date(exam.endTime);
-    return end > currentTime;
+    return end > currentTime && exam.status !== 'cancelled';
   });
 
   useEffect(() => {
@@ -177,10 +190,10 @@ export default function ExamsPage() {
         </div>
 
         {isAdmin && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Dialog open={isDrawingTimetable} onOpenChange={setIsDrawingTimetable}>
               <DialogTrigger asChild>
-                <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl bg-secondary text-primary hover:bg-secondary/90">
+                <Button className="flex-1 md:flex-none gap-2 shadow-lg h-12 px-6 rounded-2xl bg-secondary text-primary hover:bg-secondary/90">
                   <LayoutGrid className="w-5 h-5" /> {language === 'en' ? 'Draw Timetable' : 'Gérer l\'Emploi du Temps'}
                 </Button>
               </DialogTrigger>
@@ -236,7 +249,7 @@ export default function ExamsPage() {
 
             <Dialog open={isSchedulingOnsite} onOpenChange={setIsSchedulingOnsite}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="gap-2 shadow-sm h-12 px-6 rounded-2xl border-primary/20">
+                <Button variant="outline" className="flex-1 md:flex-none gap-2 shadow-sm h-12 px-6 rounded-2xl border-primary/20">
                   <CalendarDays className="w-5 h-5 text-primary" /> {language === 'en' ? 'Schedule Onsite Exam' : 'Planifier Exam sur Site'}
                 </Button>
               </DialogTrigger>
@@ -277,17 +290,17 @@ export default function ExamsPage() {
       </div>
 
       <Tabs defaultValue="onsite" className="w-full">
-        <TabsList className="grid grid-cols-4 w-full md:w-[800px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl">
-          <TabsTrigger value="onsite" className="gap-2 py-3 rounded-xl transition-all">
-            <CalendarDays className="w-4 h-4" /> {language === 'en' ? 'Onsite Exams' : 'Examens sur Site'}
+        <TabsList className="grid grid-cols-2 lg:grid-cols-4 w-full lg:w-[800px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl">
+          <TabsTrigger value="onsite" className="gap-2 py-3 rounded-xl transition-all text-xs lg:text-sm">
+            <CalendarDays className="w-4 h-4" /> {language === 'en' ? 'Onsite' : 'Sur Site'}
           </TabsTrigger>
-          <TabsTrigger value="available" className="gap-2 py-3 rounded-xl transition-all">
-            <PenTool className="w-4 h-4" /> {language === 'en' ? 'Live MCQs' : 'QCM en Ligne'}
+          <TabsTrigger value="available" className="gap-2 py-3 rounded-xl transition-all text-xs lg:text-sm">
+            <PenTool className="w-4 h-4" /> {language === 'en' ? 'Live MCQs' : 'QCM Live'}
           </TabsTrigger>
-          <TabsTrigger value="history" className="gap-2 py-3 rounded-xl transition-all">
-            <History className="w-4 h-4" /> {language === 'en' ? 'MCQ History' : 'Historique QCM'}
+          <TabsTrigger value="history" className="gap-2 py-3 rounded-xl transition-all text-xs lg:text-sm">
+            <History className="w-4 h-4" /> {language === 'en' ? 'History' : 'Historique'}
           </TabsTrigger>
-          <TabsTrigger value="timetable" className="gap-2 py-3 rounded-xl transition-all">
+          <TabsTrigger value="timetable" className="gap-2 py-3 rounded-xl transition-all text-xs lg:text-sm">
             <LayoutGrid className="w-4 h-4" /> {language === 'en' ? 'Timetables' : 'Emplois du Temps'}
           </TabsTrigger>
         </TabsList>
@@ -393,10 +406,10 @@ export default function ExamsPage() {
               <CardTitle className="text-sm font-black uppercase text-primary flex items-center gap-2">
                 <History className="w-4 h-4" /> MCQ Attempt History
               </CardTitle>
-              <CardDescription>Verified results from past online assessments.</CardDescription>
+              <CardDescription>Verified results from past or cancelled assessments.</CardDescription>
             </CardHeader>
-            <CardContent className="p-0">
-              <Table>
+            <CardContent className="p-0 overflow-x-auto">
+              <Table className="min-w-[600px]">
                 <TableHeader className="bg-accent/10">
                   <TableRow className="uppercase text-[10px] font-black tracking-widest">
                     <TableHead className="pl-8 py-4">Assessment Title</TableHead>
@@ -407,16 +420,21 @@ export default function ExamsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {MOCK_EXAM_HISTORY.map((hist) => (
-                    <TableRow key={hist.id}>
+                  {MOCK_EXAM_HISTORY.map((hist, idx) => (
+                    <TableRow key={idx}>
                       <TableCell className="pl-8 py-4 font-bold text-sm text-primary">{hist.title}</TableCell>
                       <TableCell><Badge variant="outline" className="text-[10px]">{hist.subject}</Badge></TableCell>
-                      <TableCell className="text-center font-black text-primary">{hist.score} / {hist.total}</TableCell>
+                      <TableCell className="text-center font-black text-primary">
+                        {hist.status === 'CANCELLED' ? '---' : `${hist.score} / ${hist.total}`}
+                      </TableCell>
                       <TableCell className="text-center text-xs text-muted-foreground">{hist.date}</TableCell>
                       <TableCell className="text-right pr-8">
-                        <div className="inline-flex items-center gap-1 text-[10px] text-green-600 font-black">
-                          <CheckCircle2 className="w-3 h-3" /> VERIFIED
-                        </div>
+                        <Badge className={cn(
+                          "text-[9px] font-black uppercase border-none px-3",
+                          hist.status === 'VERIFIED' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                        )}>
+                          <CheckCircle2 className="w-3 h-3 mr-1" /> {hist.status}
+                        </Badge>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -428,12 +446,12 @@ export default function ExamsPage() {
 
         <TabsContent value="timetable" className="mt-0">
           <Card className="border-none shadow-sm">
-            <CardHeader className="border-b bg-white flex flex-row items-center justify-between">
+            <CardHeader className="border-b bg-white flex flex-col md:flex-row items-center justify-between gap-4">
               <div>
                 <CardTitle>Institutional Master Timetable</CardTitle>
                 <CardDescription>Visualizing class availability and teacher duty coverage.</CardDescription>
               </div>
-              <Button variant="outline" size="sm" className="gap-2"><Printer className="w-4 h-4" /> Print Current Version</Button>
+              <Button variant="outline" size="sm" className="w-full md:w-auto gap-2"><Printer className="w-4 h-4" /> Print Current Version</Button>
             </CardHeader>
             <CardContent className="p-0 overflow-x-auto">
               <Table className="min-w-[800px]">
