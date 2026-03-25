@@ -140,6 +140,7 @@ export default function ExamsPage() {
   });
 
   const isAdmin = user?.role === "SCHOOL_ADMIN";
+  const isStudent = user?.role === "STUDENT";
 
   // Filter out cancelled or finished exams from the live list
   const currentTime = new Date();
@@ -197,14 +198,14 @@ export default function ExamsPage() {
         <div>
           <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
             <div className="p-2 bg-primary rounded-xl shadow-lg">
-              <CalendarDays className="w-6 h-6 text-secondary" />
+              <PenTool className="w-6 h-6 text-secondary" />
             </div>
-            {language === 'en' ? 'Institutional Schedules' : 'Calendrier Institutionnel'}
+            {isStudent ? (language === 'en' ? 'Examinations' : 'Examens') : (language === 'en' ? 'Institutional Schedules' : 'Calendrier Institutionnel')}
           </h1>
           <p className="text-muted-foreground mt-1">
-            {language === 'en' 
-              ? 'Coordinate class timetables, onsite exams, and automated teacher duty cycles.' 
-              : 'Coordonner les emplois du temps, les examens sur site et les cycles de service des enseignants.'}
+            {isStudent 
+              ? (language === 'en' ? 'Access your online assessments and track your exam history.' : 'Accédez à vos évaluations en ligne et suivez votre historique d\'examens.')
+              : (language === 'en' ? 'Coordinate class timetables, onsite exams, and automated teacher duty cycles.' : 'Coordonner les emplois du temps, les examens sur site et les cycles de service des enseignants.')}
           </p>
         </div>
 
@@ -309,7 +310,10 @@ export default function ExamsPage() {
       </div>
 
       <Tabs defaultValue="onsite" className="w-full">
-        <TabsList className="grid grid-cols-2 lg:grid-cols-4 w-full lg:w-[800px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl">
+        <TabsList className={cn(
+          "grid w-full mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl",
+          isStudent ? "grid-cols-3 lg:w-[600px]" : "grid-cols-2 lg:grid-cols-4 lg:w-[800px]"
+        )}>
           <TabsTrigger value="onsite" className="gap-2 py-3 rounded-xl transition-all text-xs lg:text-sm">
             <CalendarDays className="w-4 h-4" /> {language === 'en' ? 'Onsite' : 'Sur Site'}
           </TabsTrigger>
@@ -319,9 +323,11 @@ export default function ExamsPage() {
           <TabsTrigger value="history" className="gap-2 py-3 rounded-xl transition-all text-xs lg:text-sm">
             <History className="w-4 h-4" /> {language === 'en' ? 'History' : 'Historique'}
           </TabsTrigger>
-          <TabsTrigger value="timetable" className="gap-2 py-3 rounded-xl transition-all text-xs lg:text-sm">
-            <LayoutGrid className="w-4 h-4" /> {language === 'en' ? 'Timetables' : 'Emplois du Temps'}
-          </TabsTrigger>
+          {!isStudent && (
+            <TabsTrigger value="timetable" className="gap-2 py-3 rounded-xl transition-all text-xs lg:text-sm">
+              <LayoutGrid className="w-4 h-4" /> {language === 'en' ? 'Timetables' : 'Emplois du Temps'}
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="onsite" className="mt-0 animate-in fade-in slide-in-from-bottom-4">
@@ -402,8 +408,10 @@ export default function ExamsPage() {
                         className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs gap-2"
                         onClick={() => setViewingInstructions(exam)}
                       >
-                        <Info className="w-4 h-4 text-primary" />
-                        {language === 'en' ? 'View Instructions' : 'Voir Instructions'}
+                        <div className="flex items-center gap-2">
+                          <Info className="w-4 h-4 text-primary" />
+                          {language === 'en' ? 'View Instructions' : 'Voir Instructions'}
+                        </div>
                       </Button>
                     )}
                   </CardFooter>
@@ -464,42 +472,44 @@ export default function ExamsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="timetable" className="mt-0">
-          <Card className="border-none shadow-sm">
-            <CardHeader className="border-b bg-white flex flex-col md:flex-row items-center justify-between gap-4">
-              <div>
-                <CardTitle>Institutional Master Timetable</CardTitle>
-                <CardDescription>Visualizing class availability and teacher duty coverage.</CardDescription>
-              </div>
-              <Button variant="outline" size="sm" className="w-full md:w-auto gap-2"><Printer className="w-4 h-4" /> Print Current Version</Button>
-            </CardHeader>
-            <CardContent className="p-0 overflow-x-auto">
-              <Table className="min-w-[800px]">
-                <TableHeader className="bg-muted/50 uppercase text-[10px] font-black">
-                  <TableRow>
-                    <TableHead className="pl-6">Class Level</TableHead>
-                    {DAYS.map(day => <TableHead key={day}>{day}</TableHead>)}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {CLASSES.map(cls => (
-                    <TableRow key={cls}>
-                      <TableCell className="pl-6 font-bold text-primary text-xs">{cls}</TableCell>
-                      {DAYS.map(day => (
-                        <TableCell key={day} className="py-4">
-                          <div className="bg-accent/30 p-2 rounded-lg border border-accent/50 min-h-[60px] flex flex-col justify-center">
-                            <p className="text-[10px] font-black text-primary leading-tight">Advanced Physics</p>
-                            <p className="text-[8px] text-muted-foreground uppercase mt-1">Dr. Tesla • R402</p>
-                          </div>
-                        </TableCell>
-                      ))}
+        {!isStudent && (
+          <TabsContent value="timetable" className="mt-0">
+            <Card className="border-none shadow-sm">
+              <CardHeader className="border-b bg-white flex flex-col md:flex-row items-center justify-between gap-4">
+                <div>
+                  <CardTitle>Institutional Master Timetable</CardTitle>
+                  <CardDescription>Visualizing class availability and teacher duty coverage.</CardDescription>
+                </div>
+                <Button variant="outline" size="sm" className="w-full md:w-auto gap-2"><Printer className="w-4 h-4" /> Print Current Version</Button>
+              </CardHeader>
+              <CardContent className="p-0 overflow-x-auto">
+                <Table className="min-w-[800px]">
+                  <TableHeader className="bg-muted/50 uppercase text-[10px] font-black">
+                    <TableRow>
+                      <TableHead className="pl-6">Class Level</TableHead>
+                      {DAYS.map(day => <TableHead key={day}>{day}</TableHead>)}
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                  </TableHeader>
+                  <TableBody>
+                    {CLASSES.map(cls => (
+                      <TableRow key={cls}>
+                        <TableCell className="pl-6 font-bold text-primary text-xs">{cls}</TableCell>
+                        {DAYS.map(day => (
+                          <TableCell key={day} className="py-4">
+                            <div className="bg-accent/30 p-2 rounded-lg border border-accent/50 min-h-[60px] flex flex-col justify-center">
+                              <p className="text-[10px] font-black text-primary leading-tight">Advanced Physics</p>
+                              <p className="text-[8px] text-muted-foreground uppercase mt-1">Dr. Tesla • R402</p>
+                            </div>
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
       </Tabs>
 
       {/* INSTRUCTIONS DIALOG */}

@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, MapPin, User, AlertCircle, CalendarDays, ShieldCheck } from "lucide-react";
+import { Clock, MapPin, User, AlertCircle, CalendarDays, ShieldCheck, Lock } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -34,18 +34,20 @@ const TIMETABLE = {
 export default function SchedulePage() {
   const { user } = useAuth();
   
-  if (user?.role === "PARENT") {
+  if (user?.role === "STUDENT" || user?.role === "PARENT") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
-        <div className="bg-purple-100 p-4 rounded-full">
-          <AlertCircle className="w-12 h-12 text-purple-600" />
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6">
+        <div className="bg-primary/5 p-8 rounded-full border-2 border-dashed border-primary/20">
+          <Lock className="w-16 h-16 text-primary/20" />
         </div>
-        <h1 className="text-2xl font-bold">Personal Timetable Unavailable</h1>
-        <p className="text-muted-foreground max-w-md">
-          To view a child's weekly timetable, please select a child from your children list.
-        </p>
-        <Button asChild>
-          <Link href="/dashboard/children">Go to My Children</Link>
+        <div className="space-y-2">
+          <h1 className="text-2xl font-black text-primary uppercase tracking-tighter">Access Restricted</h1>
+          <p className="text-muted-foreground max-w-md mx-auto">
+            Direct access to the institutional master schedule is restricted for your role. Please refer to your personalized dashboard for academic updates.
+          </p>
+        </div>
+        <Button asChild className="rounded-xl px-10 h-12 shadow-lg font-bold">
+          <Link href="/dashboard">Return to Overview</Link>
         </Button>
       </div>
     );

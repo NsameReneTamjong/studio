@@ -214,7 +214,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: t("schedule"),
       icon: Calendar,
       href: "/dashboard/schedule",
-      roles: ["TEACHER", "STUDENT"],
+      roles: ["TEACHER"],
     },
     {
       label: t("settings"),
