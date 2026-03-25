@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth, type UserRole } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { cn } from "@/lib/utils";
 import {
@@ -53,13 +53,15 @@ interface SidebarProps {
   onClose?: () => void;
 }
 
+const EXECUTIVE_ROLES: UserRole[] = ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV"];
+
 export function DashboardSidebar({ onClose }: SidebarProps) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const { t, language, setLanguage } = useI18n();
 
   const isAdmin = user?.role === "SCHOOL_ADMIN";
-  const isSuperAdmin = user?.role === "SUPER_ADMIN";
+  const isSuperAdmin = EXECUTIVE_ROLES.includes(user?.role as UserRole);
   const isBursar = user?.role === "BURSAR";
 
   const routes = [
@@ -67,43 +69,43 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: t("platformOverview"),
       icon: LayoutDashboard,
       href: "/dashboard",
-      roles: ["SUPER_ADMIN"],
+      roles: EXECUTIVE_ROLES,
     },
     {
       label: t("founders"),
       icon: Crown,
       href: "/dashboard/founders",
-      roles: ["SUPER_ADMIN"],
+      roles: EXECUTIVE_ROLES,
     },
     {
       label: t("schools"),
       icon: Globe,
       href: "/dashboard/schools",
-      roles: ["SUPER_ADMIN"],
+      roles: EXECUTIVE_ROLES,
     },
     {
       label: t("supportRegistry"),
       icon: Heart,
       href: "/dashboard/support",
-      roles: ["SUPER_ADMIN"],
+      roles: EXECUTIVE_ROLES,
     },
     {
       label: language === 'en' ? 'Testimonials' : 'Témoignages',
       icon: Quote,
       href: "/dashboard/testimonials",
-      roles: ["SUPER_ADMIN"],
+      roles: EXECUTIVE_ROLES,
     },
     {
       label: t("feedback"),
       icon: MessageSquare,
       href: "/dashboard/feedback",
-      roles: ["SUPER_ADMIN", "SCHOOL_ADMIN"],
+      roles: [...EXECUTIVE_ROLES, "SCHOOL_ADMIN"],
     },
     {
       label: t("platformSettings"),
       icon: Settings2,
       href: "/dashboard/platform-settings",
-      roles: ["SUPER_ADMIN"],
+      roles: EXECUTIVE_ROLES,
     },
     {
       label: t("institution"),
@@ -135,7 +137,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: t("announcements"),
       icon: Megaphone,
       href: "/dashboard/announcements",
-      roles: ["SUPER_ADMIN", "SCHOOL_ADMIN", "SUB_ADMIN", "TEACHER", "STUDENT", "PARENT", "BURSAR", "LIBRARIAN"],
+      roles: [...EXECUTIVE_ROLES, "SCHOOL_ADMIN", "SUB_ADMIN", "TEACHER", "STUDENT", "PARENT", "BURSAR", "LIBRARIAN"],
     },
     {
       label: t("overview"),
@@ -219,7 +221,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: t("aiAssistant"),
       icon: Sparkles,
       href: "/dashboard/ai-assistant",
-      roles: ["SUPER_ADMIN", "SCHOOL_ADMIN", "SUB_ADMIN", "TEACHER", "STUDENT", "PARENT", "BURSAR", "LIBRARIAN"],
+      roles: [...EXECUTIVE_ROLES, "SCHOOL_ADMIN", "SUB_ADMIN", "TEACHER", "STUDENT", "PARENT", "BURSAR", "LIBRARIAN"],
     },
     {
       label: language === 'en' ? 'Feedback' : 'Feedback',
@@ -237,7 +239,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: t("profile"),
       icon: User,
       href: "/dashboard/profile",
-      roles: ["SUPER_ADMIN", "SCHOOL_ADMIN", "SUB_ADMIN", "TEACHER", "STUDENT", "PARENT", "BURSAR", "LIBRARIAN"],
+      roles: [...EXECUTIVE_ROLES, "SCHOOL_ADMIN", "SUB_ADMIN", "TEACHER", "STUDENT", "PARENT", "BURSAR", "LIBRARIAN"],
     },
   ];
 

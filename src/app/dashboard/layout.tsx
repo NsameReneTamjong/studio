@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useAuth } from "@/lib/auth-context";
+import { useAuth, type UserRole } from "@/lib/auth-context";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { DashboardSidebar } from "@/components/layout/dashboard-sidebar";
@@ -25,6 +25,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+
+const EXECUTIVE_ROLES: UserRole[] = ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV"];
 
 const TUTORIAL_LINKS: Record<string, string> = {
   STUDENT: "https://youtube.com/watch?v=eduignite-student",
@@ -117,12 +119,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (!user) return null;
 
-  const isSuperAdmin = user.role === "SUPER_ADMIN";
+  const isPlatformExecutive = EXECUTIVE_ROLES.includes(user.role as UserRole);
   const isLicensePaid = user.isLicensePaid;
   const isSubscriptionPage = pathname === "/dashboard/subscription";
 
   // Enforcement logic: If license not paid, restrict access to everything except the subscription page
-  if (!isLicensePaid && !isSuperAdmin && !isSubscriptionPage) {
+  if (!isLicensePaid && !isPlatformExecutive && !isSubscriptionPage) {
     return (
       <div className="flex h-screen overflow-hidden bg-background">
         <aside className="hidden md:flex w-64 shrink-0 h-full">
@@ -172,7 +174,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Mobile Header */}
         <header className="md:hidden flex items-center justify-between px-4 py-3 bg-primary text-white shrink-0">
           <div className="flex items-center gap-2 overflow-hidden">
-            {!isSuperAdmin && user?.school?.logo ? (
+            {!isPlatformExecutive && user?.school?.logo ? (
               <div className="w-6 h-6 rounded bg-white p-0.5 flex items-center justify-center shrink-0">
                 <img src={user.school.logo} alt="Logo" className="w-full h-full object-contain" />
               </div>
@@ -180,7 +182,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Building2 className="w-6 h-6 text-secondary shrink-0" />
             )}
             <span className="font-bold tracking-tight text-white truncate">
-              {isSuperAdmin ? platformSettings.name : (user?.school?.name || platformSettings.name)}
+              {isPlatformExecutive ? platformSettings.name : (user?.school?.name || platformSettings.name)}
             </span>
           </div>
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -202,8 +204,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {children}
             </div>
 
-            {/* DASHBOARD FOOTER (Excluded for Super Admin) */}
-            {!isSuperAdmin && (
+            {/* DASHBOARD FOOTER (Excluded for Executives) */}
+            {!isPlatformExecutive && (
               <footer className="mt-20 border-t pt-8 pb-12 w-full max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                   <div className="space-y-4">
@@ -367,7 +369,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                     onClick={handleSupportSubmit}
                                     disabled={isProcessing}
                                   >
-                                    {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+                                    {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-5 h-5" />}
                                     Confirm Contribution
                                   </Button>
                                 </DialogFooter>
