@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -8,24 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { 
-  ShieldCheck, 
   Building2, 
-  UserCircle, 
   Languages,
   Loader2,
   Lock,
-  Play,
-  Quote,
-  Star,
-  MessageSquare,
-  Video,
-  User,
   Fingerprint,
-  ArrowLeft,
-  CheckCircle2,
-  AlertCircle,
-  Mail,
-  Smartphone,
   Crown,
   GraduationCap,
   Users,
@@ -45,8 +33,8 @@ import { cn } from "@/lib/utils";
 type AuthMode = "login" | "activate" | "forgot";
 
 const QUICK_DEMO_ACCOUNTS = [
-  { label: "Super Admin (CEO)", matricule: "EDUI26CEO001", icon: Crown, color: "bg-primary text-secondary" },
-  { label: "School Admin", matricule: "GBHS26", icon: Building2, color: "bg-blue-600 text-white" },
+  { label: "CEO", matricule: "EDUI26CEO001", icon: Crown, color: "bg-primary text-secondary" },
+  { label: "Admin", matricule: "GBHS26", icon: Building2, color: "bg-blue-600 text-white" },
   { label: "Teacher", matricule: "GBHS26T001", icon: Users, color: "bg-purple-600 text-white" },
   { label: "Student", matricule: "GBHS26S001", icon: GraduationCap, color: "bg-emerald-600 text-white" },
   { label: "Bursar", matricule: "GBHS26B001", icon: Wallet, color: "bg-amber-600 text-white" },
@@ -120,48 +108,27 @@ export default function LoginPage() {
         </DropdownMenu>
       </div>
 
-      <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
-        <div className="space-y-8">
-          <div className="space-y-4">
-            <div className="bg-primary p-3 rounded-2xl shadow-xl w-20 h-20 flex items-center justify-center overflow-hidden border-4 border-white">
-              <Building2 className="w-10 h-10 text-white" />
-            </div>
-            <h1 className="text-5xl font-black text-primary font-headline tracking-tighter">
-              {platformSettings.name}
-            </h1>
-            <p className="text-xl text-muted-foreground leading-relaxed max-w-md">
-              The next generation of institutional management for African schools.
-            </p>
+      <div className="w-full max-w-md flex flex-col items-center gap-8 relative z-10">
+        {/* Centered Branding */}
+        <div className="flex flex-col items-center text-center space-y-4">
+          <div className="bg-primary p-3 rounded-2xl shadow-xl w-24 h-24 flex items-center justify-center overflow-hidden border-4 border-white transition-transform hover:scale-105">
+            <Building2 className="w-12 h-12 text-white" />
           </div>
-
-          <div className="space-y-4">
-            <h3 className="text-[10px] font-black uppercase text-primary/40 tracking-[0.3em]">Quick Demo Access</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {QUICK_DEMO_ACCOUNTS.map((account) => (
-                <Button
-                  key={account.matricule}
-                  variant="outline"
-                  className="h-auto py-4 flex-col gap-2 rounded-2xl border-primary/5 bg-white/50 hover:bg-white hover:border-primary/20 transition-all group"
-                  onClick={() => handleQuickLogin(account.matricule)}
-                  disabled={isProcessing}
-                >
-                  <div className={cn("p-2 rounded-xl group-hover:scale-110 transition-transform", account.color)}>
-                    <account.icon className="w-5 h-5" />
-                  </div>
-                  <span className="text-[9px] font-black uppercase tracking-tight text-primary/60">{account.label}</span>
-                </Button>
-              ))}
-            </div>
-          </div>
+          <h1 className="text-5xl font-black text-primary font-headline tracking-tighter">
+            {platformSettings.name}
+          </h1>
+          <p className="text-sm text-muted-foreground font-medium uppercase tracking-[0.2em] opacity-60">
+            Institutional Access Portal
+          </p>
         </div>
 
-        <Card className="border-none shadow-2xl overflow-hidden rounded-[2.5rem] bg-white/80 backdrop-blur-xl border border-white">
+        <Card className="w-full border-none shadow-2xl overflow-hidden rounded-[2.5rem] bg-white/80 backdrop-blur-xl border border-white">
           <CardHeader className="pb-8 text-center space-y-1">
             <CardTitle className="text-3xl font-black text-primary">
-              {mode === "login" ? "Access Portal" : mode === "activate" ? "Activate Account" : "Recover Access"}
+              {mode === "login" ? "Sign In" : mode === "activate" ? "Activate" : "Recovery"}
             </CardTitle>
             <CardDescription>
-              Sign in with your Unique Matricule ID.
+              Enter your unique institutional matricule.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -172,8 +139,8 @@ export default function LoginPage() {
                 </Label>
                 <Input 
                   required
-                  placeholder="e.g. GBHS26S001" 
-                  className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary font-black uppercase"
+                  placeholder="" 
+                  className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary font-black uppercase text-center text-lg"
                   value={authData.matricule}
                   onChange={(e) => setAuthData({...authData, matricule: e.target.value})}
                 />
@@ -186,8 +153,8 @@ export default function LoginPage() {
                 <Input 
                   required
                   type="password" 
-                  placeholder="••••••••"
-                  className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary font-bold"
+                  placeholder=""
+                  className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary font-bold text-center"
                   value={authData.password}
                   onChange={(e) => setAuthData({...authData, password: e.target.value})}
                 />
@@ -201,8 +168,8 @@ export default function LoginPage() {
                   <Input 
                     required
                     type="password" 
-                    placeholder="••••••••"
-                    className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary font-bold"
+                    placeholder=""
+                    className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary font-bold text-center"
                     value={authData.confirmPassword}
                     onChange={(e) => setAuthData({...authData, confirmPassword: e.target.value})}
                   />
@@ -228,6 +195,31 @@ export default function LoginPage() {
             </Button>
           </CardFooter>
         </Card>
+
+        {/* Repositioned Quick Demo Access */}
+        <div className="w-full space-y-4">
+          <div className="flex items-center gap-4">
+            <div className="h-px flex-1 bg-primary/10" />
+            <h3 className="text-[10px] font-black uppercase text-primary/40 tracking-[0.3em]">Quick Demo Login</h3>
+            <div className="h-px flex-1 bg-primary/10" />
+          </div>
+          <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
+            {QUICK_DEMO_ACCOUNTS.map((account) => (
+              <Button
+                key={account.matricule}
+                variant="outline"
+                className="h-auto py-3 px-1 flex-col gap-1.5 rounded-xl border-primary/5 bg-white/50 hover:bg-white hover:border-primary/20 transition-all group"
+                onClick={() => handleQuickLogin(account.matricule)}
+                disabled={isProcessing}
+              >
+                <div className={cn("p-1.5 rounded-lg group-hover:scale-110 transition-transform shadow-sm", account.color)}>
+                  <account.icon className="w-4 h-4" />
+                </div>
+                <span className="text-[8px] font-black uppercase tracking-tight text-primary/60">{account.label}</span>
+              </Button>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
