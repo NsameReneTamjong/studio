@@ -23,7 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 
 export default function ExamResultsPage() {
-  const { user } = useAuth();
+  const { user, platformSettings } = useAuth();
   const { t, language } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -40,7 +40,7 @@ export default function ExamResultsPage() {
     date: new Date().toLocaleDateString(language === 'en' ? 'en-US' : 'fr-FR'),
     studentName: user?.name || "John Doe",
     studentId: user?.id || "S123",
-    schoolName: "Lycée de Joss",
+    schoolName: user?.school?.name || "Lycée de Joss",
     certificateNo: `CERT-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
   };
 
@@ -127,9 +127,15 @@ export default function ExamResultsPage() {
         <div className="relative z-10 space-y-12">
           {/* Header */}
           <div className="flex flex-col items-center text-center space-y-4">
-            <Building2 className="w-16 h-16 text-primary/40" />
+            <div className="w-20 h-20 bg-white rounded-2xl shadow-lg p-3 flex items-center justify-center border-2 border-accent transition-transform hover:rotate-3">
+              {user?.school?.logo ? (
+                <img src={user.school.logo} alt="School Logo" className="w-full h-full object-contain" />
+              ) : (
+                <Building2 className="w-12 h-12 text-primary/40" />
+              )}
+            </div>
             <div className="space-y-1 uppercase tracking-tighter">
-              <h4 className="text-sm font-bold opacity-60">Republic of Cameroon</h4>
+              <h4 className="text-[10px] font-bold opacity-60">Republic of Cameroon • Peace - Work - Fatherland</h4>
               <h2 className="text-2xl font-black text-primary tracking-tight">{result.schoolName}</h2>
               <div className="h-px bg-primary/20 w-32 mx-auto my-2" />
             </div>
@@ -173,8 +179,13 @@ export default function ExamResultsPage() {
             </div>
           </div>
 
-          <div className="text-center pt-8">
-             <p className="text-[10px] uppercase font-bold opacity-30 italic">Generated via EduIgnite SaaS Platform - Official Digital Document</p>
+          <div className="text-center pt-8 border-t border-accent/30">
+             <div className="flex items-center justify-center gap-3">
+                <img src={platformSettings.logo} alt="EduIgnite" className="w-5 h-5 object-contain rounded-sm opacity-40" />
+                <p className="text-[9px] uppercase font-black text-muted-foreground opacity-40 tracking-[0.2em]">
+                  Powered by {platformSettings.name} SaaS Platform • Official Digital Record
+                </p>
+             </div>
           </div>
         </div>
       </div>
