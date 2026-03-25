@@ -20,7 +20,9 @@ import {
   Lock,
   Loader2,
   Info,
-  BookOpen
+  BookOpen,
+  Download,
+  FileDown
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
@@ -35,12 +37,13 @@ import {
   DialogFooter
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 const MOCK_STUDENTS = [
-  { id: "GBHS26S001", uid: "S1", name: "Alice Thompson", email: "alice.t@school.edu", class: "2nde / Form 5", isLicensePaid: true, status: "active" },
-  { id: "GBHS26S002", uid: "S2", name: "Bob Richards", email: "bob.r@school.edu", class: "Terminale / Upper Sixth", isLicensePaid: true, status: "active" },
-  { id: "GBHS26S003", uid: "S3", name: "Charlie Davis", email: "charlie.d@school.edu", class: "1ère / Lower Sixth", isLicensePaid: false, status: "active" },
-  { id: "GBHS26S004", uid: "S4", name: "Diana Prince", email: "diana.p@school.edu", class: "2nde / Form 5", isLicensePaid: true, status: "active" },
+  { id: "GBHS26S001", uid: "S1", name: "Alice Thompson", email: "alice.t@school.edu", class: "2nde / Form 5", isLicensePaid: true, status: "active", avatar: "https://picsum.photos/seed/s1/100/100" },
+  { id: "GBHS26S002", uid: "S2", name: "Bob Richards", email: "bob.r@school.edu", class: "Terminale / Upper Sixth", isLicensePaid: true, status: "active", avatar: "https://picsum.photos/seed/s2/100/100" },
+  { id: "GBHS26S003", uid: "S3", name: "Charlie Davis", email: "charlie.d@school.edu", class: "1ère / Lower Sixth", isLicensePaid: false, status: "active", avatar: "https://picsum.photos/seed/s3/100/100" },
+  { id: "GBHS26S004", uid: "S4", name: "Diana Prince", email: "diana.p@school.edu", class: "2nde / Form 5", isLicensePaid: true, status: "active", avatar: "https://picsum.photos/seed/s4/100/100" },
 ];
 
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
@@ -69,7 +72,7 @@ export default function StudentsPage() {
   const isAdmin = ["SCHOOL_ADMIN", "SUPER_ADMIN"].includes(user?.role || "");
   const teacherClasses = user?.id ? (TEACHER_CLASS_ASSIGNMENTS[user.id] || []) : [];
 
-  // Strict role-based redirect for Bursars or other unauthorized roles
+  // Strict role-based redirect for unauthorized roles
   useEffect(() => {
     if (!isAuthLoading && user && !["SCHOOL_ADMIN", "TEACHER", "SUPER_ADMIN"].includes(user.role)) {
       router.push("/dashboard");
@@ -108,6 +111,17 @@ export default function StudentsPage() {
     }, 1000);
   };
 
+  const handleDownloadList = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      setIsProcessing(false);
+      toast({ 
+        title: "Export Successful", 
+        description: `Student list for ${classFilter === 'all' ? 'Assigned Classes' : classFilter} has been generated.` 
+      });
+    }, 1500);
+  };
+
   if (isAuthLoading) return (
     <div className="flex justify-center p-20"><Loader2 className="w-12 h-12 animate-spin text-primary opacity-20" /></div>
   );
@@ -120,30 +134,38 @@ export default function StudentsPage() {
             <div className="p-2 bg-primary rounded-xl shadow-lg">
               <Users className="w-6 h-6 text-secondary" />
             </div>
-            {isTeacher ? "My Students" : "Institutional Registry"}
+            {isTeacher ? "Pedagogical Registry" : "Institutional Registry"}
           </h1>
           <p className="text-muted-foreground mt-1">
             {isTeacher 
-              ? `Showing students enrolled in your assigned classes: ${teacherClasses.join(", ")}.`
+              ? `Manage students in your assigned classes: ${teacherClasses.join(", ")}.`
               : "Manage official student records and new admissions for the entire institution."}
           </p>
         </div>
-        {isAdmin && (
-          <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl" onClick={() => setIsAdmissionOpen(true)}>
-            <UserPlus className="w-5 h-5" /> New Admission
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {isTeacher && (
+            <Button variant="outline" className="gap-2 shadow-sm h-12 px-6 rounded-2xl border-primary/20 text-primary font-bold" onClick={handleDownloadList} disabled={isProcessing}>
+              {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+              Download List
+            </Button>
+          )}
+          {isAdmin && (
+            <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl" onClick={() => setIsAdmissionOpen(true)}>
+              <UserPlus className="w-5 h-5" /> New Admission
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card className="border-none shadow-sm bg-blue-50">
           <CardContent className="pt-6">
             <div className="flex justify-between items-center mb-2">
-              <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Total Managed</p>
+              <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Total Students</p>
               <Users className="w-4 h-4 text-blue-600" />
             </div>
             <div className="text-3xl font-black text-blue-700">{filtered.length}</div>
-            <p className="text-[9px] font-bold text-blue-600/60 uppercase mt-1">Active Profiles</p>
+            <p className="text-[9px] font-bold text-blue-600/60 uppercase mt-1">Filtered Registry</p>
           </CardContent>
         </Card>
         {isTeacher && (
@@ -172,17 +194,22 @@ export default function StudentsPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Select value={classFilter} onValueChange={setClassFilter}>
-              <SelectTrigger className="w-[200px] h-12 bg-accent/20 border-none rounded-xl">
-                <SelectValue placeholder="All Classes" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Available Classes</SelectItem>
-                {(isTeacher ? teacherClasses : CLASSES).map(c => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-3">
+              <div className="space-y-1">
+                <Label className="text-[9px] font-black uppercase text-muted-foreground ml-1">Assigned Class</Label>
+                <Select value={classFilter} onValueChange={setClassFilter}>
+                  <SelectTrigger className="w-[220px] h-11 bg-accent/20 border-none rounded-xl font-bold">
+                    <SelectValue placeholder="All Classes" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{isTeacher ? "All My Classes" : "All Institution Classes"}</SelectItem>
+                    {(isTeacher ? teacherClasses : CLASSES).map(c => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="p-0 overflow-x-auto">
@@ -203,6 +230,7 @@ export default function StudentsPage() {
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent">
+                        <AvatarImage src={s.avatar} alt={s.name} />
                         <AvatarFallback className="bg-primary/5 text-primary text-xs">{s.name.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
@@ -224,7 +252,7 @@ export default function StudentsPage() {
                     )}
                   </TableCell>
                   <TableCell className="text-right pr-8">
-                    <Button variant="ghost" size="icon" className="rounded-full" asChild>
+                    <Button variant="ghost" size="icon" className="rounded-full hover:bg-accent" asChild>
                       <Link href={`/dashboard/children/view?id=${s.id}`}>
                         <Info className="w-4 h-4 text-primary" />
                       </Link>
@@ -246,7 +274,7 @@ export default function StudentsPage() {
            <div className="flex items-center gap-2 text-muted-foreground">
               <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
               <p className="text-[10px] uppercase font-bold tracking-widest italic opacity-40">
-                {isTeacher ? "Privacy Mode: Only viewing students in your assigned subjects." : "Institutional Master Registry synchronized."}
+                {isTeacher ? "Privacy Mode: Viewing assigned classes only." : "Institutional Master Registry synchronized."}
               </p>
            </div>
         </CardFooter>
@@ -281,4 +309,3 @@ export default function StudentsPage() {
     </div>
   );
 }
-import Link from "next/link";
