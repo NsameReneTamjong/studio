@@ -29,7 +29,10 @@ import {
   BookOpen,
   ChevronRight,
   BarChart3,
-  FileDown
+  FileDown,
+  Eye,
+  ListChecks,
+  CalendarDays
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -66,6 +69,48 @@ const MOCK_SUBJECT_ATTENDANCE = [
   { id: "SUB5", name: "Chemistry", percentage: 90, sessions: 22, instructor: "Dr. White" },
 ];
 
+const MOCK_STUDENT_TODAY = [
+  { subject: "Mathematics", start: "08:00 AM", end: "10:00 AM", status: "Present", teacher: "Prof. Sarah Smith" },
+  { subject: "Advanced Physics", start: "10:30 AM", end: "12:30 PM", status: "Present", teacher: "Dr. Aris Tesla" },
+  { subject: "English Literature", start: "01:00 PM", end: "03:00 PM", status: "Upcoming", teacher: "Ms. Bennet" },
+];
+
+const MOCK_STUDENT_HISTORY = [
+  { 
+    id: "H1", 
+    subject: "Mathematics", 
+    present: 22, 
+    absent: 2, 
+    teacher: "Prof. Sarah Smith",
+    logs: [
+      { date: "May 24, 2024", time: "08:00 AM - 10:00 AM", status: "Present" },
+      { date: "May 22, 2024", time: "08:00 AM - 10:00 AM", status: "Present" },
+      { date: "May 20, 2024", time: "08:00 AM - 10:00 AM", status: "Absent" },
+    ]
+  },
+  { 
+    id: "H2", 
+    subject: "Advanced Physics", 
+    present: 18, 
+    absent: 6, 
+    teacher: "Dr. Aris Tesla",
+    logs: [
+      { date: "May 23, 2024", time: "10:30 AM - 12:30 PM", status: "Present" },
+      { date: "May 21, 2024", time: "10:30 AM - 12:30 PM", status: "Absent" },
+    ]
+  },
+  { 
+    id: "H3", 
+    subject: "English Literature", 
+    present: 24, 
+    absent: 0, 
+    teacher: "Ms. Bennet",
+    logs: [
+      { date: "May 24, 2024", time: "01:00 PM - 03:00 PM", status: "Present" },
+    ]
+  },
+];
+
 export default function AttendancePage() {
   const { user } = useAuth();
   const { t, language } = useI18n();
@@ -74,10 +119,12 @@ export default function AttendancePage() {
   const [date, setDate] = useState<Date>(new Date());
   const [selectedClassDetails, setSelectedClassDetails] = useState<any>(null);
   const [viewingSubjectLogs, setViewingSubjectLogs] = useState<any>(null);
+  const [viewingHistoryDetails, setViewingHistoryDetails] = useState<any>(null);
   
   const isTeacher = user?.role === "TEACHER";
   const isAdmin = user?.role === "SCHOOL_ADMIN";
   const isParent = user?.role === "PARENT";
+  const isStudent = user?.role === "STUDENT";
 
   const handleDownloadReport = (scope: string) => {
     toast({
@@ -92,6 +139,196 @@ export default function AttendancePage() {
         <AlertCircle className="w-12 h-12 text-blue-600" />
         <h1 className="text-xl font-bold">Personal Attendance Unavailable</h1>
         <Button asChild><Link href="/dashboard/children">Go to My Children</Link></Button>
+      </div>
+    );
+  }
+
+  // STUDENT VIEW
+  if (isStudent) {
+    return (
+      <div className="space-y-8 pb-20">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
+              <div className="p-2 bg-primary rounded-xl shadow-lg">
+                <CheckCircle2 className="w-6 h-6 text-secondary" />
+              </div>
+              {t("attendance")}
+            </h1>
+            <p className="text-muted-foreground mt-1">Official registry of your pedagogical presence and engagement.</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" className="gap-2 bg-white rounded-xl h-11 border-primary/10">
+              <CalendarIcon className="w-4 h-4 text-primary" /> 
+              {format(date, "PPP")}
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Today's Live Presence */}
+          <div className="lg:col-span-12 space-y-6">
+            <Card className="border-none shadow-xl overflow-hidden rounded-[2rem]">
+              <CardHeader className="bg-primary p-8 text-white">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-white/10 rounded-2xl">
+                      <ListChecks className="w-8 h-8 text-secondary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-2xl font-black">{t("todayPresence")}</CardTitle>
+                      <CardDescription className="text-white/60">Live session status for your scheduled courses today.</CardDescription>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="bg-white/10 text-white border-none text-[10px] font-black uppercase tracking-widest px-4 h-8">
+                    {new Date().toLocaleDateString(language === 'en' ? 'en-US' : 'fr-FR', { weekday: 'long' })}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader className="bg-accent/10">
+                    <TableRow className="uppercase text-[10px] font-black tracking-widest border-b border-accent/20">
+                      <TableHead className="pl-8 py-4">{t("subjects")}</TableHead>
+                      <TableHead>Time Window</TableHead>
+                      <TableHead>{t("teacher")}</TableHead>
+                      <TableHead className="text-right pr-8">{t("status")}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {MOCK_STUDENT_TODAY.map((att, i) => (
+                      <TableRow key={i} className="hover:bg-accent/5 transition-colors border-b border-accent/10">
+                        <TableCell className="pl-8 py-4 font-bold text-sm text-primary">{att.subject}</TableCell>
+                        <TableCell className="text-xs font-mono font-bold text-muted-foreground">
+                          {att.start} - {att.end}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
+                            <User className="w-3.5 h-3.5 text-primary/40" />
+                            {att.teacher}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right pr-8">
+                          <Badge className={cn(
+                            "text-[9px] font-black uppercase px-3 border-none", 
+                            att.status === 'Present' ? "bg-green-100 text-green-700" : att.status === 'Absent' ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"
+                          )}>
+                            {att.status === 'Present' ? t("present") : (att.status === 'Absent' ? t("absent") : t("upcoming"))}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Attendance History Summary */}
+          <div className="lg:col-span-12 space-y-6">
+            <h2 className="text-xl font-bold text-primary flex items-center gap-2">
+              <History className="w-5 h-5" /> {language === 'en' ? 'Attendance History' : 'Historique de Présence'}
+            </h2>
+            <Card className="border-none shadow-sm overflow-hidden rounded-3xl">
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader className="bg-accent/30">
+                    <TableRow className="uppercase text-[10px] font-black tracking-widest">
+                      <TableHead className="pl-8 py-4">Subject Name</TableHead>
+                      <TableHead className="text-center">Present</TableHead>
+                      <TableHead className="text-center">Absent</TableHead>
+                      <TableHead>Instructor</TableHead>
+                      <TableHead className="text-right pr-8">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {MOCK_STUDENT_HISTORY.map((hist) => (
+                      <TableRow key={hist.id} className="hover:bg-accent/5">
+                        <TableCell className="pl-8 py-4 font-bold text-sm text-primary">{hist.subject}</TableCell>
+                        <TableCell className="text-center font-black text-green-600">{hist.present}</TableCell>
+                        <TableCell className="text-center font-black text-red-600">{hist.absent}</TableCell>
+                        <TableCell className="text-xs font-bold text-muted-foreground italic">{hist.teacher}</TableCell>
+                        <TableCell className="text-right pr-8">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-[10px] font-black uppercase gap-2 hover:bg-primary hover:text-white"
+                            onClick={() => setViewingHistoryDetails(hist)}
+                          >
+                            <Eye className="w-3.5 h-3.5" /> {t("viewDetails")}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* History Details Drill-down Dialog */}
+        <Dialog open={!!viewingHistoryDetails} onOpenChange={() => setViewingHistoryDetails(null)}>
+          <DialogContent className="sm:max-w-3xl max-h-[85vh] overflow-hidden flex flex-col p-0 rounded-[2rem] border-none shadow-2xl">
+            <DialogHeader className="bg-primary p-8 text-white shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/10 rounded-2xl">
+                    <CalendarDays className="w-8 h-8 text-secondary" />
+                  </div>
+                  <div>
+                    <DialogTitle className="text-2xl font-black">
+                      {viewingHistoryDetails?.subject} - Session Log
+                    </DialogTitle>
+                    <DialogDescription className="text-white/60">
+                      Verified pedagogical presence records for the current term.
+                    </DialogDescription>
+                  </div>
+                </div>
+                <div className="text-right bg-white/10 px-4 py-2 rounded-xl backdrop-blur-md">
+                   <p className="text-[10px] font-black uppercase opacity-60">Accuracy</p>
+                   <p className="text-xl font-black text-secondary">VERIFIED</p>
+                </div>
+              </div>
+            </DialogHeader>
+            
+            <div className="flex-1 overflow-y-auto p-0">
+              <Table>
+                <TableHeader className="bg-accent/30 sticky top-0 z-10">
+                  <TableRow className="uppercase text-[10px] font-black tracking-widest">
+                    <TableHead className="pl-8 py-4">Session Date</TableHead>
+                    <TableHead>Pedagogical Window</TableHead>
+                    <TableHead className="text-right pr-8">Presence Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {viewingHistoryDetails?.logs.map((log: any, idx: number) => (
+                    <TableRow key={idx} className="hover:bg-accent/5 border-b border-accent/10">
+                      <TableCell className="pl-8 py-4 font-bold text-sm">{log.date}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground font-medium">{log.time}</TableCell>
+                      <TableCell className="text-right pr-8">
+                        <Badge className={cn(
+                          "text-[9px] font-black uppercase px-3 border-none",
+                          log.status === 'Present' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                        )}>
+                          {log.status === 'Present' ? t("present") : t("absent")}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            
+            <DialogFooter className="bg-accent/10 p-6 border-t flex justify-between items-center shrink-0">
+               <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                  <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest italic opacity-40">Verified Institutional Record</p>
+               </div>
+               <Button onClick={() => setViewingHistoryDetails(null)} className="rounded-xl px-8 font-black uppercase text-xs">Close Log</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }

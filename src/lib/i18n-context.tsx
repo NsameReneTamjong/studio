@@ -85,6 +85,7 @@ const translations: TranslationDict = {
   score: { en: "Score", fr: "Score" },
   duration: { en: "Duration", fr: "Durée" },
   startTime: { en: "Start Time", fr: "Heure de Début" },
+  endTime: { en: "End Time", fr: "Heure de Fin" },
   minutes: { en: "Minutes", fr: "Minutes" },
   questions: { en: "Questions", fr: "Questions" },
   submitExam: { en: "Submit Exam", fr: "Soumettre l'Examen" },
@@ -158,6 +159,7 @@ const translations: TranslationDict = {
   aboutSchool: { en: "About our School", fr: "À propos de notre école" },
   contactInfo: { en: "Contact Information", fr: "Coordonnées" },
   proviseur: { en: "The Principal", fr: "Le Proviseur" },
+  attendanceHistory: { en: "Attendance History", fr: "Historique de Présence" },
 };
 
 interface I18nContextType {
@@ -199,8 +201,6 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export const useI18n = () => {
   const context = useContext(I18nContext);
-  if (context === undefined) {
-    throw new Error("useI18n must be used within an I18nProvider");
-  }
+  if (context === undefined) throw new Error("useI18n must be used within an I18nProvider");
   return context;
 };
