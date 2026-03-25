@@ -184,14 +184,9 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button asChild variant="outline" className="rounded-xl h-11 px-6 border-primary/20 text-primary font-bold gap-2">
+            <Button asChild className="rounded-xl h-11 px-8 shadow-lg font-bold gap-2 bg-primary text-white">
               <Link href="/dashboard/fees">
                 <Receipt className="w-4 h-4" /> Collect Payment
-              </Link>
-            </Button>
-            <Button asChild className="rounded-xl h-11 px-6 shadow-lg font-bold gap-2 bg-primary text-white">
-              <Link href="/dashboard/students">
-                <Users className="w-4 h-4" /> Admissions
               </Link>
             </Button>
           </div>
@@ -254,7 +249,7 @@ export default function DashboardPage() {
                 <p className="text-xs text-muted-foreground mt-2 leading-relaxed">Review the latest transaction logs and verify physical deposits.</p>
               </div>
               <Button asChild className="w-full gap-2 rounded-xl h-11 font-bold bg-primary text-white shadow-lg">
-                <Link href="/dashboard/fees?tab=ledger">
+                <Link href="/dashboard/fees">
                   Open Ledger
                   <ChevronRight className="w-4 h-4" />
                 </Link>

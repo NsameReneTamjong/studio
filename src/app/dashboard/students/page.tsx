@@ -1,7 +1,9 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useRouter } from "next/navigation";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -43,8 +45,9 @@ const MOCK_STUDENTS = [
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
 
 export default function StudentsPage() {
-  const { user } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [classFilter, setClassFilter] = useState("all");
@@ -55,6 +58,13 @@ export default function StudentsPage() {
     name: "",
     class: "2nde / Form 5",
   });
+
+  // Strict role-based redirect for Bursars or other unauthorized roles
+  useEffect(() => {
+    if (!isAuthLoading && user && !["SCHOOL_ADMIN", "TEACHER", "SUPER_ADMIN"].includes(user.role)) {
+      router.push("/dashboard");
+    }
+  }, [user, isAuthLoading, router]);
 
   const filtered = MOCK_STUDENTS.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -76,6 +86,10 @@ export default function StudentsPage() {
       toast({ title: "Admission Validated", description: "New student record has been initialized locally." });
     }, 1000);
   };
+
+  if (isAuthLoading) return (
+    <div className="flex justify-center p-20"><Loader2 className="w-12 h-12 animate-spin text-primary opacity-20" /></div>
+  );
 
   return (
     <div className="space-y-8">
@@ -186,7 +200,7 @@ export default function StudentsPage() {
           </div>
           <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
             <Button className="w-full h-12 rounded-xl shadow-lg font-bold" onClick={handleAdmission} disabled={isProcessing}>
-              {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : "Admit & Generate ID"}
+              {isProcessing ? <Loader2 className="w-5 h-5 animate-pulse" /> : "Admit & Generate ID"}
             </Button>
           </DialogFooter>
         </DialogContent>
