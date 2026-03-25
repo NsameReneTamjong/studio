@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -19,7 +19,8 @@ import {
   CheckCircle2,
   Lock,
   Loader2,
-  Info
+  Info,
+  BookOpen
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
@@ -44,6 +45,11 @@ const MOCK_STUDENTS = [
 
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
 
+// Mock mapping of which classes specific teachers teach
+const TEACHER_CLASS_ASSIGNMENTS: Record<string, string[]> = {
+  "GBHS26T001": ["2nde / Form 5"], // Dr. Tesla only teaches Form 5
+};
+
 export default function StudentsPage() {
   const { user, isLoading: isAuthLoading } = useAuth();
   const { toast } = useToast();
@@ -59,6 +65,10 @@ export default function StudentsPage() {
     class: "2nde / Form 5",
   });
 
+  const isTeacher = user?.role === "TEACHER";
+  const isAdmin = ["SCHOOL_ADMIN", "SUPER_ADMIN"].includes(user?.role || "");
+  const teacherClasses = user?.id ? (TEACHER_CLASS_ASSIGNMENTS[user.id] || []) : [];
+
   // Strict role-based redirect for Bursars or other unauthorized roles
   useEffect(() => {
     if (!isAuthLoading && user && !["SCHOOL_ADMIN", "TEACHER", "SUPER_ADMIN"].includes(user.role)) {
@@ -66,12 +76,23 @@ export default function StudentsPage() {
     }
   }, [user, isAuthLoading, router]);
 
-  const filtered = MOCK_STUDENTS.filter(s => {
-    const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         s.id.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesClass = classFilter === "all" || s.class === classFilter;
-    return matchesSearch && matchesClass;
-  });
+  const filtered = useMemo(() => {
+    return MOCK_STUDENTS.filter(s => {
+      // 1. Role-based visibility check: Teachers only see their assigned classes
+      if (isTeacher && !teacherClasses.includes(s.class)) {
+        return false;
+      }
+
+      // 2. Search filter
+      const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                           s.id.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // 3. Class dropdown filter
+      const matchesClass = classFilter === "all" || s.class === classFilter;
+      
+      return matchesSearch && matchesClass;
+    });
+  }, [searchTerm, classFilter, isTeacher, teacherClasses]);
 
   const handleAdmission = async () => {
     if (!admissionForm.name) {
@@ -92,20 +113,51 @@ export default function StudentsPage() {
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
             <div className="p-2 bg-primary rounded-xl shadow-lg">
               <Users className="w-6 h-6 text-secondary" />
             </div>
-            Institutional Registry
+            {isTeacher ? "My Students" : "Institutional Registry"}
           </h1>
-          <p className="text-muted-foreground mt-1">Manage official student records and new admissions.</p>
+          <p className="text-muted-foreground mt-1">
+            {isTeacher 
+              ? `Showing students enrolled in your assigned classes: ${teacherClasses.join(", ")}.`
+              : "Manage official student records and new admissions for the entire institution."}
+          </p>
         </div>
-        <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl" onClick={() => setIsAdmissionOpen(true)}>
-          <UserPlus className="w-5 h-5" /> New Admission
-        </Button>
+        {isAdmin && (
+          <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl" onClick={() => setIsAdmissionOpen(true)}>
+            <UserPlus className="w-5 h-5" /> New Admission
+          </Button>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <Card className="border-none shadow-sm bg-blue-50">
+          <CardContent className="pt-6">
+            <div className="flex justify-between items-center mb-2">
+              <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Total Managed</p>
+              <Users className="w-4 h-4 text-blue-600" />
+            </div>
+            <div className="text-3xl font-black text-blue-700">{filtered.length}</div>
+            <p className="text-[9px] font-bold text-blue-600/60 uppercase mt-1">Active Profiles</p>
+          </CardContent>
+        </Card>
+        {isTeacher && (
+          <Card className="border-none shadow-sm bg-purple-50">
+            <CardContent className="pt-6">
+              <div className="flex justify-between items-center mb-2">
+                <p className="text-[10px] font-black uppercase text-purple-600 tracking-widest">Teaching Load</p>
+                <BookOpen className="w-4 h-4 text-purple-600" />
+              </div>
+              <div className="text-3xl font-black text-purple-700">{teacherClasses.length}</div>
+              <p className="text-[9px] font-bold text-purple-600/60 uppercase mt-1">Class Levels</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
@@ -125,13 +177,15 @@ export default function StudentsPage() {
                 <SelectValue placeholder="All Classes" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Classes</SelectItem>
-                {CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                <SelectItem value="all">All Available Classes</SelectItem>
+                {(isTeacher ? teacherClasses : CLASSES).map(c => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="p-0 overflow-x-auto">
           <Table>
             <TableHeader className="bg-accent/10">
               <TableRow className="uppercase text-[10px] font-black tracking-widest border-b border-accent/20">
@@ -158,7 +212,7 @@ export default function StudentsPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline" className="text-[10px] font-bold border-primary/10 text-primary">{s.class}</Badge>
+                    <Badge variant="outline" className="text-[10px] border-primary/10 text-primary font-bold">{s.class}</Badge>
                   </TableCell>
                   <TableCell className="text-center">
                     {s.isLicensePaid ? (
@@ -170,13 +224,32 @@ export default function StudentsPage() {
                     )}
                   </TableCell>
                   <TableCell className="text-right pr-8">
-                    <Button variant="ghost" size="icon" className="rounded-full"><Info className="w-4 h-4 text-primary" /></Button>
+                    <Button variant="ghost" size="icon" className="rounded-full" asChild>
+                      <Link href={`/dashboard/children/view?id=${s.id}`}>
+                        <Info className="w-4 h-4 text-primary" />
+                      </Link>
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
+              {filtered.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-40 text-center text-muted-foreground italic">
+                    No students found in your assigned registry.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
+        <CardFooter className="bg-accent/10 p-4 border-t flex justify-between items-center">
+           <div className="flex items-center gap-2 text-muted-foreground">
+              <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+              <p className="text-[10px] uppercase font-bold tracking-widest italic opacity-40">
+                {isTeacher ? "Privacy Mode: Only viewing students in your assigned subjects." : "Institutional Master Registry synchronized."}
+              </p>
+           </div>
+        </CardFooter>
       </Card>
 
       <Dialog open={isAdmissionOpen} onOpenChange={setIsAdmissionOpen}>
@@ -208,3 +281,4 @@ export default function StudentsPage() {
     </div>
   );
 }
+import Link from "next/link";
