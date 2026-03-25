@@ -27,7 +27,11 @@ import {
   AlertCircle, 
   X, 
   SearchX,
-  CreditCard
+  CreditCard,
+  FileDown,
+  Filter,
+  CalendarDays,
+  FileSpreadsheet
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -38,13 +42,14 @@ import { cn } from "@/lib/utils";
 // Constants
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
 const FEE_TYPES = ["Tuition Fee", "Uniform Package", "PTA Contribution", "Examination Fee", "Library Card", "Sports Gear"];
+const ACADEMIC_YEARS = ["2023 / 2024", "2022 / 2023", "2021 / 2022"];
 
 // Initial Mock Data
 const INITIAL_STUDENTS = [
-  { id: "GBHS26S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", totalFee: 150000, paid: 125000, status: "partial", isLicensePaid: true, class: "2nde / Form 5" },
-  { id: "GBHS26S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", totalFee: 150000, paid: 150000, status: "cleared", isLicensePaid: true, class: "Terminale / Upper Sixth" },
-  { id: "GBHS26S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", totalFee: 150000, paid: 45000, status: "partial", isLicensePaid: false, class: "1ère / Lower Sixth" },
-  { id: "GBHS26S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100", totalFee: 150000, paid: 150000, status: "cleared", isLicensePaid: true, class: "2nde / Form 5" },
+  { id: "GBHS26S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", totalFee: 150000, paid: 125000, status: "partial", isLicensePaid: true, class: "2nde / Form 5", year: "2023 / 2024" },
+  { id: "GBHS26S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", totalFee: 150000, paid: 150000, status: "cleared", isLicensePaid: true, class: "Terminale / Upper Sixth", year: "2023 / 2024" },
+  { id: "GBHS26S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", totalFee: 150000, paid: 45000, status: "partial", isLicensePaid: false, class: "1ère / Lower Sixth", year: "2023 / 2024" },
+  { id: "GBHS26S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100", totalFee: 150000, paid: 150000, status: "cleared", isLicensePaid: true, class: "2nde / Form 5", year: "2023 / 2024" },
 ];
 
 export default function FeesPage() {
@@ -59,6 +64,11 @@ export default function FeesPage() {
   const [issuedReceipt, setIssuedReceipt] = useState<any>(null);
   const [paymentForm, setPaymentForm] = useState({ type: "Tuition Fee", amount: "" });
   
+  // Reporting States
+  const [reportYear, setReportYear] = useState(ACADEMIC_YEARS[0]);
+  const [reportClass, setReportClass] = useState("all");
+  const [reportFeeType, setReportFeeType] = useState("all");
+
   // Dynamic State for mock interaction
   const [students, setStudents] = useState(INITIAL_STUDENTS);
   const [transactions, setTransactions] = useState<any[]>([
@@ -76,6 +86,15 @@ export default function FeesPage() {
     });
   }, [searchTerm, classFilter, students]);
 
+  const reportingList = useMemo(() => {
+    return students.filter(s => {
+      const matchesYear = s.year === reportYear;
+      const matchesClass = reportClass === "all" || s.class === reportClass;
+      // In a real app, we'd check against a sub-collection of payments for the specific fee type
+      return matchesYear && matchesClass;
+    });
+  }, [reportYear, reportClass, students]);
+
   const handleProcessPayment = () => {
     if (!paymentForm.amount || parseFloat(paymentForm.amount) <= 0) {
       toast({ variant: "destructive", title: "Valid Amount Required" });
@@ -87,7 +106,6 @@ export default function FeesPage() {
       const amountNum = parseFloat(paymentForm.amount);
       const studentId = selectedStudentForPayment.id;
       
-      // Update student status locally
       setStudents(prev => prev.map(s => {
         if (s.id === studentId) {
           const newPaid = s.paid + amountNum;
@@ -131,6 +149,17 @@ export default function FeesPage() {
     }, 1500);
   };
 
+  const handleDownloadList = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      setIsProcessing(false);
+      toast({
+        title: "Export Successful",
+        description: `Student list for ${reportYear} (${reportClass}) generated.`,
+      });
+    }, 2000);
+  };
+
   return (
     <div className="space-y-6 md:space-y-8 pb-20 px-1">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -148,12 +177,15 @@ export default function FeesPage() {
       </div>
 
       <Tabs defaultValue="pay" className="w-full">
-        <TabsList className="grid grid-cols-3 w-full lg:w-[600px] mb-6 bg-white shadow-sm border h-auto p-1 rounded-2xl">
+        <TabsList className="grid grid-cols-4 w-full lg:w-[800px] mb-6 bg-white shadow-sm border h-auto p-1 rounded-2xl">
           <TabsTrigger value="pay" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm">
             <Wallet className="w-4 h-4" /> <span className="hidden sm:inline">Collection</span> Desk
           </TabsTrigger>
           <TabsTrigger value="ledger" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm">
             <History className="w-4 h-4" /> <span className="hidden sm:inline">Transaction</span> Log
+          </TabsTrigger>
+          <TabsTrigger value="reports" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm">
+            <FileDown className="w-4 h-4" /> <span className="hidden sm:inline">Download</span> Lists
           </TabsTrigger>
           <TabsTrigger value="overview" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm">
             <TrendingUp className="w-4 h-4" /> <span className="hidden sm:inline">Finance</span> Metrics
@@ -236,16 +268,6 @@ export default function FeesPage() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {filteredStudents.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={5} className="py-20 text-center text-muted-foreground italic">
-                        <div className="flex flex-col items-center gap-4">
-                          <SearchX className="w-12 h-12 opacity-20" />
-                          <p className="text-sm font-medium">No students found matching your criteria.</p>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
                 </TableBody>
               </Table>
             </CardContent>
@@ -291,6 +313,116 @@ export default function FeesPage() {
                   ))}
                 </TableBody>
               </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* REPORTS TAB */}
+        <TabsContent value="reports" className="animate-in fade-in slide-in-from-bottom-4 mt-0 space-y-6">
+          <Card className="border-none shadow-xl rounded-[1.5rem] md:rounded-3xl overflow-hidden">
+            <CardHeader className="bg-primary p-6 md:p-8 text-white">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/10 rounded-2xl">
+                    <FileSpreadsheet className="w-8 h-8 text-secondary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl md:text-2xl font-black">Export Institutional Lists</CardTitle>
+                    <CardDescription className="text-white/60">Generate targeted student dossiers based on academic and financial criteria.</CardDescription>
+                  </div>
+                </div>
+                <Button 
+                  className="bg-secondary text-primary hover:bg-secondary/90 h-12 px-8 rounded-xl font-black uppercase tracking-widest text-xs gap-2 shadow-lg"
+                  onClick={handleDownloadList}
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                  Download Institutional List
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6 md:p-8 space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
+                    <CalendarDays className="w-3.5 h-3.5 text-primary" /> Academic Session
+                  </Label>
+                  <Select value={reportYear} onValueChange={setReportYear}>
+                    <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ACADEMIC_YEARS.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
+                    <Building2 className="w-3.5 h-3.5 text-primary" /> Class Filter
+                  </Label>
+                  <Select value={reportClass} onValueChange={setReportClass}>
+                    <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Classes</SelectItem>
+                      {CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
+                    <Filter className="w-3.5 h-3.5 text-primary" /> Fee Category
+                  </Label>
+                  <Select value={reportFeeType} onValueChange={setReportFeeType}>
+                    <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Categories</SelectItem>
+                      {FEE_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="pt-6 border-t">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-black uppercase text-primary tracking-widest">List Preview</h3>
+                  <Badge variant="outline" className="text-[10px] border-primary/10 text-primary font-bold">
+                    {reportingList.length} Students Selected
+                  </Badge>
+                </div>
+                <div className="rounded-2xl border border-accent overflow-hidden">
+                  <Table>
+                    <TableHeader className="bg-accent/10">
+                      <TableRow className="uppercase text-[9px] font-black tracking-widest">
+                        <TableHead className="pl-6 py-3">Matricule</TableHead>
+                        <TableHead>Student Name</TableHead>
+                        <TableHead>Class</TableHead>
+                        <TableHead className="text-right pr-6">Payment Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {reportingList.map((s) => (
+                        <TableRow key={s.id} className="text-xs">
+                          <TableCell className="pl-6 py-3 font-mono font-bold text-primary">{s.id}</TableCell>
+                          <TableCell className="font-bold">{s.name}</TableCell>
+                          <TableCell>{s.class}</TableCell>
+                          <TableCell className="text-right pr-6">
+                            <Badge className={cn(
+                              "text-[8px] uppercase h-4 px-2",
+                              s.status === 'cleared' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                            )}>
+                              {s.status}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
