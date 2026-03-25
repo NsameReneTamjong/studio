@@ -1,8 +1,10 @@
+
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { 
   Users, 
   Building2, 
@@ -13,7 +15,11 @@ import {
   ShieldCheck,
   Wallet,
   GraduationCap,
-  TrendingUp
+  TrendingUp,
+  Heart,
+  Award,
+  ChevronRight,
+  ClipboardCheck
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -25,6 +31,7 @@ import {
   ResponsiveContainer 
 } from "recharts";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 const MONTHLY_REVENUE = [
   { name: 'Jan', revenue: 1200000 },
@@ -49,6 +56,7 @@ export default function DashboardPage() {
   }
 
   const isSuperAdmin = user.role === "SUPER_ADMIN";
+  const isParent = user.role === "PARENT";
 
   if (isSuperAdmin) {
     return (
@@ -151,6 +159,87 @@ export default function DashboardPage() {
               ))}
             </CardContent>
           </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (isParent) {
+    return (
+      <div className="space-y-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-primary font-headline">Family Overview</h1>
+            <p className="text-muted-foreground mt-1">Institutional Node: {user.school?.name || "EduIgnite Node"}</p>
+          </div>
+          <div className="bg-primary/5 px-4 py-2 rounded-xl border border-primary/10 flex items-center gap-3">
+            <ShieldCheck className="w-5 h-5 text-primary" />
+            <p className="text-xs font-bold text-primary">Verified Parent Identity</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { label: "Children Enrolled", value: "2", icon: Heart, color: "text-rose-600" },
+            { label: "Family Average", value: "15.4 / 20", icon: Award, color: "text-amber-600" },
+            { label: "Presence Score", value: "94%", icon: ClipboardCheck, color: "text-green-600" },
+            { label: "License Status", value: "Active", icon: Wallet, color: "text-blue-600" },
+          ].map((stat, i) => (
+            <Card key={i} className="border-none shadow-sm group hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{stat.label}</CardTitle>
+                <stat.icon className={cn("w-4 h-4 transition-transform group-hover:scale-110", stat.color)} />
+              </CardHeader>
+              <CardContent><div className="text-2xl font-bold text-primary">{stat.value}</div></CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <Card className="lg:col-span-2 border-none shadow-xl overflow-hidden rounded-[2rem]">
+            <CardHeader className="bg-primary text-white p-8">
+              <CardTitle className="flex items-center gap-2">
+                <GraduationCap className="w-6 h-6 text-secondary" />
+                Pedagogical Engagement
+              </CardTitle>
+              <CardDescription className="text-white/60">Combined performance trends for your children.</CardDescription>
+            </CardHeader>
+            <CardContent className="h-[300px] pt-10">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={MONTHLY_REVENUE}>
+                  <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.1} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <div className="space-y-6">
+            <Card className="border-none shadow-sm rounded-[2rem] bg-secondary/10 flex flex-col items-center justify-center text-center p-8 space-y-4">
+              <div className="p-4 bg-white rounded-2xl shadow-xl">
+                <Users className="w-12 h-12 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-xl font-black text-primary uppercase tracking-tighter leading-none">Manage Children</h3>
+                <p className="text-xs text-muted-foreground mt-2 leading-relaxed">Access individual report cards, attendance logs, and teacher feedback.</p>
+              </div>
+              <Button asChild className="w-full gap-2 rounded-xl h-11 font-bold">
+                <Link href="/dashboard/children">
+                  Open Children Registry
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </Button>
+            </Card>
+
+            <Card className="border-none shadow-sm rounded-[2rem] bg-accent/30 p-6">
+               <div className="flex items-start gap-3">
+                  <div className="p-2 bg-white rounded-lg"><Activity className="w-4 h-4 text-primary" /></div>
+                  <div className="space-y-1">
+                     <p className="text-[10px] font-black uppercase text-muted-foreground">Recent Notice</p>
+                     <p className="text-xs font-bold text-primary">Sequence 2 evaluations are now live.</p>
+                  </div>
+               </div>
+            </Card>
+          </div>
         </div>
       </div>
     );

@@ -15,7 +15,8 @@ import {
   BookOpen,
   Users,
   Phone,
-  Mail
+  Mail,
+  Heart
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -37,6 +38,7 @@ export default function SchoolWelcomePage() {
   if (!mounted || !user?.school) return null;
 
   const school = user.school;
+  const isParent = user.role === "PARENT";
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 md:p-8">
@@ -115,7 +117,9 @@ export default function SchoolWelcomePage() {
               {language === 'en' ? `Welcome, ${user.name}` : `Bienvenue, ${user.name}`}
             </h2>
             <p className="text-muted-foreground leading-relaxed text-lg">
-              {school.description}
+              {isParent 
+                ? "Experience the future of your children's education. Monitor progress, handle fees, and stay connected with the school administration instantly."
+                : school.description}
             </p>
           </div>
 
@@ -127,12 +131,14 @@ export default function SchoolWelcomePage() {
               <div className="space-y-1">
                 <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Active Session Role</p>
                 <p className="text-2xl font-bold flex items-center gap-3">
-                  <GraduationCap className="w-6 h-6 text-secondary" />
+                  {isParent ? <Heart className="w-6 h-6 text-secondary fill-secondary/20" /> : <GraduationCap className="w-6 h-6 text-secondary" />}
                   {user.role.replace('_', ' ')}
                 </p>
               </div>
               <p className="text-sm opacity-70 leading-relaxed font-medium">
-                Your high-fidelity pedagogical dashboard is live. Manage your curriculum, track financial status, and access institutional resources securely.
+                {isParent 
+                  ? "Your family dashboard is ready. Access gradebooks, attendance logs, and financial statements for all your registered children."
+                  : "Your high-fidelity pedagogical dashboard is live. Manage your curriculum, track financial status, and access institutional resources securely."}
               </p>
               <Button 
                 asChild 
