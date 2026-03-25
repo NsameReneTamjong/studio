@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -25,24 +25,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, addDoc, query, where, deleteDoc, doc, serverTimestamp } from "firebase/firestore";
 
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
+
+const MOCK_COURSES = [
+  { id: "PHY101", name: "Advanced Physics", instructorName: "Dr. Aris Tesla", targetClass: "2nde / Form 5", type: "compulsory", color: "bg-blue-500" },
+  { id: "MAT101", name: "Mathematics", instructorName: "Prof. Sarah Smith", targetClass: "2nde / Form 5", type: "compulsory", color: "bg-emerald-500" },
+];
 
 export default function CoursesPage() {
   const { user } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
-  const db = useFirestore();
   
   const [isAddingSubject, setIsAddingSubject] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [subjects, setSubjects] = useState<any[]>([]);
+  
   const [newSubject, setNewSubject] = useState({
     name: "",
     id: "",
-    instructorUid: "",
-    instructorName: "",
+    instructorName: "Dr. Jean Dupont",
     targetClass: "2nde / Form 5",
     type: "compulsory",
     color: "bg-blue-500"
@@ -50,56 +54,28 @@ export default function CoursesPage() {
 
   const isAdmin = user?.role === "SCHOOL_ADMIN";
 
-  // Fetch real subjects
-  const subjectsQuery = useMemoFirebase(() => {
-    if (!db || !user?.schoolId) return null;
-    return collection(db, "schools", user.schoolId, "courses");
-  }, [db, user?.schoolId]);
-
-  const { data: subjects, isLoading } = useCollection(subjectsQuery);
-
-  // Fetch staff for instructor assignment
-  const staffQuery = useMemoFirebase(() => {
-    if (!db || !user?.schoolId) return null;
-    return query(collection(db, "users"), where("schoolId", "==", user.schoolId), where("role", "==", "TEACHER"));
-  }, [db, user?.schoolId]);
-
-  const { data: teachers } = useCollection(staffQuery);
+  useEffect(() => {
+    setTimeout(() => {
+      setSubjects(MOCK_COURSES);
+      setIsLoading(false);
+    }, 500);
+  }, []);
 
   const handleCreateSubject = async () => {
-    if (!newSubject.name || !newSubject.id || !newSubject.instructorUid || !user?.schoolId) {
-      toast({ variant: "destructive", title: "Missing Info", description: "Subject name, ID, and instructor are required." });
-      return;
-    }
-
+    if (!newSubject.name || !newSubject.id) return;
     setIsProcessing(true);
-    try {
-      const selectedTeacher = teachers?.find(t => t.uid === newSubject.instructorUid);
-      
-      await addDoc(collection(db, "schools", user.schoolId, "courses"), {
-        ...newSubject,
-        instructorName: selectedTeacher?.name || "Unassigned",
-        createdAt: serverTimestamp()
-      });
-
-      setIsAddingSubject(false);
-      setNewSubject({ name: "", id: "", instructorUid: "", instructorName: "", targetClass: "2nde / Form 5", type: "compulsory", color: "bg-blue-500" });
-      toast({ title: "Subject Registered", description: `${newSubject.name} added to curriculum.` });
-    } catch (e) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to register subject." });
-    } finally {
+    setTimeout(() => {
+      setSubjects([...subjects, { ...newSubject }]);
       setIsProcessing(false);
-    }
+      setIsAddingSubject(false);
+      setNewSubject({ name: "", id: "", instructorName: "Dr. Jean Dupont", targetClass: "2nde / Form 5", type: "compulsory", color: "bg-blue-500" });
+      toast({ title: "Subject Registered", description: `${newSubject.name} added to curriculum.` });
+    }, 800);
   };
 
   const handleDeleteSubject = async (id: string) => {
-    if (!user?.schoolId) return;
-    try {
-      await deleteDoc(doc(db, "schools", user.schoolId, "courses", id));
-      toast({ title: "Removed", description: "Subject removed from curriculum." });
-    } catch (e) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to delete subject." });
-    }
+    setSubjects(subjects.filter(s => s.id !== id));
+    toast({ title: "Removed", description: "Subject removed from curriculum." });
   };
 
   return (
@@ -140,10 +116,11 @@ export default function CoursesPage() {
                   </div>
                   <div className="space-y-2">
                     <Label>Lead Instructor</Label>
-                    <Select value={newSubject.instructorUid} onValueChange={(v) => setNewSubject({...newSubject, instructorUid: v})}>
-                      <SelectTrigger className="h-11 rounded-xl"><SelectValue placeholder="Select teacher..." /></SelectTrigger>
+                    <Select value={newSubject.instructorName} onValueChange={(v) => setNewSubject({...newSubject, instructorName: v})}>
+                      <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        {teachers?.map(t => <SelectItem key={t.uid} value={t.uid}>{t.name}</SelectItem>)}
+                        <SelectItem value="Dr. Aris Tesla">Dr. Aris Tesla</SelectItem>
+                        <SelectItem value="Prof. Sarah Smith">Prof. Sarah Smith</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -156,26 +133,10 @@ export default function CoursesPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="col-span-2 space-y-2">
-                    <Label>Requirement Type</Label>
-                    <RadioGroup defaultValue="compulsory" onValueChange={(v) => setNewSubject({...newSubject, type: v})} className="grid grid-cols-2 gap-4">
-                      <Label htmlFor="compulsory" className="flex flex-col items-center p-4 border-2 rounded-xl cursor-pointer hover:bg-accent/50 [&:has([data-state=checked])]:border-primary">
-                        <RadioGroupItem value="compulsory" id="compulsory" className="sr-only" />
-                        <CheckCircle2 className="mb-2 h-6 w-6 text-primary" />
-                        <span className="font-bold">Compulsory</span>
-                      </Label>
-                      <Label htmlFor="optional" className="flex flex-col items-center p-4 border-2 rounded-xl cursor-pointer hover:bg-accent/50 [&:has([data-state=checked])]:border-primary">
-                        <RadioGroupItem value="optional" id="optional" className="sr-only" />
-                        <HelpCircle className="mb-2 h-6 w-6 text-secondary" />
-                        <span className="font-bold">Optional</span>
-                      </Label>
-                    </RadioGroup>
-                  </div>
                 </div>
               </div>
-              <DialogFooter className="bg-accent/20 p-6 border-t border-accent flex sm:flex-row gap-3">
-                <Button variant="ghost" className="flex-1 h-12" onClick={() => setIsAddingSubject(false)}>Cancel</Button>
-                <Button onClick={handleCreateSubject} className="flex-1 h-12 shadow-lg font-bold" disabled={isProcessing}>
+              <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+                <Button onClick={handleCreateSubject} className="w-full h-12 shadow-lg font-bold" disabled={isProcessing}>
                   {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Register Subject"}
                 </Button>
               </DialogFooter>

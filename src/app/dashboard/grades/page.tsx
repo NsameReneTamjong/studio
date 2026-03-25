@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Save, 
   FileText, 
@@ -26,13 +25,10 @@ import {
   Filter,
   Building2
 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, query, where, doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 const getAppreciation = (note: number) => {
   if (note >= 16) return { text: "Très Bien", color: "bg-green-600" };
@@ -42,66 +38,37 @@ const getAppreciation = (note: number) => {
   return { text: "Faible", color: "bg-red-500" };
 };
 
-const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
+const MOCK_COURSES = [
+  { id: "PHY101", name: "Physics", targetClass: "2nde / Form 5" },
+  { id: "MAT101", name: "Mathematics", targetClass: "2nde / Form 5" },
+];
+
+const MOCK_STUDENTS = [
+  { uid: "S1", id: "GBHS26S001", name: "Alice Thompson", isLicensePaid: true },
+  { uid: "S2", id: "GBHS26S002", name: "Bob Richards", isLicensePaid: true },
+  { uid: "S3", id: "GBHS26S003", name: "Charlie Davis", isLicensePaid: false },
+];
 
 export default function GradeBookPage() {
   const { user } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
-  const db = useFirestore();
   
   const [selectedCourseId, setSelectedCourseId] = useState("");
   const [selectedSequence, setSelectedSequence] = useState("seq1");
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [viewingReport, setViewingReport] = useState<any>(null);
+  const [grades, setGrades] = useState<Record<string, number>>({});
 
   const isTeacher = user?.role === "TEACHER" || user?.role === "SCHOOL_ADMIN";
 
-  // Data Fetching
-  const coursesQuery = useMemoFirebase(() => {
-    if (!db || !user?.schoolId) return null;
-    return query(collection(db, "schools", user.schoolId, "courses"), where("teacherUid", "==", user.uid));
-  }, [db, user?.schoolId, user?.uid]);
-  const { data: myCourses } = useCollection(coursesQuery);
-
-  const selectedCourse = myCourses?.find(c => c.id === selectedCourseId);
-
-  const studentsQuery = useMemoFirebase(() => {
-    if (!db || !user?.schoolId || !selectedCourse) return null;
-    return query(collection(db, "users"), where("schoolId", "==", user.schoolId), where("role", "==", "STUDENT"), where("class", "==", selectedCourse.targetClass));
-  }, [db, user?.schoolId, selectedCourse]);
-  const { data: students } = useCollection(studentsQuery);
-
-  const gradesQuery = useMemoFirebase(() => {
-    if (!db || !user?.schoolId || !selectedCourseId) return null;
-    return query(collection(db, "schools", user.schoolId, "grades"), where("courseId", "==", selectedCourseId));
-  }, [db, user?.schoolId, selectedCourseId]);
-  const { data: grades } = useCollection(gradesQuery);
-
-  const handleUpdateMark = async (studentUid: string, studentName: string, value: string) => {
-    if (!user?.schoolId || !selectedCourseId) return;
+  const handleUpdateMark = (studentUid: string, value: string) => {
     const mark = parseFloat(value);
     if (isNaN(mark)) return;
-
-    try {
-      const gradeId = `${studentUid}_${selectedCourseId}`;
-      const gradeRef = doc(db, "schools", user.schoolId, "grades", gradeId);
-      await setDoc(gradeRef, {
-        studentUid,
-        studentName,
-        courseId: selectedCourseId,
-        courseName: selectedCourse?.name,
-        [selectedSequence]: mark,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
-    } catch (e) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to record mark." });
-    }
+    setGrades({ ...grades, [`${studentUid}_${selectedSequence}`]: mark });
+    toast({ title: "Mark Recorded", description: "The entry has been saved locally." });
   };
 
   const getStudentMark = (studentUid: string) => {
-    const grade = grades?.find(g => g.studentUid === studentUid);
-    return grade?.[selectedSequence as keyof typeof grade] || "";
+    return grades[`${studentUid}_${selectedSequence}`] || "";
   };
 
   if (!isTeacher) {
@@ -139,7 +106,7 @@ export default function GradeBookPage() {
                     <SelectValue placeholder="Select Course" />
                   </SelectTrigger>
                   <SelectContent>
-                    {myCourses?.map(c => <SelectItem key={c.id} value={c.id}>{c.name} ({c.targetClass})</SelectItem>)}
+                    {MOCK_COURSES.map(c => <SelectItem key={c.id} value={c.id}>{c.name} ({c.targetClass})</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -172,7 +139,7 @@ export default function GradeBookPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {students?.map((s) => (
+                {MOCK_STUDENTS.map((s) => (
                   <TableRow key={s.uid} className="hover:bg-accent/5">
                     <TableCell className="pl-8 font-mono text-xs font-bold text-primary">{s.id}</TableCell>
                     <TableCell>
@@ -188,7 +155,7 @@ export default function GradeBookPage() {
                         type="number" 
                         disabled={!s.isLicensePaid}
                         defaultValue={getStudentMark(s.uid)}
-                        onBlur={(e) => handleUpdateMark(s.uid, s.name, e.target.value)}
+                        onBlur={(e) => handleUpdateMark(s.uid, e.target.value)}
                         className="w-16 h-9 mx-auto text-center font-bold"
                       />
                     </TableCell>
@@ -199,8 +166,8 @@ export default function GradeBookPage() {
                         </Badge>
                       )}
                       {s.isLicensePaid && getStudentMark(s.uid) !== "" && (
-                        <Badge className={cn("text-[9px] border-none text-white", getAppreciation(parseFloat(getStudentMark(s.uid))).color)}>
-                          {getAppreciation(parseFloat(getStudentMark(s.uid))).text}
+                        <Badge className={cn("text-[9px] border-none text-white", getAppreciation(parseFloat(getStudentMark(s.uid).toString())).color)}>
+                          {getAppreciation(parseFloat(getStudentMark(s.uid).toString())).text}
                         </Badge>
                       )}
                     </TableCell>

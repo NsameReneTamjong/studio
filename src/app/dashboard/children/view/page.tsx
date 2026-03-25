@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n-context";
 import { useAuth } from "@/lib/auth-context";
@@ -35,14 +35,46 @@ import {
   Info,
   Phone,
   QrCode,
-  Loader2
+  Loader2,
+  AlertCircle
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, query, where, doc } from "firebase/firestore";
+
+const MOCK_CHILDREN = [
+  {
+    id: "S001",
+    uid: "S1",
+    name: "Alice Thompson",
+    class: "2nde / Form 5",
+    section: "A",
+    email: "alice@gbhsdeido.cm",
+    status: "active",
+    isLicensePaid: true,
+    avatar: "https://picsum.photos/seed/alice/200/200",
+    createdAt: { toDate: () => new Date() }
+  },
+  {
+    id: "S004",
+    uid: "S4",
+    name: "Diana Prince",
+    class: "2nde / Form 5",
+    section: "A",
+    email: "diana@gbhsdeido.cm",
+    status: "active",
+    isLicensePaid: true,
+    avatar: "https://picsum.photos/seed/diana/200/200",
+    createdAt: { toDate: () => new Date() }
+  }
+];
+
+const MOCK_GRADES = [
+  { courseId: "PHY101", courseName: "Physics", seq1: 14, seq2: 16, coeff: 4, group: "Sciences" },
+  { courseId: "MAT101", courseName: "Mathematics", seq1: 18, seq2: 17, coeff: 5, group: "Sciences" },
+  { courseId: "ENG101", courseName: "English", seq1: 12, seq2: 13, coeff: 3, group: "Arts" },
+];
 
 const getAppreciation = (note: number) => {
   if (note >= 16) return { text: "Très Bien / Excellent", color: "bg-green-600" };
@@ -58,62 +90,25 @@ export default function StudentDetailsPage() {
   const { user: currentUser } = useAuth();
   const { toast } = useToast();
   const { t, language } = useI18n();
-  const db = useFirestore();
-  const studentId = searchParams.get("id"); // This is the Matricule
+  const studentId = searchParams.get("id"); 
   
-  // Preview States
+  const [loading, setLoading] = useState(true);
+  const [student, setStudent] = useState<any>(null);
   const [previewDoc, setPreviewDoc] = useState<{ type: 'report' | 'receipt' | 'id', data?: any } | null>(null);
-  const [selectedAttendanceDetails, setSelectedAttendanceDetails] = useState<any>(null);
 
-  // 1. Fetch Student Profile by Matricule
-  const studentQuery = useMemoFirebase(() => {
-    if (!db || !studentId) return null;
-    return query(collection(db, "users"), where("id", "==", studentId));
-  }, [db, studentId]);
-  const { data: students, isLoading: isStudentLoading } = useCollection(studentQuery);
-  const student = students?.[0];
-
-  // 2. Fetch Grades for this student
-  const gradesQuery = useMemoFirebase(() => {
-    if (!db || !student?.uid || !student?.schoolId) return null;
-    return query(collection(db, "schools", student.schoolId, "grades"), where("studentUid", "==", student.uid));
-  }, [db, student?.uid, student?.schoolId]);
-  const { data: gradesData, isLoading: isGradesLoading } = useCollection(gradesQuery);
-
-  // 3. Fetch Course Metadata (for coefficients)
-  const coursesQuery = useMemoFirebase(() => {
-    if (!db || !student?.schoolId) return null;
-    return collection(db, "schools", student.schoolId, "courses");
-  }, [db, student?.schoolId]);
-  const { data: courses } = useCollection(coursesQuery);
-
-  // 4. Compute Bulletin Data
-  const bulletinData = useMemo(() => {
-    if (!gradesData || !courses) return [];
-    
-    return gradesData.map(grade => {
-      const course = courses.find(c => c.id === grade.courseId);
-      const seq1 = grade.seq1 || 0;
-      const seq2 = grade.seq2 || 0;
-      const avg = (seq1 + seq2) / (seq1 && seq2 ? 2 : 1);
-      
-      return {
-        name: grade.courseName || course?.name || "Unknown",
-        coeff: course?.coeff || 2,
-        seq1,
-        seq2,
-        moy: avg,
-        group: course?.group || "General"
-      };
-    });
-  }, [gradesData, courses]);
+  useEffect(() => {
+    const found = MOCK_CHILDREN.find(c => c.id === studentId);
+    setTimeout(() => {
+      setStudent(found);
+      setLoading(false);
+    }, 500);
+  }, [studentId]);
 
   const generalAverage = useMemo(() => {
-    if (bulletinData.length === 0) return 0;
-    const totalWeighted = bulletinData.reduce((acc, curr) => acc + (curr.moy * curr.coeff), 0);
-    const totalCoeff = bulletinData.reduce((acc, curr) => acc + curr.coeff, 0);
-    return totalWeighted / totalCoeff;
-  }, [bulletinData]);
+    const totalWeighted = MOCK_GRADES.reduce((acc, curr) => acc + (((curr.seq1 + curr.seq2)/2) * curr.coeff), 0);
+    const totalCoeff = MOCK_GRADES.reduce((acc, curr) => acc + curr.coeff, 0);
+    return totalCoeff > 0 ? totalWeighted / totalCoeff : 0;
+  }, []);
 
   const handleDownload = (docName: string) => {
     toast({
@@ -122,7 +117,7 @@ export default function StudentDetailsPage() {
     });
   };
 
-  if (isStudentLoading || isGradesLoading) {
+  if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] space-y-4">
         <Loader2 className="w-12 h-12 animate-spin text-primary opacity-20" />
@@ -156,11 +151,7 @@ export default function StudentDetailsPage() {
             <div>
               <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-2">
                 {student.name}
-                {student.status === 'active' ? (
-                  <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200">ACTIVE</Badge>
-                ) : (
-                  <Badge variant="destructive" className="uppercase">{student.status || 'Enrolled'}</Badge>
-                )}
+                <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200 uppercase">ACTIVE</Badge>
               </h1>
               <p className="text-muted-foreground">{student.class} • ID: {student.id}</p>
             </div>
@@ -186,7 +177,7 @@ export default function StudentDetailsPage() {
             <CardTitle className="text-[10px] font-black opacity-60 uppercase tracking-widest">{language === "en" ? "Evaluations" : "Évaluations"}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-black">{bulletinData.length} Subjects</div>
+            <div className="text-3xl font-black">{MOCK_GRADES.length} Subjects</div>
           </CardContent>
         </Card>
         <Card className="border-none shadow-sm bg-accent text-primary border border-primary/10">
@@ -195,11 +186,7 @@ export default function StudentDetailsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-xl font-black flex items-center gap-2">
-              {student.isLicensePaid ? (
-                <><CheckCircle2 className="w-5 h-5 text-green-600" /> ACTIVE</>
-              ) : (
-                <><XCircle className="w-5 h-5 text-red-600" /> OUTSTANDING</>
-              )}
+              <CheckCircle2 className="w-5 h-5 text-green-600" /> ACTIVE
             </div>
           </CardContent>
         </Card>
@@ -265,7 +252,7 @@ export default function StudentDetailsPage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="opacity-70 text-sm">Join Date</span>
-                  <span className="font-bold text-sm">{student.createdAt?.toDate ? new Date(student.createdAt.toDate()).toLocaleDateString() : 'N/A'}</span>
+                  <span className="font-bold text-sm">Oct 12, 2023</span>
                 </div>
                 <div className="pt-6 border-t border-white/10 text-center">
                   <QrCode className="w-32 h-32 mx-auto text-white/20 mb-2" />
@@ -281,7 +268,7 @@ export default function StudentDetailsPage() {
             <CardHeader className="bg-accent/30 border-b flex flex-row items-center justify-between">
               <div>
                 <CardTitle>{language === "en" ? "Current Term Grades" : "Notes du Trimestre Actuel"}</CardTitle>
-                <CardDescription>Academic Session {new Date().getFullYear()} - Real-time Ledger</CardDescription>
+                <CardDescription>Academic Session 2024 - Demo Ledger</CardDescription>
               </div>
               <Button onClick={() => setPreviewDoc({ type: 'report' })} className="gap-2 bg-primary text-white shadow-lg">
                 <Eye className="w-4 h-4" /> {language === 'en' ? 'View Official Bulletin' : 'Voir Bulletin Officiel'}
@@ -300,34 +287,29 @@ export default function StudentDetailsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {bulletinData.length > 0 ? (
-                    bulletinData.map((grade: any, idx: number) => {
-                      const appreciation = getAppreciation(grade.moy);
-                      return (
-                        <TableRow key={idx} className="hover:bg-accent/5">
-                          <TableCell className="font-bold pl-6 text-primary">
-                            <div>
-                              <p>{grade.name}</p>
-                              <p className="text-[10px] text-muted-foreground uppercase font-black">{grade.group}</p>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center font-black">{grade.coeff}</TableCell>
-                          <TableCell className="text-center font-medium">{grade.seq1?.toFixed(2) || '0.00'}</TableCell>
-                          <TableCell className="text-center font-medium">{grade.seq2?.toFixed(2) || '0.00'}</TableCell>
-                          <TableCell className="text-center font-black text-primary text-lg">{grade.moy?.toFixed(2) || '0.00'}</TableCell>
-                          <TableCell className="text-right pr-6">
-                            <Badge variant="outline" className={cn("text-[9px] font-black uppercase border-none text-white px-3", appreciation.color)}>
-                              {appreciation.text}
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center py-20 text-muted-foreground italic">No grades recorded for this student in the current session.</TableCell>
-                    </TableRow>
-                  )}
+                  {MOCK_GRADES.map((grade: any, idx: number) => {
+                    const avg = (grade.seq1 + grade.seq2) / 2;
+                    const appreciation = getAppreciation(avg);
+                    return (
+                      <TableRow key={idx} className="hover:bg-accent/5">
+                        <TableCell className="font-bold pl-6 text-primary">
+                          <div>
+                            <p>{grade.courseName}</p>
+                            <p className="text-[10px] text-muted-foreground uppercase font-black">{grade.group}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center font-black">{grade.coeff}</TableCell>
+                        <TableCell className="text-center font-medium">{grade.seq1.toFixed(2)}</TableCell>
+                        <TableCell className="text-center font-medium">{grade.seq2.toFixed(2)}</TableCell>
+                        <TableCell className="text-center font-black text-primary text-lg">{avg.toFixed(2)}</TableCell>
+                        <TableCell className="text-right pr-6">
+                          <Badge variant="outline" className={cn("text-[9px] font-black uppercase border-none text-white px-3", appreciation.color)}>
+                            {appreciation.text}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </CardContent>
@@ -373,7 +355,7 @@ export default function StudentDetailsPage() {
                   </div>
                   <div className="flex-1">
                     <CardTitle className="text-base">{t("reportCard")} - Sequence 1 & 2</CardTitle>
-                    <CardDescription>{t("academicYear")} {new Date().getFullYear()}</CardDescription>
+                    <CardDescription>{t("academicYear")} 2024</CardDescription>
                   </div>
                   <Button variant="outline" size="sm" onClick={() => setPreviewDoc({ type: 'report' })} className="gap-2">
                     <Eye className="w-4 h-4" /> {language === 'en' ? 'View' : 'Voir'}
@@ -395,7 +377,7 @@ export default function StudentDetailsPage() {
                     <div className="flex items-center gap-3">
                       <Building2 className="w-6 h-6 text-secondary" />
                       <div>
-                        <CardTitle className="text-sm font-bold tracking-tight">{student.school?.name || 'EduIgnite Institution'}</CardTitle>
+                        <CardTitle className="text-sm font-bold tracking-tight">GBHS Deido</CardTitle>
                         <CardDescription className="text-white/60 text-[10px] uppercase font-bold tracking-widest">{t("idCard")}</CardDescription>
                       </div>
                     </div>
@@ -419,7 +401,7 @@ export default function StudentDetailsPage() {
                     </div>
                   </CardContent>
                   <CardFooter className="bg-white/5 py-3 flex justify-between items-center text-[10px]">
-                    <span className="flex items-center gap-1 opacity-60"><MapPin className="w-3 h-3" /> {student.school?.location || 'Cameroon'}</span>
+                    <span className="flex items-center gap-1 opacity-60"><MapPin className="w-3 h-3" /> Douala, Cameroon</span>
                     <Button variant="ghost" size="sm" onClick={() => setPreviewDoc({ type: 'id' })} className="text-white hover:bg-white/10 h-7 text-[10px] gap-1">
                       <Eye className="w-3.5 h-3.5" /> Full Preview
                     </Button>
@@ -446,7 +428,6 @@ export default function StudentDetailsPage() {
           </DialogHeader>
 
           <div className="bg-muted p-4 md:p-8">
-            {/* REPORT CARD PREVIEW */}
             {previewDoc?.type === 'report' && (
               <div className="bg-white p-6 md:p-10 shadow-sm border border-border min-h-[700px] flex flex-col space-y-6 font-serif text-black relative print:shadow-none print:border-none">
                  <div className="grid grid-cols-3 gap-4 items-start text-center border-b-2 border-black pb-6">
@@ -455,15 +436,11 @@ export default function StudentDetailsPage() {
                       <p>Peace - Work - Fatherland</p>
                       <div className="h-px bg-black w-8 mx-auto my-1" />
                       <p>Ministry of Secondary Education</p>
-                      <p>{student.school?.name || "EduIgnite Institution"}</p>
+                      <p>GBHS Deido</p>
                     </div>
                     <div className="flex justify-center">
                       <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center p-2 border-2 border-primary/20">
-                         {student.school?.logo ? (
-                           <img src={student.school.logo} alt="School Logo" className="w-full h-full object-contain" />
-                         ) : (
-                           <Building2 className="w-12 h-12 text-primary opacity-50" />
-                         )}
+                         <Building2 className="w-12 h-12 text-primary opacity-50" />
                       </div>
                     </div>
                     <div className="space-y-1 text-[9px] uppercase font-bold">
@@ -471,7 +448,7 @@ export default function StudentDetailsPage() {
                       <p>Paix - Travail - Patrie</p>
                       <div className="h-px bg-black w-8 mx-auto my-1" />
                       <p>Min. des Enseignements Secondaires</p>
-                      <p>{student.school?.region || "Littoral"}</p>
+                      <p>Littoral</p>
                     </div>
                  </div>
                  
@@ -479,7 +456,7 @@ export default function StudentDetailsPage() {
                     <h2 className="text-xl md:text-2xl font-black uppercase underline tracking-tighter">
                       REPORT CARD / BULLETIN DE NOTES
                     </h2>
-                    <p className="font-bold text-sm italic">Academic Year: {new Date().getFullYear()}</p>
+                    <p className="font-bold text-sm italic">Academic Year: 2024</p>
                  </div>
 
                  <div className="grid grid-cols-12 gap-6 bg-accent/10 p-4 border border-accent rounded-lg items-center">
@@ -512,12 +489,12 @@ export default function StudentDetailsPage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {bulletinData.map((g: any, i: number) => (
+                        {MOCK_GRADES.map((g: any, i: number) => (
                           <TableRow key={i} className="border-black">
-                            <TableCell className="font-bold py-1.5 border-r border-black text-[11px]">{g.name}</TableCell>
+                            <TableCell className="font-bold py-1.5 border-r border-black text-[11px]">{g.courseName}</TableCell>
                             <TableCell className="text-center py-1.5 border-r border-black font-black">{g.coeff}</TableCell>
-                            <TableCell className="text-center py-1.5 border-r border-black font-black text-primary">{g.moy?.toFixed(2)}</TableCell>
-                            <TableCell className="text-right py-1.5 text-[10px] uppercase font-medium italic">{getAppreciation(g.moy).text}</TableCell>
+                            <TableCell className="text-center py-1.5 border-r border-black font-black text-primary">{((g.seq1+g.seq2)/2).toFixed(2)}</TableCell>
+                            <TableCell className="text-right py-1.5 text-[10px] uppercase font-medium italic">{getAppreciation((g.seq1+g.seq2)/2).text}</TableCell>
                           </TableRow>
                         ))}
                         <TableRow className="border-black bg-black/5 font-bold">
@@ -526,7 +503,7 @@ export default function StudentDetailsPage() {
                              {generalAverage.toFixed(2)}
                            </TableCell>
                            <TableCell className="text-right uppercase text-[10px]" colSpan={1}>
-                             Rank: Pending Validation
+                             Rank: 1st / 45
                            </TableCell>
                         </TableRow>
                       </TableBody>
@@ -547,7 +524,6 @@ export default function StudentDetailsPage() {
               </div>
             )}
 
-            {/* ID CARD PREVIEW */}
             {previewDoc?.type === 'id' && (
               <div className="flex justify-center p-8">
                 <Card className="w-full max-w-md border shadow-xl bg-gradient-to-br from-primary to-primary/90 text-white overflow-hidden relative">
@@ -555,7 +531,7 @@ export default function StudentDetailsPage() {
                     <div className="flex items-center gap-3">
                       <Building2 className="w-8 h-8 text-secondary" />
                       <div>
-                        <CardTitle className="text-lg font-bold tracking-tight">{student.school?.name || 'Institution'}</CardTitle>
+                        <CardTitle className="text-lg font-bold tracking-tight">GBHS Deido</CardTitle>
                         <CardDescription className="text-white/60 text-xs uppercase font-bold tracking-widest">{t("idCard")}</CardDescription>
                       </div>
                     </div>
@@ -579,8 +555,8 @@ export default function StudentDetailsPage() {
                     </div>
                   </CardContent>
                   <CardFooter className="bg-white/5 py-4 flex justify-between items-center">
-                    <span className="flex items-center gap-1 opacity-60 text-xs"><MapPin className="w-4 h-4" /> {student.school?.location || 'Cameroon'}</span>
-                    <Badge variant="secondary" className="bg-secondary text-primary border-none text-[10px] h-6 px-4">VALID 2023-24</Badge>
+                    <span className="flex items-center gap-1 opacity-60 text-xs"><MapPin className="w-4 h-4" /> Douala, Cameroon</span>
+                    <Badge variant="secondary" className="bg-secondary text-primary border-none text-[10px] h-6 px-4">VALID 2024</Badge>
                   </CardFooter>
                 </Card>
               </div>

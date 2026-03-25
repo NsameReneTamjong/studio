@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
@@ -20,11 +20,10 @@ import {
   User,
   AlertCircle,
   Loader2,
-  CheckCircle2
+  CheckCircle2,
+  Award
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 export default function SubmitAssignmentPage() {
   const { user } = useAuth();
@@ -33,46 +32,44 @@ export default function SubmitAssignmentPage() {
   const searchParams = useSearchParams();
   const assignmentId = searchParams.get("id");
   const { toast } = useToast();
-  const db = useFirestore();
 
   const [loading, setLoading] = useState(false);
   const [content, setContent] = useState("");
+  const [isTaskLoading, setIsTaskLoading] = useState(true);
+  const [assignment, setAssignment] = useState<any>(null);
+  const [submission, setSubmission] = useState<any>(null);
 
-  const assignmentRef = useMemoFirebase(() => {
-    if (!db || !user?.schoolId || !assignmentId) return null;
-    return doc(db, "schools", user.schoolId, "assignments", assignmentId);
-  }, [db, user?.schoolId, assignmentId]);
-  const { data: assignment, isLoading: isTaskLoading } = useDoc(assignmentRef);
-
-  const existingSubmissionRef = useMemoFirebase(() => {
-    if (!db || !user?.schoolId || !assignmentId) return null;
-    return doc(db, "schools", user.schoolId, "assignments", assignmentId, "submissions", user.uid);
-  }, [db, user?.schoolId, assignmentId, user?.uid]);
-  const { data: submission } = useDoc(existingSubmissionRef);
+  useEffect(() => {
+    // Simulate data fetch
+    setTimeout(() => {
+      setAssignment({
+        id: "1",
+        title: "Newton's Laws Lab Report",
+        courseName: "Advanced Physics",
+        dueDate: "2024-06-15",
+        maxMarks: 20
+      });
+      setIsTaskLoading(false);
+    }, 500);
+  }, [assignmentId]);
 
   const handlePageSubmit = async () => {
-    if (!content || !user?.schoolId || !assignmentId) return;
+    if (!content) return;
     setLoading(true);
-    try {
-      await setDoc(doc(db, "schools", user.schoolId, "assignments", assignmentId, "submissions", user.uid), {
-        studentUid: user.uid,
-        studentName: user.name,
-        studentMatricule: user.id,
+    // Simulate submission
+    setTimeout(() => {
+      setSubmission({
         content,
-        submittedAt: serverTimestamp(),
-        status: "submitted",
-        assignmentId
+        submittedAt: new Date(),
+        status: "submitted"
       });
+      setLoading(false);
       toast({
         title: t("submitted"),
         description: "Your work has been successfully recorded.",
       });
       router.push("/dashboard/assignments");
-    } catch (e) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to upload submission." });
-    } finally {
-      setLoading(false);
-    }
+    }, 1000);
   };
 
   if (isTaskLoading) return <div className="flex justify-center p-20"><Loader2 className="w-12 h-12 animate-spin text-primary opacity-20" /></div>;
@@ -107,12 +104,6 @@ export default function SubmitAssignmentPage() {
                     <span className="font-bold">Work Submitted</span>
                   </div>
                   <p className="text-sm text-green-800 italic">"{submission.content}"</p>
-                  {submission.status === 'graded' && (
-                    <div className="pt-4 border-t border-green-200">
-                      <p className="text-[10px] uppercase font-black text-green-600">Teacher's Mark</p>
-                      <p className="text-3xl font-black text-green-700">{submission.grade} / {assignment.maxMarks}</p>
-                    </div>
-                  )}
                 </div>
               ) : (
                 <div className="space-y-4">

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -61,20 +61,23 @@ import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, addDoc, serverTimestamp, deleteDoc, doc, updateDoc, query, where } from "firebase/firestore";
 
 const ROLES = ["CEO", "CTO", "COO", "CFO", "Investor", "Board Member", "Adviser"];
+
+const MOCK_FOUNDERS = [
+  { id: "F1", name: "EduIgnite Founder", email: "ceo@eduignite.io", role: "CEO", status: "Active", isPrimary: true, avatar: "https://picsum.photos/seed/ceo/150/150", permissions: { manageSchools: true, manageTeam: true, viewAnalytics: true, manageSupport: true } },
+  { id: "F2", name: "Tech Director", email: "cto@eduignite.io", role: "CTO", status: "Active", isPrimary: false, avatar: "https://picsum.photos/seed/cto/150/150", permissions: { manageSchools: true, manageTeam: false, viewAnalytics: true, manageSupport: false } },
+];
 
 export default function FoundersManagementPage() {
   const { user } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
-  const db = useFirestore();
   
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [editingFounder, setEditingFounder] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [founders, setFounders] = useState<any[]>([]);
   
   const [newFounderData, setNewFounderData] = useState({
     name: "",
@@ -88,57 +91,41 @@ export default function FoundersManagementPage() {
     }
   });
 
-  const foundersQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return query(collection(db, "platform_admins"));
-  }, [db]);
-
-  const { data: founders, isLoading } = useCollection(foundersQuery);
+  useEffect(() => {
+    setTimeout(() => {
+      setFounders(MOCK_FOUNDERS);
+      setIsLoading(false);
+    }, 500);
+  }, []);
 
   const handleAddFounder = async () => {
-    if (!newFounderData.name || !newFounderData.email) {
-      toast({ variant: "destructive", title: "Missing Info", description: "Name and email are required." });
-      return;
-    }
-
+    if (!newFounderData.name || !newFounderData.email) return;
     setIsProcessing(true);
-    try {
-      await addDoc(collection(db, "platform_admins"), {
+    setTimeout(() => {
+      const created = {
         ...newFounderData,
+        id: Math.random().toString(),
         status: "Active",
-        joined: serverTimestamp(),
-        createdAt: serverTimestamp(),
         isPrimary: false,
         avatar: `https://picsum.photos/seed/${newFounderData.name}/100/100`,
-      });
-
+      };
+      setFounders([...founders, created]);
+      setIsProcessing(false);
       setIsAddModalOpen(false);
       setNewFounderData({ name: "", email: "", role: "COO", permissions: { manageSchools: false, manageTeam: false, viewAnalytics: true, manageSupport: false } });
       toast({ title: "Founder Added", description: `${newFounderData.name} has been onboarded.` });
-    } catch (e) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to onboard founder." });
-    } finally {
-      setIsProcessing(false);
-    }
+    }, 1000);
   };
 
-  const handleRemoveFounder = async (id: string) => {
-    try {
-      await deleteDoc(doc(db, "platform_admins", id));
-      toast({ variant: "destructive", title: "Founder Removed", description: "Access has been revoked." });
-    } catch (e) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to remove founder." });
-    }
+  const handleRemoveFounder = (id: string) => {
+    setFounders(founders.filter(f => f.id !== id));
+    toast({ variant: "destructive", title: "Founder Removed" });
   };
 
-  const handleToggleStatus = async (founder: any) => {
+  const handleToggleStatus = (founder: any) => {
     const newStatus = founder.status === "Active" ? "Suspended" : "Active";
-    try {
-      await updateDoc(doc(db, "platform_admins", founder.id), { status: newStatus });
-      toast({ title: `Status: ${newStatus}`, description: `Access for ${founder.name} has been ${newStatus.toLowerCase()}.` });
-    } catch (e) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to update status." });
-    }
+    setFounders(founders.map(f => f.id === founder.id ? { ...f, status: newStatus } : f));
+    toast({ title: `Status: ${newStatus}` });
   };
 
   const PermissionToggle = ({ id, label, description, checked, onChange, icon: Icon }: any) => (
@@ -231,7 +218,7 @@ export default function FoundersManagementPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {founders?.map((founder) => (
+                {founders.map((founder) => (
                   <TableRow key={founder.id} className="hover:bg-accent/5 transition-colors border-b border-accent/10">
                     <TableCell className="pl-8 py-4">
                       <div className="flex items-center gap-3">

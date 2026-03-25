@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -39,8 +39,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, addDoc, serverTimestamp, doc, updateDoc, deleteDoc, query, orderBy } from "firebase/firestore";
 
 const SUBJECT_OPTIONS = [
   { value: "Technical Error", label: "Error / Bug Report", icon: AlertCircle, color: "text-red-500" },
@@ -51,85 +49,63 @@ const SUBJECT_OPTIONS = [
   { value: "Other", label: "Other Support Request", icon: HelpCircle, color: "text-muted-foreground" },
 ];
 
+const MOCK_FEEDBACKS = [
+  {
+    id: "FB1",
+    subject: "General Appreciation",
+    message: "The new attendance system is incredibly efficient. My teachers are loving the digital transition.",
+    schoolName: "GBHS Deido",
+    schoolId: "GBHS",
+    schoolLogo: "https://picsum.photos/seed/edu1/200/200",
+    senderName: "Principal Fonka",
+    senderRole: "SCHOOL_ADMIN",
+    senderAvatar: "https://picsum.photos/seed/admin/100/100",
+    status: "New",
+    createdAt: new Date()
+  }
+];
+
 export default function FeedbackPage() {
   const { user } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
-  const db = useFirestore();
   
   const [isSending, setIsSending] = useState(false);
   const [newFeedback, setNewFeedback] = useState({ subject: "", message: "" });
+  const [isLoading, setIsLoading] = useState(true);
+  const [feedbacks, setFeedbacks] = useState<any[]>([]);
 
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
 
-  const feedbackQuery = useMemoFirebase(() => {
-    if (!db || !isSuperAdmin) return null;
-    return query(collection(db, "feedback"), orderBy("createdAt", "desc"));
-  }, [db, isSuperAdmin]);
-
-  const { data: feedbacks, isLoading: isFeedbackLoading } = useCollection(feedbackQuery);
+  useEffect(() => {
+    if (isSuperAdmin) {
+      setTimeout(() => {
+        setFeedbacks(MOCK_FEEDBACKS);
+        setIsLoading(false);
+      }, 500);
+    } else {
+      setIsLoading(false);
+    }
+  }, [isSuperAdmin]);
 
   const handleSendFeedback = async () => {
-    if (!newFeedback.message || !newFeedback.subject || !user) return;
+    if (!newFeedback.message || !newFeedback.subject) return;
     setIsSending(true);
-    
-    try {
-      await addDoc(collection(db, "feedback"), {
-        ...newFeedback,
-        schoolId: user.schoolId || "N/A",
-        schoolName: user.school?.name || "N/A",
-        schoolLogo: user.school?.logo || "",
-        senderUid: user.uid,
-        senderName: user.name,
-        senderRole: user.role,
-        senderAvatar: user.avatar || "",
-        status: "New",
-        createdAt: serverTimestamp()
-      });
-      
+    setTimeout(() => {
+      setIsSending(false);
       toast({ title: "Feedback Sent", description: "The platform administrator has received your message." });
       setNewFeedback({ subject: "", message: "" });
-    } catch (e) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to send feedback." });
-    } finally {
-      setIsSending(false);
-    }
+    }, 1000);
   };
 
-  const handleResolve = async (id: string) => {
-    try {
-      await updateDoc(doc(db, "feedback", id), { status: "Resolved" });
-      toast({ title: "Ticket Resolved" });
-    } catch (e) {
-      toast({ variant: "destructive", title: "Error" });
-    }
+  const handleResolve = (id: string) => {
+    setFeedbacks(feedbacks.map(f => f.id === id ? { ...f, status: 'Resolved' } : f));
+    toast({ title: "Ticket Resolved" });
   };
 
-  const handlePublishTestimonial = async (fb: any) => {
-    try {
-      await addDoc(collection(db, "testimonials"), {
-        author: fb.senderName,
-        role: fb.senderRole,
-        avatar: fb.senderAvatar,
-        content: fb.message,
-        schoolName: fb.schoolName,
-        createdAt: serverTimestamp()
-      });
-
-      await updateDoc(doc(db, "feedback", fb.id), { status: "Published" });
-      toast({ title: "Testimonial Published" });
-    } catch (e) {
-      toast({ variant: "destructive", title: "Publish Error" });
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    try {
-      await deleteDoc(doc(db, "feedback", id));
-      toast({ title: "Ticket Deleted" });
-    } catch (e) {
-      toast({ variant: "destructive", title: "Error" });
-    }
+  const handleDelete = (id: string) => {
+    setFeedbacks(feedbacks.filter(f => f.id !== id));
+    toast({ title: "Ticket Deleted" });
   };
 
   if (isSuperAdmin) {
@@ -146,15 +122,15 @@ export default function FeedbackPage() {
             <p className="text-muted-foreground mt-1">Review issues, suggestions, and support requests from institutional admins.</p>
           </div>
           <Badge variant="outline" className="h-10 px-4 rounded-xl border-primary/20 text-primary font-black uppercase tracking-widest">
-            {feedbacks?.length || 0} Active Tickets
+            {feedbacks.length} Active Tickets
           </Badge>
         </div>
 
-        {isFeedbackLoading ? (
+        {isLoading ? (
           <div className="flex justify-center p-20"><Loader2 className="w-12 h-12 animate-spin text-primary opacity-20" /></div>
         ) : (
           <div className="grid grid-cols-1 gap-6">
-            {feedbacks?.map((fb) => (
+            {feedbacks.map((fb) => (
               <Card key={fb.id} className="border-none shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-300">
                 <div className="flex flex-col md:flex-row">
                   <div className="w-full md:w-64 bg-accent/20 border-r p-6 flex flex-col items-center text-center space-y-4 shrink-0">
@@ -168,7 +144,7 @@ export default function FeedbackPage() {
                     <div className="pt-4 border-t border-accent/50 w-full">
                       <Badge className={cn(
                         "w-full justify-center py-1 font-black uppercase text-[9px]",
-                        fb.status === 'Resolved' || fb.status === 'Published' ? "bg-green-100 text-green-700" : ""
+                        fb.status === 'Resolved' ? "bg-green-100 text-green-700" : ""
                       )}>
                         {fb.status}
                       </Badge>
@@ -188,7 +164,7 @@ export default function FeedbackPage() {
                             <Badge className="bg-secondary text-primary border-none text-[8px] h-4 font-black uppercase">{fb.senderRole}</Badge>
                           </div>
                           <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
-                            <Clock className="w-3 h-3" /> {fb.createdAt?.toDate ? fb.createdAt.toDate().toLocaleString() : "Just now"}
+                            <Clock className="w-3 h-3" /> {fb.createdAt.toLocaleString()}
                           </p>
                         </div>
                       </div>
@@ -210,13 +186,8 @@ export default function FeedbackPage() {
                          <span className="text-[10px] font-black text-muted-foreground tracking-widest italic">Node Verified</span>
                       </div>
                       <div className="flex gap-2 w-full sm:w-auto">
-                        {fb.subject === "General Appreciation" && fb.status !== "Published" && (
-                          <Button variant="secondary" className="gap-2 bg-secondary text-primary font-bold" onClick={() => handlePublishTestimonial(fb)}>
-                            <Globe className="w-4 h-4" /> Publish as Testimonial
-                          </Button>
-                        )}
-                        <Button className="gap-2 shadow-lg" onClick={() => handleResolve(fb.id)} disabled={fb.status === 'Resolved' || fb.status === 'Published'}>
-                          <CheckCircle2 className="w-4 h-4" /> {fb.status === 'Resolved' || fb.status === 'Published' ? 'Resolved' : 'Resolve Ticket'}
+                        <Button className="gap-2 shadow-lg" onClick={() => handleResolve(fb.id)} disabled={fb.status === 'Resolved'}>
+                          <CheckCircle2 className="w-4 h-4" /> {fb.status === 'Resolved' ? 'Resolved' : 'Resolve Ticket'}
                         </Button>
                       </div>
                     </div>
