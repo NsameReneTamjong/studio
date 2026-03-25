@@ -205,21 +205,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const email = `${m.toLowerCase()}@eduignite.io`;
       let userCredential;
+      
       try {
         userCredential = await signInWithEmailAndPassword(auth, email, "password123");
       } catch (e: any) {
+        // Handle ambiguous credential errors or missing users
         if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
-          userCredential = await createUserWithEmailAndPassword(auth, email, "password123");
+          try {
+            userCredential = await createUserWithEmailAndPassword(auth, email, "password123");
+          } catch (createError: any) {
+            // If creation fails because user already exists, try signing in one last time
+            if (createError.code === 'auth/email-already-in-use') {
+              userCredential = await signInWithEmailAndPassword(auth, email, "password123");
+            } else {
+              throw createError;
+            }
+          }
         } else {
           throw e;
         }
       }
 
-      const firebaseUser = userCredential.user;
-      const userRef = doc(firestore, "users", firebaseUser.uid);
+      const firebaseUserInstance = userCredential.user;
+      const userRef = doc(firestore, "users", firebaseUserInstance.uid);
       
       const docData = {
-        uid: firebaseUser.uid,
+        uid: firebaseUserInstance.uid,
         id: demoUser.id,
         name: demoUser.name,
         email: demoUser.email,
