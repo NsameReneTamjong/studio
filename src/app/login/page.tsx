@@ -252,7 +252,7 @@ export default function LoginPage() {
 
                   <TabsContent value="testimonials" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {testimonials.map((test) => (
+                      {testimonials?.map((test: any) => (
                         <Card key={test.id} className="border-none shadow-sm bg-accent/20 rounded-3xl group overflow-hidden">
                           <CardContent className="p-6 space-y-4">
                             <Quote className="w-8 h-8 text-primary/10 -mb-2" />
@@ -280,7 +280,7 @@ export default function LoginPage() {
 
                   <TabsContent value="media" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                      {featuredVideos.map((video) => (
+                      {featuredVideos?.map((video: any) => (
                         <Card key={video.id} className="border-none shadow-xl rounded-3xl overflow-hidden group">
                           <div className="aspect-video relative bg-slate-900">
                             <img src={video.thumbnail} className="w-full h-full object-cover opacity-60 transition-transform duration-700 group-hover:scale-105" alt={video.title} />

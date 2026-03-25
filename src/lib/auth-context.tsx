@@ -46,6 +46,8 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   platformSettings: PlatformSettings;
+  testimonials: any[];
+  featuredVideos: any[];
   login: (matricule: string) => Promise<void>;
   activateAccount: (matricule: string) => Promise<void>;
   updateUser: (updates: Partial<User>) => Promise<void>;
@@ -95,11 +97,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     name: "EduIgnite",
     logo: "https://picsum.photos/seed/eduignite-platform/200/200"
   });
+
+  const [testimonials] = useState([
+    { id: 1, content: "EduIgnite has transformed our school's administration. The real-time tracking is a game changer.", author: "Principal Fonka", role: "SCHOOL_ADMIN", schoolName: "GBHS Deido", avatar: "https://picsum.photos/seed/p1/100/100" },
+    { id: 2, content: "The AI assistant helps me plan my lessons much faster. Highly recommended for busy teachers.", author: "Dr. Aris Tesla", role: "TEACHER", schoolName: "GBHS Deido", avatar: "https://picsum.photos/seed/t1/100/100" },
+    { id: 3, content: "Paying fees from home has saved me so much time. I can track my child's progress instantly.", author: "Mr. Robert Thompson", role: "PARENT", schoolName: "GBHS Deido", avatar: "https://picsum.photos/seed/p2/100/100" },
+  ]);
+
+  const [featuredVideos] = useState([
+    { id: 1, title: "Platform Introduction", description: "Learn how EduIgnite is revolutionizing school management.", thumbnail: "https://picsum.photos/seed/v1/800/450", category: "Platform" },
+    { id: 2, title: "Teacher's Guide", description: "A quick walk-through of the pedagogical dashboard.", thumbnail: "https://picsum.photos/seed/v2/800/450", category: "Training" },
+  ]);
   
   const router = useRouter();
 
   useEffect(() => {
-    // MOCK AUTH: Check local storage for a session
     const savedUser = localStorage.getItem("eduignite_prototype_session");
     if (savedUser) {
       setUserData(JSON.parse(savedUser));
@@ -174,6 +186,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <AuthContext.Provider value={{ 
       user: userData, 
       platformSettings,
+      testimonials,
+      featuredVideos,
       login, 
       activateAccount,
       updateUser, 
