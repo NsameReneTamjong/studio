@@ -3,9 +3,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { doc, setDoc, getDoc } from "firebase/firestore";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
-import { useFirestore, useUser, useAuth as useFirebaseAuth } from "@/firebase";
 
 export type UserRole = "SUPER_ADMIN" | "SCHOOL_ADMIN" | "TEACHER" | "STUDENT" | "PARENT" | "BURSAR" | "LIBRARIAN";
 
@@ -68,8 +65,8 @@ interface AuthContextType {
   platformSettings: PlatformSettings;
   testimonials: Testimonial[];
   featuredVideos: FeaturedVideo[];
-  login: (matricule: string, password: string) => Promise<void>;
-  activateAccount: (matricule: string, password: string) => Promise<void>;
+  login: (matricule: string, password?: string) => Promise<void>;
+  activateAccount: (matricule: string, password?: string) => Promise<void>;
   updateUser: (updates: Partial<User>) => Promise<void>;
   updateSchool: (updates: Partial<SchoolInfo>) => Promise<void>;
   updatePlatformSettings: (updates: Partial<PlatformSettings>) => Promise<void>;
@@ -180,9 +177,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logo: "https://picsum.photos/seed/eduignite-platform/200/200"
   });
   const router = useRouter();
-  const firestore = useFirestore();
-  const auth = useFirebaseAuth();
-  const { user: firebaseUser } = useUser();
 
   useEffect(() => {
     const savedUser = localStorage.getItem("edu_nexus_session");
@@ -192,87 +186,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(false);
   }, []);
 
-  const login = async (matricule: string, password: string) => {
+  const login = async (matricule: string, _password?: string) => {
     setIsLoading(true);
     const m = matricule.toUpperCase();
     const demoUser = DEMO_USERS[m];
     
-    if (!demoUser || (password !== "password" && password !== "")) {
+    if (!demoUser) {
       setIsLoading(false);
-      throw new Error("Invalid Matricule or Password. Use 'password' for demo.");
+      throw new Error("Invalid Matricule. Use one of the demo accounts provided.");
     }
 
-    try {
-      const email = `${m.toLowerCase()}@eduignite.io`;
-      let userCredential;
-      
-      try {
-        userCredential = await signInWithEmailAndPassword(auth, email, "password123");
-      } catch (e: any) {
-        // Handle ambiguous credential errors or missing users
-        if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
-          try {
-            userCredential = await createUserWithEmailAndPassword(auth, email, "password123");
-          } catch (createError: any) {
-            // If creation fails because user already exists, try signing in one last time
-            if (createError.code === 'auth/email-already-in-use') {
-              userCredential = await signInWithEmailAndPassword(auth, email, "password123");
-            } else {
-              throw createError;
-            }
-          }
-        } else {
-          throw e;
-        }
-      }
-
-      const firebaseUserInstance = userCredential.user;
-      const userRef = doc(firestore, "users", firebaseUserInstance.uid);
-      
-      const docData = {
-        uid: firebaseUserInstance.uid,
-        id: demoUser.id,
-        name: demoUser.name,
-        email: demoUser.email,
-        role: demoUser.role,
-        schoolId: demoUser.schoolId,
-        isLicensePaid: demoUser.isLicensePaid
-      };
-
-      await setDoc(userRef, docData, { merge: true });
-
-      setUserData(demoUser);
-      localStorage.setItem("edu_nexus_session", JSON.stringify(demoUser));
-      
-      if (demoUser.role === "SUPER_ADMIN") {
-        router.push("/dashboard");
-      } else {
-        router.push("/welcome");
-      }
-    } catch (error: any) {
-      console.error("Auth Error:", error);
-      throw new Error("Authentication failed. Ensure Firestore is provisioned.");
-    } finally {
-      setIsLoading(false);
+    // Simplified mock login for prototyping
+    setUserData(demoUser);
+    localStorage.setItem("edu_nexus_session", JSON.stringify(demoUser));
+    
+    if (demoUser.role === "SUPER_ADMIN") {
+      router.push("/dashboard");
+    } else {
+      router.push("/welcome");
     }
+    setIsLoading(false);
   };
 
-  const activateAccount = async (matricule: string, password: string) => {
+  const activateAccount = async (matricule: string, password?: string) => {
     return login(matricule, password);
   };
 
   const updateUser = async (updates: Partial<User>) => {
-    if (!userData || !firebaseUser) return;
+    if (!userData) return;
     const updated = { ...userData, ...updates };
     setUserData(updated);
     localStorage.setItem("edu_nexus_session", JSON.stringify(updated));
-    
-    const userRef = doc(firestore, "users", firebaseUser.uid);
-    await setDoc(userRef, {
-      name: updated.name,
-      email: updated.email,
-      isLicensePaid: updated.isLicensePaid
-    }, { merge: true });
   };
 
   const updateSchool = async (updates: Partial<SchoolInfo>) => {
@@ -299,7 +243,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     setUserData(null);
     localStorage.removeItem("edu_nexus_session");
-    await auth.signOut();
     router.push("/login");
   };
 

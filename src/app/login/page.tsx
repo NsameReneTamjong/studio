@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { 
   Building2, 
@@ -22,12 +21,10 @@ import {
   Wallet,
   Library,
   Heart,
-  MessageCircle,
-  PlayCircle,
   Quote,
   Sparkles,
   Calendar,
-  X,
+  PlayCircle,
   ExternalLink
 } from "lucide-react";
 import {
@@ -44,12 +41,13 @@ import {
   DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
-type AuthMode = "login" | "activate" | "forgot";
+type AuthMode = "login" | "activate";
 
 const QUICK_DEMO_ACCOUNTS = [
   { label: "CEO", matricule: "EDUI26CEO001", icon: Crown, color: "bg-primary text-secondary" },
@@ -62,7 +60,7 @@ const QUICK_DEMO_ACCOUNTS = [
 ];
 
 export default function LoginPage() {
-  const { login, activateAccount, platformSettings, testimonials, featuredVideos } = useAuth();
+  const { login, platformSettings, testimonials, featuredVideos } = useAuth();
   const { setLanguage, language, t } = useI18n();
   const { toast } = useToast();
   
@@ -72,14 +70,13 @@ export default function LoginPage() {
   const [authData, setAuthData] = useState({
     matricule: "",
     password: "",
-    confirmPassword: "",
   });
 
   const handleQuickLogin = async (matricule: string) => {
     setIsProcessing(true);
     try {
-      await login(matricule, "password");
-      toast({ title: "Welcome back", description: "Demo session initialized." });
+      await login(matricule);
+      toast({ title: "Welcome back", description: "Prototype session initialized." });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Error", description: error.message });
     } finally {
@@ -91,15 +88,7 @@ export default function LoginPage() {
     e.preventDefault();
     setIsProcessing(true);
     try {
-      if (mode === "activate") {
-        if (authData.password !== authData.confirmPassword) {
-          toast({ variant: "destructive", title: "Passwords Mismatch" });
-          return;
-        }
-        await activateAccount(authData.matricule, authData.password);
-      } else {
-        await login(authData.matricule, authData.password);
-      }
+      await login(authData.matricule);
     } catch (error: any) {
       toast({ variant: "destructive", title: "Authentication Failed", description: error.message });
     } finally {
@@ -147,7 +136,7 @@ export default function LoginPage() {
         <Card className="w-full border-none shadow-2xl overflow-hidden rounded-[2.5rem] bg-white/80 backdrop-blur-xl border border-white">
           <CardHeader className="pb-8 text-center space-y-1">
             <CardTitle className="text-3xl font-black text-primary">
-              {mode === "login" ? "Sign In" : mode === "activate" ? "Activate" : "Recovery"}
+              {mode === "login" ? "Sign In" : "Activate"}
             </CardTitle>
             <CardDescription>
               {mode === "login" ? "Enter your unique institutional matricule." : "Initialize your secure dashboard account."}
@@ -169,7 +158,7 @@ export default function LoginPage() {
 
               <div className="space-y-2">
                 <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest flex items-center gap-2">
-                  <Lock className="w-3 h-3"/> {mode === "activate" ? "New Security Password" : "Password"}
+                  <Lock className="w-3 h-3"/> Password
                 </Label>
                 <Input 
                   required
@@ -179,21 +168,6 @@ export default function LoginPage() {
                   onChange={(e) => setAuthData({...authData, password: e.target.value})}
                 />
               </div>
-
-              {mode === "activate" && (
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest flex items-center gap-2">
-                    <Lock className="w-3 h-3"/> Confirm Password
-                  </Label>
-                  <Input 
-                    required
-                    type="password" 
-                    className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary font-bold text-center"
-                    value={authData.confirmPassword}
-                    onChange={(e) => setAuthData({...authData, confirmPassword: e.target.value})}
-                  />
-                </div>
-              )}
 
               <Button 
                 type="submit"
@@ -219,7 +193,7 @@ export default function LoginPage() {
         <div className="w-full space-y-4">
           <div className="flex items-center gap-4">
             <div className="h-px flex-1 bg-primary/10" />
-            <h3 className="text-[10px] font-black uppercase text-primary/40 tracking-[0.3em]">Quick Demo Login</h3>
+            <h3 className="text-[10px] font-black uppercase text-primary/40 tracking-[0.3em]">Quick Prototype Entry</h3>
             <div className="h-px flex-1 bg-primary/10" />
           </div>
           <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
