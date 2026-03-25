@@ -93,8 +93,7 @@ export default function ExamsPage() {
   const [isSchedulingOnsite, setIsSchedulingOnsite] = useState(false);
   const [isDrawingTimetable, setIsDrawingTimetable] = useState(false);
   const [onsiteExams, setOnsiteExams] = useState(INITIAL_ONSITE_EXAMS);
-  const [selectedExamResults, setSelectedExamResults] = useState<any>(null);
-
+  
   // Timetable State
   const [timetableFormData, setTimetableFormData] = useState({
     class: "",
@@ -161,10 +160,12 @@ export default function ExamsPage() {
             <div className="p-2 bg-primary rounded-xl shadow-lg">
               <CalendarDays className="w-6 h-6 text-secondary" />
             </div>
-            Institutional Schedules
+            {language === 'en' ? 'Institutional Schedules' : 'Calendrier Institutionnel'}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Coordinate class timetables, onsite exams, and automated teacher duty cycles.
+            {language === 'en' 
+              ? 'Coordinate class timetables, onsite exams, and automated teacher duty cycles.' 
+              : 'Coordonner les emplois du temps, les examens sur site et les cycles de service des enseignants.'}
           </p>
         </div>
 
@@ -173,7 +174,7 @@ export default function ExamsPage() {
             <Dialog open={isDrawingTimetable} onOpenChange={setIsDrawingTimetable}>
               <DialogTrigger asChild>
                 <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl bg-secondary text-primary hover:bg-secondary/90">
-                  <LayoutGrid className="w-5 h-5" /> Draw Timetable
+                  <LayoutGrid className="w-5 h-5" /> {language === 'en' ? 'Draw Timetable' : 'Gérer l\'Emploi du Temps'}
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
@@ -241,7 +242,7 @@ export default function ExamsPage() {
             <Dialog open={isSchedulingOnsite} onOpenChange={setIsSchedulingOnsite}>
               <DialogTrigger asChild>
                 <Button variant="outline" className="gap-2 shadow-sm h-12 px-6 rounded-2xl border-primary/20">
-                  <CalendarDays className="w-5 h-5 text-primary" /> Schedule Onsite Exam
+                  <CalendarDays className="w-5 h-5 text-primary" /> {language === 'en' ? 'Schedule Onsite Exam' : 'Planifier Exam sur Site'}
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
@@ -283,13 +284,13 @@ export default function ExamsPage() {
       <Tabs defaultValue="onsite" className="w-full">
         <TabsList className="grid grid-cols-3 w-full md:w-[600px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl">
           <TabsTrigger value="onsite" className="gap-2 py-3 rounded-xl transition-all">
-            <CalendarDays className="w-4 h-4" /> Onsite Exams
+            <CalendarDays className="w-4 h-4" /> {language === 'en' ? 'Onsite Exams' : 'Examens sur Site'}
           </TabsTrigger>
           <TabsTrigger value="available" className="gap-2 py-3 rounded-xl transition-all">
-            <PenTool className="w-4 h-4" /> Live MCQs
+            <PenTool className="w-4 h-4" /> {language === 'en' ? 'Live MCQs' : 'QCM en Ligne'}
           </TabsTrigger>
           <TabsTrigger value="timetable" className="gap-2 py-3 rounded-xl transition-all">
-            <LayoutGrid className="w-4 h-4" /> Class Timetables
+            <LayoutGrid className="w-4 h-4" /> {language === 'en' ? 'Class Timetables' : 'Emploi du Temps'}
           </TabsTrigger>
         </TabsList>
 
@@ -328,6 +329,53 @@ export default function ExamsPage() {
                     </div>
                   </div>
                 </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="available" className="mt-0 animate-in fade-in slide-in-from-bottom-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {MOCK_EXAMS.map((exam) => (
+              <Card key={exam.id} className="border-none shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-300">
+                <div className="h-1.5 w-full bg-secondary" />
+                <CardHeader>
+                  <div className="flex justify-between items-start mb-2">
+                    <Badge variant="secondary" className="bg-primary/5 text-primary border-none text-[9px] font-black uppercase tracking-widest">
+                      {exam.subject}
+                    </Badge>
+                    {exam.status === 'active' && (
+                      <Badge className="bg-red-600 text-white border-none text-[9px] font-black animate-pulse">LIVE</Badge>
+                    )}
+                  </div>
+                  <CardTitle className="text-xl font-black text-primary">{exam.title}</CardTitle>
+                  <CardDescription className="font-medium flex items-center gap-2">
+                    <User className="w-3.5 h-3.5 text-secondary" /> {exam.teacher}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-3 rounded-xl bg-accent/30 border border-accent space-y-1">
+                      <p className="text-[9px] font-black text-muted-foreground uppercase">Duration</p>
+                      <p className="text-sm font-black flex items-center gap-2"><Timer className="w-3.5 h-3.5 text-primary" /> {exam.duration}m</p>
+                    </div>
+                    <div className="p-3 rounded-xl bg-accent/30 border border-accent space-y-1">
+                      <p className="text-[9px] font-black text-muted-foreground uppercase">Questions</p>
+                      <p className="text-sm font-black flex items-center gap-2"><FileText className="w-3.5 h-3.5 text-primary" /> {exam.questionCount}</p>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter className="pt-0 p-6">
+                  <Button asChild className={cn(
+                    "w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs gap-2 shadow-lg",
+                    exam.status === 'active' ? "bg-primary text-white" : "bg-accent text-primary"
+                  )}>
+                    <Link href={`/dashboard/exams/take?id=${exam.id}`}>
+                      {exam.status === 'active' ? (language === 'en' ? 'Enter Examination' : 'Démarrer l\'Examen') : (language === 'en' ? 'View Details' : 'Voir Détails')}
+                      <ChevronRight className="w-4 h-4" />
+                    </Link>
+                  </Button>
+                </CardFooter>
               </Card>
             ))}
           </div>

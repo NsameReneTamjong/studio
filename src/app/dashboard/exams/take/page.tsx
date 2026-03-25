@@ -14,31 +14,34 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Timer, AlertCircle, ChevronLeft, ChevronRight, Send, CheckCircle2, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
-// Mock Exam Questions
+// Mock Exam Questions with support for images and text combinations
 const MOCK_QUESTIONS = [
   {
     id: 1,
-    text: "What is the SI unit of force?",
-    options: ["Newton", "Joule", "Watt", "Pascal"],
-    correct: 0
+    text: "Identify the electronic component shown in the diagram below:",
+    imageUrl: "https://picsum.photos/seed/physics-comp/800/400",
+    options: ["Resistor", "Capacitor", "Transistor", "Diode"],
+    correct: 1
   },
   {
     id: 2,
-    text: "Which law states that for every action there is an equal and opposite reaction?",
-    options: ["Newton's 1st Law", "Newton's 2nd Law", "Newton's 3rd Law", "Kepler's Law"],
+    text: "Which law of thermodynamics states that entropy of an isolated system never decreases?",
+    options: ["Zeroth Law", "First Law", "Second Law", "Third Law"],
     correct: 2
   },
   {
     id: 3,
-    text: "The rate of change of displacement is known as:",
-    options: ["Speed", "Acceleration", "Velocity", "Momentum"],
-    correct: 2
+    text: "", // Image-only question
+    imageUrl: "https://picsum.photos/seed/physics-graph/800/400",
+    options: ["Constant Velocity", "Uniform Acceleration", "Stationary Object", "Deceleration"],
+    correct: 1
   },
   {
     id: 4,
-    text: "Kinetic energy is given by which formula?",
-    options: ["mgh", "F = ma", "1/2 mv²", "P = IV"],
+    text: "The rate of change of displacement is known as:",
+    options: ["Speed", "Acceleration", "Velocity", "Momentum"],
     correct: 2
   }
 ];
@@ -140,11 +143,29 @@ export default function TakeExamPage() {
 
         <Card className="border-none shadow-xl bg-white overflow-hidden">
           <CardHeader className="pb-8 bg-accent/10 border-b">
-            <CardTitle className="text-xl md:text-2xl leading-relaxed text-primary">
-              {question.text}
-            </CardTitle>
+            {question.text && (
+              <CardTitle className="text-xl md:text-2xl leading-relaxed text-primary">
+                {question.text}
+              </CardTitle>
+            )}
           </CardHeader>
-          <CardContent className="pt-8">
+          <CardContent className="pt-8 space-y-8">
+            {/* MULTIMEDIA QUESTION SUPPORT */}
+            {question.imageUrl && (
+              <div className="relative w-full aspect-video rounded-2xl overflow-hidden border-4 border-white shadow-xl bg-accent/30 group">
+                <img 
+                  src={question.imageUrl} 
+                  alt="Question Diagram" 
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute top-4 right-4">
+                  <Badge variant="secondary" className="bg-white/80 backdrop-blur-md border-none text-primary font-black uppercase text-[9px] px-3">
+                    Diagram {question.id}
+                  </Badge>
+                </div>
+              </div>
+            )}
+
             <RadioGroup 
               value={answers[currentQuestion]?.toString()} 
               onValueChange={(val) => handleSelect(parseInt(val))}
