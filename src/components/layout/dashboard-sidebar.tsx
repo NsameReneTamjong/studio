@@ -36,7 +36,8 @@ import {
   Crown,
   Lock,
   Wallet,
-  Video
+  Video,
+  Info
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -94,6 +95,12 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       icon: Settings2,
       href: "/dashboard/platform-settings",
       roles: ["SUPER_ADMIN"],
+    },
+    {
+      label: t("institution"),
+      icon: Building2,
+      href: "/dashboard/institution",
+      roles: ["SCHOOL_ADMIN", "TEACHER", "STUDENT", "PARENT", "BURSAR", "LIBRARIAN"],
     },
     {
       label: language === 'en' ? 'Community' : 'Communauté',

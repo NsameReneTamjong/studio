@@ -150,6 +150,11 @@ const translations: TranslationDict = {
   sendMessage: { en: "Send Message", fr: "Envoyer le Message" },
   messageSent: { en: "Message Sent", fr: "Message Envoyé" },
   messageSentDesc: { en: "The teacher has been notified of your inquiry.", fr: "L'enseignant a été notifié de votre demande." },
+  institution: { en: "Institution", fr: "Institution" },
+  principal: { en: "Principal", fr: "Proviseur" },
+  aboutSchool: { en: "About our School", fr: "À propos de notre école" },
+  contactInfo: { en: "Contact Information", fr: "Coordonnées" },
+  proviseur: { en: "The Principal", fr: "Le Proviseur" },
 };
 
 interface I18nContextType {
