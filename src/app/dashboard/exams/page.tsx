@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/badge";
+import { Badge } from "@/components/ui/badge";
 import { 
   PenTool, 
   Clock, 
@@ -55,7 +55,7 @@ const SUBJECT_METADATA = [
   { name: "General Chemistry", teacher: "Dr. White", id: "CHM101" },
 ];
 
-const CLASSES = ["Form 5 / 2nde", "Lower Sixth / 1ère", "Upper Sixth / Terminale"];
+const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
 const ROOMS = ["Hall A", "Hall B", "Science Lab 1", "Room 402", "Library Wing"];
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const TIME_SLOTS = ["08:00 AM", "09:30 AM", "11:00 AM", "01:00 PM", "02:30 PM"];
@@ -107,7 +107,7 @@ const MOCK_EXAM_HISTORY = [
 ];
 
 const INITIAL_ONSITE_EXAMS = [
-  { id: 'OE1', title: 'Mathematics Paper 1', class: 'Form 5 / 2nde', room: 'Hall A', date: '2024-06-10', time: '08:00 AM', teacher: 'Prof. Sarah Smith', status: 'Scheduled' },
+  { id: 'OE1', title: 'Mathematics Paper 1', class: '2nde / Form 5', room: 'Hall A', date: '2024-06-10', time: '08:00 AM', teacher: 'Prof. Sarah Smith', status: 'Scheduled' },
 ];
 
 export default function ExamsPage() {
