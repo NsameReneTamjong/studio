@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -34,13 +35,19 @@ import {
   Download,
   Building2,
   BookMarked,
-  Signature
+  Signature,
+  ChevronRight,
+  ArrowRight,
+  PieChart,
+  User,
+  Users
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { Progress } from "@/components/ui/progress";
 
 // Constants
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
@@ -53,6 +60,17 @@ const INITIAL_STUDENTS = [
   { id: "GBHS26S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, isLicensePaid: true, class: "Terminale / Upper Sixth", year: "2023 / 2024" },
   { id: "GBHS26S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", balances: { "Tuition Fee": 45000, "Uniform Package": 0, "PTA Contribution": 5000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, isLicensePaid: false, class: "1ère / Lower Sixth", year: "2023 / 2024" },
   { id: "GBHS26S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, isLicensePaid: true, class: "2nde / Form 5", year: "2023 / 2024" },
+  { id: "GBHS26S005", name: "Ethan Hunt", avatar: "https://picsum.photos/seed/s5/100/100", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, isLicensePaid: true, class: "Terminale / Upper Sixth", year: "2023 / 2024" },
+];
+
+const MOCK_CLASS_STATS = [
+  { name: "6ème / Form 1", totalStudents: 45, paidCount: 38, percentage: 84, arrears: "1.2M", status: "good" },
+  { name: "5ème / Form 2", totalStudents: 40, paidCount: 22, percentage: 55, arrears: "2.8M", status: "critical" },
+  { name: "4ème / Form 3", totalStudents: 38, paidCount: 35, percentage: 92, arrears: "450k", status: "optimal" },
+  { name: "3ème / Form 4", totalStudents: 42, paidCount: 30, percentage: 71, arrears: "1.8M", status: "warning" },
+  { name: "2nde / Form 5", totalStudents: 42, paidCount: 40, percentage: 95, arrears: "200k", status: "optimal" },
+  { name: "1ère / Lower Sixth", totalStudents: 35, paidCount: 20, percentage: 57, arrears: "3.1M", status: "critical" },
+  { name: "Terminale / Upper Sixth", totalStudents: 30, paidCount: 28, percentage: 93, arrears: "350k", status: "optimal" },
 ];
 
 export default function FeesPage() {
@@ -65,6 +83,7 @@ export default function FeesPage() {
   const [activeFeeFilter, setActiveFeeFilter] = useState("Tuition Fee");
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedStudentForPayment, setSelectedStudentForPayment] = useState<any>(null);
+  const [selectedClassDetails, setSelectedClassDetails] = useState<any>(null);
   const [issuedReceipt, setIssuedReceipt] = useState<any>(null);
   const [paymentForm, setPaymentForm] = useState({ type: "Tuition Fee", amount: "" });
   
@@ -81,6 +100,7 @@ export default function FeesPage() {
   ]);
 
   const isBursar = user?.role === "BURSAR";
+  const isAdmin = user?.role === "SCHOOL_ADMIN";
 
   const filteredStudents = useMemo(() => {
     return students.filter(s => {
@@ -185,15 +205,32 @@ export default function FeesPage() {
           </div>
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline tracking-tighter">
-              {isBursar ? "Collection Desk" : "Institutional Finance"}
+              {isAdmin ? "Institutional Revenue" : "Collection Desk"}
             </h1>
             <p className="text-xs md:text-sm text-muted-foreground">Manage intake, record payments, and audit institutional revenue.</p>
           </div>
         </div>
+        
+        {isAdmin && (
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="h-10 px-4 rounded-xl border-primary/20 text-primary font-black uppercase tracking-widest flex items-center gap-2 bg-white">
+              <ShieldCheck className="w-4 h-4 text-secondary" />
+              Verified Node
+            </Badge>
+          </div>
+        )}
       </div>
 
-      <Tabs defaultValue="pay" className="w-full">
-        <TabsList className="grid grid-cols-4 w-full lg:w-[800px] mb-6 bg-white shadow-sm border h-auto p-1 rounded-2xl">
+      <Tabs defaultValue={isAdmin ? "oversight" : "pay"} className="w-full">
+        <TabsList className={cn(
+          "grid mb-6 bg-white shadow-sm border h-auto p-1 rounded-2xl",
+          isAdmin ? "grid-cols-5 lg:w-[900px]" : "grid-cols-4 lg:w-[800px]"
+        )}>
+          {isAdmin && (
+            <TabsTrigger value="oversight" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm">
+              <Building2 className="w-4 h-4" /> <span className="hidden sm:inline">Fee</span> Oversight
+            </TabsTrigger>
+          )}
           <TabsTrigger value="pay" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm">
             <Wallet className="w-4 h-4" /> <span className="hidden sm:inline">Collection</span> Desk
           </TabsTrigger>
@@ -207,6 +244,92 @@ export default function FeesPage() {
             <TrendingUp className="w-4 h-4" /> <span className="hidden sm:inline">Finance</span> Metrics
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="oversight" className="animate-in fade-in slide-in-from-bottom-4 mt-0 space-y-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border shadow-sm">
+            <div className="space-y-1">
+              <h2 className="text-xl font-black text-primary uppercase tracking-tighter">Institutional Fee Tracker</h2>
+              <p className="text-xs text-muted-foreground">Select a category to audit collection percentages by class level.</p>
+            </div>
+            <div className="w-full md:w-[300px]">
+              <Label className="text-[10px] font-black uppercase text-primary ml-1 mb-1.5 block">Audit Category</Label>
+              <Select value={activeFeeFilter} onValueChange={setActiveFeeFilter}>
+                <SelectTrigger className="h-12 bg-primary/5 border-primary/20 text-primary font-bold rounded-2xl">
+                  <div className="flex items-center gap-2">
+                    <Filter className="w-4 h-4" />
+                    <SelectValue />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  {FEE_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {MOCK_CLASS_STATS.map((cls) => (
+              <Card key={cls.name} className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-all bg-white">
+                <div className={cn(
+                  "h-1.5 w-full",
+                  cls.status === 'optimal' ? "bg-green-500" : cls.status === 'critical' ? "bg-red-500" : "bg-amber-500"
+                )} />
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="text-xl font-black text-primary">{cls.name}</CardTitle>
+                      <CardDescription className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 mt-1">
+                        <Users className="w-3 h-3" /> {cls.totalStudents} Students
+                      </CardDescription>
+                    </div>
+                    <div className={cn(
+                      "p-3 rounded-2xl flex flex-col items-center justify-center min-w-[70px] border-2",
+                      cls.status === 'optimal' ? "bg-green-50 border-green-100 text-green-700" : 
+                      cls.status === 'warning' ? "bg-amber-50 border-amber-100 text-amber-700" : 
+                      "bg-red-50 border-red-100 text-red-700"
+                    )}>
+                      <span className="text-xl font-black">{cls.percentage}%</span>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-1.5 pt-2">
+                    <div className="flex justify-between text-[10px] font-black uppercase text-muted-foreground">
+                      <span>Paid ({activeFeeFilter.split(' ')[0]})</span>
+                      <span>{cls.paidCount} / {cls.totalStudents}</span>
+                    </div>
+                    <Progress value={cls.percentage} className={cn(
+                      "h-2",
+                      cls.status === 'optimal' ? "[&>div]:bg-green-500" : cls.status === 'warning' ? "[&>div]:bg-amber-500" : "[&>div]:bg-red-500"
+                    )} />
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 bg-accent/30 rounded-xl border border-accent">
+                    <div className="space-y-0.5">
+                      <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Total Arrears</p>
+                      <p className="text-sm font-black text-primary">{cls.arrears} XAF</p>
+                    </div>
+                    <div className="h-8 w-px bg-accent mx-2" />
+                    <div className="space-y-0.5 text-right">
+                      <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Status</p>
+                      <p className="text-xs font-bold uppercase">{cls.status}</p>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter className="bg-accent/10 border-t p-4 pt-4">
+                  <Button 
+                    variant="ghost" 
+                    className="flex-1 justify-between hover:bg-white text-primary font-bold text-xs w-full"
+                    onClick={() => setSelectedClassDetails(cls)}
+                  >
+                    View Class Fee Dossier
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
 
         <TabsContent value="pay" className="animate-in fade-in slide-in-from-bottom-4 mt-0 space-y-6">
           <Card className="border-none shadow-xl overflow-hidden rounded-[1.5rem] md:rounded-3xl">
@@ -296,7 +419,7 @@ export default function FeesPage() {
                           <Button 
                             size="sm" 
                             className="rounded-xl h-8 md:h-9 px-3 md:px-6 font-black uppercase tracking-widest text-[9px] md:text-[10px] shadow-lg"
-                            disabled={!s.isLicensePaid || status === 'cleared'}
+                            disabled={status === 'cleared'}
                             onClick={() => {
                               setSelectedStudentForPayment(s);
                               setPaymentForm({ ...paymentForm, type: activeFeeFilter });
@@ -528,12 +651,91 @@ export default function FeesPage() {
                   <AlertCircle className="w-4 h-4 text-amber-600" />
                 </div>
                 <div className="text-2xl md:text-3xl font-black text-amber-700">4.6M XAF</div>
-                <p className="text-[10px] text-amber-600/60 font-bold mt-1 uppercase">Sequence 2 Recovery Required</p>
+                <p className="text-[10px] text-blue-600/60 font-bold mt-1 uppercase">Sequence 2 Recovery Required</p>
               </CardContent>
             </Card>
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* CLASS DOSSIER DIALOG */}
+      <Dialog open={!!selectedClassDetails} onOpenChange={() => setSelectedClassDetails(null)}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl rounded-3xl">
+          <DialogHeader className={cn(
+            "p-8 text-white shrink-0",
+            selectedClassDetails?.status === 'optimal' ? "bg-green-600" : selectedClassDetails?.status === 'critical' ? "bg-red-600" : "bg-primary"
+          )}>
+            <div className="flex justify-between items-center">
+              <div>
+                <DialogTitle className="text-3xl font-black">{selectedClassDetails?.name}</DialogTitle>
+                <DialogDescription className="text-white/70 font-bold flex items-center gap-2 mt-1">
+                  <Coins className="w-4 h-4" /> Category: {activeFeeFilter}
+                </DialogDescription>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="text-center bg-white/20 px-6 py-3 rounded-2xl backdrop-blur-md">
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Collected</p>
+                  <p className="text-3xl font-black">{selectedClassDetails?.percentage}%</p>
+                </div>
+              </div>
+            </div>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto p-0">
+            <Table>
+              <TableHeader className="bg-accent/30 sticky top-0 z-10 uppercase text-[10px] font-black tracking-widest">
+                <TableRow>
+                  <TableHead className="pl-8 py-4">Student Profile</TableHead>
+                  <TableHead>Matricule</TableHead>
+                  <TableHead className="text-center">Paid Amount</TableHead>
+                  <TableHead className="text-right pr-8">Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {students.filter(s => s.class === selectedClassDetails?.name).map(s => {
+                  const status = getStatusForFee(s, activeFeeFilter);
+                  const paid = (s.balances as any)[activeFeeFilter] || 0;
+                  const total = (s.totals as any)[activeFeeFilter] || 150000;
+                  
+                  return (
+                    <TableRow key={s.id} className="hover:bg-accent/5 border-b border-accent/10">
+                      <TableCell className="pl-8 py-4">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-9 w-9">
+                            <AvatarImage src={s.avatar} />
+                            <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <span className="font-bold text-sm text-primary">{s.name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs text-muted-foreground">{s.id}</TableCell>
+                      <TableCell className="text-center font-black text-primary">
+                        {paid.toLocaleString()} <span className="text-[10px] opacity-40">/ {total.toLocaleString()}</span>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <Badge className={cn(
+                          "text-[9px] font-black uppercase px-3 h-5 border-none",
+                          status === 'cleared' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                        )}>
+                          {status === 'cleared' ? 'Cleared' : 'Arrears'}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+          
+          <DialogFooter className="bg-accent/10 p-6 border-t flex justify-between items-center shrink-0">
+             <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest italic opacity-40">Verified Institutional Finance Record</p>
+             </div>
+             <Button onClick={() => setSelectedClassDetails(null)} className="rounded-xl px-8 font-black uppercase text-xs">Close Dossier</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* PAYMENT MODAL */}
       <Dialog open={!!selectedStudentForPayment} onOpenChange={() => setSelectedStudentForPayment(null)}>
@@ -661,7 +863,7 @@ export default function FeesPage() {
                     <div>
                       <p className="text-[8px] md:text-[9px] font-black uppercase text-muted-foreground tracking-widest border-b border-black/5 pb-1 mb-2">Student Identity</p>
                       <p className="font-black text-xs md:text-base uppercase leading-tight">{issuedReceipt?.studentName}</p>
-                      <p className="text-[9px] md:text-[10px] font-mono font-bold text-primary mt-1">{issuedReceipt?.studentId} • {issuedReceipt?.class}</p>
+                      <p className="text-[9px] font-10px font-mono font-bold text-primary mt-1">{issuedReceipt?.studentId} • {issuedReceipt?.class}</p>
                     </div>
                     <div>
                       <p className="text-[8px] md:text-[9px] font-black uppercase text-muted-foreground tracking-widest border-b border-black/5 pb-1 mb-2">Fee Particulars</p>
