@@ -27,7 +27,8 @@ import {
   Quote,
   Sparkles,
   Calendar,
-  X
+  X,
+  ExternalLink
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -46,6 +47,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 type AuthMode = "login" | "activate" | "forgot";
 
@@ -239,12 +241,19 @@ export default function LoginPage() {
         </div>
 
         {/* SOCIAL PROOF FOOTER */}
-        <div className="mt-4">
+        <div className="mt-4 flex flex-col items-center gap-4">
+          <Button asChild variant="ghost" className="text-xs font-bold text-primary/60 hover:text-primary gap-2 h-10 px-6 rounded-full bg-primary/5 border border-primary/10">
+            <Link href="/community">
+              <Sparkles className="w-4 h-4 text-secondary" />
+              Visit Community Portal
+              <ExternalLink className="w-3 h-3 ml-1" />
+            </Link>
+          </Button>
+          
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="ghost" className="text-xs font-bold text-primary/60 hover:text-primary gap-2 h-10 px-6 rounded-full bg-primary/5 border border-primary/10">
-                <MessageCircle className="w-4 h-4 text-secondary" />
-                {t("whatPeopleSay")}
+              <Button variant="ghost" className="text-[10px] font-bold text-primary/40 hover:text-primary/60">
+                Legacy Testimonials View
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto p-0 border-none shadow-2xl rounded-[2rem]">
