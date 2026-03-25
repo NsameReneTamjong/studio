@@ -25,10 +25,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { useFirestore } from "@/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { errorEmitter } from "@/firebase/error-emitter";
-import { FirestorePermissionError } from "@/firebase/errors";
 
 const TUTORIAL_LINKS: Record<string, string> = {
   STUDENT: "https://youtube.com/watch?v=eduignite-student",
@@ -40,8 +36,7 @@ const TUTORIAL_LINKS: Record<string, string> = {
 };
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, user, isLoading, platformSettings } = useAuth();
-  const db = useFirestore();
+  const { isAuthenticated, user, isLoading, platformSettings, addTestimony } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
@@ -79,38 +74,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   const handleTestimonySubmit = () => {
-    if (!testimonyMessage.trim() || !user || !db) return;
+    if (!testimonyMessage.trim() || !user) return;
     setIsSubmittingTestimony(true);
     
-    const docData = {
-      userId: user.id,
-      name: user.name,
-      profileImage: user.avatar || "",
-      role: user.role,
-      schoolName: user.school?.name || "EduIgnite Node",
-      message: testimonyMessage,
-      status: "pending",
-      createdAt: serverTimestamp()
-    };
-
-    addDoc(collection(db, "testimonials"), docData)
-      .then(() => {
-        setIsSubmittingTestimony(false);
-        setIsTestimonyModalOpen(false);
-        setTestimonyMessage("");
-        toast({
-          title: "Testimony Received",
-          description: "Your testimony has been submitted for review.",
-        });
-      })
-      .catch(async (error) => {
-        setIsSubmittingTestimony(false);
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: 'testimonials',
-          operation: 'create',
-          requestResourceData: docData
-        }));
+    // Simple prototype delay
+    setTimeout(() => {
+      addTestimony({
+        userId: user.id,
+        name: user.name,
+        profileImage: user.avatar || "",
+        role: user.role,
+        schoolName: user.school?.name || "EduIgnite Node",
+        message: testimonyMessage,
       });
+      
+      setIsSubmittingTestimony(false);
+      setIsTestimonyModalOpen(false);
+      setTestimonyMessage("");
+      toast({
+        title: "Testimony Received",
+        description: "Your testimony has been submitted for review.",
+      });
+    }, 1000);
   };
 
   const resetSupport = () => {
@@ -125,7 +110,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-background gap-4">
         <Loader2 className="w-12 h-12 animate-spin text-primary opacity-20" />
-        <p className="text-primary/40 font-black uppercase text-[10px] tracking-[0.3em] animate-pulse">Syncing Cloud Profile</p>
+        <p className="text-primary/40 font-black uppercase text-[10px] tracking-[0.3em] animate-pulse">Syncing Prototype Session</p>
       </div>
     );
   }
@@ -410,7 +395,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </div>
                     
                     <div className="flex items-center gap-6 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">
-                      <span>v2.4.0 High-Availability</span>
+                      <span>v2.4.0 High-Availability (Prototype)</span>
                       <span>•</span>
                       <span>Powered by {platformSettings.name}</span>
                     </div>

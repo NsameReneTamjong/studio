@@ -43,10 +43,22 @@ export interface User {
   aiRequestCount?: number;
 }
 
+export interface Testimony {
+  id: string;
+  userId: string;
+  name: string;
+  profileImage: string;
+  role: string;
+  schoolName: string;
+  message: string;
+  status: "pending" | "approved";
+  createdAt: any;
+}
+
 interface AuthContextType {
   user: User | null;
   platformSettings: PlatformSettings;
-  testimonials: any[];
+  testimonials: Testimony[];
   featuredVideos: any[];
   login: (matricule: string) => Promise<void>;
   activateAccount: (matricule: string) => Promise<void>;
@@ -55,6 +67,9 @@ interface AuthContextType {
   updatePlatformSettings: (updates: Partial<PlatformSettings>) => Promise<void>;
   markLicensePaid: () => Promise<void>;
   incrementAiRequest: () => Promise<void>;
+  addTestimony: (testimony: Omit<Testimony, "id" | "status" | "createdAt">) => void;
+  approveTestimony: (id: string) => void;
+  deleteTestimony: (id: string) => void;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -90,19 +105,20 @@ const DEMO_ACCOUNTS: Record<string, any> = {
   "GBHS26P001": { name: "Mr. Robert Thompson", role: "PARENT", schoolId: "GBHS", isLicensePaid: true }
 };
 
+const INITIAL_TESTIMONIES: Testimony[] = [
+  { id: "1", userId: "S1", name: "Alice Thompson", profileImage: "https://picsum.photos/seed/s1/100/100", role: "STUDENT", schoolName: "GBHS Deido", message: "EduIgnite has made tracking my grades so much easier! I love the MCQ exams.", status: "approved", createdAt: new Date() },
+  { id: "2", userId: "T1", name: "Dr. Aris Tesla", profileImage: "https://picsum.photos/seed/t1/100/100", role: "TEACHER", schoolName: "GBHS Deido", message: "The AI feedback assistant saves me hours of manual work every week.", status: "approved", createdAt: new Date() },
+  { id: "3", userId: "P1", name: "Robert Thompson", profileImage: "https://picsum.photos/seed/p1/100/100", role: "PARENT", schoolName: "GBHS Deido", message: "Finally a way to pay fees and check attendance from my phone. Incredible!", status: "pending", createdAt: new Date() },
+];
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [userData, setUserData] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [testimonials, setTestimonials] = useState<Testimony[]>(INITIAL_TESTIMONIES);
   const [platformSettings, setPlatformSettings] = useState<PlatformSettings>({
     name: "EduIgnite",
     logo: "https://picsum.photos/seed/eduignite-platform/200/200"
   });
-
-  const [testimonials] = useState([
-    { id: 1, content: "EduIgnite has transformed our school's administration. The real-time tracking is a game changer.", author: "Principal Fonka", role: "SCHOOL_ADMIN", schoolName: "GBHS Deido", avatar: "https://picsum.photos/seed/p1/100/100" },
-    { id: 2, content: "The AI assistant helps me plan my lessons much faster. Highly recommended for busy teachers.", author: "Dr. Aris Tesla", role: "TEACHER", schoolName: "GBHS Deido", avatar: "https://picsum.photos/seed/t1/100/100" },
-    { id: 3, content: "Paying fees from home has saved me so much time. I can track my child's progress instantly.", author: "Mr. Robert Thompson", role: "PARENT", schoolName: "GBHS Deido", avatar: "https://picsum.photos/seed/p2/100/100" },
-  ]);
 
   const [featuredVideos] = useState([
     { id: 1, title: "Platform Introduction", description: "Learn how EduIgnite is revolutionizing school management.", thumbnail: "https://picsum.photos/seed/v1/800/450", category: "Platform" },
@@ -116,8 +132,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (savedUser) {
       setUserData(JSON.parse(savedUser));
     }
+    const savedTestimonials = localStorage.getItem("eduignite_prototype_testimonials");
+    if (savedTestimonials) {
+      setTestimonials(JSON.parse(savedTestimonials));
+    }
     setIsLoading(false);
   }, []);
+
+  useEffect(() => {
+    if (!isLoading) {
+      localStorage.setItem("eduignite_prototype_testimonials", JSON.stringify(testimonials));
+    }
+  }, [testimonials, isLoading]);
 
   const login = async (matricule: string) => {
     setIsLoading(true);
@@ -176,6 +202,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await updateUser({ aiRequestCount: (userData.aiRequestCount || 0) + 1 });
   };
 
+  const addTestimony = (testimony: Omit<Testimony, "id" | "status" | "createdAt">) => {
+    const newTest: Testimony = {
+      ...testimony,
+      id: Math.random().toString(36).substr(2, 9),
+      status: "pending",
+      createdAt: new Date()
+    };
+    setTestimonials(prev => [newTest, ...prev]);
+  };
+
+  const approveTestimony = (id: string) => {
+    setTestimonials(prev => prev.map(t => t.id === id ? { ...t, status: "approved" } : t));
+  };
+
+  const deleteTestimony = (id: string) => {
+    setTestimonials(prev => prev.filter(t => t.id !== id));
+  };
+
   const logout = async () => {
     setUserData(null);
     localStorage.removeItem("eduignite_prototype_session");
@@ -195,6 +239,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       updatePlatformSettings,
       markLicensePaid, 
       incrementAiRequest,
+      addTestimony,
+      approveTestimony,
+      deleteTestimony,
       logout, 
       isAuthenticated: !!userData,
       isLoading

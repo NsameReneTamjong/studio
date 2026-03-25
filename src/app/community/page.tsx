@@ -30,8 +30,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, addDoc, serverTimestamp, query, where, orderBy } from "firebase/firestore";
+import { useAuth } from "@/lib/auth-context";
+import { useFirestore } from "@/firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
@@ -80,6 +81,7 @@ const EVENTS: EventItem[] = [
 
 export default function CommunityTestimonyPage() {
   const [mounted, setMounted] = useState(false);
+  const { testimonials } = useAuth();
   const db = useFirestore();
   const { toast } = useToast();
   
@@ -95,17 +97,8 @@ export default function CommunityTestimonyPage() {
     subDivision: ""
   });
 
-  // Real-time approved testimonials
-  const testimonialsQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return query(
-      collection(db, "testimonials"),
-      where("status", "==", "approved"),
-      orderBy("createdAt", "desc")
-    );
-  }, [db]);
-
-  const { data: approvedTestimonies, isLoading: isTestimoniesLoading } = useCollection(testimonialsQuery);
+  // Filter approved testimonials from local context
+  const approvedTestimonies = testimonials?.filter(t => t.status === "approved") || [];
 
   useEffect(() => {
     setMounted(true);
@@ -252,49 +245,45 @@ export default function CommunityTestimonyPage() {
             </p>
           </div>
 
-          {isTestimoniesLoading ? (
-            <div className="flex justify-center p-20"><Loader2 className="w-12 h-12 animate-spin text-primary opacity-20" /></div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {approvedTestimonies?.map((test, idx) => (
-                <Card key={test.id} className="border-none shadow-lg rounded-[2rem] bg-white group hover:-translate-y-2 transition-all duration-500 animate-in zoom-in-95">
-                  <CardContent className="p-8 space-y-6 flex flex-col h-full">
-                    <div className="p-3 bg-accent rounded-2xl w-fit group-hover:bg-primary group-hover:text-white transition-colors duration-500">
-                      <Quote className="w-6 h-6 text-primary group-hover:text-secondary transition-colors" />
-                    </div>
-                    
-                    <p className="text-sm italic font-medium leading-relaxed text-primary/80 flex-1">
-                      "{test.message}"
-                    </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {approvedTestimonies?.map((test, idx) => (
+              <Card key={test.id} className="border-none shadow-lg rounded-[2rem] bg-white group hover:-translate-y-2 transition-all duration-500 animate-in zoom-in-95">
+                <CardContent className="p-8 space-y-6 flex flex-col h-full">
+                  <div className="p-3 bg-accent rounded-2xl w-fit group-hover:bg-primary group-hover:text-white transition-colors duration-500">
+                    <Quote className="w-6 h-6 text-primary group-hover:text-secondary transition-colors" />
+                  </div>
+                  
+                  <p className="text-sm italic font-medium leading-relaxed text-primary/80 flex-1">
+                    "{test.message}"
+                  </p>
 
-                    <div className="pt-6 border-t flex items-center gap-4">
-                      <Avatar className="h-12 w-12 border-2 border-white shadow-md ring-1 ring-accent">
-                        <AvatarImage src={test.profileImage} />
-                        <AvatarFallback className="bg-primary/5 text-primary font-black uppercase text-xs">
-                          {test.name?.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="overflow-hidden">
-                        <p className="font-black text-primary text-sm truncate uppercase tracking-tight">{test.name}</p>
-                        <div className="flex items-center gap-1.5 overflow-hidden">
-                          <Badge variant="secondary" className="bg-secondary/20 text-primary border-none text-[8px] font-black h-4 px-1.5">
-                            {test.role}
-                          </Badge>
-                          <span className="text-[10px] text-muted-foreground font-bold truncate">@ {test.schoolName}</span>
-                        </div>
+                  <div className="pt-6 border-t flex items-center gap-4">
+                    <Avatar className="h-12 w-12 border-2 border-white shadow-md ring-1 ring-accent">
+                      <AvatarImage src={test.profileImage} />
+                      <AvatarFallback className="bg-primary/5 text-primary font-black uppercase text-xs">
+                        {test.name?.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="overflow-hidden">
+                      <p className="font-black text-primary text-sm truncate uppercase tracking-tight">{test.name}</p>
+                      <div className="flex items-center gap-1.5 overflow-hidden">
+                        <Badge variant="secondary" className="bg-secondary/20 text-primary border-none text-[8px] font-black h-4 px-1.5">
+                          {test.role}
+                        </Badge>
+                        <span className="text-[10px] text-muted-foreground font-bold truncate">@ {test.schoolName}</span>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-              {(!approvedTestimonies || approvedTestimonies.length === 0) && (
-                <div className="col-span-full py-20 text-center border-2 border-dashed rounded-3xl opacity-40">
-                  <Quote className="w-12 h-12 mx-auto mb-4" />
-                  <p>No testimonials have been published yet.</p>
-                </div>
-              )}
-            </div>
-          )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            {(!approvedTestimonies || approvedTestimonies.length === 0) && (
+              <div className="col-span-full py-20 text-center border-2 border-dashed rounded-3xl opacity-40">
+                <Quote className="w-12 h-12 mx-auto mb-4" />
+                <p>No testimonials have been published yet.</p>
+              </div>
+            )}
+          </div>
         </section>
 
         {/* 4. PLACE ORDER FORM SECTION */}
