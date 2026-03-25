@@ -31,7 +31,9 @@ import {
   FileDown,
   Filter,
   CalendarDays,
-  FileSpreadsheet
+  FileSpreadsheet,
+  CheckCircle,
+  AlertTriangle
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -68,6 +70,7 @@ export default function FeesPage() {
   const [reportYear, setReportYear] = useState(ACADEMIC_YEARS[0]);
   const [reportClass, setReportClass] = useState("all");
   const [reportFeeType, setReportFeeType] = useState("all");
+  const [reportStatus, setReportStatus] = useState("all");
 
   // Dynamic State for mock interaction
   const [students, setStudents] = useState(INITIAL_STUDENTS);
@@ -90,10 +93,10 @@ export default function FeesPage() {
     return students.filter(s => {
       const matchesYear = s.year === reportYear;
       const matchesClass = reportClass === "all" || s.class === reportClass;
-      // In a real app, we'd check against a sub-collection of payments for the specific fee type
-      return matchesYear && matchesClass;
+      const matchesStatus = reportStatus === "all" || s.status === reportStatus;
+      return matchesYear && matchesClass && matchesStatus;
     });
-  }, [reportYear, reportClass, students]);
+  }, [reportYear, reportClass, reportStatus, students]);
 
   const handleProcessPayment = () => {
     if (!paymentForm.amount || parseFloat(paymentForm.amount) <= 0) {
@@ -155,7 +158,7 @@ export default function FeesPage() {
       setIsProcessing(false);
       toast({
         title: "Export Successful",
-        description: `Student list for ${reportYear} (${reportClass}) generated.`,
+        description: `Institutional list for ${reportYear} generated with status filters.`,
       });
     }, 2000);
   };
@@ -328,7 +331,7 @@ export default function FeesPage() {
                   </div>
                   <div>
                     <CardTitle className="text-xl md:text-2xl font-black">Export Institutional Lists</CardTitle>
-                    <CardDescription className="text-white/60">Generate targeted student dossiers based on academic and financial criteria.</CardDescription>
+                    <CardDescription className="text-white/60">Generate targeted student dossiers based on academic, financial, and payment status criteria.</CardDescription>
                   </div>
                 </div>
                 <Button 
@@ -342,7 +345,7 @@ export default function FeesPage() {
               </div>
             </CardHeader>
             <CardContent className="p-6 md:p-8 space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
                     <CalendarDays className="w-3.5 h-3.5 text-primary" /> Academic Session
@@ -384,41 +387,87 @@ export default function FeesPage() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
+                    <CheckCircle className="w-3.5 h-3.5 text-primary" /> Payment Status
+                  </Label>
+                  <Select value={reportStatus} onValueChange={setReportStatus}>
+                    <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Both (Paid & Unpaid)</SelectItem>
+                      <SelectItem value="cleared">Paid (Cleared)</SelectItem>
+                      <SelectItem value="partial">Unpaid (Arrears)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div className="pt-6 border-t">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-black uppercase text-primary tracking-widest">List Preview</h3>
-                  <Badge variant="outline" className="text-[10px] border-primary/10 text-primary font-bold">
-                    {reportingList.length} Students Selected
-                  </Badge>
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-sm font-black uppercase text-primary tracking-widest">List Preview</h3>
+                    <Badge variant="outline" className="text-[10px] border-primary/10 text-primary font-bold">
+                      {reportingList.length} Students Selected
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-1.5 text-[9px] font-black uppercase text-green-600">
+                      <div className="w-2 h-2 rounded-full bg-green-600" /> Paid
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[9px] font-black uppercase text-amber-600">
+                      <div className="w-2 h-2 rounded-full bg-amber-600" /> Unpaid
+                    </div>
+                  </div>
                 </div>
-                <div className="rounded-2xl border border-accent overflow-hidden">
+                <div className="rounded-2xl border border-accent overflow-hidden shadow-inner">
                   <Table>
                     <TableHeader className="bg-accent/10">
                       <TableRow className="uppercase text-[9px] font-black tracking-widest">
                         <TableHead className="pl-6 py-3">Matricule</TableHead>
                         <TableHead>Student Name</TableHead>
-                        <TableHead>Class</TableHead>
-                        <TableHead className="text-right pr-6">Payment Status</TableHead>
+                        <TableHead className="hidden sm:table-cell">Class</TableHead>
+                        <TableHead className="text-right pr-6">Current Balance</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {reportingList.map((s) => (
-                        <TableRow key={s.id} className="text-xs">
+                        <TableRow key={s.id} className="text-xs hover:bg-accent/5 group">
                           <TableCell className="pl-6 py-3 font-mono font-bold text-primary">{s.id}</TableCell>
-                          <TableCell className="font-bold">{s.name}</TableCell>
-                          <TableCell>{s.class}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold">{s.name}</span>
+                              <div className={cn(
+                                "w-1.5 h-1.5 rounded-full shrink-0",
+                                s.status === 'cleared' ? "bg-green-600" : "bg-amber-600"
+                              )} />
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell font-medium text-muted-foreground">{s.class}</TableCell>
                           <TableCell className="text-right pr-6">
-                            <Badge className={cn(
-                              "text-[8px] uppercase h-4 px-2",
-                              s.status === 'cleared' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-                            )}>
-                              {s.status}
-                            </Badge>
+                            <div className="flex flex-col items-end">
+                              <span className={cn(
+                                "font-black",
+                                s.status === 'cleared' ? "text-green-700" : "text-amber-700"
+                              )}>
+                                {s.paid.toLocaleString()} / {s.totalFee.toLocaleString()}
+                              </span>
+                              <span className="text-[8px] uppercase font-bold opacity-40">XAF Recorded</span>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
+                      {reportingList.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={4} className="py-20 text-center text-muted-foreground italic">
+                            <div className="flex flex-col items-center gap-2">
+                              <SearchX className="w-8 h-8 opacity-20" />
+                              <p>No students match the current reporting criteria.</p>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
                     </TableBody>
                   </Table>
                 </div>
@@ -550,7 +599,6 @@ export default function FeesPage() {
 
           <div className="bg-muted p-4 md:p-10 print:p-0 print:bg-white overflow-hidden">
             <div id="printable-receipt" className="bg-white p-6 md:p-8 border-2 border-black/10 shadow-sm relative flex flex-col space-y-6 font-serif text-black print:border-none print:shadow-none min-w-[300px]">
-               {/* Receipt Header */}
                <div className="flex justify-between items-start border-b-2 border-black pb-4 gap-4">
                   <div className="flex items-center gap-3">
                     <img src={user?.school?.logo} alt="School" className="w-10 h-10 md:w-12 md:h-12 object-contain" />
@@ -565,7 +613,6 @@ export default function FeesPage() {
                   </div>
                </div>
 
-               {/* Payer Matrix */}
                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 py-2 md:py-4">
                   <div className="space-y-4">
                     <div>
@@ -590,7 +637,6 @@ export default function FeesPage() {
                   </div>
                </div>
 
-               {/* Institutional Footprint */}
                <div className="pt-6 border-t border-black/5 flex justify-between items-end">
                   <div className="flex flex-col items-center gap-2">
                     <QrCode className="w-12 h-12 md:w-16 md:h-16 opacity-10" />
