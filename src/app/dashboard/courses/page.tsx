@@ -13,12 +13,10 @@ import {
   Search, 
   Eye, 
   CheckCircle2, 
-  HelpCircle,
   Loader2,
   Trash2,
   Sparkles,
   BookMarked,
-  Info,
   ChevronRight,
   ArrowLeft,
   FileText,
@@ -26,11 +24,9 @@ import {
   Link as LinkIcon,
   Download,
   Upload,
-  FileDown,
-  MoreVertical,
   Clock,
   ShieldCheck,
-  Calendar
+  Filter
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n-context";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
@@ -146,7 +142,7 @@ export default function CoursesPage() {
     toast({ title: "Material Removed", description: "Resource deleted from subject library." });
   };
 
-  // Filter Logic
+  // Materials View Render
   if (viewingMaterialsFor) {
     const subjectMaterials = materials.filter(m => m.subjectId === viewingMaterialsFor.id);
     
@@ -159,65 +155,67 @@ export default function CoursesPage() {
             </Button>
             <div>
               <div className="flex items-center gap-2">
-                <Badge className={cn("text-[9px] font-black border-none", viewingMaterialsFor.color)}>{viewingMaterialsFor.id}</Badge>
+                <Badge className={cn("text-[9px] font-black border-none text-white", viewingMaterialsFor.color)}>{viewingMaterialsFor.id}</Badge>
                 <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline tracking-tight">{viewingMaterialsFor.name}</h1>
               </div>
               <p className="text-muted-foreground mt-1 text-sm">{language === 'en' ? 'Subject Materials Archive' : 'Archives des supports de cours'}</p>
             </div>
           </div>
-          <Dialog open={isAddingMaterial} onOpenChange={setIsAddingMaterial}>
-            <DialogTrigger asChild>
-              <Button className="gap-2 shadow-lg h-12 px-8 rounded-2xl bg-primary text-white font-bold">
-                <Upload className="w-5 h-5" /> {language === 'en' ? 'Upload Material' : 'Ajouter un Support'}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-              <DialogHeader className="bg-primary p-8 text-white">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-white/10 rounded-2xl"><BookMarked className="w-8 h-8 text-secondary" /></div>
-                  <div>
-                    <DialogTitle className="text-2xl font-black">Publish Resource</DialogTitle>
-                    <DialogDescription className="text-white/60">Upload new pedagogical material for students.</DialogDescription>
+          {(isTeacher || isAdmin) && (
+            <Dialog open={isAddingMaterial} onOpenChange={setIsAddingMaterial}>
+              <DialogTrigger asChild>
+                <Button className="gap-2 shadow-lg h-12 px-8 rounded-2xl bg-primary text-white font-bold">
+                  <Upload className="w-5 h-5" /> {language === 'en' ? 'Upload Material' : 'Ajouter un Support'}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+                <DialogHeader className="bg-primary p-8 text-white">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-white/10 rounded-2xl"><BookMarked className="w-8 h-8 text-secondary" /></div>
+                    <div>
+                      <DialogTitle className="text-2xl font-black">Publish Resource</DialogTitle>
+                      <DialogDescription className="text-white/60">Upload new pedagogical material for students.</DialogDescription>
+                    </div>
+                  </div>
+                </DialogHeader>
+                <div className="p-8 space-y-6">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Title / Label</Label>
+                    <Input 
+                      value={newMaterialData.title} 
+                      onChange={(e) => setNewMaterialData({...newMaterialData, title: e.target.value})} 
+                      placeholder="e.g. Chapter 4 Summary" 
+                      className="h-12 bg-accent/30 border-none rounded-xl font-bold"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Resource Type</Label>
+                    <Select value={newMaterialData.type} onValueChange={(v) => setNewMaterialData({...newMaterialData, type: v})}>
+                      <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pdf">PDF Document</SelectItem>
+                        <SelectItem value="video">Lecture Video</SelectItem>
+                        <SelectItem value="link">Reference Link</SelectItem>
+                        <SelectItem value="doc">Worksheet (DOC)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 flex items-center gap-3">
+                    <ShieldCheck className="w-5 h-5 text-primary opacity-40" />
+                    <p className="text-[10px] text-muted-foreground italic leading-relaxed">
+                      This material will be immediately accessible to all students registered in {viewingMaterialsFor.targetClass}.
+                    </p>
                   </div>
                 </div>
-              </DialogHeader>
-              <div className="p-8 space-y-6">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Title / Label</Label>
-                  <Input 
-                    value={newMaterialData.title} 
-                    onChange={(e) => setNewMaterialData({...newMaterialData, title: e.target.value})} 
-                    placeholder="e.g. Chapter 4 Summary" 
-                    className="h-12 bg-accent/30 border-none rounded-xl font-bold"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Resource Type</Label>
-                  <Select value={newMaterialData.type} onValueChange={(v) => setNewMaterialData({...newMaterialData, type: v})}>
-                    <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pdf">PDF Document</SelectItem>
-                      <SelectItem value="video">Lecture Video</SelectItem>
-                      <SelectItem value="link">Reference Link</SelectItem>
-                      <SelectItem value="doc">Worksheet (DOC)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 flex items-center gap-3">
-                  <ShieldCheck className="w-5 h-5 text-primary opacity-40" />
-                  <p className="text-[10px] text-muted-foreground italic leading-relaxed">
-                    This material will be immediately accessible to all students registered in {viewingMaterialsFor.targetClass}.
-                  </p>
-                </div>
-              </div>
-              <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
-                <Button onClick={handleAddMaterial} disabled={isProcessing || !newMaterialData.title} className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-2">
-                  {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
-                  Confirm Upload
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+                <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+                  <Button onClick={handleAddMaterial} disabled={isProcessing || !newMaterialData.title} className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-2">
+                    {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
+                    Confirm Upload
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -254,7 +252,7 @@ export default function CoursesPage() {
                     <Download className="w-3.5 h-3.5" /> Get
                   </Button>
                 </div>
-                {isTeacher && (
+                {(isTeacher || isAdmin) && (
                   <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-destructive/20 hover:text-destructive hover:bg-red-50" onClick={() => handleDeleteMaterial(material.id)}>
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -271,9 +269,11 @@ export default function CoursesPage() {
                 <p className="font-black text-primary uppercase tracking-tighter">No materials found</p>
                 <p className="text-xs text-muted-foreground">Upload class summaries, videos or notes for your students.</p>
               </div>
-              <Button variant="outline" size="sm" className="rounded-xl font-bold gap-2" onClick={() => setIsAddingMaterial(true)}>
-                <Plus className="w-4 h-4" /> Add First Material
-              </Button>
+              {(isTeacher || isAdmin) && (
+                <Button variant="outline" size="sm" className="rounded-xl font-bold gap-2" onClick={() => setIsAddingMaterial(true)}>
+                  <Plus className="w-4 h-4" /> Add First Material
+                </Button>
+              )}
             </div>
           )}
         </div>
@@ -282,7 +282,7 @@ export default function CoursesPage() {
   }
 
   const mandatorySubjects = subjects.filter(s => s.type === "mandatory");
-  const enrolledOptional = subjects.filter(s => s.type === "optional" && (isAdmin || myOptionalSubjects.includes(s.id)));
+  const enrolledOptional = subjects.filter(s => s.type === "optional" && (isAdmin || isTeacher || myOptionalSubjects.includes(s.id)));
   const availableOptional = subjects.filter(s => s.type === "optional" && !myOptionalSubjects.includes(s.id));
 
   return (
@@ -383,8 +383,8 @@ export default function CoursesPage() {
                   {availableOptional.map((course) => (
                     <Card key={course.id} className="border border-accent hover:border-primary/20 transition-all group cursor-pointer" onClick={() => handleEnrollOptional(course.id)}>
                       <CardContent className="p-4 flex items-center gap-4">
-                        <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center shrink-0", course.color)}>
-                          <BookMarked className="w-6 h-6 text-white" />
+                        <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center shrink-0 text-white", course.color)}>
+                          <BookMarked className="w-6 h-6" />
                         </div>
                         <div className="flex-1 overflow-hidden">
                           <p className="font-bold text-sm truncate">{course.name}</p>
@@ -428,7 +428,7 @@ export default function CoursesPage() {
           </section>
 
           {/* Optional Subjects Section */}
-          {(isAdmin || enrolledOptional.length > 0) && (
+          {(isAdmin || isTeacher || enrolledOptional.length > 0) && (
             <section className="space-y-6">
               <div className="flex items-center gap-3">
                 <div className="h-px flex-1 bg-primary/10" />
@@ -464,7 +464,7 @@ function CourseCard({ course, isAdmin, onDelete, onViewMaterials }: { course: an
   const { language } = useI18n();
   
   return (
-    <Card className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-shadow">
+    <Card className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-shadow bg-white">
       <div className={cn("h-2", course.color || 'bg-blue-500')} />
       <CardHeader>
         <div className="flex justify-between items-start">
