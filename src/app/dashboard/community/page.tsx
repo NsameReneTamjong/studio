@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
   Search, 
   User, 
@@ -30,7 +31,14 @@ import {
   UserX, 
   Loader2, 
   X,
-  CheckCircle2
+  CheckCircle2,
+  History,
+  Activity,
+  Printer,
+  Download,
+  Clock,
+  Zap,
+  Lock
 } from "lucide-react";
 import { 
   DropdownMenu, 
@@ -90,6 +98,13 @@ const INITIAL_ADMINS: SchoolAdmin[] = [
     status: "active",
     permissions: { manageStudents: true, manageStaff: true, generateReports: true, fullControl: false }
   },
+];
+
+const GOVERNANCE_LOGS = [
+  { id: "L1", admin: "VP Academics", action: "Authorized ID Card Batch", purview: "Anglophone Section", time: "Today, 10:45 AM", type: "Operational", severity: "Medium" },
+  { id: "L2", admin: "Section Head", action: "Modified Class Schedule", purview: "Technical Section", time: "Today, 09:12 AM", type: "Pedagogical", severity: "High" },
+  { id: "L3", admin: "VP Academics", action: "Verified Seq 1 Marks", purview: "Anglophone Section", time: "Yesterday", type: "Evaluations", severity: "Medium" },
+  { id: "L4", admin: "Admin Assistant", action: "Updated Student Dossier", purview: "Francophone Section", time: "Yesterday", type: "Registry", severity: "Low" },
 ];
 
 const STAFF_MEMBERS = [
@@ -217,17 +232,20 @@ export default function CommunityPage() {
             </div>
             {language === 'en' ? "Institutional Hierarchy" : "Hiérarchie Institutionnelle"}
           </h1>
-          <p className="text-muted-foreground mt-1">Manage sub-schools, sections, and administrative appointments.</p>
+          <p className="text-muted-foreground mt-1">Manage sub-schools, sections, administrative appointments, and audit governance logs.</p>
         </div>
       </div>
 
       <Tabs defaultValue="structure" className="w-full">
-        <TabsList className="grid grid-cols-2 w-full md:w-[500px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl">
+        <TabsList className="grid grid-cols-3 w-full md:w-[750px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl">
           <TabsTrigger value="structure" className="gap-2 py-3 rounded-xl transition-all">
-            <Building className="w-4 h-4" /> Sections & Sub-Schools
+            <Building className="w-4 h-4" /> Sections
           </TabsTrigger>
           <TabsTrigger value="hierarchy" className="gap-2 py-3 rounded-xl transition-all">
-            <ShieldCheck className="w-4 h-4" /> Admin Appointments
+            <ShieldCheck className="w-4 h-4" /> Admin Team
+          </TabsTrigger>
+          <TabsTrigger value="logs" className="gap-2 py-3 rounded-xl transition-all">
+            <History className="w-4 h-4" /> Strategic Logs
           </TabsTrigger>
         </TabsList>
 
@@ -406,6 +424,95 @@ export default function CommunityPage() {
               </Card>
             ))}
           </div>
+        </TabsContent>
+
+        <TabsContent value="logs" className="animate-in fade-in slide-in-from-bottom-4 mt-0 space-y-6">
+          <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
+            <CardHeader className="bg-white border-b flex flex-row items-center justify-between p-6">
+              <div>
+                <CardTitle className="text-lg font-black text-primary uppercase tracking-widest flex items-center gap-2">
+                  <Activity className="w-5 h-5" /> Governance Audit Logs
+                </CardTitle>
+                <CardDescription>Verified chronological record of sub-administrative actions across institutional sections.</CardDescription>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" className="rounded-xl h-10 font-bold gap-2">
+                  <Printer className="w-4 h-4" /> Print Registry
+                </Button>
+                <Button variant="outline" size="sm" className="rounded-xl h-10 font-bold gap-2">
+                  <Download className="w-4 h-4" /> Export CSV
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0 overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-accent/10 uppercase text-[10px] font-black tracking-widest border-b">
+                  <TableRow>
+                    <TableHead className="pl-8 py-4">Administrator</TableHead>
+                    <TableHead>Purview / Section</TableHead>
+                    <TableHead>Strategic Action</TableHead>
+                    <TableHead className="text-center">Impact</TableHead>
+                    <TableHead className="text-center">Timestamp</TableHead>
+                    <TableHead className="text-right pr-8">Integrity</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {GOVERNANCE_LOGS.map((log) => (
+                    <TableRow key={log.id} className="hover:bg-accent/5 transition-colors border-b">
+                      <TableCell className="pl-8 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-primary/5 rounded-lg border border-primary/10">
+                            <User className="w-4 h-4 text-primary" />
+                          </div>
+                          <span className="font-bold text-sm text-primary">{log.admin}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-[10px] border-primary/10 font-bold">{log.purview}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-0.5">
+                          <p className="text-xs font-bold text-primary">{log.action}</p>
+                          <p className="text-[9px] text-muted-foreground uppercase font-black">{log.type}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge className={cn(
+                          "text-[8px] font-black uppercase border-none px-2",
+                          log.severity === 'High' ? "bg-red-100 text-red-700" : 
+                          log.severity === 'Medium' ? "bg-amber-100 text-amber-700" : 
+                          "bg-blue-100 text-blue-700"
+                        )}>
+                          {log.severity} Impact
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center text-[10px] font-mono font-bold text-muted-foreground">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <Clock className="w-3 h-3" /> {log.time}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <div className="flex items-center justify-end gap-1.5 text-green-600 font-bold text-[9px] uppercase tracking-widest">
+                          <CheckCircle2 className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Signed</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+            <CardFooter className="bg-accent/10 p-6 border-t border-accent flex justify-between items-center">
+               <div className="flex items-center gap-2 text-muted-foreground">
+                  <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                  <p className="text-[10px] font-black uppercase tracking-widest italic opacity-40">Governance synchronization active. Records are tamper-proof.</p>
+               </div>
+               <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase text-primary/40">
+                    <Zap className="w-3.5 h-3.5" /> Live Node Audit
+                  </div>
+               </div>
+            </CardFooter>
+          </Card>
         </TabsContent>
       </Tabs>
 
