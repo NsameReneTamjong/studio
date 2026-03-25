@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   ArrowLeft, 
   Award, 
@@ -41,7 +43,8 @@ import {
   X,
   TrendingUp,
   ListChecks,
-  Users
+  Users,
+  Send
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -136,6 +139,9 @@ export default function StudentDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [student, setStudent] = useState<any>(null);
   const [previewDoc, setPreviewDoc] = useState<{ type: 'report' | 'receipt' | 'id', data?: any } | null>(null);
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
+  const [messageText, setMessageText] = useState("");
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
 
   useEffect(() => {
     const found = MOCK_CHILDREN.find(c => c.id === studentId);
@@ -164,6 +170,20 @@ export default function StudentDetailsPage() {
       title: t("download") + "...",
       description: `${docName} is being prepared for download.`,
     });
+  };
+
+  const handleSendMessage = () => {
+    if (!messageText.trim()) return;
+    setIsSendingMessage(true);
+    setTimeout(() => {
+      setIsSendingMessage(false);
+      setIsMessageModalOpen(false);
+      setMessageText("");
+      toast({
+        title: t("messageSent"),
+        description: t("messageSentDesc"),
+      });
+    }, 1000);
   };
 
   if (loading) {
@@ -207,7 +227,9 @@ export default function StudentDetailsPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="gap-2"><Mail className="w-4 h-4" /> Message</Button>
+          <Button variant="outline" className="gap-2" onClick={() => setIsMessageModalOpen(true)}>
+            <Mail className="w-4 h-4" /> {language === 'en' ? 'Message' : 'Message'}
+          </Button>
           <Button className="gap-2 shadow-lg" onClick={() => setPreviewDoc({ type: 'report' })}><Printer className="w-4 h-4" /> {t("print")} {t("reportCard")}</Button>
         </div>
       </div>
@@ -573,6 +595,56 @@ export default function StudentDetailsPage() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Contact Teacher Dialog */}
+      <Dialog open={isMessageModalOpen} onOpenChange={setIsMessageModalOpen}>
+        <DialogContent className="sm:max-w-md rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="bg-primary p-8 text-white">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/10 rounded-2xl">
+                <Mail className="w-8 h-8 text-secondary" />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-black">{t("contactTeacher")}</DialogTitle>
+                <DialogDescription className="text-white/60">
+                  {t("sendTo")}: <span className="text-white font-bold">Prof. Sarah Smith</span>
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+          <div className="p-8 space-y-6">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                {t("messageBody")}
+              </Label>
+              <Textarea 
+                placeholder={language === 'en' ? "Type your message here..." : "Tapez votre message ici..."}
+                className="min-h-[150px] bg-accent/30 border-none rounded-2xl focus-visible:ring-primary p-4"
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+              />
+            </div>
+            <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 flex items-center gap-3">
+              <ShieldCheck className="w-5 h-5 text-primary opacity-40" />
+              <p className="text-[10px] text-muted-foreground italic">
+                {language === 'en' 
+                  ? "All messages are encrypted and logged for institutional safety." 
+                  : "Tous les messages sont cryptés et enregistrés pour la sécurité institutionnelle."}
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+            <Button 
+              className="w-full h-14 rounded-2xl shadow-xl font-black uppercase text-xs gap-3" 
+              onClick={handleSendMessage}
+              disabled={isSendingMessage || !messageText.trim()}
+            >
+              {isSendingMessage ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+              {t("sendMessage")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Document Preview Dialog */}
       <Dialog open={!!previewDoc} onOpenChange={() => setPreviewDoc(null)}>

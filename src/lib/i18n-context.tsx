@@ -144,6 +144,12 @@ const translations: TranslationDict = {
   phone: { en: "Phone", fr: "Téléphone" },
   motto: { en: "Motto", fr: "Devise" },
   status: { en: "Status", fr: "Statut" },
+  contactTeacher: { en: "Contact Instructor", fr: "Contacter l'enseignant" },
+  sendTo: { en: "Send message to", fr: "Envoyer à" },
+  messageBody: { en: "Message Body", fr: "Contenu du Message" },
+  sendMessage: { en: "Send Message", fr: "Envoyer le Message" },
+  messageSent: { en: "Message Sent", fr: "Message Envoyé" },
+  messageSentDesc: { en: "The teacher has been notified of your inquiry.", fr: "L'enseignant a été notifié de votre demande." },
 };
 
 interface I18nContextType {
@@ -175,9 +181,11 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <I18nContext.Provider value={{ language, setLanguage: handleSetLanguage, t }}>
-      {children}
-    </I18nContext.Provider>
+    <div lang={language}>
+      <I18nContext.Provider value={{ language, setLanguage: handleSetLanguage, t }}>
+        {children}
+      </I18nContext.Provider>
+    </div>
   );
 };
 
