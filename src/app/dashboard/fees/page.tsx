@@ -91,12 +91,10 @@ export default function FeesPage() {
   const [issuedReceipt, setIssuedReceipt] = useState<any>(null);
   const [paymentForm, setPaymentForm] = useState({ type: "Tuition Fee", amount: "" });
   
-  // Reporting States
   const [reportYear, setReportYear] = useState(ACADEMIC_YEARS[0]);
   const [reportClass, setReportClass] = useState("all");
   const [reportStatus, setReportStatus] = useState("all");
 
-  // Dynamic State for mock interaction
   const [students, setStudents] = useState(INITIAL_STUDENTS);
   const [transactions, setTransactions] = useState<any[]>([
     { id: "PAY-001", student: "Alice Thompson", type: "Tuition Fee", amount: "50,000", method: "Cash", date: "24 May, 10:30 AM" },
@@ -104,7 +102,7 @@ export default function FeesPage() {
   ]);
 
   const isBursar = user?.role === "BURSAR";
-  const isAdmin = user?.role === "SCHOOL_ADMIN";
+  const isAdmin = user?.role === "SCHOOL_ADMIN" || user?.role === "SUB_ADMIN";
 
   const filteredStudents = useMemo(() => {
     return students.filter(s => {
@@ -202,6 +200,8 @@ export default function FeesPage() {
     return paid >= total ? 'cleared' : 'partial';
   };
 
+  const visibleTabsCount = (isAdmin ? 4 : 0) + (isBursar ? 4 : 0);
+
   return (
     <div className="space-y-6 md:space-y-8 pb-20 px-1">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -213,33 +213,35 @@ export default function FeesPage() {
             <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline tracking-tighter">
               {isAdmin ? "Institutional Revenue" : "Collection Desk"}
             </h1>
-            <p className="text-xs md:text-sm text-muted-foreground">Manage intake, record payments, and audit institutional revenue.</p>
+            <p className="text-xs md:text-sm text-muted-foreground">
+              {isAdmin ? "Oversight of institutional intake and collection velocity." : "Manage intake, record payments, and issue receipts."}
+            </p>
           </div>
         </div>
         
-        {isAdmin && (
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="h-10 px-4 rounded-xl border-primary/20 text-primary font-black uppercase tracking-widest flex items-center gap-2 bg-white">
-              <ShieldCheck className="w-4 h-4 text-secondary" />
-              Verified Node
-            </Badge>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="h-10 px-4 rounded-xl border-primary/20 text-primary font-black uppercase tracking-widest flex items-center gap-2 bg-white">
+            <ShieldCheck className="w-4 h-4 text-secondary" />
+            {isAdmin ? "Node Integrity Active" : "Official Collector"}
+          </Badge>
+        </div>
       </div>
 
       <Tabs defaultValue={isAdmin ? "oversight" : "pay"} className="w-full">
         <TabsList className={cn(
           "grid mb-6 bg-white shadow-sm border h-auto p-1 rounded-2xl",
-          isAdmin ? "grid-cols-5 lg:w-[900px]" : "grid-cols-4 lg:w-[800px]"
+          isAdmin ? "grid-cols-4 lg:w-[800px]" : "grid-cols-4 lg:w-[800px]"
         )}>
           {isAdmin && (
             <TabsTrigger value="oversight" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm">
               <Building2 className="w-4 h-4" /> <span className="hidden sm:inline">Fee</span> Oversight
             </TabsTrigger>
           )}
-          <TabsTrigger value="pay" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm">
-            <Wallet className="w-4 h-4" /> <span className="hidden sm:inline">Collection</span> Desk
-          </TabsTrigger>
+          {isBursar && (
+            <TabsTrigger value="pay" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm">
+              <Wallet className="w-4 h-4" /> <span className="hidden sm:inline">Collection</span> Desk
+            </TabsTrigger>
+          )}
           <TabsTrigger value="ledger" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm">
             <History className="w-4 h-4" /> <span className="hidden sm:inline">Transaction</span> Log
           </TabsTrigger>
@@ -251,198 +253,202 @@ export default function FeesPage() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="oversight" className="animate-in fade-in slide-in-from-bottom-4 mt-0 space-y-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border shadow-sm">
-            <div className="space-y-1">
-              <h2 className="text-xl font-black text-primary uppercase tracking-tighter">Institutional Fee Tracker</h2>
-              <p className="text-xs text-muted-foreground">Select a category to audit collection percentages by class level.</p>
-            </div>
-            <div className="w-full md:w-[300px]">
-              <Label className="text-[10px] font-black uppercase text-primary ml-1 mb-1.5 block">Audit Category</Label>
-              <Select value={activeFeeFilter} onValueChange={setActiveFeeFilter}>
-                <SelectTrigger className="h-12 bg-primary/5 border-primary/20 text-primary font-bold rounded-2xl">
-                  <div className="flex items-center gap-2">
-                    <Filter className="w-4 h-4" />
-                    <SelectValue />
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  {FEE_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {MOCK_CLASS_STATS.map((cls) => (
-              <Card key={cls.name} className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-all bg-white">
-                <div className={cn(
-                  "h-1.5 w-full",
-                  cls.status === 'optimal' ? "bg-green-500" : cls.status === 'critical' ? "bg-red-500" : "bg-amber-500"
-                )} />
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-xl font-black text-primary">{cls.name}</CardTitle>
-                      <CardDescription className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 mt-1">
-                        <Users className="w-3 h-3" /> {cls.totalStudents} Students
-                      </CardDescription>
-                    </div>
-                    <div className={cn(
-                      "p-3 rounded-2xl flex flex-col items-center justify-center min-w-[70px] border-2",
-                      cls.status === 'optimal' ? "bg-green-50 border-green-100 text-green-700" : 
-                      cls.status === 'warning' ? "bg-amber-50 border-amber-100 text-amber-700" : 
-                      "bg-red-50 border-red-100 text-red-700"
-                    )}>
-                      <span className="text-xl font-black">{cls.percentage}%</span>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-1.5 pt-2">
-                    <div className="flex justify-between text-[10px] font-black uppercase text-muted-foreground">
-                      <span>Paid ({activeFeeFilter.split(' ')[0]})</span>
-                      <span>{cls.paidCount} / {cls.totalStudents}</span>
-                    </div>
-                    <Progress value={cls.percentage} className={cn(
-                      "h-2",
-                      cls.status === 'optimal' ? "[&>div]:bg-green-500" : cls.status === 'warning' ? "[&>div]:bg-amber-500" : "[&>div]:bg-red-500"
-                    )} />
-                  </div>
-                  
-                  <div className="flex items-center justify-between p-3 bg-accent/30 rounded-xl border border-accent">
-                    <div className="space-y-0.5">
-                      <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Total Arrears</p>
-                      <p className="text-sm font-black text-primary">{cls.arrears} XAF</p>
-                    </div>
-                    <div className="h-8 w-px bg-accent mx-2" />
-                    <div className="space-y-0.5 text-right">
-                      <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Status</p>
-                      <p className="text-xs font-bold uppercase">{cls.status}</p>
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter className="bg-accent/10 border-t p-4 pt-4">
-                  <Button 
-                    variant="ghost" 
-                    className="flex-1 justify-between hover:bg-white text-primary font-bold text-xs w-full"
-                    onClick={() => setSelectedClassDetails(cls)}
-                  >
-                    View Class Fee Dossier
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="pay" className="animate-in fade-in slide-in-from-bottom-4 mt-0 space-y-6">
-          <Card className="border-none shadow-xl overflow-hidden rounded-[1.5rem] md:rounded-3xl">
-            <CardHeader className="bg-white border-b p-4 md:p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="relative col-span-1 md:col-span-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input 
-                    placeholder="Search name or ID..." 
-                    className="pl-10 h-11 bg-accent/20 border-none rounded-xl text-sm"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-[9px] font-black uppercase text-muted-foreground ml-1">Class Level</Label>
-                  <Select value={classFilter} onValueChange={setClassFilter}>
-                    <SelectTrigger className="h-11 bg-accent/20 border-none rounded-xl text-sm">
-                      <SelectValue placeholder="All Classes" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Classes</SelectItem>
-                      {CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-[9px] font-black uppercase text-primary ml-1">Fee Category Filter</Label>
-                  <Select value={activeFeeFilter} onValueChange={setActiveFeeFilter}>
-                    <SelectTrigger className="h-11 bg-primary/5 border-primary/20 text-primary font-bold rounded-xl text-sm">
-                      <div className="flex items-center gap-2">
-                        <Filter className="w-3.5 h-3.5" />
-                        <SelectValue />
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {FEE_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
+        {isAdmin && (
+          <TabsContent value="oversight" className="animate-in fade-in slide-in-from-bottom-4 mt-0 space-y-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border shadow-sm">
+              <div className="space-y-1">
+                <h2 className="text-xl font-black text-primary uppercase tracking-tighter">Institutional Fee Tracker</h2>
+                <p className="text-xs text-muted-foreground">Select a category to audit collection percentages by class level.</p>
               </div>
-            </CardHeader>
-            <CardContent className="p-0 overflow-x-auto">
-              <Table>
-                <TableHeader className="bg-accent/10">
-                  <TableRow className="uppercase text-[10px] font-black tracking-widest border-b">
-                    <TableHead className="pl-6 md:pl-8 py-4">Matricule</TableHead>
-                    <TableHead>Student Profile</TableHead>
-                    <TableHead className="hidden md:table-cell">Academic Level</TableHead>
-                    <TableHead className="text-center">Status ({activeFeeFilter})</TableHead>
-                    <TableHead className="text-right pr-6 md:pr-8">Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredStudents.map((s) => {
-                    const status = getStatusForFee(s, activeFeeFilter);
-                    const paid = (s.balances as any)[activeFeeFilter] || 0;
-                    const total = (s.totals as any)[activeFeeFilter] || 150000;
+              <div className="w-full md:w-[300px]">
+                <Label className="text-[10px] font-black uppercase text-primary ml-1 mb-1.5 block">Audit Category</Label>
+                <Select value={activeFeeFilter} onValueChange={setActiveFeeFilter}>
+                  <SelectTrigger className="h-12 bg-primary/5 border-primary/20 text-primary font-bold rounded-2xl">
+                    <div className="flex items-center gap-2">
+                      <Filter className="w-4 h-4" />
+                      <SelectValue />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {FEE_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {MOCK_CLASS_STATS.map((cls) => (
+                <Card key={cls.name} className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-all bg-white">
+                  <div className={cn(
+                    "h-1.5 w-full",
+                    cls.status === 'optimal' ? "bg-green-500" : cls.status === 'critical' ? "bg-red-500" : "bg-amber-500"
+                  )} />
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle className="text-xl font-black text-primary">{cls.name}</CardTitle>
+                        <CardDescription className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 mt-1">
+                          <Users className="w-3 h-3" /> {cls.totalStudents} Students
+                        </CardDescription>
+                      </div>
+                      <div className={cn(
+                        "p-3 rounded-2xl flex flex-col items-center justify-center min-w-[70px] border-2",
+                        cls.status === 'optimal' ? "bg-green-50 border-green-100 text-green-700" : 
+                        cls.status === 'warning' ? "bg-amber-50 border-amber-100 text-amber-700" : 
+                        "bg-red-50 border-red-100 text-red-700"
+                      )}>
+                        <span className="text-xl font-black">{cls.percentage}%</span>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-1.5 pt-2">
+                      <div className="flex justify-between text-[10px] font-black uppercase text-muted-foreground">
+                        <span>Paid ({activeFeeFilter.split(' ')[0]})</span>
+                        <span>{cls.paidCount} / {cls.totalStudents}</span>
+                      </div>
+                      <Progress value={cls.percentage} className={cn(
+                        "h-2",
+                        cls.status === 'optimal' ? "[&>div]:bg-green-500" : cls.status === 'warning' ? "[&>div]:bg-amber-500" : "[&>div]:bg-red-500"
+                      )} />
+                    </div>
                     
-                    return (
-                      <TableRow key={s.id} className="group hover:bg-accent/5 transition-colors border-b last:border-0">
-                        <TableCell className="pl-6 md:pl-8 font-mono text-xs font-bold text-primary">{s.id}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-8 w-8 md:h-10 md:w-10 border-2 border-white shadow-sm ring-1 ring-accent shrink-0">
-                              <AvatarImage src={s.avatar} alt={s.name} />
-                              <AvatarFallback className="bg-primary/5 text-primary text-[10px]">{s.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex flex-col">
-                              <span className="font-bold text-xs md:text-sm text-primary leading-tight">{s.name}</span>
-                              <span className="text-[9px] font-bold opacity-40 uppercase">{paid.toLocaleString()} / {total.toLocaleString()} Paid</span>
+                    <div className="flex items-center justify-between p-3 bg-accent/30 rounded-xl border border-accent">
+                      <div className="space-y-0.5">
+                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Total Arrears</p>
+                        <p className="text-sm font-black text-primary">{cls.arrears} XAF</p>
+                      </div>
+                      <div className="h-8 w-px bg-accent mx-2" />
+                      <div className="space-y-0.5 text-right">
+                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Status</p>
+                        <p className="text-xs font-bold uppercase">{cls.status}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="bg-accent/10 border-t p-4 pt-4">
+                    <Button 
+                      variant="ghost" 
+                      className="flex-1 justify-between hover:bg-white text-primary font-bold text-xs w-full"
+                      onClick={() => setSelectedClassDetails(cls)}
+                    >
+                      View Class Fee Dossier
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+        )}
+
+        {isBursar && (
+          <TabsContent value="pay" className="animate-in fade-in slide-in-from-bottom-4 mt-0 space-y-6">
+            <Card className="border-none shadow-xl overflow-hidden rounded-[1.5rem] md:rounded-3xl">
+              <CardHeader className="bg-white border-b p-4 md:p-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="relative col-span-1 md:col-span-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input 
+                      placeholder="Search name or ID..." 
+                      className="pl-10 h-11 bg-accent/20 border-none rounded-xl text-sm"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[9px] font-black uppercase text-muted-foreground ml-1">Class Level</Label>
+                    <Select value={classFilter} onValueChange={setClassFilter}>
+                      <SelectTrigger className="h-11 bg-accent/20 border-none rounded-xl text-sm">
+                        <SelectValue placeholder="All Classes" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Classes</SelectItem>
+                        {CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[9px] font-black uppercase text-primary ml-1">Fee Category Filter</Label>
+                    <Select value={activeFeeFilter} onValueChange={setActiveFeeFilter}>
+                      <SelectTrigger className="h-11 bg-primary/5 border-primary/20 text-primary font-bold rounded-xl text-sm">
+                        <div className="flex items-center gap-2">
+                          <Filter className="w-3.5 h-3.5" />
+                          <SelectValue />
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FEE_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0 overflow-x-auto">
+                <Table>
+                  <TableHeader className="bg-accent/10">
+                    <TableRow className="uppercase text-[10px] font-black tracking-widest border-b">
+                      <TableHead className="pl-6 md:pl-8 py-4">Matricule</TableHead>
+                      <TableHead>Student Profile</TableHead>
+                      <TableHead className="hidden md:table-cell">Academic Level</TableHead>
+                      <TableHead className="text-center">Status ({activeFeeFilter})</TableHead>
+                      <TableHead className="text-right pr-6 md:pr-8">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredStudents.map((s) => {
+                      const status = getStatusForFee(s, activeFeeFilter);
+                      const paid = (s.balances as any)[activeFeeFilter] || 0;
+                      const total = (s.totals as any)[activeFeeFilter] || 150000;
+                      
+                      return (
+                        <TableRow key={s.id} className="group hover:bg-accent/5 transition-colors border-b last:border-0">
+                          <TableCell className="pl-6 md:pl-8 font-mono text-xs font-bold text-primary">{s.id}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-8 w-8 md:h-10 md:w-10 border-2 border-white shadow-sm ring-1 ring-accent shrink-0">
+                                <AvatarImage src={s.avatar} alt={s.name} />
+                                <AvatarFallback className="bg-primary/5 text-primary text-[10px]">{s.name.charAt(0)}</AvatarFallback>
+                              </Avatar>
+                              <div className="flex flex-col">
+                                <span className="font-bold text-xs md:text-sm text-primary leading-tight">{s.name}</span>
+                                <span className="text-[9px] font-bold opacity-40 uppercase">{paid.toLocaleString()} / {total.toLocaleString()} Paid</span>
+                              </div>
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          <Badge variant="outline" className="text-[10px] border-primary/10 text-primary font-bold">{s.class}</Badge>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Badge className={cn(
-                            "text-[9px] font-black uppercase border-none px-3 h-5",
-                            status === 'cleared' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-                          )}>
-                            {status === 'cleared' ? 'Cleared' : 'Arrears'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right pr-6 md:pr-8">
-                          <Button 
-                            size="sm" 
-                            className="rounded-xl h-8 md:h-9 px-3 md:px-6 font-black uppercase tracking-widest text-[9px] md:text-[10px] shadow-lg"
-                            disabled={status === 'cleared'}
-                            onClick={() => {
-                              setSelectedStudentForPayment(s);
-                              setPaymentForm({ ...paymentForm, type: activeFeeFilter });
-                            }}
-                          >
-                            <Wallet className="w-3 h-3 md:w-3.5 md:h-3.5 md:mr-2" /> 
-                            <span className="hidden sm:inline">Pay {activeFeeFilter.split(' ')[0]}</span>
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            <Badge variant="outline" className="text-[10px] border-primary/10 text-primary font-bold">{s.class}</Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge className={cn(
+                              "text-[9px] font-black uppercase border-none px-3 h-5",
+                              status === 'cleared' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                            )}>
+                              {status === 'cleared' ? 'Cleared' : 'Arrears'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right pr-6 md:pr-8">
+                            <Button 
+                              size="sm" 
+                              className="rounded-xl h-8 md:h-9 px-3 md:px-6 font-black uppercase tracking-widest text-[9px] md:text-[10px] shadow-lg"
+                              disabled={status === 'cleared'}
+                              onClick={() => {
+                                setSelectedStudentForPayment(s);
+                                setPaymentForm({ ...paymentForm, type: activeFeeFilter });
+                              }}
+                            >
+                              <Wallet className="w-3 h-3 md:w-3.5 md:h-3.5 md:mr-2" /> 
+                              <span className="hidden sm:inline">Pay {activeFeeFilter.split(' ')[0]}</span>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
 
         <TabsContent value="ledger" className="mt-0">
           <Card className="border-none shadow-xl overflow-hidden rounded-[1.5rem] md:rounded-3xl">
@@ -816,7 +822,7 @@ export default function FeesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* PAYMENT MODAL */}
+      {/* PAYMENT MODAL (ONLY ACCESSIBLE TO BURSARS IN PROTOTYPE) */}
       <Dialog open={!!selectedStudentForPayment} onOpenChange={() => setSelectedStudentForPayment(null)}>
         <DialogContent className="sm:max-w-md rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl">
           <DialogHeader className="bg-primary p-6 md:p-8 text-white">
