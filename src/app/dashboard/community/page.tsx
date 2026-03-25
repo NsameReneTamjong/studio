@@ -13,48 +13,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Search, 
-  MoreVertical, 
   User, 
   ShieldCheck, 
-  Trash2, 
-  Eye, 
-  Ban, 
-  Clock, 
-  CheckCircle2, 
-  UsersRound,
-  FileText,
-  TrendingUp,
-  Activity,
-  UserCheck,
-  Building2,
-  Fingerprint,
-  Building,
-  Plus,
-  Network,
-  UserPlus,
-  ShieldAlert,
-  ChevronRight,
-  Settings2,
-  LayoutGrid,
-  Zap,
-  Target,
-  BarChart3,
-  CheckCircle,
-  FileSpreadsheet,
-  GraduationCap,
-  PenTool,
-  Award,
-  History,
-  Mail,
-  Calendar,
-  MapPin,
-  Lock,
-  FileCheck,
-  Users,
-  Pencil,
-  UserX,
-  Loader2,
-  X
+  FileText, 
+  Building2, 
+  Fingerprint, 
+  Building, 
+  Plus, 
+  Network, 
+  ShieldAlert, 
+  ChevronRight, 
+  Settings2, 
+  GraduationCap, 
+  Users, 
+  Pencil, 
+  UserX, 
+  Loader2, 
+  X,
+  CheckCircle2
 } from "lucide-react";
 import { 
   DropdownMenu, 
@@ -65,7 +41,6 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -126,13 +101,13 @@ const STAFF_MEMBERS = [
 export default function CommunityPage() {
   const { language } = useI18n();
   const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState("");
   const [subSchools, setSubSchools] = useState(INITIAL_SUB_SCHOOLS);
   const [admins, setAdmins] = useState<SchoolAdmin[]>(INITIAL_ADMINS);
   
   const [isAddingSubSchool, setIsAddingSubSchool] = useState(false);
   const [isAppointingAdmin, setIsAppointingAdmin] = useState(false);
   const [editingAdmin, setEditingAdmin] = useState<SchoolAdmin | null>(null);
+  const [configuringSection, setConfiguringSection] = useState<any | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   
   const [newSectionData, setNewSectionData] = useState({ name: "", type: "General" });
@@ -168,6 +143,17 @@ export default function CommunityPage() {
       setIsAddingSubSchool(false);
       setNewSectionData({ name: "", type: "General" });
       toast({ title: "Section Created", description: `${created.name} added to school structure.` });
+    }, 800);
+  };
+
+  const handleUpdateSection = () => {
+    if (!configuringSection) return;
+    setIsProcessing(true);
+    setTimeout(() => {
+      setSubSchools(prev => prev.map(s => s.id === configuringSection.id ? configuringSection : s));
+      setIsProcessing(false);
+      setConfiguringSection(null);
+      toast({ title: "Section Updated", description: "The institutional structure has been synchronized." });
     }, 800);
   };
 
@@ -312,7 +298,7 @@ export default function CommunityPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="pt-0 border-t bg-accent/10 p-4">
-                  <Button variant="ghost" className="w-full justify-between hover:bg-white text-xs font-bold text-primary">
+                  <Button variant="ghost" className="w-full justify-between hover:bg-white text-xs font-bold text-primary" onClick={() => setConfiguringSection({...sec})}>
                     Section Configuration
                     <ChevronRight className="w-4 h-4" />
                   </Button>
@@ -422,6 +408,58 @@ export default function CommunityPage() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* SECTION CONFIGURATION DIALOG */}
+      <Dialog open={!!configuringSection} onOpenChange={() => setConfiguringSection(null)}>
+        <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="bg-primary p-8 text-white relative">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/10 rounded-2xl"><Settings2 className="w-8 h-8 text-secondary" /></div>
+              <div>
+                <DialogTitle className="text-2xl font-black">Section Configuration</DialogTitle>
+                <DialogDescription className="text-white/60">Strategic parameters for {configuringSection?.name}.</DialogDescription>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setConfiguringSection(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+              <X className="w-6 h-6" />
+            </Button>
+          </DialogHeader>
+          <div className="p-8 space-y-6">
+            <div className="space-y-2">
+              <Label>Section Title</Label>
+              <Input value={configuringSection?.name || ""} onChange={(e) => setConfiguringSection({...configuringSection, name: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl font-bold" />
+            </div>
+            <div className="space-y-2">
+              <Label>Section Type</Label>
+              <Select value={configuringSection?.type} onValueChange={(v) => setConfiguringSection({...configuringSection, type: v})}>
+                <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="General">General Education</SelectItem>
+                  <SelectItem value="Technical">Technical Education</SelectItem>
+                  <SelectItem value="Teacher Training">Teacher Training</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Assigned Section Head</Label>
+              <Select value={configuringSection?.head} onValueChange={(v) => setConfiguringSection({...configuringSection, head: v})}>
+                <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {STAFF_MEMBERS.map(s => <SelectItem key={s.id} value={s.name}>{s.name} ({s.role})</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+            <Button onClick={handleUpdateSection} className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3 bg-primary text-white" disabled={isProcessing}>
+              {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
+              Commit Section Updates
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* EDIT ADMIN DIALOG */}
       <Dialog open={!!editingAdmin} onOpenChange={() => setEditingAdmin(null)}>
