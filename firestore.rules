@@ -3,7 +3,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // PROTOTYPE MODE: Open access to all collections for testing
-    // In a production app, these would be restricted by request.auth
+    // WARNING: This is insecure and should only be used for development.
     
     match /{document=**} {
       allow read, write: if true;
