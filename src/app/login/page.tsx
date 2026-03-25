@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { 
   Building2, 
   Languages,
@@ -21,10 +20,7 @@ import {
   Wallet,
   Library,
   Heart,
-  Quote,
   Sparkles,
-  Calendar,
-  PlayCircle,
   ExternalLink,
   ShieldCheck
 } from "lucide-react";
@@ -34,16 +30,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -62,8 +48,8 @@ const QUICK_DEMO_ACCOUNTS = [
 ];
 
 export default function LoginPage() {
-  const { login, platformSettings, testimonials, featuredVideos } = useAuth();
-  const { setLanguage, language, t } = useI18n();
+  const { login, platformSettings } = useAuth();
+  const { setLanguage, language } = useI18n();
   const { toast } = useToast();
   
   const [mode, setAuthMode] = useState<AuthMode>("login");
@@ -225,93 +211,6 @@ export default function LoginPage() {
               <ExternalLink className="w-3 h-3 ml-1" />
             </Link>
           </Button>
-          
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="ghost" className="text-[10px] font-bold text-primary/40 hover:text-primary/60">
-                Legacy Testimonials View
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto p-0 border-none shadow-2xl rounded-[2rem]">
-              <DialogHeader className="bg-primary p-8 text-white">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-white/10 rounded-2xl">
-                    <Sparkles className="w-8 h-8 text-secondary fill-secondary/20" />
-                  </div>
-                  <div>
-                    <DialogTitle className="text-3xl font-black">{t("testimonials")}</DialogTitle>
-                    <DialogDescription className="text-white/60">Voices from the EduIgnite global community.</DialogDescription>
-                  </div>
-                </div>
-              </DialogHeader>
-              
-              <div className="p-8">
-                <Tabs defaultValue="testimonials" className="w-full">
-                  <TabsList className="grid grid-cols-2 w-full max-w-md mx-auto mb-8 bg-accent/30 h-12 p-1 rounded-xl">
-                    <TabsTrigger value="testimonials" className="font-bold text-xs">Testimonials</TabsTrigger>
-                    <TabsTrigger value="media" className="font-bold text-xs">Featured Media</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="testimonials" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {testimonials?.filter(t => t.status === "approved").map((test) => (
-                        <Card key={test.id} className="border-none shadow-sm bg-accent/20 rounded-3xl group overflow-hidden">
-                          <CardContent className="p-6 space-y-4">
-                            <Quote className="w-8 h-8 text-primary/10 -mb-2" />
-                            <p className="text-sm leading-relaxed italic text-primary/80 font-medium">
-                              "{test.message}"
-                            </p>
-                            <div className="flex items-center gap-4 pt-4 border-t border-primary/5">
-                              <Avatar className="h-12 w-12 border-2 border-white shadow-md">
-                                <AvatarImage src={test.profileImage} />
-                                <AvatarFallback className="bg-primary text-white">
-                                  {test.name?.charAt(0) || "U"}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="font-black text-primary text-sm leading-none mb-1">{test.name}</p>
-                                <div className="flex items-center gap-2">
-                                  <Badge className="bg-secondary text-primary border-none text-[8px] h-4 uppercase font-black">{test.role}</Badge>
-                                  <span className="text-[10px] text-muted-foreground font-bold">@ {test.schoolName}</span>
-                                </div>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="media" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                      {featuredVideos?.map((video: any) => (
-                        <Card key={video.id} className="border-none shadow-xl rounded-3xl overflow-hidden group">
-                          <div className="aspect-video relative bg-slate-900">
-                            <img src={video.thumbnail} className="w-full h-full object-cover opacity-60 transition-transform duration-700 group-hover:scale-105" alt={video.title} />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <PlayCircle className="w-16 h-16 text-white/80 group-hover:scale-110 group-hover:text-white transition-all drop-shadow-2xl" />
-                            </div>
-                            <div className="absolute top-4 left-4">
-                              <Badge className="bg-primary text-white border-none text-[9px] font-black uppercase tracking-widest">{video.category}</Badge>
-                            </div>
-                          </div>
-                          <CardContent className="p-6 space-y-2">
-                            <div className="flex items-center justify-between">
-                              <h3 className="font-black text-primary text-lg tracking-tight">{video.title}</h3>
-                              <Calendar className="w-4 h-4 text-muted-foreground opacity-20" />
-                            </div>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              {video.description}
-                            </p>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </div>
-            </DialogContent>
-          </Dialog>
         </div>
       </div>
     </div>
