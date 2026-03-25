@@ -26,7 +26,11 @@ import {
   Upload,
   Clock,
   ShieldCheck,
-  Filter
+  Filter,
+  Image as ImageIcon,
+  File as FileIcon,
+  X,
+  Maximize
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n-context";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
@@ -46,9 +50,46 @@ const INITIAL_COURSES = [
 ];
 
 const INITIAL_MATERIALS = [
-  { id: "M1", title: "Kinematics Summary PDF", type: "pdf", date: "2024-05-10", size: "2.4 MB", subjectId: "PHY101" },
-  { id: "M2", title: "Thermodynamics Lecture Video", type: "video", date: "2024-05-12", size: "45 MB", subjectId: "PHY101" },
-  { id: "M3", title: "Vector Calculus Notes", type: "pdf", date: "2024-05-14", size: "1.8 MB", subjectId: "MAT101" },
+  { 
+    id: "M1", 
+    title: "Kinematics Summary", 
+    description: "A comprehensive summary of displacement, velocity, and acceleration concepts.",
+    type: "pdf", 
+    date: "2024-05-10", 
+    size: "2.4 MB", 
+    subjectId: "PHY101",
+    fileUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+  },
+  { 
+    id: "M2", 
+    title: "Thermodynamics Lecture", 
+    description: "Video recording of the session covering the Laws of Thermodynamics.",
+    type: "video", 
+    date: "2024-05-12", 
+    size: "45 MB", 
+    subjectId: "PHY101",
+    fileUrl: "https://sample-videos.com/video321/mp4/720/big_buck_bunny_720p_1mb.mp4"
+  },
+  { 
+    id: "M3", 
+    title: "Vector Calculus Diagrams", 
+    description: "Visual aids for 3D coordinate systems and vector projections.",
+    type: "image", 
+    date: "2024-05-14", 
+    size: "1.8 MB", 
+    subjectId: "MAT101",
+    fileUrl: "https://picsum.photos/seed/math-vectors/1200/800"
+  },
+  { 
+    id: "M4", 
+    title: "Class Project Guidelines", 
+    description: "Submission requirements and rubric for the end-of-term project.",
+    type: "document", 
+    date: "2024-05-15", 
+    size: "0.5 MB", 
+    subjectId: "PHY101",
+    fileUrl: "https://www.w3.org/TR/PNG/iso_8859-1.txt"
+  }
 ];
 
 export default function CoursesPage() {
@@ -66,7 +107,10 @@ export default function CoursesPage() {
   const [viewingMaterialsFor, setViewingMaterialsFor] = useState<any>(null);
   const [materials, setMaterials] = useState(INITIAL_MATERIALS);
   const [isAddingMaterial, setIsAddingMaterial] = useState(false);
-  const [newMaterialData, setNewMaterialData] = useState({ title: "", type: "pdf" });
+  const [newMaterialData, setNewMaterialData] = useState({ title: "", description: "", type: "pdf", url: "" });
+
+  // Preview State
+  const [previewMaterial, setPreviewMaterial] = useState<any>(null);
 
   const [myOptionalSubjects, setMyOptionalSubjects] = useState<string[]>([]);
   
@@ -118,21 +162,23 @@ export default function CoursesPage() {
   };
 
   const handleAddMaterial = () => {
-    if (!newMaterialData.title) return;
+    if (!newMaterialData.title || !newMaterialData.url) return;
     setIsProcessing(true);
     setTimeout(() => {
       const created = {
         id: `M-${Math.random().toString(36).substr(2, 5)}`,
         title: newMaterialData.title,
+        description: newMaterialData.description,
         type: newMaterialData.type,
         date: new Date().toISOString().split('T')[0],
         size: "1.2 MB",
-        subjectId: viewingMaterialsFor.id
+        subjectId: viewingMaterialsFor.id,
+        fileUrl: newMaterialData.url
       };
       setMaterials([created, ...materials]);
       setIsProcessing(false);
       setIsAddingMaterial(false);
-      setNewMaterialData({ title: "", type: "pdf" });
+      setNewMaterialData({ title: "", description: "", type: "pdf", url: "" });
       toast({ title: "Material Uploaded", description: "Resource added to class archive." });
     }, 1200);
   };
@@ -140,6 +186,36 @@ export default function CoursesPage() {
   const handleDeleteMaterial = (id: string) => {
     setMaterials(materials.filter(m => m.id !== id));
     toast({ title: "Material Removed", description: "Resource deleted from subject library." });
+  };
+
+  const handleViewMaterial = (material: any) => {
+    if (!material.fileUrl) {
+      toast({ variant: "destructive", title: "Resource Unavailable", description: "This file does not have a valid source URL." });
+      return;
+    }
+
+    if (material.type === 'pdf' || material.type === 'document' || material.type === 'link') {
+      window.open(material.fileUrl, '_blank');
+    } else {
+      setPreviewMaterial(material);
+    }
+  };
+
+  const handleDownloadMaterial = (material: any) => {
+    if (!material.fileUrl) {
+      toast({ variant: "destructive", title: "Download Failed", description: "Source URL is missing." });
+      return;
+    }
+
+    // Force download logic
+    const link = document.createElement('a');
+    link.href = material.fileUrl;
+    link.setAttribute('download', `${material.title}.${material.type}`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({ title: "Download Started", description: `Preparing ${material.title} for offline access.` });
   };
 
   // Materials View Render
@@ -189,16 +265,37 @@ export default function CoursesPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Resource Type</Label>
-                    <Select value={newMaterialData.type} onValueChange={(v) => setNewMaterialData({...newMaterialData, type: v})}>
-                      <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pdf">PDF Document</SelectItem>
-                        <SelectItem value="video">Lecture Video</SelectItem>
-                        <SelectItem value="link">Reference Link</SelectItem>
-                        <SelectItem value="doc">Worksheet (DOC)</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Short Description</Label>
+                    <Input 
+                      value={newMaterialData.description} 
+                      onChange={(e) => setNewMaterialData({...newMaterialData, description: e.target.value})} 
+                      placeholder="What is this material about?" 
+                      className="h-12 bg-accent/30 border-none rounded-xl"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Type</Label>
+                      <Select value={newMaterialData.type} onValueChange={(v) => setNewMaterialData({...newMaterialData, type: v})}>
+                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pdf">PDF Document</SelectItem>
+                          <SelectItem value="video">Lecture Video</SelectItem>
+                          <SelectItem value="image">Image / Diagram</SelectItem>
+                          <SelectItem value="document">Text File</SelectItem>
+                          <SelectItem value="link">Web Link</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Source URL</Label>
+                      <Input 
+                        value={newMaterialData.url} 
+                        onChange={(e) => setNewMaterialData({...newMaterialData, url: e.target.value})} 
+                        placeholder="https://..." 
+                        className="h-12 bg-accent/30 border-none rounded-xl"
+                      />
+                    </div>
                   </div>
                   <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 flex items-center gap-3">
                     <ShieldCheck className="w-5 h-5 text-primary opacity-40" />
@@ -208,7 +305,7 @@ export default function CoursesPage() {
                   </div>
                 </div>
                 <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
-                  <Button onClick={handleAddMaterial} disabled={isProcessing || !newMaterialData.title} className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-2">
+                  <Button onClick={handleAddMaterial} disabled={isProcessing || !newMaterialData.title || !newMaterialData.url} className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-2">
                     {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
                     Confirm Upload
                   </Button>
@@ -220,22 +317,27 @@ export default function CoursesPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {subjectMaterials.map((material) => (
-            <Card key={material.id} className="border-none shadow-sm group hover:shadow-md transition-all overflow-hidden bg-white">
-              <div className="p-6 flex items-start gap-4">
+            <Card key={material.id} className="border-none shadow-sm group hover:shadow-md transition-all overflow-hidden bg-white flex flex-col">
+              <div className="p-6 flex items-start gap-4 flex-1">
                 <div className={cn(
                   "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm",
                   material.type === 'pdf' ? "bg-red-50 text-red-600" :
                   material.type === 'video' ? "bg-blue-50 text-blue-600" :
+                  material.type === 'image' ? "bg-purple-50 text-purple-600" :
                   material.type === 'link' ? "bg-emerald-50 text-emerald-600" :
                   "bg-amber-50 text-amber-600"
                 )}>
                   {material.type === 'pdf' ? <FileText className="w-6 h-6" /> :
                    material.type === 'video' ? <Video className="w-6 h-6" /> :
+                   material.type === 'image' ? <ImageIcon className="w-6 h-6" /> :
                    material.type === 'link' ? <LinkIcon className="w-6 h-6" /> :
-                   <BookOpen className="w-6 h-6" />}
+                   <FileIcon className="w-6 h-6" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-primary text-sm leading-tight truncate mb-1">{material.title}</h3>
+                  <h3 className="font-bold text-primary text-base leading-tight truncate mb-1">{material.title}</h3>
+                  <p className="text-xs text-muted-foreground line-clamp-2 mb-3 leading-relaxed">
+                    {material.description || "No description provided for this resource."}
+                  </p>
                   <div className="flex items-center gap-3 text-[10px] font-bold text-muted-foreground uppercase tracking-tight">
                     <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {material.date}</span>
                     <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
@@ -243,13 +345,21 @@ export default function CoursesPage() {
                   </div>
                 </div>
               </div>
-              <CardFooter className="bg-accent/10 p-3 border-t flex justify-between gap-2">
+              <CardFooter className="bg-accent/10 p-3 border-t flex items-center justify-between gap-2">
                 <div className="flex flex-1 gap-2">
-                  <Button variant="ghost" className="flex-1 h-9 rounded-lg hover:bg-white text-primary text-[10px] font-black uppercase tracking-widest gap-2">
-                    <Eye className="w-3.5 h-3.5" /> View
+                  <Button 
+                    variant="ghost" 
+                    className="flex-1 h-9 rounded-lg hover:bg-white text-primary text-[10px] font-black uppercase tracking-widest gap-2"
+                    onClick={() => handleViewMaterial(material)}
+                  >
+                    <Eye className="w-3.5 h-3.5" /> {language === 'en' ? 'View' : 'Voir'}
                   </Button>
-                  <Button variant="ghost" className="flex-1 h-9 rounded-lg hover:bg-white text-primary text-[10px] font-black uppercase tracking-widest gap-2">
-                    <Download className="w-3.5 h-3.5" /> Get
+                  <Button 
+                    variant="ghost" 
+                    className="flex-1 h-9 rounded-lg hover:bg-white text-primary text-[10px] font-black uppercase tracking-widest gap-2"
+                    onClick={() => handleDownloadMaterial(material)}
+                  >
+                    <Download className="w-3.5 h-3.5" /> {language === 'en' ? 'Download' : 'Télécharger'}
                   </Button>
                 </div>
                 {(isTeacher || isAdmin) && (
@@ -277,6 +387,57 @@ export default function CoursesPage() {
             </div>
           )}
         </div>
+
+        {/* MEDIA PREVIEW MODAL */}
+        <Dialog open={!!previewMaterial} onOpenChange={() => setPreviewMaterial(null)}>
+          <DialogContent className="sm:max-w-4xl rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl bg-black">
+            <DialogHeader className="p-6 bg-white/5 text-white absolute top-0 left-0 right-0 z-10 backdrop-blur-md border-b border-white/10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-2 bg-primary rounded-xl text-white">
+                    {previewMaterial?.type === 'video' ? <Video className="w-5 h-5" /> : <ImageIcon className="w-5 h-5" />}
+                  </div>
+                  <div>
+                    <DialogTitle className="text-lg font-black">{previewMaterial?.title}</DialogTitle>
+                    <DialogDescription className="text-white/40 text-xs">{previewMaterial?.description}</DialogDescription>
+                  </div>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => setPreviewMaterial(null)} className="text-white/40 hover:text-white hover:bg-white/10">
+                  <X className="w-6 h-6" />
+                </Button>
+              </div>
+            </DialogHeader>
+            <div className="aspect-video w-full flex items-center justify-center bg-slate-900 pt-20">
+              {previewMaterial?.type === 'video' ? (
+                <video 
+                  controls 
+                  autoPlay 
+                  className="w-full h-full max-h-[70vh] object-contain"
+                  src={previewMaterial.fileUrl}
+                />
+              ) : previewMaterial?.type === 'image' ? (
+                <img 
+                  src={previewMaterial.fileUrl} 
+                  alt={previewMaterial.title}
+                  className="w-full h-full max-h-[70vh] object-contain"
+                />
+              ) : null}
+            </div>
+            <DialogFooter className="bg-white/5 p-6 border-t border-white/10 flex justify-between items-center">
+              <div className="flex items-center gap-2 text-white/40 text-[10px] font-black uppercase tracking-widest">
+                <ShieldCheck className="w-4 h-4" />
+                EduIgnite Secure Viewer
+              </div>
+              <Button 
+                variant="secondary" 
+                className="gap-2 rounded-xl font-bold"
+                onClick={() => handleDownloadMaterial(previewMaterial)}
+              >
+                <Download className="w-4 h-4" /> Download Original
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
