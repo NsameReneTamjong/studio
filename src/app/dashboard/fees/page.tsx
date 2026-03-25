@@ -34,7 +34,8 @@ import {
   CheckCircle,
   AlertTriangle,
   Download,
-  Building2
+  Building2,
+  BookMarked
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -49,10 +50,10 @@ const ACADEMIC_YEARS = ["2023 / 2024", "2022 / 2023", "2021 / 2022"];
 
 // Initial Mock Data
 const INITIAL_STUDENTS = [
-  { id: "GBHS26S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", totalFee: 150000, paid: 125000, status: "partial", isLicensePaid: true, class: "2nde / Form 5", year: "2023 / 2024" },
-  { id: "GBHS26S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", totalFee: 150000, paid: 150000, status: "cleared", isLicensePaid: true, class: "Terminale / Upper Sixth", year: "2023 / 2024" },
-  { id: "GBHS26S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", totalFee: 150000, paid: 45000, status: "partial", isLicensePaid: false, class: "1ère / Lower Sixth", year: "2023 / 2024" },
-  { id: "GBHS26S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100", totalFee: 150000, paid: 150000, status: "cleared", isLicensePaid: true, class: "2nde / Form 5", year: "2023 / 2024" },
+  { id: "GBHS26S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", balances: { "Tuition Fee": 125000, "Uniform Package": 25000, "PTA Contribution": 10000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, isLicensePaid: true, class: "2nde / Form 5", year: "2023 / 2024" },
+  { id: "GBHS26S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, isLicensePaid: true, class: "Terminale / Upper Sixth", year: "2023 / 2024" },
+  { id: "GBHS26S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", balances: { "Tuition Fee": 45000, "Uniform Package": 0, "PTA Contribution": 5000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, isLicensePaid: false, class: "1ère / Lower Sixth", year: "2023 / 2024" },
+  { id: "GBHS26S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, isLicensePaid: true, class: "2nde / Form 5", year: "2023 / 2024" },
 ];
 
 export default function FeesPage() {
@@ -62,6 +63,7 @@ export default function FeesPage() {
   
   const [searchTerm, setSearchTerm] = useState("");
   const [classFilter, setClassFilter] = useState("all");
+  const [activeFeeFilter, setActiveFeeFilter] = useState("Tuition Fee");
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedStudentForPayment, setSelectedStudentForPayment] = useState<any>(null);
   const [issuedReceipt, setIssuedReceipt] = useState<any>(null);
@@ -94,10 +96,15 @@ export default function FeesPage() {
     return students.filter(s => {
       const matchesYear = s.year === reportYear;
       const matchesClass = reportClass === "all" || s.class === reportClass;
-      const matchesStatus = reportStatus === "all" || s.status === reportStatus;
+      
+      const paid = (s.balances as any)[activeFeeFilter] || 0;
+      const total = (s.totals as any)[activeFeeFilter] || 150000;
+      const status = paid >= total ? 'cleared' : 'partial';
+      
+      const matchesStatus = reportStatus === "all" || status === reportStatus;
       return matchesYear && matchesClass && matchesStatus;
     });
-  }, [reportYear, reportClass, reportStatus, students]);
+  }, [reportYear, reportClass, reportStatus, students, activeFeeFilter]);
 
   const handleProcessPayment = () => {
     if (!paymentForm.amount || parseFloat(paymentForm.amount) <= 0) {
@@ -112,11 +119,12 @@ export default function FeesPage() {
       
       setStudents(prev => prev.map(s => {
         if (s.id === studentId) {
-          const newPaid = s.paid + amountNum;
+          const currentBalances = { ...s.balances };
+          const currentVal = (currentBalances as any)[paymentForm.type] || 0;
+          (currentBalances as any)[paymentForm.type] = currentVal + amountNum;
           return {
             ...s,
-            paid: newPaid,
-            status: newPaid >= s.totalFee ? "cleared" : "partial"
+            balances: currentBalances
           };
         }
         return s;
@@ -148,7 +156,7 @@ export default function FeesPage() {
       setIssuedReceipt(receipt);
       setIsProcessing(false);
       setSelectedStudentForPayment(null);
-      setPaymentForm({ type: "Tuition Fee", amount: "" });
+      setPaymentForm({ type: activeFeeFilter, amount: "" });
       toast({ title: "Payment Recorded", description: `${receipt.studentName}'s record updated.` });
     }, 1500);
   };
@@ -162,6 +170,12 @@ export default function FeesPage() {
         description: `Institutional list for ${reportYear} generated with status filters.`,
       });
     }, 2000);
+  };
+
+  const getStatusForFee = (student: any, feeType: string) => {
+    const paid = (student.balances as any)[feeType] || 0;
+    const total = (student.totals as any)[feeType] || 150000;
+    return paid >= total ? 'cleared' : 'partial';
   };
 
   return (
@@ -200,25 +214,42 @@ export default function FeesPage() {
         <TabsContent value="pay" className="animate-in fade-in slide-in-from-bottom-4 mt-0 space-y-6">
           <Card className="border-none shadow-xl overflow-hidden rounded-[1.5rem] md:rounded-3xl">
             <CardHeader className="bg-white border-b p-4 md:p-6">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="relative flex-1">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="relative col-span-1 md:col-span-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input 
-                    placeholder="Find student by name or Matricule..." 
-                    className="pl-10 h-11 md:h-12 bg-accent/20 border-none rounded-xl text-sm"
+                    placeholder="Search name or ID..." 
+                    className="pl-10 h-11 bg-accent/20 border-none rounded-xl text-sm"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                <Select value={classFilter} onValueChange={setClassFilter}>
-                  <SelectTrigger className="w-full md:w-[200px] h-11 md:h-12 bg-accent/20 border-none rounded-xl text-sm">
-                    <SelectValue placeholder="All Classes" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Classes</SelectItem>
-                    {CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <div className="space-y-1">
+                  <Label className="text-[9px] font-black uppercase text-muted-foreground ml-1">Class Level</Label>
+                  <Select value={classFilter} onValueChange={setClassFilter}>
+                    <SelectTrigger className="h-11 bg-accent/20 border-none rounded-xl text-sm">
+                      <SelectValue placeholder="All Classes" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Classes</SelectItem>
+                      {CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[9px] font-black uppercase text-primary ml-1">Fee Category Filter</Label>
+                  <Select value={activeFeeFilter} onValueChange={setActiveFeeFilter}>
+                    <SelectTrigger className="h-11 bg-primary/5 border-primary/20 text-primary font-bold rounded-xl text-sm">
+                      <div className="flex items-center gap-2">
+                        <Filter className="w-3.5 h-3.5" />
+                        <SelectValue />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FEE_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="p-0 overflow-x-auto">
@@ -227,51 +258,60 @@ export default function FeesPage() {
                   <TableRow className="uppercase text-[10px] font-black tracking-widest border-b">
                     <TableHead className="pl-6 md:pl-8 py-4">Matricule</TableHead>
                     <TableHead>Student Profile</TableHead>
-                    <TableHead className="hidden md:table-cell">Class</TableHead>
-                    <TableHead className="text-center">Status</TableHead>
+                    <TableHead className="hidden md:table-cell">Academic Level</TableHead>
+                    <TableHead className="text-center">Status ({activeFeeFilter})</TableHead>
                     <TableHead className="text-right pr-6 md:pr-8">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredStudents.map((s) => (
-                    <TableRow key={s.id} className="group hover:bg-accent/5 transition-colors border-b last:border-0">
-                      <TableCell className="pl-6 md:pl-8 font-mono text-xs font-bold text-primary">{s.id}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-8 w-8 md:h-10 md:w-10 border-2 border-white shadow-sm ring-1 ring-accent shrink-0">
-                            <AvatarImage src={s.avatar} alt={s.name} />
-                            <AvatarFallback className="bg-primary/5 text-primary text-[10px]">{s.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex flex-col">
-                            <span className="font-bold text-xs md:text-sm text-primary leading-tight">{s.name}</span>
-                            <span className="text-[9px] md:hidden text-muted-foreground uppercase font-bold">{s.class}</span>
+                  {filteredStudents.map((s) => {
+                    const status = getStatusForFee(s, activeFeeFilter);
+                    const paid = (s.balances as any)[activeFeeFilter] || 0;
+                    const total = (s.totals as any)[activeFeeFilter] || 150000;
+                    
+                    return (
+                      <TableRow key={s.id} className="group hover:bg-accent/5 transition-colors border-b last:border-0">
+                        <TableCell className="pl-6 md:pl-8 font-mono text-xs font-bold text-primary">{s.id}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8 md:h-10 md:w-10 border-2 border-white shadow-sm ring-1 ring-accent shrink-0">
+                              <AvatarImage src={s.avatar} alt={s.name} />
+                              <AvatarFallback className="bg-primary/5 text-primary text-[10px]">{s.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex flex-col">
+                              <span className="font-bold text-xs md:text-sm text-primary leading-tight">{s.name}</span>
+                              <span className="text-[9px] font-bold opacity-40 uppercase">{paid.toLocaleString()} / {total.toLocaleString()} Paid</span>
+                            </div>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        <Badge variant="outline" className="text-[10px] border-primary/10 text-primary font-bold">{s.class}</Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge className={cn(
-                          "text-[9px] font-black uppercase border-none px-3 h-5",
-                          s.status === 'cleared' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-                        )}>
-                          {s.status === 'cleared' ? 'Cleared' : 'Arrears'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right pr-6 md:pr-8">
-                        <Button 
-                          size="sm" 
-                          className="rounded-xl h-8 md:h-9 px-3 md:px-6 font-black uppercase tracking-widest text-[9px] md:text-[10px] shadow-lg"
-                          disabled={!s.isLicensePaid || s.status === 'cleared'}
-                          onClick={() => setSelectedStudentForPayment(s)}
-                        >
-                          <Wallet className="w-3 h-3 md:w-3.5 md:h-3.5 md:mr-2" /> 
-                          <span className="hidden sm:inline">Pay Fee</span>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          <Badge variant="outline" className="text-[10px] border-primary/10 text-primary font-bold">{s.class}</Badge>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge className={cn(
+                            "text-[9px] font-black uppercase border-none px-3 h-5",
+                            status === 'cleared' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                          )}>
+                            {status === 'cleared' ? 'Cleared' : 'Arrears'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right pr-6 md:pr-8">
+                          <Button 
+                            size="sm" 
+                            className="rounded-xl h-8 md:h-9 px-3 md:px-6 font-black uppercase tracking-widest text-[9px] md:text-[10px] shadow-lg"
+                            disabled={!s.isLicensePaid || status === 'cleared'}
+                            onClick={() => {
+                              setSelectedStudentForPayment(s);
+                              setPaymentForm({ ...paymentForm, type: activeFeeFilter });
+                            }}
+                          >
+                            <Wallet className="w-3 h-3 md:w-3.5 md:h-3.5 md:mr-2" /> 
+                            <span className="hidden sm:inline">Pay {activeFeeFilter.split(' ')[0]}</span>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </CardContent>
@@ -332,7 +372,7 @@ export default function FeesPage() {
                   </div>
                   <div>
                     <CardTitle className="text-xl md:text-2xl font-black">Export Institutional Lists</CardTitle>
-                    <CardDescription className="text-white/60">Generate targeted student dossiers based on academic, financial, and payment status criteria.</CardDescription>
+                    <CardDescription className="text-white/60">Generate targeted student dossiers based on academic and financial criteria.</CardDescription>
                   </div>
                 </div>
                 <Button 
@@ -378,12 +418,11 @@ export default function FeesPage() {
                   <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
                     <Filter className="w-3.5 h-3.5 text-primary" /> Fee Category
                   </Label>
-                  <Select value={reportFeeType} onValueChange={setReportFeeType}>
+                  <Select value={activeFeeFilter} onValueChange={setActiveFeeFilter}>
                     <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
                       {FEE_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                     </SelectContent>
                   </Select>
@@ -408,18 +447,10 @@ export default function FeesPage() {
               <div className="pt-6 border-t">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <h3 className="text-sm font-black uppercase text-primary tracking-widest">List Preview</h3>
+                    <h3 className="text-sm font-black uppercase text-primary tracking-widest">List Preview: {activeFeeFilter}</h3>
                     <Badge variant="outline" className="text-[10px] border-primary/10 text-primary font-bold">
                       {reportingList.length} Students Selected
                     </Badge>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1.5 text-[9px] font-black uppercase text-green-600">
-                      <div className="w-2 h-2 rounded-full bg-green-600" /> Paid
-                    </div>
-                    <div className="flex items-center gap-1.5 text-[9px] font-black uppercase text-amber-600">
-                      <div className="w-2 h-2 rounded-full bg-amber-600" /> Unpaid
-                    </div>
                   </div>
                 </div>
                 <div className="rounded-2xl border border-accent overflow-hidden shadow-inner">
@@ -429,46 +460,42 @@ export default function FeesPage() {
                         <TableHead className="pl-6 py-3">Matricule</TableHead>
                         <TableHead>Student Name</TableHead>
                         <TableHead className="hidden sm:table-cell">Class</TableHead>
-                        <TableHead className="text-right pr-6">Current Balance</TableHead>
+                        <TableHead className="text-right pr-6">Fee Status</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {reportingList.map((s) => (
-                        <TableRow key={s.id} className="text-xs hover:bg-accent/5 group">
-                          <TableCell className="pl-6 py-3 font-mono font-bold text-primary">{s.id}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold">{s.name}</span>
-                              <div className={cn(
-                                "w-1.5 h-1.5 rounded-full shrink-0",
-                                s.status === 'cleared' ? "bg-green-600" : "bg-amber-600"
-                              )} />
-                            </div>
-                          </TableCell>
-                          <TableCell className="hidden sm:table-cell font-medium text-muted-foreground">{s.class}</TableCell>
-                          <TableCell className="text-right pr-6">
-                            <div className="flex flex-col items-end">
-                              <span className={cn(
-                                "font-black",
-                                s.status === 'cleared' ? "text-green-700" : "text-amber-700"
-                              )}>
-                                {s.paid.toLocaleString()} / {s.totalFee.toLocaleString()}
-                              </span>
-                              <span className="text-[8px] uppercase font-bold opacity-40">XAF Recorded</span>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {reportingList.length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={4} className="py-20 text-center text-muted-foreground italic">
-                            <div className="flex flex-col items-center gap-2">
-                              <SearchX className="w-8 h-8 opacity-20" />
-                              <p>No students match the current reporting criteria.</p>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      )}
+                      {reportingList.map((s) => {
+                        const status = getStatusForFee(s, activeFeeFilter);
+                        const paid = (s.balances as any)[activeFeeFilter] || 0;
+                        const total = (s.totals as any)[activeFeeFilter] || 150000;
+                        
+                        return (
+                          <TableRow key={s.id} className="text-xs hover:bg-accent/5 group">
+                            <TableCell className="pl-6 py-3 font-mono font-bold text-primary">{s.id}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold">{s.name}</span>
+                                <div className={cn(
+                                  "w-1.5 h-1.5 rounded-full shrink-0",
+                                  status === 'cleared' ? "bg-green-600" : "bg-amber-600"
+                                )} />
+                              </div>
+                            </TableCell>
+                            <TableCell className="hidden sm:table-cell font-medium text-muted-foreground">{s.class}</TableCell>
+                            <TableCell className="text-right pr-6">
+                              <div className="flex flex-col items-end">
+                                <span className={cn(
+                                  "font-black",
+                                  status === 'cleared' ? "text-green-700" : "text-amber-700"
+                                )}>
+                                  {paid.toLocaleString()} / {total.toLocaleString()}
+                                </span>
+                                <span className="text-[8px] uppercase font-bold opacity-40">XAF RECORDED</span>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>
@@ -487,27 +514,27 @@ export default function FeesPage() {
                   <TrendingUp className="w-4 h-4 text-blue-600" />
                 </div>
                 <div className="text-2xl md:text-3xl font-black text-blue-700">84.2%</div>
-                <p className="text-[10px] text-blue-600/60 font-bold mt-1 uppercase">24.5M Collected of 29.1M</p>
+                <p className="text-[10px] text-blue-600/60 font-bold mt-1 uppercase">Across all fee categories</p>
               </CardContent>
             </Card>
             <Card className="border-none shadow-sm bg-green-50">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-[10px] font-black uppercase text-green-600 tracking-widest">Fully Cleared</p>
+                  <p className="text-[10px] font-black uppercase text-green-600 tracking-widest">Platform Licenses</p>
                   <CheckCircle2 className="w-4 h-4 text-green-600" />
                 </div>
-                <div className="text-2xl md:text-3xl font-black text-green-700">842/1284</div>
-                <p className="text-[10px] text-blue-600/60 font-bold mt-1 uppercase">Registered Students</p>
+                <div className="text-2xl md:text-3xl font-black text-green-700">1,120 / 1,284</div>
+                <p className="text-[10px] text-green-600/60 font-bold mt-1 uppercase">Active Dashboard Nodes</p>
               </CardContent>
             </Card>
             <Card className="border-none shadow-sm bg-amber-50">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-[10px] font-black uppercase text-amber-600 tracking-widest">Active Arrears</p>
+                  <p className="text-[10px] font-black uppercase text-amber-600 tracking-widest">Tuition Arrears</p>
                   <AlertCircle className="w-4 h-4 text-amber-600" />
                 </div>
-                <div className="text-2xl md:text-3xl font-black text-2xl md:text-3xl font-black text-amber-700">4.6M XAF</div>
-                <p className="text-[10px] text-amber-600/60 font-bold mt-1 uppercase">Uncollected Revenue</p>
+                <div className="text-2xl md:text-3xl font-black text-amber-700">4.6M XAF</div>
+                <p className="text-[10px] text-amber-600/60 font-bold mt-1 uppercase">Sequence 2 Recovery Required</p>
               </CardContent>
             </Card>
           </div>
