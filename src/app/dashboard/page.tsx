@@ -19,7 +19,12 @@ import {
   Heart,
   Award,
   ChevronRight,
-  ClipboardCheck
+  ClipboardCheck,
+  Coins,
+  Receipt,
+  ArrowUpRight,
+  History,
+  AlertCircle
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -57,6 +62,7 @@ export default function DashboardPage() {
 
   const isSuperAdmin = user.role === "SUPER_ADMIN";
   const isParent = user.role === "PARENT";
+  const isBursar = user.role === "BURSAR";
 
   if (isSuperAdmin) {
     return (
@@ -159,6 +165,114 @@ export default function DashboardPage() {
               ))}
             </CardContent>
           </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (isBursar) {
+    return (
+      <div className="space-y-8 pb-20">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-primary rounded-2xl shadow-xl border-2 border-white">
+              <Coins className="w-8 h-8 text-secondary" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-primary font-headline">Bursar Suite</h1>
+              <p className="text-muted-foreground mt-1">{user.school?.name || "EduIgnite Node"} • Financial Oversight</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button asChild variant="outline" className="rounded-xl h-11 px-6 border-primary/20 text-primary font-bold gap-2">
+              <Link href="/dashboard/fees">
+                <Receipt className="w-4 h-4" /> Collect Payment
+              </Link>
+            </Button>
+            <Button asChild className="rounded-xl h-11 px-6 shadow-lg font-bold gap-2 bg-primary text-white">
+              <Link href="/dashboard/students">
+                <Users className="w-4 h-4" /> Admissions
+              </Link>
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { label: "Intake Target", value: "24.5M", icon: TrendingUp, color: "text-green-600", desc: "84% Achieved" },
+            { label: "Daily Collection", value: "450k", icon: ArrowUpRight, color: "text-blue-600", desc: "12 Transactions" },
+            { label: "Total Arrears", value: "4.6M", icon: AlertCircle, color: "text-red-600", desc: "Urgent Follow-up" },
+            { label: "Fee Categories", value: "4", icon: Wallet, color: "text-amber-600", desc: "Active Structures" },
+          ].map((stat, i) => (
+            <Card key={i} className="border-none shadow-sm group hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{stat.label}</CardTitle>
+                <stat.icon className={cn("w-4 h-4 transition-transform group-hover:scale-110", stat.color)} />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-black text-primary">{stat.value} <span className="text-xs font-bold text-muted-foreground">XAF</span></div>
+                <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase">{stat.desc}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <Card className="lg:col-span-8 border-none shadow-xl overflow-hidden rounded-[2rem]">
+            <CardHeader className="bg-primary/5 p-8 border-b">
+              <CardTitle className="text-primary flex items-center gap-2 font-black uppercase tracking-tighter">
+                <TrendingUp className="w-5 h-5 text-secondary"/> Revenue Intake Velocity
+              </CardTitle>
+              <CardDescription>Visualizing collection performance for the current academic session.</CardDescription>
+            </CardHeader>
+            <CardContent className="h-[350px] pt-10">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={MONTHLY_REVENUE}>
+                  <defs>
+                    <linearGradient id="colorBursar" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.15}/>
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                  <YAxis axisLine={false} tickLine={false} />
+                  <RechartsTooltip />
+                  <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={4} fill="url(#colorBursar)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <div className="lg:col-span-4 space-y-6">
+            <Card className="border-none shadow-sm rounded-[2rem] bg-secondary/10 p-8 flex flex-col items-center text-center space-y-4">
+              <div className="p-4 bg-white rounded-[1.5rem] shadow-xl">
+                <History className="w-10 h-10 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-xl font-black text-primary uppercase tracking-tighter leading-none">Recent Registry</h3>
+                <p className="text-xs text-muted-foreground mt-2 leading-relaxed">Review the latest transaction logs and verify physical deposits.</p>
+              </div>
+              <Button asChild className="w-full gap-2 rounded-xl h-11 font-bold bg-primary text-white shadow-lg">
+                <Link href="/dashboard/fees?tab=ledger">
+                  Open Ledger
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </Button>
+            </Card>
+
+            <Card className="border-none shadow-sm rounded-[2rem] bg-accent/30 p-6">
+               <div className="flex items-start gap-3">
+                  <div className="p-2 bg-white rounded-lg shadow-sm">
+                    <ShieldCheck className="w-4 h-4 text-green-600" />
+                  </div>
+                  <div className="space-y-1">
+                     <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest leading-none">Node Integrity</p>
+                     <p className="text-xs font-bold text-primary">All financial records are encrypted and synchronized with the platform core.</p>
+                  </div>
+               </div>
+            </Card>
+          </div>
         </div>
       </div>
     );
@@ -295,7 +409,7 @@ export default function DashboardPage() {
             <CardTitle className="text-primary flex items-center gap-2"><TrendingUp className="w-5 h-5"/> Activity Insight</CardTitle>
             <CardDescription>Visual summary of institutional engagement.</CardDescription>
           </CardHeader>
-          <CardContent className="h-[300px] pt-10">
+          <CardContent className="h-[350px] pt-10">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={MONTHLY_REVENUE}>
                 <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.1} />

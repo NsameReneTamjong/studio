@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -42,15 +43,19 @@ import {
   ArrowRight,
   XCircle,
   Users,
-  Lock
+  Lock,
+  SearchX,
+  FileText,
+  UserPlus
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
-// Mock Data for Institutional Finance Overview
+// Mock Data
 const MOCK_CLASSES_FINANCE = [
   { id: "C1", name: "6ème / Form 1", percentage: 82, collected: "4.2M", target: "5.1M", trends: "+5%", status: "medium", bursar: "Mme. Ngono" },
   { id: "C2", name: "5ème / Form 2", percentage: 94, collected: "3.8M", target: "4.0M", trends: "+2%", status: "high", bursar: "Mr. Abena" },
@@ -61,19 +66,11 @@ const MOCK_CLASSES_FINANCE = [
   { id: "C7", name: "Terminale / Upper Sixth", percentage: 98, collected: "3.0M", target: "3.0M", trends: "Closed", status: "high", bursar: "Mme. Ngono" },
 ];
 
-const MOCK_FEE_CATEGORY_PERFORMANCE = [
-  { id: "FT1", name: "Tuition Fee", percentage: 85, collected: "2.5M", target: "3.0M", description: "Main academic enrollment fees." },
-  { id: "FT2", name: "Uniform Package", percentage: 70, collected: "450k", target: "650k", description: "Mandatory school gear." },
-  { id: "FT3", name: "Exam Registration", percentage: 100, collected: "300k", target: "300k", description: "Sequence evaluation fees." },
-  { id: "FT4", name: "PTA Contribution", percentage: 95, collected: "150k", target: "160k", description: "Parents association fund." },
-];
-
 const MOCK_STUDENT_LEDGER = [
-  { id: "S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", paid: 125000, left: 25000, status: "partial", isLicensePaid: true },
-  { id: "S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", paid: 150000, left: 0, status: "cleared", isLicensePaid: true },
-  { id: "S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", paid: 45000, left: 105000, status: "partial", isLicensePaid: false },
-  { id: "S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100", paid: 150000, left: 0, status: "cleared", isLicensePaid: true },
-  { id: "S005", name: "Ethan Hunt", avatar: "https://picsum.photos/seed/s5/100/100", paid: 75000, left: 75000, status: "partial", isLicensePaid: false },
+  { id: "S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", paid: 125000, left: 25000, status: "partial", isLicensePaid: true, class: "2nde / Form 5" },
+  { id: "S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", paid: 150000, left: 0, status: "cleared", isLicensePaid: true, class: "Terminale / Upper Sixth" },
+  { id: "S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", paid: 45000, left: 105000, status: "partial", isLicensePaid: false, class: "1ère / Lower Sixth" },
+  { id: "S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100", paid: 150000, left: 0, status: "cleared", isLicensePaid: true, class: "2nde / Form 5" },
 ];
 
 const RECENT_TRANSACTIONS = [
@@ -86,12 +83,21 @@ export default function BursarFeesPage() {
   const { t, language } = useI18n();
   const { toast } = useToast();
   
-  // Drill-down States
+  const [activeTab, setActiveTab] = useState("overview");
   const [selectedClassDetails, setSelectedClassDetails] = useState<any>(null);
   const [selectedFeeRegistry, setSelectedFeeRegistry] = useState<any>(null);
   
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedStudentForPayment, setSelectedStudentForPayment] = useState<any>(null);
+  const [collectSearch, setCollectSearch] = useState("");
+
+  const filteredStudentsForCollect = useMemo(() => {
+    if (!collectSearch) return [];
+    return MOCK_STUDENT_LEDGER.filter(s => 
+      s.name.toLowerCase().includes(collectSearch.toLowerCase()) || 
+      s.id.toLowerCase().includes(collectSearch.toLowerCase())
+    );
+  }, [collectSearch]);
 
   const isBursar = user?.role === "BURSAR";
   const isAdmin = user?.role === "SCHOOL_ADMIN";
@@ -112,8 +118,8 @@ export default function BursarFeesPage() {
     if (!selectedStudentForPayment.isLicensePaid) {
       toast({ 
         variant: "destructive", 
-        title: "Account Suspended", 
-        description: "Institutional fees cannot be recorded for students with unpaid annual platform licenses." 
+        title: "Platform Access Suspended", 
+        description: "Payments cannot be recorded for students with unpaid annual EduIgnite licenses. Redirect student to payment portal." 
       });
       return;
     }
@@ -121,84 +127,80 @@ export default function BursarFeesPage() {
     setIsProcessing(true);
     setTimeout(() => {
       setIsProcessing(false);
-      toast({ title: "Payment Recorded", description: "Successfully processed for student." });
+      toast({ title: "Transaction Verified", description: "Receipt has been generated and archived." });
       setSelectedStudentForPayment(null);
-    }, 1000);
+      setCollectSearch("");
+    }, 1500);
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-20">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
-            <div className="p-2 bg-primary rounded-xl shadow-lg">
-              <Coins className="w-6 h-6 text-secondary" />
-            </div>
-            {isAdmin ? "Financial Supervision" : "Financial Management"}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {isAdmin 
-              ? "Supervisory overview of institutional revenue and collection health." 
-              : "Manage student collections and institutional fee structures."}
-          </p>
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-primary rounded-2xl shadow-xl border-2 border-white">
+            <Coins className="w-8 h-8 text-secondary" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-primary font-headline tracking-tighter">Bursar Suite</h1>
+            <p className="text-muted-foreground mt-1">Manage institutional collections, debt auditing, and registration revenue.</p>
+          </div>
         </div>
         
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="gap-2 bg-white rounded-xl h-11 border-primary/10">
-            <Calendar className="w-4 h-4 text-primary" /> Current Term: Sequence 2
+          <Button variant="outline" className="gap-2 bg-white rounded-xl h-11 border-primary/10 font-bold" asChild>
+            <Link href="/dashboard/students">
+              <UserPlus className="w-4 h-4" /> New Admission
+            </Link>
           </Button>
-          <Button variant="secondary" className="gap-2 rounded-xl h-11 shadow-sm" onClick={() => handleDownloadReport("School-wide Ledger")}>
-            <Download className="w-4 h-4" /> Export Master Ledger
+          <Button variant="secondary" className="gap-2 rounded-xl h-11 shadow-sm font-bold bg-secondary text-primary hover:bg-secondary/90" onClick={() => handleDownloadReport("School Master Ledger")}>
+            <Download className="w-4 h-4" /> Export Ledger
           </Button>
         </div>
       </div>
 
-      <Tabs defaultValue="overview" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid grid-cols-3 w-full md:w-[600px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl">
           <TabsTrigger value="overview" className="gap-2 py-3 rounded-xl transition-all">
-            <TrendingUp className="w-4 h-4" /> Revenue Overview
+            <TrendingUp className="w-4 h-4" /> Revenue Flow
           </TabsTrigger>
           <TabsTrigger value="ledger" className="gap-2 py-3 rounded-xl transition-all">
-            <History className="w-4 h-4" /> Transactions
+            <History className="w-4 h-4" /> Transaction Log
           </TabsTrigger>
-          {isBursar && (
-            <TabsTrigger value="collect" className="gap-2 py-3 rounded-xl transition-all">
-              <Wallet className="w-4 h-4" /> Collect Fee
-            </TabsTrigger>
-          )}
+          <TabsTrigger value="collect" className="gap-2 py-3 rounded-xl transition-all">
+            <Wallet className="w-4 h-4" /> Record Payment
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="animate-in fade-in slide-in-from-bottom-4 mt-0 space-y-8">
-          {/* Summary Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="border-none shadow-sm bg-blue-50">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Aggregate Intake</p>
+                  <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Global Collection</p>
                   <TrendingUp className="w-4 h-4 text-blue-600" />
                 </div>
                 <div className="text-3xl font-black text-blue-700">84.2%</div>
-                <p className="text-[10px] text-blue-600/60 font-bold mt-1 uppercase">24.5M Collected of 29.1M</p>
+                <p className="text-[10px] text-blue-600/60 font-bold mt-1 uppercase leading-none">24.5M Collected of 29.1M</p>
               </CardContent>
             </Card>
             <Card className="border-none shadow-sm bg-green-50">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-[10px] font-black uppercase text-green-600 tracking-widest">Cleared Students</p>
+                  <p className="text-[10px] font-black uppercase text-green-600 tracking-widest">Fully Cleared</p>
                   <CheckCircle2 className="w-4 h-4 text-green-600" />
                 </div>
                 <div className="text-3xl font-black text-green-700">842/1284</div>
-                <p className="text-[10px] text-green-600/60 font-bold mt-1 uppercase">Paid in full</p>
+                <p className="text-[10px] text-green-600/60 font-bold mt-1 uppercase leading-none">Registered Students</p>
               </CardContent>
             </Card>
             <Card className="border-none shadow-sm bg-amber-50">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-[10px] font-black uppercase text-amber-600 tracking-widest">Outstanding Debt</p>
+                  <p className="text-[10px] font-black uppercase text-amber-600 tracking-widest">Active Arrears</p>
                   <AlertCircle className="w-4 h-4 text-amber-600" />
                 </div>
                 <div className="text-3xl font-black text-amber-700">4.6M XAF</div>
-                <p className="text-[10px] text-amber-600/60 font-bold mt-1 uppercase">Requires intervention</p>
+                <p className="text-[10px] text-amber-600/60 font-bold mt-1 uppercase leading-none">Uncollected Revenue</p>
               </CardContent>
             </Card>
           </div>
@@ -215,7 +217,7 @@ export default function BursarFeesPage() {
                     <div>
                       <CardTitle className="text-xl font-black text-primary">{cls.name}</CardTitle>
                       <CardDescription className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 mt-1">
-                        <User className="w-3 h-3" /> Managed by: {cls.bursar}
+                        <User className="w-3 h-3" /> Managed: {cls.bursar}
                       </CardDescription>
                     </div>
                     <div className={cn(
@@ -231,7 +233,7 @@ export default function BursarFeesPage() {
                 <CardContent className="space-y-4">
                   <div className="space-y-1.5 pt-2">
                     <div className="flex justify-between text-[10px] font-black uppercase text-muted-foreground">
-                      <span>Collected Revenue</span>
+                      <span>Total Collected</span>
                       <span>{cls.collected} / {cls.target}</span>
                     </div>
                     <Progress value={cls.percentage} className={cn(
@@ -239,37 +241,14 @@ export default function BursarFeesPage() {
                       cls.status === 'high' ? "[&>div]:bg-green-500" : cls.status === 'medium' ? "[&>div]:bg-blue-500" : "[&>div]:bg-red-500"
                     )} />
                   </div>
-                  
-                  <div className="flex items-center justify-between p-3 bg-accent/30 rounded-xl border border-accent">
-                    <div className="space-y-0.5">
-                      <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Intake Trend</p>
-                      <div className="flex items-center gap-1.5">
-                        {cls.trends.startsWith('+') ? <TrendingUp className="w-3.5 h-3.5 text-green-600" /> : cls.trends === 'Closed' ? <CheckCircle2 className="w-3.5 h-3.5 text-primary" /> : <TrendingDown className="w-3.5 h-3.5 text-red-600" />}
-                        <span className={cn("text-sm font-black", cls.trends.startsWith('+') ? "text-green-600" : cls.trends === 'Closed' ? "text-primary" : "text-red-600")}>{cls.trends}</span>
-                      </div>
-                    </div>
-                    <div className="h-8 w-px bg-accent mx-2" />
-                    <div className="space-y-0.5 text-right">
-                      <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Action</p>
-                      <p className="text-xs font-bold uppercase">{cls.status === 'high' ? 'Stable' : cls.status === 'medium' ? 'Follow-up' : 'Urgent'}</p>
-                    </div>
-                  </div>
                 </CardContent>
-                <CardFooter className="bg-accent/10 border-t p-4 pt-4 flex gap-2">
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    className="shrink-0 hover:bg-white text-primary"
-                    onClick={() => handleDownloadReport(`${cls.name} Financial Dossier`)}
-                  >
-                    <Download className="w-4 h-4" />
-                  </Button>
+                <CardFooter className="bg-accent/10 border-t p-4 flex gap-2">
                   <Button 
                     variant="ghost" 
                     className="flex-1 justify-between hover:bg-white text-primary font-bold text-xs"
                     onClick={() => setSelectedClassDetails(cls)}
                   >
-                    View Class Records
+                    Auditing Dossier
                     <ArrowRight className="w-4 h-4" />
                   </Button>
                 </CardFooter>
@@ -279,39 +258,43 @@ export default function BursarFeesPage() {
         </TabsContent>
 
         <TabsContent value="ledger" className="mt-0">
-          <Card className="border-none shadow-sm overflow-hidden rounded-3xl">
-            <CardHeader className="bg-white border-b flex items-center justify-between">
+          <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
+            <CardHeader className="bg-white border-b flex items-center justify-between p-6">
               <div>
-                <CardTitle>Recent Transactions</CardTitle>
-                <CardDescription>Live log of physical and digital fee collections.</CardDescription>
+                <CardTitle className="font-black uppercase tracking-tight text-primary">Global Transaction Log</CardTitle>
+                <CardDescription>Verified chronological record of physical and MOMO deposits.</CardDescription>
               </div>
-              <Button variant="outline" size="sm" className="gap-2" onClick={() => handleDownloadReport("Recent Transactions Log")}>
-                <FileDown className="w-4 h-4" /> Download Log
+              <Button variant="outline" size="sm" className="gap-2 rounded-xl" onClick={() => handleDownloadReport("Transaction Log")}>
+                <FileDown className="w-4 h-4" /> Download Statement
               </Button>
             </CardHeader>
             <CardContent className="p-0">
               <Table>
                 <TableHeader className="bg-accent/30 uppercase text-[10px] font-black tracking-widest">
                   <TableRow>
-                    <TableHead className="pl-8 py-4">Transaction ID</TableHead>
-                    <TableHead>Student</TableHead>
-                    <TableHead>Category</TableHead>
+                    <TableHead className="pl-8 py-4">Ref Code</TableHead>
+                    <TableHead>Student Identity</TableHead>
+                    <TableHead>Charge Category</TableHead>
                     <TableHead className="text-center">Method</TableHead>
-                    <TableHead className="text-center">Amount</TableHead>
-                    <TableHead className="text-right pr-8">Timestamp</TableHead>
+                    <TableHead className="text-center">Intake (XAF)</TableHead>
+                    <TableHead className="text-right pr-8">Verification</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {RECENT_TRANSACTIONS.map((tx) => (
-                    <TableRow key={tx.id}>
+                    <TableRow key={tx.id} className="hover:bg-accent/5">
                       <TableCell className="pl-8 py-4 font-mono font-bold text-primary">{tx.id}</TableCell>
-                      <TableCell className="font-bold text-sm">{tx.student}</TableCell>
-                      <TableCell className="text-xs">{tx.type}</TableCell>
+                      <TableCell className="font-bold text-sm text-primary">{tx.student}</TableCell>
+                      <TableCell className="text-xs font-medium">{tx.type}</TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="outline" className="text-[9px] font-black uppercase">{tx.method}</Badge>
+                        <Badge variant="outline" className="text-[9px] font-black uppercase bg-white border-primary/10">{tx.method}</Badge>
                       </TableCell>
                       <TableCell className="text-center font-black text-primary">{tx.amount}</TableCell>
-                      <TableCell className="text-right pr-8 text-[10px] text-muted-foreground">{tx.date}</TableCell>
+                      <TableCell className="text-right pr-8">
+                        <div className="flex items-center justify-end gap-1.5 text-green-600 font-bold text-[9px] uppercase">
+                          <CheckCircle2 className="w-3.5 h-3.5" /> SECURE
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -320,41 +303,50 @@ export default function BursarFeesPage() {
           </Card>
         </TabsContent>
 
-        {isBursar && (
-          <TabsContent value="collect" className="mt-0">
-            <Card className="border-none shadow-xl rounded-3xl overflow-hidden max-w-2xl mx-auto">
-              <CardHeader className="bg-primary text-white p-8">
-                <CardTitle>Physical Fee Collection</CardTitle>
-                <CardDescription className="text-white/60">Bursar mode: Record cash or bank deposits directly into the system.</CardDescription>
-              </CardHeader>
-              <CardContent className="p-8 space-y-6">
-                <div className="space-y-4">
-                  <Label>Student Profile</Label>
-                  <div className="grid grid-cols-1 gap-2">
-                    {MOCK_STUDENT_LEDGER.slice(0, 3).map(s => (
+        <TabsContent value="collect" className="mt-0">
+          <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Search & Select Section */}
+            <div className="lg:col-span-5 space-y-6">
+              <Card className="border-none shadow-xl rounded-[2rem] overflow-hidden bg-white">
+                <CardHeader className="bg-primary text-white p-8">
+                  <CardTitle className="text-xl font-black">Identify Student</CardTitle>
+                  <CardDescription className="text-white/60">Search the institutional registry.</CardDescription>
+                </CardHeader>
+                <CardContent className="p-8 space-y-6">
+                  <div className="relative">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input 
+                      placeholder="Name or Matricule..." 
+                      className="h-14 bg-accent/30 border-none rounded-2xl pl-12 font-bold"
+                      value={collectSearch}
+                      onChange={(e) => setCollectSearch(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2 min-h-[300px]">
+                    {filteredStudentsForCollect.map(s => (
                       <button
                         key={s.id}
-                        type="button"
                         onClick={() => setSelectedStudentForPayment(s)}
                         className={cn(
-                          "flex items-center justify-between p-4 rounded-xl border-2 transition-all text-left group",
+                          "w-full flex items-center justify-between p-4 rounded-2xl border-2 transition-all text-left",
                           selectedStudentForPayment?.id === s.id 
-                            ? "border-primary bg-primary/5" 
+                            ? "border-primary bg-primary/5 shadow-inner" 
                             : "border-transparent bg-accent/30 hover:border-primary/20"
                         )}
                       >
                         <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10 border-2 border-white">
+                          <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
                             <AvatarImage src={s.avatar} />
                             <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-bold text-sm">{s.name}</p>
-                            <div className="flex items-center gap-2 mt-0.5">
-                              <Badge className="bg-white text-primary border-none text-[8px]">{s.id}</Badge>
+                            <p className="font-black text-sm text-primary leading-none mb-1">{s.name}</p>
+                            <div className="flex items-center gap-2">
+                              <Badge className="bg-white text-primary border-none text-[8px] h-4 font-bold">{s.id}</Badge>
                               {!s.isLicensePaid && (
-                                <Badge variant="destructive" className="text-[8px] h-4 gap-1 px-1.5">
-                                  <Lock className="w-2.5 h-2.5" /> License Unpaid
+                                <Badge variant="destructive" className="text-[8px] h-4 px-1.5 font-black uppercase">
+                                  <Lock className="w-2.5 h-2.5 mr-1" /> UNPAID
                                 </Badge>
                               )}
                             </div>
@@ -363,49 +355,137 @@ export default function BursarFeesPage() {
                         {selectedStudentForPayment?.id === s.id && <CheckCircle2 className="w-5 h-5 text-primary" />}
                       </button>
                     ))}
+                    {collectSearch && filteredStudentsForCollect.length === 0 && (
+                      <div className="py-20 text-center opacity-40">
+                        <SearchX className="w-12 h-12 mx-auto mb-4" />
+                        <p className="text-sm font-bold">No student found.</p>
+                      </div>
+                    )}
+                    {!collectSearch && (
+                      <div className="py-20 text-center opacity-20">
+                        <User className="w-12 h-12 mx-auto mb-4" />
+                        <p className="text-xs font-bold uppercase tracking-widest">Awaiting Identity Input</p>
+                      </div>
+                    )}
                   </div>
-                </div>
+                </CardContent>
+              </Card>
+            </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Fee Category</Label>
-                    <Select>
-                      <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue placeholder="Select Fee" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="tuition">Tuition Fee</SelectItem>
-                        <SelectItem value="uniform">Uniform Package</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Amount (XAF)</Label>
-                    <Input type="number" placeholder="50,000" className="h-12 bg-accent/30 border-none rounded-xl font-bold" />
-                  </div>
-                </div>
+            {/* Collection Details Section */}
+            <div className="lg:col-span-7">
+              {selectedStudentForPayment ? (
+                <Card className="border-none shadow-2xl rounded-[2.5rem] overflow-hidden bg-white animate-in zoom-in-95 duration-300">
+                  <CardHeader className="bg-accent/50 border-b p-8">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <CardTitle className="text-2xl font-black text-primary">Collection Form</CardTitle>
+                        <p className="text-sm font-bold text-muted-foreground uppercase">{selectedStudentForPayment.name}</p>
+                      </div>
+                      <Button variant="ghost" size="icon" onClick={() => setSelectedStudentForPayment(null)} className="rounded-full">
+                        <XCircle className="w-6 h-6 text-muted-foreground" />
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-8 space-y-8">
+                    {!selectedStudentForPayment.isLicensePaid && (
+                      <div className="p-6 bg-red-50 rounded-[2rem] border-2 border-red-100 flex gap-4">
+                        <div className="p-3 bg-red-100 rounded-2xl h-fit">
+                          <Lock className="w-6 h-6 text-red-600" />
+                        </div>
+                        <div className="space-y-1">
+                          <h4 className="font-black text-red-900 uppercase text-xs tracking-widest">Entry Suspended</h4>
+                          <p className="text-sm text-red-800 leading-relaxed font-medium">
+                            This student has an outstanding **Platform License Fee**. Educational records and school fee entries are locked until the platform license is cleared.
+                          </p>
+                          <Button variant="link" className="text-red-700 p-0 h-auto font-black uppercase text-[10px] underline underline-offset-4">
+                            Direct student to subscription page
+                          </Button>
+                        </div>
+                      </div>
+                    )}
 
-                {selectedStudentForPayment && !selectedStudentForPayment.isLicensePaid && (
-                  <div className="p-4 bg-red-50 rounded-xl border border-red-100 flex gap-3">
-                    <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-                    <p className="text-xs text-red-800 leading-relaxed font-medium">
-                      This student has not paid their annual EduIgnite platform license. Financial records are suspended until the license is cleared.
+                    <div className={cn("space-y-6 transition-opacity", !selectedStudentForPayment.isLicensePaid && "opacity-30 pointer-events-none")}>
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Payment Reason</Label>
+                          <Select defaultValue="tuition">
+                            <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="tuition">Tuition (School Fees)</SelectItem>
+                              <SelectItem value="uniform">Uniform & Gear</SelectItem>
+                              <SelectItem value="pta">PTA Contribution</SelectItem>
+                              <SelectItem value="exams">Sequence Exams</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Amount (XAF)</Label>
+                          <div className="relative">
+                            <Input type="number" placeholder="0" className="h-12 bg-accent/30 border-none rounded-xl font-black text-lg text-primary pl-6" />
+                            <span className="absolute right-4 top-1/2 -translate-y-1/2 font-black text-[10px] opacity-40 uppercase">XAF</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Payment Mode</Label>
+                        <div className="grid grid-cols-3 gap-3">
+                          {['Cash', 'MoMo', 'Check'].map(m => (
+                            <Button key={m} variant="outline" className="h-12 rounded-xl font-bold hover:bg-primary hover:text-white border-primary/10 transition-all">
+                              {m}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="bg-primary/5 p-6 rounded-[2rem] border border-primary/10 space-y-4">
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="font-bold opacity-60">Current Arrears</span>
+                          <span className="font-black text-red-600">{selectedStudentForPayment.left.toLocaleString()} XAF</span>
+                        </div>
+                        <div className="h-px bg-primary/10" />
+                        <div className="flex justify-between items-center">
+                          <span className="font-black uppercase text-xs tracking-widest">Remaining Balance</span>
+                          <div className="p-2 bg-white rounded-xl shadow-sm border border-primary/10 font-black text-primary">
+                            PENDING CALC
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="bg-accent/20 p-8 border-t border-accent">
+                    <Button 
+                      className="w-full h-16 rounded-[1.5rem] shadow-xl font-black uppercase tracking-widest text-xs gap-3 bg-primary text-white transition-all active:scale-95" 
+                      onClick={handleCollectPayment}
+                      disabled={isProcessing || !selectedStudentForPayment.isLicensePaid}
+                    >
+                      {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : <Receipt className="w-6 h-6" />}
+                      Verify & Issue Official Receipt
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-center p-12 space-y-6 bg-accent/10 border-2 border-dashed border-accent rounded-[3rem] opacity-60">
+                  <div className="p-6 bg-white rounded-[2rem] shadow-inner">
+                    <Wallet className="w-16 h-16 text-primary/20" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-2xl font-black text-primary uppercase tracking-tighter">Collection Inactive</h3>
+                    <p className="text-sm text-muted-foreground max-w-[300px] font-medium leading-relaxed">
+                      Select a student from the institutional registry to begin recording a transaction.
                     </p>
                   </div>
-                )}
-
-                <Button 
-                  className="w-full h-12 rounded-xl shadow-lg font-bold" 
-                  onClick={handleCollectPayment} 
-                  disabled={isProcessing || (selectedStudentForPayment && !selectedStudentForPayment.isLicensePaid)}
-                >
-                  {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : "Record & Issue Receipt"}
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        )}
+                </div>
+              )}
+            </div>
+          </div>
+        </TabsContent>
       </Tabs>
 
-      {/* Class Financial Details Dialog (Drill-down 1) */}
+      {/* Class Auditing Dialog */}
       <Dialog open={!!selectedClassDetails} onOpenChange={() => setSelectedClassDetails(null)}>
         <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto p-0 border-none shadow-2xl rounded-3xl">
           <DialogHeader className={cn(
@@ -414,20 +494,15 @@ export default function BursarFeesPage() {
           )}>
             <div className="flex justify-between items-center">
               <div>
-                <DialogTitle className="text-3xl font-black">{selectedClassDetails?.name} - Financial Dossier</DialogTitle>
-                <DialogDescription className="text-white/70 font-bold flex items-center gap-2 mt-1">
-                  <ShieldCheck className="w-4 h-4" /> Account Manager: {selectedClassDetails?.bursar}
-                </DialogDescription>
+                <DialogTitle className="text-3xl font-black">{selectedClassDetails?.name} - Arrears Audit</DialogTitle>
+                <DialogDescription className="text-white/70 font-bold">Comprehensive Class Financial Dossier</DialogDescription>
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-center bg-white/20 px-6 py-3 rounded-2xl backdrop-blur-md">
-                  <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Class Coverage</p>
-                  <p className="text-3xl font-black">{selectedClassDetails?.percentage}%</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Revenue Target</p>
+                  <p className="text-3xl font-black">{selectedClassDetails?.collected} / {selectedClassDetails?.target}</p>
                 </div>
-                <Button 
-                  className="h-full bg-white/20 hover:bg-white/30 text-white border-none rounded-2xl p-4 shadow-xl backdrop-blur-md" 
-                  onClick={() => handleDownloadReport(`Financial Statement - ${selectedClassDetails?.name}`)}
-                >
+                <Button className="h-full bg-white/20 hover:bg-white/30 text-white border-none rounded-2xl p-4 shadow-xl backdrop-blur-md">
                   <Download className="w-6 h-6" />
                 </Button>
               </div>
@@ -435,195 +510,67 @@ export default function BursarFeesPage() {
           </DialogHeader>
           
           <div className="p-8 space-y-10">
-            {/* Breakdown by Fee Category */}
-            <section className="space-y-6">
-              <h3 className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2 border-b pb-2">
-                <BarChart3 className="w-4 h-4" /> Category Collection Breakdown
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {MOCK_FEE_CATEGORY_PERFORMANCE.map((fee) => (
-                  <Card key={fee.id} className="border-none shadow-sm bg-accent/30 hover:bg-accent/50 transition-colors group">
-                    <CardContent className="p-4 flex items-center justify-between">
-                      <div className="space-y-1 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-primary">{fee.name}</span>
-                          <Badge variant="outline" className="text-[9px] h-4 border-primary/20">{fee.collected} / {fee.target}</Badge>
-                        </div>
-                        <p className="text-[10px] text-muted-foreground font-medium">{fee.description}</p>
-                        <div className="w-3/4 mt-2">
-                          <Progress value={fee.percentage} className="h-1 bg-white" />
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-3">
-                        <div className={cn(
-                          "px-3 py-1.5 rounded-xl font-black text-sm",
-                          fee.percentage >= 90 ? "bg-green-100 text-green-700" : 
-                          fee.percentage >= 70 ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"
-                        )}>
-                          {fee.percentage}%
-                        </div>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-[10px] uppercase font-black gap-1 h-7 text-primary hover:bg-white"
-                          onClick={() => setSelectedFeeRegistry({ ...fee, className: selectedClassDetails?.name })}
-                        >
-                          Details <ChevronRight className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+            <section className="space-y-4">
+              <div className="flex items-center justify-between border-b pb-2">
+                <h3 className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
+                  <Users className="w-4 h-4" /> Class Member Ledger
+                </h3>
+                <Badge variant="outline" className="text-[10px] font-black uppercase">Term Sequence 2</Badge>
               </div>
+              <Table>
+                <TableHeader className="bg-accent/30 font-black uppercase text-[10px]">
+                  <TableRow>
+                    <TableHead className="pl-0">Student Profile</TableHead>
+                    <TableHead className="text-center">Matricule</TableHead>
+                    <TableHead className="text-center text-green-600">Paid (XAF)</TableHead>
+                    <TableHead className="text-center text-red-600">Balance (XAF)</TableHead>
+                    <TableHead className="text-right pr-0">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {MOCK_STUDENT_LEDGER.map(s => (
+                    <TableRow key={s.id}>
+                      <TableCell className="pl-0 font-bold text-sm text-primary">{s.name}</TableCell>
+                      <TableCell className="text-center font-mono text-xs font-bold text-muted-foreground">{s.id}</TableCell>
+                      <TableCell className="text-center font-black text-green-600">{s.paid.toLocaleString()}</TableCell>
+                      <TableCell className="text-center font-black text-red-600">{s.left.toLocaleString()}</TableCell>
+                      <TableCell className="text-right pr-0">
+                        <Badge className={cn(
+                          "text-[8px] font-black uppercase border-none h-5",
+                          s.status === 'cleared' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                        )}>
+                          {s.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </section>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-              <section className="space-y-4">
-                <h3 className="text-sm font-black uppercase text-primary tracking-widest border-b pb-2 flex items-center gap-2">
-                  <Users className="w-4 h-4" /> Institutional Health
-                </h3>
-                <div className="bg-primary/5 p-6 rounded-2xl space-y-4 border border-primary/10">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-primary rounded-lg text-white">
-                      <ShieldCheck className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold leading-relaxed text-primary">
-                        "Financial compliance for this class is {selectedClassDetails?.status === 'high' ? 'above' : selectedClassDetails?.status === 'medium' ? 'meeting' : 'below'} benchmarks."
-                      </p>
-                      <p className="text-[9px] text-muted-foreground mt-1">Last Reconciliation: Today, 08:45 AM</p>
-                    </div>
-                  </div>
-                  <div className="pt-4 border-t border-primary/10 flex justify-between items-center">
-                    <span className="text-[10px] font-black uppercase text-primary tracking-widest">Audit Status</span>
-                    <Badge className="bg-primary text-white border-none text-[9px] font-black">VALIDATED</Badge>
-                  </div>
-                </div>
-              </section>
-
-              <section className="space-y-4">
-                <h3 className="text-sm font-black uppercase text-primary tracking-widest border-b pb-2 flex items-center gap-2">
-                  <Printer className="w-4 h-4" /> Operational Actions
-                </h3>
-                <div className="space-y-3">
-                  <Button 
-                    className="w-full gap-3 h-12 rounded-xl text-xs font-black uppercase tracking-widest" 
-                    variant="outline"
-                    onClick={() => handleDownloadReport(`Full Payment Logs - ${selectedClassDetails?.name}`)}
-                  >
-                    <History className="w-4 h-4 text-primary" /> Download Full Payment Logs
-                  </Button>
-                  <Button 
-                    className="w-full gap-3 h-12 rounded-xl shadow-lg bg-primary text-xs font-black uppercase tracking-widest text-white"
-                    onClick={() => handleDownloadReport(`Arrears List - ${selectedClassDetails?.name}`)}
-                  >
-                    <FileDown className="w-4 h-4 text-secondary" /> Download Arrears List
-                  </Button>
-                </div>
-              </section>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+              <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10 space-y-4 h-fit">
+                <h4 className="text-xs font-black uppercase text-primary tracking-widest flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-secondary" /> Audit Integrity
+                </h4>
+                <p className="text-xs text-muted-foreground leading-relaxed font-medium italic">
+                  "This class is currently at {selectedClassDetails?.percentage}% collection efficiency. All recorded payments are digitally signed and immutable. Outstanding arrears are flagged for sequence evaluation locking."
+                </p>
+              </div>
+              <div className="space-y-3">
+                <Button className="w-full justify-between h-12 rounded-xl text-xs font-black uppercase tracking-widest border-primary/10" variant="outline" onClick={() => handleDownloadReport(`Arrears List - ${selectedClassDetails?.name}`)}>
+                  Download Arrears List <FileDown className="w-4 h-4" />
+                </Button>
+                <Button className="w-full justify-between h-12 rounded-xl text-xs font-black uppercase tracking-widest bg-primary text-white shadow-lg" onClick={() => handleDownloadReport(`Official Invoices - ${selectedClassDetails?.name}`)}>
+                  Generate Bulk Invoices <Receipt className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </div>
           
           <div className="p-6 bg-accent/10 border-t flex justify-end">
-            <Button variant="ghost" onClick={() => setSelectedClassDetails(null)} className="font-black uppercase tracking-widest text-[10px]">Close Dossier</Button>
+            <Button variant="ghost" onClick={() => setSelectedClassDetails(null)} className="font-black uppercase tracking-widest text-[10px]">Close Financial Dossier</Button>
           </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Granular Student Fee Registry Dialog (Drill-down 2) */}
-      <Dialog open={!!selectedFeeRegistry} onOpenChange={() => setSelectedFeeRegistry(null)}>
-        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0 rounded-3xl border-none shadow-2xl">
-          <DialogHeader className="p-8 bg-primary text-white shrink-0">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-white/10 rounded-2xl text-secondary">
-                  <Coins className="w-8 h-8" />
-                </div>
-                <div>
-                  <DialogTitle className="text-2xl font-black">
-                    {selectedFeeRegistry?.name} - Granular Registry
-                  </DialogTitle>
-                  <DialogDescription className="text-white/60 font-medium">
-                    {selectedFeeRegistry?.className} • Detailed student-by-student ledger
-                  </DialogDescription>
-                </div>
-              </div>
-              <Button 
-                variant="secondary" 
-                className="h-12 w-12 rounded-2xl shadow-xl"
-                onClick={() => handleDownloadReport(`${selectedFeeRegistry?.name} Ledger - ${selectedFeeRegistry?.className}`)}
-              >
-                <FileDown className="w-6 h-6" />
-              </Button>
-            </div>
-          </DialogHeader>
-          
-          <div className="flex-1 overflow-hidden flex flex-col">
-            <Table>
-              <TableHeader className="bg-accent/30 sticky top-0 z-10">
-                <TableRow>
-                  <TableHead className="pl-8 py-4 font-black uppercase text-[10px] tracking-widest">Student Profile</TableHead>
-                  <TableHead className="text-center font-black uppercase text-[10px] tracking-widest">Matricule</TableHead>
-                  <TableHead className="text-center font-black uppercase text-[10px] tracking-widest text-green-600">Paid (XAF)</TableHead>
-                  <TableHead className="text-center font-black uppercase text-[10px] tracking-widest text-red-600">Balance (XAF)</TableHead>
-                  <TableHead className="pr-8 text-right font-black uppercase text-[10px] tracking-widest">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody className="overflow-y-auto">
-                {MOCK_STUDENT_LEDGER.map((student) => (
-                  <TableRow key={student.id} className="hover:bg-accent/5">
-                    <TableCell className="pl-8 py-4">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent">
-                          <AvatarImage src={student.avatar} alt={student.name} />
-                          <AvatarFallback className="bg-primary/5 text-primary text-xs">{student.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <span className="font-bold text-sm text-primary">{student.name}</span>
-                          {!student.isLicensePaid && (
-                            <p className="text-[8px] text-red-600 font-black uppercase flex items-center gap-1 mt-0.5">
-                              <Lock className="w-2 h-2" /> License Unpaid
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center font-mono text-xs font-bold text-muted-foreground">{student.id}</TableCell>
-                    <TableCell className="text-center">
-                      <span className="font-black text-green-600 text-sm">{student.paid.toLocaleString()}</span>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <span className={cn(
-                        "font-black text-sm",
-                        student.left > 0 ? "text-red-600" : "text-primary opacity-30"
-                      )}>{student.left.toLocaleString()}</span>
-                    </TableCell>
-                    <TableCell className="pr-8 text-right">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-[9px] font-black uppercase gap-1"
-                        onClick={() => handleDownloadReport(`Statement: ${student.name}`)}
-                        disabled={!student.isLicensePaid}
-                      >
-                        <Download className="w-3 h-3" /> Statement
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-          
-          <DialogFooter className="p-6 bg-accent/10 border-t flex justify-between items-center shrink-0">
-            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest italic flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-primary" />
-              Automated institutional financial tracking active.
-            </p>
-            <Button variant="outline" className="rounded-xl h-10 px-8" onClick={() => setSelectedFeeRegistry(null)}>
-              Close Registry
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
