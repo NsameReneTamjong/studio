@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Building2, 
   Languages,
@@ -19,7 +20,14 @@ import {
   Users,
   Wallet,
   Library,
-  Heart
+  Heart,
+  MessageCircle,
+  Play,
+  PlayCircle,
+  Quote,
+  Sparkles,
+  Calendar,
+  X
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -27,6 +35,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -43,8 +60,8 @@ const QUICK_DEMO_ACCOUNTS = [
 ];
 
 export default function LoginPage() {
-  const { login, activateAccount, platformSettings } = useAuth();
-  const { setLanguage, language } = useI18n();
+  const { login, activateAccount, platformSettings, testimonials, featuredVideos } = useAuth();
+  const { setLanguage, language, t } = useI18n();
   const { toast } = useToast();
   
   const [mode, setAuthMode] = useState<AuthMode>("login");
@@ -89,10 +106,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 sm:p-8 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4 sm:p-8 relative overflow-hidden">
+      {/* Background Decor */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-secondary/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl" />
 
+      {/* Language Switcher */}
       <div className="absolute top-8 right-8">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -109,7 +128,7 @@ export default function LoginPage() {
       </div>
 
       <div className="w-full max-w-md flex flex-col items-center gap-8 relative z-10">
-        {/* Centered Branding */}
+        {/* Branding Stack */}
         <div className="flex flex-col items-center text-center space-y-4">
           <div className="bg-primary p-3 rounded-2xl shadow-xl w-24 h-24 flex items-center justify-center overflow-hidden border-4 border-white transition-transform hover:scale-105">
             <Building2 className="w-12 h-12 text-white" />
@@ -122,13 +141,14 @@ export default function LoginPage() {
           </p>
         </div>
 
+        {/* Auth Card */}
         <Card className="w-full border-none shadow-2xl overflow-hidden rounded-[2.5rem] bg-white/80 backdrop-blur-xl border border-white">
           <CardHeader className="pb-8 text-center space-y-1">
             <CardTitle className="text-3xl font-black text-primary">
               {mode === "login" ? "Sign In" : mode === "activate" ? "Activate" : "Recovery"}
             </CardTitle>
             <CardDescription>
-              Enter your unique institutional matricule.
+              {mode === "login" ? "Enter your unique institutional matricule." : "Initialize your secure dashboard account."}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -139,7 +159,6 @@ export default function LoginPage() {
                 </Label>
                 <Input 
                   required
-                  placeholder="" 
                   className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary font-black uppercase text-center text-lg"
                   value={authData.matricule}
                   onChange={(e) => setAuthData({...authData, matricule: e.target.value})}
@@ -153,7 +172,6 @@ export default function LoginPage() {
                 <Input 
                   required
                   type="password" 
-                  placeholder=""
                   className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary font-bold text-center"
                   value={authData.password}
                   onChange={(e) => setAuthData({...authData, password: e.target.value})}
@@ -168,7 +186,6 @@ export default function LoginPage() {
                   <Input 
                     required
                     type="password" 
-                    placeholder=""
                     className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary font-bold text-center"
                     value={authData.confirmPassword}
                     onChange={(e) => setAuthData({...authData, confirmPassword: e.target.value})}
@@ -179,7 +196,7 @@ export default function LoginPage() {
               <Button 
                 type="submit"
                 disabled={isProcessing}
-                className="w-full h-14 text-base font-black uppercase tracking-widest shadow-xl rounded-2xl bg-primary hover:bg-primary/90 mt-4"
+                className="w-full h-14 text-base font-black uppercase tracking-widest shadow-xl rounded-2xl bg-primary hover:bg-primary/90 mt-4 transition-all active:scale-95"
               >
                 {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : (mode === "login" ? "Sign In" : "Activate")}
               </Button>
@@ -196,7 +213,7 @@ export default function LoginPage() {
           </CardFooter>
         </Card>
 
-        {/* Repositioned Quick Demo Access */}
+        {/* Quick Demo Access */}
         <div className="w-full space-y-4">
           <div className="flex items-center gap-4">
             <div className="h-px flex-1 bg-primary/10" />
@@ -219,6 +236,95 @@ export default function LoginPage() {
               </Button>
             ))}
           </div>
+        </div>
+
+        {/* SOCIAL PROOF FOOTER */}
+        <div className="mt-4">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="ghost" className="text-xs font-bold text-primary/60 hover:text-primary gap-2 h-10 px-6 rounded-full bg-primary/5 border border-primary/10">
+                <MessageCircle className="w-4 h-4 text-secondary" />
+                {t("whatPeopleSay")}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto p-0 border-none shadow-2xl rounded-[2rem]">
+              <DialogHeader className="bg-primary p-8 text-white">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/10 rounded-2xl">
+                    <Sparkles className="w-8 h-8 text-secondary fill-secondary/20" />
+                  </div>
+                  <div>
+                    <DialogTitle className="text-3xl font-black">{t("testimonials")}</DialogTitle>
+                    <DialogDescription className="text-white/60">Voices from the EduIgnite global community.</DialogDescription>
+                  </div>
+                </div>
+              </DialogHeader>
+              
+              <div className="p-8">
+                <Tabs defaultValue="testimonials" className="w-full">
+                  <TabsList className="grid grid-cols-2 w-full max-w-md mx-auto mb-8 bg-accent/30 h-12 p-1 rounded-xl">
+                    <TabsTrigger value="testimonials" className="font-bold text-xs">Testimonials</TabsTrigger>
+                    <TabsTrigger value="media" className="font-bold text-xs">Featured Media</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="testimonials" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {testimonials.map((test) => (
+                        <Card key={test.id} className="border-none shadow-sm bg-accent/20 rounded-3xl group overflow-hidden">
+                          <CardContent className="p-6 space-y-4">
+                            <Quote className="w-8 h-8 text-primary/10 -mb-2" />
+                            <p className="text-sm leading-relaxed italic text-primary/80 font-medium">
+                              "{test.content}"
+                            </p>
+                            <div className="flex items-center gap-4 pt-4 border-t border-primary/5">
+                              <Avatar className="h-12 w-12 border-2 border-white shadow-md">
+                                <AvatarImage src={test.avatar} />
+                                <AvatarFallback className="bg-primary text-white">{test.author.charAt(0)}</AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-black text-primary text-sm leading-none mb-1">{test.author}</p>
+                                <div className="flex items-center gap-2">
+                                  <Badge className="bg-secondary text-primary border-none text-[8px] h-4 uppercase font-black">{test.role}</Badge>
+                                  <span className="text-[10px] text-muted-foreground font-bold">@ {test.schoolName}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="media" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                      {featuredVideos.map((video) => (
+                        <Card key={video.id} className="border-none shadow-xl rounded-3xl overflow-hidden group">
+                          <div className="aspect-video relative bg-slate-900">
+                            <img src={video.thumbnail} className="w-full h-full object-cover opacity-60 transition-transform duration-700 group-hover:scale-105" alt={video.title} />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <PlayCircle className="w-16 h-16 text-white/80 group-hover:scale-110 group-hover:text-white transition-all drop-shadow-2xl" />
+                            </div>
+                            <div className="absolute top-4 left-4">
+                              <Badge className="bg-primary text-white border-none text-[9px] font-black uppercase tracking-widest">{video.category}</Badge>
+                            </div>
+                          </div>
+                          <CardContent className="p-6 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-black text-primary text-lg tracking-tight">{video.title}</h3>
+                              <Calendar className="w-4 h-4 text-muted-foreground opacity-20" />
+                            </div>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              {video.description}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>
