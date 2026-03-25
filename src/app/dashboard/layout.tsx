@@ -25,6 +25,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { useFirestore } from "@/firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError } from "@/firebase/errors";
 
 const TUTORIAL_LINKS: Record<string, string> = {
   STUDENT: "https://youtube.com/watch?v=eduignite-student",
@@ -37,6 +41,7 @@ const TUTORIAL_LINKS: Record<string, string> = {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user, isLoading, platformSettings } = useAuth();
+  const db = useFirestore();
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
@@ -74,32 +79,38 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   const handleTestimonySubmit = () => {
-    if (!testimonyMessage.trim() || !user) return;
+    if (!testimonyMessage.trim() || !user || !db) return;
     setIsSubmittingTestimony(true);
     
-    // Simulate saving the testimony with user data
-    const submission = {
+    const docData = {
       userId: user.id,
       name: user.name,
-      profileImage: user.avatar,
+      profileImage: user.avatar || "",
       role: user.role,
       schoolName: user.school?.name || "EduIgnite Node",
       message: testimonyMessage,
       status: "pending",
-      createdAt: new Date()
+      createdAt: serverTimestamp()
     };
 
-    console.log("Submitting Testimony:", submission);
-
-    setTimeout(() => {
-      setIsSubmittingTestimony(false);
-      setIsTestimonyModalOpen(false);
-      setTestimonyMessage("");
-      toast({
-        title: "Testimony Received",
-        description: "Your testimony has been submitted for review.",
+    addDoc(collection(db, "testimonials"), docData)
+      .then(() => {
+        setIsSubmittingTestimony(false);
+        setIsTestimonyModalOpen(false);
+        setTestimonyMessage("");
+        toast({
+          title: "Testimony Received",
+          description: "Your testimony has been submitted for review.",
+        });
+      })
+      .catch(async (error) => {
+        setIsSubmittingTestimony(false);
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: 'testimonials',
+          operation: 'create',
+          requestResourceData: docData
+        }));
       });
-    }, 1500);
   };
 
   const resetSupport = () => {

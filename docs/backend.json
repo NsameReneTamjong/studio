@@ -74,6 +74,22 @@
         "status": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" }
       }
+    },
+    "Testimonial": {
+      "title": "Testimonial",
+      "type": "object",
+      "description": "User shared experience for platform marketing.",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "profileImage": { "type": "string" },
+        "role": { "type": "string" },
+        "schoolName": { "type": "string" },
+        "message": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "name", "message", "status", "createdAt"]
     }
   },
   "auth": {
@@ -105,6 +121,10 @@
     "/schools/{docId}": {
       "schema": "#/entities/School",
       "description": "Registry of school nodes."
+    },
+    "/testimonials/{testimonialId}": {
+      "schema": "#/entities/Testimonial",
+      "description": "Moderated user testimonials."
     }
   }
 }

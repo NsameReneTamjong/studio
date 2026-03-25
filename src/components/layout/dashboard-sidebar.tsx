@@ -37,7 +37,8 @@ import {
   Lock,
   Wallet,
   Video,
-  Info
+  Info,
+  Quote
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -83,6 +84,12 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: t("supportRegistry"),
       icon: Heart,
       href: "/dashboard/support",
+      roles: ["SUPER_ADMIN"],
+    },
+    {
+      label: language === 'en' ? 'Testimonials' : 'Témoignages',
+      icon: Quote,
+      href: "/dashboard/testimonials",
       roles: ["SUPER_ADMIN"],
     },
     {
