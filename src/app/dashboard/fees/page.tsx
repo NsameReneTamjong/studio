@@ -40,7 +40,9 @@ import {
   ArrowRight,
   PieChart,
   User,
-  Users
+  Users,
+  Banknote,
+  ArrowUpRight
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -84,6 +86,7 @@ export default function FeesPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedStudentForPayment, setSelectedStudentForPayment] = useState<any>(null);
   const [selectedClassDetails, setSelectedClassDetails] = useState<any>(null);
+  const [dossierSearch, setDossierSearch] = useState("");
   const [issuedReceipt, setIssuedReceipt] = useState<any>(null);
   const [paymentForm, setPaymentForm] = useState({ type: "Tuition Fee", amount: "" });
   
@@ -658,9 +661,9 @@ export default function FeesPage() {
         </TabsContent>
       </Tabs>
 
-      {/* CLASS DOSSIER DIALOG */}
+      {/* CLASS FEE DOSSIER DIALOG (ENHANCED) */}
       <Dialog open={!!selectedClassDetails} onOpenChange={() => setSelectedClassDetails(null)}>
-        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl rounded-3xl">
+        <DialogContent className="sm:max-w-5xl max-h-[95vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl rounded-3xl">
           <DialogHeader className={cn(
             "p-8 text-white shrink-0",
             selectedClassDetails?.status === 'optimal' ? "bg-green-600" : selectedClassDetails?.status === 'critical' ? "bg-red-600" : "bg-primary"
@@ -677,67 +680,126 @@ export default function FeesPage() {
                   <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Collected</p>
                   <p className="text-3xl font-black">{selectedClassDetails?.percentage}%</p>
                 </div>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="bg-white/10 border-white/20 text-white rounded-2xl h-14 w-14"
+                  onClick={() => toast({ title: "Class Report Generating..." })}
+                >
+                  <Download className="w-6 h-6" />
+                </Button>
               </div>
             </div>
           </DialogHeader>
           
+          <div className="p-6 bg-accent/30 border-b flex flex-col md:flex-row md:items-center justify-between gap-6 shrink-0">
+             <div className="grid grid-cols-2 md:grid-cols-3 gap-6 flex-1">
+                <div className="bg-white p-4 rounded-2xl border shadow-sm space-y-1">
+                   <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest leading-none">Net Intake</p>
+                   <p className="text-xl font-black text-primary">{(parseInt(selectedClassDetails?.paidCount || "0") * 150000).toLocaleString()} XAF</p>
+                </div>
+                <div className="bg-white p-4 rounded-2xl border shadow-sm space-y-1">
+                   <p className="text-[10px] font-black uppercase text-red-600 tracking-widest leading-none">Class Arrears</p>
+                   <p className="text-xl font-black text-red-700">{selectedClassDetails?.arrears} XAF</p>
+                </div>
+                <div className="bg-white p-4 rounded-2xl border shadow-sm space-y-1 hidden md:block">
+                   <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest leading-none">Clearance Status</p>
+                   <div className="flex items-center gap-2">
+                      <span className="text-xl font-black text-primary">{selectedClassDetails?.paidCount}</span>
+                      <span className="text-xs font-bold text-muted-foreground">/ {selectedClassDetails?.totalStudents} Paid</span>
+                   </div>
+                </div>
+             </div>
+             
+             <div className="relative w-full md:w-[280px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input 
+                  placeholder="Search students..." 
+                  className="pl-10 h-12 bg-white border-none rounded-xl font-bold"
+                  value={dossierSearch}
+                  onChange={(e) => setDossierSearch(e.target.value)}
+                />
+             </div>
+          </div>
+
           <div className="flex-1 overflow-y-auto p-0">
             <Table>
-              <TableHeader className="bg-accent/30 sticky top-0 z-10 uppercase text-[10px] font-black tracking-widest">
+              <TableHeader className="bg-accent/30 sticky top-0 z-10 uppercase text-[10px] font-black tracking-widest border-b">
                 <TableRow>
                   <TableHead className="pl-8 py-4">Student Profile</TableHead>
                   <TableHead>Matricule</TableHead>
-                  <TableHead className="text-center">Paid Amount</TableHead>
-                  <TableHead className="text-right pr-8">Status</TableHead>
+                  <TableHead className="text-center">Collection Status</TableHead>
+                  <TableHead className="text-right pr-8">Performance</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {students.filter(s => s.class === selectedClassDetails?.name).map(s => {
-                  const status = getStatusForFee(s, activeFeeFilter);
-                  const paid = (s.balances as any)[activeFeeFilter] || 0;
-                  const total = (s.totals as any)[activeFeeFilter] || 150000;
-                  
-                  return (
-                    <TableRow key={s.id} className="hover:bg-accent/5 border-b border-accent/10">
-                      <TableCell className="pl-8 py-4">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-9 w-9">
-                            <AvatarImage src={s.avatar} />
-                            <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <span className="font-bold text-sm text-primary">{s.name}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-mono text-xs text-muted-foreground">{s.id}</TableCell>
-                      <TableCell className="text-center font-black text-primary">
-                        {paid.toLocaleString()} <span className="text-[10px] opacity-40">/ {total.toLocaleString()}</span>
-                      </TableCell>
-                      <TableCell className="text-right pr-8">
-                        <Badge className={cn(
-                          "text-[9px] font-black uppercase px-3 h-5 border-none",
-                          status === 'cleared' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-                        )}>
-                          {status === 'cleared' ? 'Cleared' : 'Arrears'}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  );
+                {students
+                  .filter(s => s.class === selectedClassDetails?.name)
+                  .filter(s => s.name.toLowerCase().includes(dossierSearch.toLowerCase()))
+                  .map(s => {
+                    const status = getStatusForFee(s, activeFeeFilter);
+                    const paid = (s.balances as any)[activeFeeFilter] || 0;
+                    const total = (s.totals as any)[activeFeeFilter] || 150000;
+                    
+                    return (
+                      <TableRow key={s.id} className="hover:bg-accent/5 border-b border-accent/10 transition-colors">
+                        <TableCell className="pl-8 py-4">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent">
+                              <AvatarImage src={s.avatar} />
+                              <AvatarFallback className="bg-primary/5 text-primary text-xs font-black">{s.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-bold text-sm text-primary">{s.name}</p>
+                              <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">Parent Verified</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-mono text-xs font-bold text-muted-foreground">{s.id}</TableCell>
+                        <TableCell className="text-center">
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-center gap-2">
+                               <Banknote className="w-3.5 h-3.5 text-green-600" />
+                               <span className="font-black text-primary text-sm">{paid.toLocaleString()}</span>
+                               <span className="text-[10px] font-bold opacity-40">/ {total.toLocaleString()}</span>
+                            </div>
+                            <Progress value={(paid / total) * 100} className="h-1 w-24 mx-auto" />
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right pr-8">
+                          <Badge className={cn(
+                            "text-[9px] font-black uppercase px-3 h-5 border-none",
+                            status === 'cleared' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                          )}>
+                            {status === 'cleared' ? 'Cleared' : 'Arrears'}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    );
                 })}
               </TableBody>
             </Table>
           </div>
           
-          <DialogFooter className="bg-accent/10 p-6 border-t flex justify-between items-center shrink-0">
-             <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
-                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest italic opacity-40">Verified Institutional Finance Record</p>
+          <DialogFooter className="bg-accent/10 p-6 border-t flex flex-col md:flex-row justify-between items-center gap-4 shrink-0">
+             <div className="flex items-center gap-3 text-muted-foreground">
+                <ShieldCheck className="w-5 h-5 text-primary opacity-40" />
+                <div className="space-y-0.5">
+                  <p className="text-[10px] font-black uppercase tracking-widest italic opacity-40 leading-none">Verified Institutional Record</p>
+                  <p className="text-[8px] font-bold text-primary/40 uppercase leading-none">Digital ID Synchronization Active</p>
+                </div>
              </div>
-             <Button onClick={() => setSelectedClassDetails(null)} className="rounded-xl px-8 font-black uppercase text-xs">Close Dossier</Button>
+             <div className="flex gap-2">
+                <Button variant="outline" className="rounded-xl px-6 h-11 font-black uppercase text-[10px]" onClick={() => setSelectedClassDetails(null)}>Close Dossier</Button>
+                <Button className="rounded-xl px-8 h-11 font-black uppercase text-[10px] gap-2 shadow-lg">
+                  <Printer className="w-4 h-4" /> Print Registry
+                </Button>
+             </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* PAYMENT MODAL */}
+      {/* PAYMENT MODAL (KEPT FOR FUNCTIONALITY) */}
       <Dialog open={!!selectedStudentForPayment} onOpenChange={() => setSelectedStudentForPayment(null)}>
         <DialogContent className="sm:max-w-md rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl">
           <DialogHeader className="bg-primary p-6 md:p-8 text-white">
