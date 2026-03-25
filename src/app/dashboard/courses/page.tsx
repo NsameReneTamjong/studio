@@ -30,23 +30,27 @@ import {
   Image as ImageIcon,
   File as FileIcon,
   X,
-  Maximize
+  Maximize,
+  Radio,
+  PenTool,
+  Users
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n-context";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
 
 const INITIAL_COURSES = [
-  { id: "PHY101", name: "Advanced Physics", instructorName: "Dr. Aris Tesla", targetClass: "2nde / Form 5", type: "mandatory", color: "bg-blue-500" },
-  { id: "MAT101", name: "Mathematics", instructorName: "Prof. Sarah Smith", targetClass: "2nde / Form 5", type: "mandatory", color: "bg-emerald-500" },
-  { id: "LIT105", name: "Modern Literature", instructorName: "Ms. Bennet", targetClass: "2nde / Form 5", type: "optional", color: "bg-purple-500" },
-  { id: "ART202", name: "Fine Arts & Design", instructorName: "Mr. Abena", targetClass: "2nde / Form 5", type: "optional", color: "bg-rose-500" },
+  { id: "PHY101", name: "Advanced Physics", instructorName: "Dr. Aris Tesla", instructorAvatar: "https://picsum.photos/seed/t1/200/200", targetClass: "2nde / Form 5", type: "mandatory", color: "bg-blue-500", stats: { liveClasses: 24, exams: 8, attendance: 92 } },
+  { id: "MAT101", name: "Mathematics", instructorName: "Prof. Sarah Smith", instructorAvatar: "https://picsum.photos/seed/t2/200/200", targetClass: "2nde / Form 5", type: "mandatory", color: "bg-emerald-500", stats: { liveClasses: 32, exams: 12, attendance: 95 } },
+  { id: "LIT105", name: "Modern Literature", instructorName: "Ms. Bennet", instructorAvatar: "https://picsum.photos/seed/t3/200/200", targetClass: "2nde / Form 5", type: "optional", color: "bg-purple-500", stats: { liveClasses: 18, exams: 4, attendance: 88 } },
+  { id: "ART202", name: "Fine Arts & Design", instructorName: "Mr. Abena", instructorAvatar: "https://picsum.photos/seed/t4/200/200", targetClass: "2nde / Form 5", type: "optional", color: "bg-rose-500", stats: { liveClasses: 12, exams: 2, attendance: 90 } },
 ];
 
 const INITIAL_MATERIALS = [
@@ -138,7 +142,7 @@ export default function CoursesPage() {
     if (!newSubject.name || !newSubject.id) return;
     setIsProcessing(true);
     setTimeout(() => {
-      setSubjects([...subjects, { ...newSubject }]);
+      setSubjects([...subjects, { ...newSubject, stats: { liveClasses: 0, exams: 0, attendance: 0 } }]);
       setIsProcessing(false);
       setIsAddingSubject(false);
       setNewSubject({ name: "", id: "", instructorName: "Dr. Jean Dupont", targetClass: "2nde / Form 5", type: "mandatory", color: "bg-blue-500" });
@@ -207,7 +211,6 @@ export default function CoursesPage() {
       return;
     }
 
-    // Force download logic
     const link = document.createElement('a');
     link.href = material.fileUrl;
     link.setAttribute('download', `${material.title}.${material.type}`);
@@ -234,10 +237,11 @@ export default function CoursesPage() {
                 <Badge className={cn("text-[9px] font-black border-none text-white", viewingMaterialsFor.color)}>{viewingMaterialsFor.id}</Badge>
                 <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline tracking-tight">{viewingMaterialsFor.name}</h1>
               </div>
-              <p className="text-muted-foreground mt-1 text-sm">{language === 'en' ? 'Subject Materials Archive' : 'Archives des supports de cours'}</p>
+              <p className="text-muted-foreground mt-1 text-sm">{language === 'en' ? 'Course Dossier & Analytics' : 'Dossier de Cours & Analyses'}</p>
             </div>
           </div>
-          {(isTeacher || isAdmin) && (
+          
+          {isTeacher && (
             <Dialog open={isAddingMaterial} onOpenChange={setIsAddingMaterial}>
               <DialogTrigger asChild>
                 <Button className="gap-2 shadow-lg h-12 px-8 rounded-2xl bg-primary text-white font-bold">
@@ -297,12 +301,6 @@ export default function CoursesPage() {
                       />
                     </div>
                   </div>
-                  <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 flex items-center gap-3">
-                    <ShieldCheck className="w-5 h-5 text-primary opacity-40" />
-                    <p className="text-[10px] text-muted-foreground italic leading-relaxed">
-                      This material will be immediately accessible to all students registered in {viewingMaterialsFor.targetClass}.
-                    </p>
-                  </div>
                 </div>
                 <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
                   <Button onClick={handleAddMaterial} disabled={isProcessing || !newMaterialData.title || !newMaterialData.url} className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-2">
@@ -315,77 +313,140 @@ export default function CoursesPage() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {subjectMaterials.map((material) => (
-            <Card key={material.id} className="border-none shadow-sm group hover:shadow-md transition-all overflow-hidden bg-white flex flex-col">
-              <div className="p-6 flex items-start gap-4 flex-1">
-                <div className={cn(
-                  "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm",
-                  material.type === 'pdf' ? "bg-red-50 text-red-600" :
-                  material.type === 'video' ? "bg-blue-50 text-blue-600" :
-                  material.type === 'image' ? "bg-purple-50 text-purple-600" :
-                  material.type === 'link' ? "bg-emerald-50 text-emerald-600" :
-                  "bg-amber-50 text-amber-600"
-                )}>
-                  {material.type === 'pdf' ? <FileText className="w-6 h-6" /> :
-                   material.type === 'video' ? <Video className="w-6 h-6" /> :
-                   material.type === 'image' ? <ImageIcon className="w-6 h-6" /> :
-                   material.type === 'link' ? <LinkIcon className="w-6 h-6" /> :
-                   <FileIcon className="w-6 h-6" />}
+        {/* TOP SECTION: TEACHER PROFILE & STATS (Visible to Admin) */}
+        {(isAdmin || isTeacher) && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Teacher Profile Card */}
+            <Card className="lg:col-span-4 border-none shadow-sm overflow-hidden bg-white">
+              <CardHeader className="bg-primary p-6 text-white text-center pb-8 relative">
+                <Avatar className="h-20 w-20 border-4 border-white/20 mx-auto shadow-2xl mb-4">
+                  <AvatarImage src={viewingMaterialsFor.instructorAvatar} alt={viewingMaterialsFor.instructorName} />
+                  <AvatarFallback>{viewingMaterialsFor.instructorName.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <CardTitle className="text-lg font-black">{viewingMaterialsFor.instructorName}</CardTitle>
+                <Badge variant="secondary" className="bg-white/10 text-white border-none mt-2 uppercase text-[8px] tracking-widest">Lead Instructor</Badge>
+              </CardHeader>
+              <CardContent className="p-6 -mt-4 bg-white rounded-t-3xl space-y-4">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Strategic Purview</p>
+                  <p className="text-sm font-bold text-primary">{viewingMaterialsFor.name} Department</p>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-primary text-base leading-tight truncate mb-1">{material.title}</h3>
-                  <p className="text-xs text-muted-foreground line-clamp-2 mb-3 leading-relaxed">
-                    {material.description || "No description provided for this resource."}
-                  </p>
-                  <div className="flex items-center gap-3 text-[10px] font-bold text-muted-foreground uppercase tracking-tight">
-                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {material.date}</span>
-                    <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-                    <span>{material.size}</span>
+                <div className="pt-4 border-t flex justify-between items-center">
+                   <Button variant="outline" size="sm" className="rounded-xl h-8 px-4 text-[10px] font-black uppercase w-full">View Professional Portfolio</Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Subject Specific Stats */}
+            <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <Card className="border-none shadow-sm bg-blue-50/50 group hover:shadow-md transition-all">
+                <CardContent className="pt-6">
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Live Classes</p>
+                    <Radio className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div className="text-3xl font-black text-blue-700">{viewingMaterialsFor.stats?.liveClasses || 0}</div>
+                  <p className="text-[9px] font-bold text-blue-600/60 uppercase mt-1">Sessions Organized</p>
+                </CardContent>
+              </Card>
+              <Card className="border-none shadow-sm bg-purple-50/50 group hover:shadow-md transition-all">
+                <CardContent className="pt-6">
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="text-[10px] font-black uppercase text-purple-600 tracking-widest">Online Exams</p>
+                    <PenTool className="w-4 h-4 text-purple-600" />
+                  </div>
+                  <div className="text-3xl font-black text-purple-700">{viewingMaterialsFor.stats?.exams || 0}</div>
+                  <p className="text-[9px] font-bold text-purple-600/60 uppercase mt-1">Assessments Published</p>
+                </CardContent>
+              </Card>
+              <Card className="border-none shadow-sm bg-emerald-50/50 group hover:shadow-md transition-all">
+                <CardContent className="pt-6">
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="text-[10px] font-black uppercase text-emerald-600 tracking-widest">Attendance</p>
+                    <Users className="w-4 h-4 text-emerald-600" />
+                  </div>
+                  <div className="text-3xl font-black text-emerald-700">{viewingMaterialsFor.stats?.attendance || 0}%</div>
+                  <p className="text-[9px] font-bold text-emerald-600/60 uppercase mt-1">Student Average</p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-primary/10" />
+            <h2 className="text-sm font-black uppercase text-primary/40 tracking-[0.3em]">Pedagogical Materials</h2>
+            <div className="h-px flex-1 bg-primary/10" />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {subjectMaterials.map((material) => (
+              <Card key={material.id} className="border-none shadow-sm group hover:shadow-md transition-all overflow-hidden bg-white flex flex-col">
+                <div className="p-6 flex items-start gap-4 flex-1">
+                  <div className={cn(
+                    "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm",
+                    material.type === 'pdf' ? "bg-red-50 text-red-600" :
+                    material.type === 'video' ? "bg-blue-50 text-blue-600" :
+                    material.type === 'image' ? "bg-purple-50 text-purple-600" :
+                    material.type === 'link' ? "bg-emerald-50 text-emerald-600" :
+                    "bg-amber-50 text-amber-600"
+                  )}>
+                    {material.type === 'pdf' ? <FileText className="w-6 h-6" /> :
+                     material.type === 'video' ? <Video className="w-6 h-6" /> :
+                     material.type === 'image' ? <ImageIcon className="w-6 h-6" /> :
+                     material.type === 'link' ? <LinkIcon className="w-6 h-6" /> :
+                     <FileIcon className="w-6 h-6" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-primary text-base leading-tight truncate mb-1">{material.title}</h3>
+                    <p className="text-xs text-muted-foreground line-clamp-2 mb-3 leading-relaxed">
+                      {material.description || "No description provided for this resource."}
+                    </p>
+                    <div className="flex items-center gap-3 text-[10px] font-bold text-muted-foreground uppercase tracking-tight">
+                      <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {material.date}</span>
+                      <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+                      <span>{material.size}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <CardFooter className="bg-accent/10 p-3 border-t flex items-center justify-between gap-2">
-                <div className="flex flex-1 gap-2">
-                  <Button 
-                    variant="ghost" 
-                    className="flex-1 h-9 rounded-lg hover:bg-white text-primary text-[10px] font-black uppercase tracking-widest gap-2"
-                    onClick={() => handleViewMaterial(material)}
-                  >
-                    <Eye className="w-3.5 h-3.5" /> {language === 'en' ? 'View' : 'Voir'}
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    className="flex-1 h-9 rounded-lg hover:bg-white text-primary text-[10px] font-black uppercase tracking-widest gap-2"
-                    onClick={() => handleDownloadMaterial(material)}
-                  >
-                    <Download className="w-3.5 h-3.5" /> {language === 'en' ? 'Download' : 'Télécharger'}
-                  </Button>
+                <CardFooter className="bg-accent/10 p-3 border-t flex items-center justify-between gap-2">
+                  <div className="flex flex-1 gap-2">
+                    <Button 
+                      variant="ghost" 
+                      className="flex-1 h-9 rounded-lg hover:bg-white text-primary text-[10px] font-black uppercase tracking-widest gap-2"
+                      onClick={() => handleViewMaterial(material)}
+                    >
+                      <Eye className="w-3.5 h-3.5" /> {language === 'en' ? 'View' : 'Voir'}
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      className="flex-1 h-9 rounded-lg hover:bg-white text-primary text-[10px] font-black uppercase tracking-widest gap-2"
+                      onClick={() => handleDownloadMaterial(material)}
+                    >
+                      <Download className="w-3.5 h-3.5" /> {language === 'en' ? 'Download' : 'Télécharger'}
+                    </Button>
+                  </div>
+                  {isTeacher && (
+                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-destructive/20 hover:text-destructive hover:bg-red-50" onClick={() => handleDeleteMaterial(material.id)}>
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
+                </CardFooter>
+              </Card>
+            ))}
+            {subjectMaterials.length === 0 && (
+              <div className="col-span-full py-20 text-center border-2 border-dashed rounded-[2rem] bg-accent/5 space-y-4">
+                <div className="p-4 bg-white rounded-full w-fit mx-auto shadow-sm">
+                  <BookMarked className="w-10 h-10 text-primary/20" />
                 </div>
-                {(isTeacher || isAdmin) && (
-                  <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-destructive/20 hover:text-destructive hover:bg-red-50" onClick={() => handleDeleteMaterial(material.id)}>
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                )}
-              </CardFooter>
-            </Card>
-          ))}
-          {subjectMaterials.length === 0 && (
-            <div className="col-span-full py-20 text-center border-2 border-dashed rounded-[2rem] bg-accent/5 space-y-4">
-              <div className="p-4 bg-white rounded-full w-fit mx-auto shadow-sm">
-                <BookMarked className="w-10 h-10 text-primary/20" />
+                <div className="space-y-1">
+                  <p className="font-black text-primary uppercase tracking-tighter">No materials found</p>
+                  <p className="text-xs text-muted-foreground">This course repository is currently empty.</p>
+                </div>
               </div>
-              <div className="space-y-1">
-                <p className="font-black text-primary uppercase tracking-tighter">No materials found</p>
-                <p className="text-xs text-muted-foreground">Upload class summaries, videos or notes for your students.</p>
-              </div>
-              {(isTeacher || isAdmin) && (
-                <Button variant="outline" size="sm" className="rounded-xl font-bold gap-2" onClick={() => setIsAddingMaterial(true)}>
-                  <Plus className="w-4 h-4" /> Add First Material
-                </Button>
-              )}
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* MEDIA PREVIEW MODAL */}
@@ -659,7 +720,7 @@ function CourseCard({ course, isAdmin, onDelete, onViewMaterials }: { course: an
       <CardFooter className="bg-accent/30 border-t border-accent/50 pt-4 flex gap-2">
         <Button variant="ghost" className="flex-1 justify-between hover:bg-white h-10 group/btn" onClick={onViewMaterials}>
           <span className="flex items-center gap-2 font-bold text-xs">
-            <Eye className="w-4 h-4" /> {language === 'en' ? 'Materials' : 'Supports'}
+            <Eye className="w-4 h-4" /> {isAdmin ? 'Course Suite' : (language === 'en' ? 'Materials' : 'Supports')}
           </span>
           <ChevronRight className="w-4 h-4 opacity-0 group-hover/btn:opacity-100 group-hover/btn:translate-x-1 transition-all" />
         </Button>
