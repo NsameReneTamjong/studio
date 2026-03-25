@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -45,7 +46,9 @@ import {
   ArrowLeftRight,
   Gavel,
   ShieldAlert,
-  CalendarClock
+  CalendarClock,
+  History,
+  Signature
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -62,6 +65,12 @@ const INITIAL_BOOKS = [
 
 const INITIAL_LOANS = [
   { id: "LOAN-101", bookTitle: "Organic Chemistry", author: "Marie Curie", borrowerName: "Alice Thompson", borrowerId: "S001", borrowDate: "May 15, 2024", returnDate: "May 29, 2024", status: "Active", collectionCode: "IGN-882-X" }
+];
+
+const MOCK_STUDENT_HISTORY = [
+  { id: "H1", bookTitle: "Things Fall Apart", author: "Chinua Achebe", borrowDate: "Jan 10, 2024", returnDate: "Jan 24, 2024", status: "Returned", code: "IGN-102-A" },
+  { id: "H2", bookTitle: "Advanced Physics", author: "Dr. Tesla", borrowDate: "Dec 05, 2023", returnDate: "Dec 19, 2023", status: "Returned", code: "IGN-405-B" },
+  { id: "H3", bookTitle: "Calculus I", author: "Prof. Smith", borrowDate: "Nov 12, 2023", returnDate: "Nov 26, 2023", status: "Returned", code: "IGN-991-Z" },
 ];
 
 const MOCK_REQUESTS = [
@@ -96,6 +105,7 @@ export default function LibraryPage() {
 
   const isLibrarian = user?.role === "LIBRARIAN";
   const isAdmin = user?.role === "SCHOOL_ADMIN";
+  const isStudent = user?.role === "STUDENT";
 
   const handleIssueBook = (id: string) => {
     if (!isLibrarian) return;
@@ -142,26 +152,31 @@ export default function LibraryPage() {
       <Tabs defaultValue="catalog" className="w-full">
         <TabsList className={cn(
           "grid w-full bg-white shadow-sm border h-auto p-1 rounded-2xl",
-          (isLibrarian || isAdmin) ? "grid-cols-5 md:w-[950px]" : "grid-cols-2 md:w-[400px]"
+          (isLibrarian || isAdmin) ? "grid-cols-5 md:w-[950px]" : "grid-cols-3 md:w-[600px]"
         )}>
           <TabsTrigger value="catalog" className="gap-2 py-3 rounded-xl transition-all">
-            <Book className="w-4 h-4" /> Catalog
+            <Book className="w-4 h-4" /> {t("catalog") || 'Catalog'}
           </TabsTrigger>
           {(isLibrarian || isAdmin) && (
             <TabsTrigger value="issue" className="gap-2 py-3 rounded-xl transition-all">
-              <ArrowUpRight className="w-4 h-4" /> Issue Requests
+              <ArrowUpRight className="w-4 h-4" /> {language === 'en' ? 'Issue Requests' : 'Demandes'}
             </TabsTrigger>
           )}
           <TabsTrigger value="borrowed" className="gap-2 py-3 rounded-xl transition-all">
-            <Clock className="w-4 h-4" /> {isLibrarian || isAdmin ? 'Circulation' : 'My Books'}
+            <Clock className="w-4 h-4" /> {isLibrarian || isAdmin ? (language === 'en' ? 'Circulation' : 'Circulation') : t("borrowed")}
           </TabsTrigger>
+          {isStudent && (
+            <TabsTrigger value="history" className="gap-2 py-3 rounded-xl transition-all">
+              <History className="w-4 h-4" /> {t("libraryHistory")}
+            </TabsTrigger>
+          )}
           {(isLibrarian || isAdmin) && (
             <>
               <TabsTrigger value="members" className="gap-2 py-3 rounded-xl transition-all">
-                <Users className="w-4 h-4" /> Members
+                <Users className="w-4 h-4" /> {language === 'en' ? 'Members' : 'Membres'}
               </TabsTrigger>
               <TabsTrigger value="settings" className="gap-2 py-3 rounded-xl transition-all">
-                <Settings2 className="w-4 h-4" /> Policy
+                <Settings2 className="w-4 h-4" /> {language === 'en' ? 'Policy' : 'Politique'}
               </TabsTrigger>
             </>
           )}
@@ -237,28 +252,30 @@ export default function LibraryPage() {
         <TabsContent value="borrowed" className="mt-8">
           <Card className="border-none shadow-sm overflow-hidden">
             <CardHeader className="bg-white border-b">
-              <CardTitle>Active Institutional Circulation</CardTitle>
-              <CardDescription>Live tracking of all resources currently out of the library.</CardDescription>
+              <CardTitle>{isLibrarian || isAdmin ? 'Active Institutional Circulation' : t("borrowed")}</CardTitle>
+              <CardDescription>
+                {isLibrarian || isAdmin ? 'Live tracking of all resources currently out of the library.' : 'Your active loans and return deadlines.'}
+              </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               <Table>
                 <TableHeader className="bg-accent/30">
                   <TableRow className="uppercase text-[10px] font-black tracking-widest">
-                    <TableHead className="pl-6">Student</TableHead>
-                    <TableHead>Book</TableHead>
-                    <TableHead className="text-center">Due Date</TableHead>
+                    <TableHead className="pl-6">{isLibrarian || isAdmin ? 'Student' : 'Book'}</TableHead>
+                    <TableHead>{isLibrarian || isAdmin ? 'Book' : 'Author'}</TableHead>
+                    <TableHead className="text-center">{t("returnDate")}</TableHead>
                     <TableHead className="text-right pr-6">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loans.map((loan) => (
                     <TableRow key={loan.id}>
-                      <TableCell className="pl-6 py-4 font-bold text-sm text-primary">{loan.borrowerName}</TableCell>
-                      <TableCell className="text-sm">{loan.bookTitle}</TableCell>
+                      <TableCell className="pl-6 py-4 font-bold text-sm text-primary">{isLibrarian || isAdmin ? loan.borrowerName : loan.bookTitle}</TableCell>
+                      <TableCell className="text-sm">{isLibrarian || isAdmin ? loan.bookTitle : loan.author}</TableCell>
                       <TableCell className="text-center font-mono text-xs font-black text-secondary">{loan.returnDate}</TableCell>
                       <TableCell className="text-right pr-6">
                         <Button variant="outline" size="sm" className="h-8 uppercase text-[10px] font-black" onClick={() => handleReturnBook(loan.id)} disabled={isAdmin}>
-                          {isAdmin ? "Active Loan" : "Record Return"}
+                          {isAdmin ? "Active Loan" : (isLibrarian ? "Record Return" : "Details")}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -266,6 +283,71 @@ export default function LibraryPage() {
                 </TableBody>
               </Table>
             </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="history" className="mt-8">
+          <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
+            <CardHeader className="bg-primary p-8 text-white">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-2xl">
+                  <History className="w-8 h-8 text-secondary" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl font-black">{t("libraryHistory")}</CardTitle>
+                  <CardDescription className="text-white/60">Digital logs of your past library interactions and verified returns.</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-accent/10 uppercase text-[10px] font-black tracking-widest border-b border-accent/20">
+                    <TableHead className="pl-8 py-4">Resource Portfolio</TableHead>
+                    <TableHead className="text-center">{t("dateBorrowed")}</TableHead>
+                    <TableHead className="text-center">{t("dateReturned")}</TableHead>
+                    <TableHead className="text-center">Ref. Code</TableHead>
+                    <TableHead className="text-right pr-8">Integrity</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {MOCK_STUDENT_HISTORY.map((hist) => (
+                    <TableRow key={hist.id} className="hover:bg-accent/5 transition-colors border-b border-accent/10">
+                      <TableCell className="pl-8 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-primary/5 rounded-lg border border-primary/10">
+                            <BookOpen className="w-4 h-4 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-sm text-primary">{hist.bookTitle}</p>
+                            <p className="text-[10px] text-muted-foreground uppercase font-bold">{hist.author}</p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center font-mono text-xs font-bold text-muted-foreground">{hist.borrowDate}</TableCell>
+                      <TableCell className="text-center font-mono text-xs font-bold text-primary">{hist.returnDate}</TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant="outline" className="font-mono text-[9px] uppercase border-primary/10">{hist.code}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-100 font-bold text-[9px] uppercase">
+                          <CheckCircle2 className="w-3.5 h-3.5" /> {hist.status}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+            <CardFooter className="bg-accent/10 p-6 border-t border-accent flex justify-between items-center">
+               <div className="flex items-center gap-2 text-muted-foreground">
+                  <ShieldCheck className="w-4 h-4 text-primary" />
+                  <p className="text-[10px] uppercase font-black tracking-widest italic">All past transactions are digitally signed and archived.</p>
+               </div>
+               <Button variant="ghost" size="sm" className="gap-2 text-[10px] font-black uppercase">
+                 <Printer className="w-3.5 h-3.5" /> Print Statement
+               </Button>
+            </CardFooter>
           </Card>
         </TabsContent>
 
