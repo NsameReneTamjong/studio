@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -33,7 +33,8 @@ import {
   Eye,
   Heart,
   Mail,
-  Smartphone
+  Smartphone,
+  X
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -57,7 +58,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
 
 const MOCK_STUDENTS = [
   { id: "GBHS26S001", uid: "S1", name: "Alice Thompson", email: "alice.t@school.edu", class: "2nde / Form 5", isLicensePaid: true, status: "active", avatar: "https://picsum.photos/seed/s1/100/100" },
@@ -83,34 +83,39 @@ export default function StudentsPage() {
   const [isAdmissionOpen, setIsAdmissionOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   
-  // Registry States
   const [studentList, setStudentList] = useState(MOCK_STUDENTS);
   const [parentList, setParentList] = useState(MOCK_PARENTS);
   const [editingUser, setEditingUser] = useState<any>(null);
 
   const isAdmin = ["SCHOOL_ADMIN", "SUPER_ADMIN"].includes(user?.role || "");
 
-  const filteredStudents = studentList.filter(s => {
+  const filteredStudents = useMemo(() => studentList.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase()) || s.id.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesClass = classFilter === "all" || s.class === classFilter;
     return matchesSearch && matchesClass;
-  });
+  }), [studentList, searchTerm, classFilter]);
 
-  const filteredParents = parentList.filter(p => 
+  const filteredParents = useMemo(() => parentList.filter(p => 
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     p.id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ), [parentList, searchTerm]);
 
   const handleToggleStatus = (uid: string, type: 'student' | 'parent') => {
+    const list = type === 'student' ? studentList : parentList;
+    const targetUser = list.find(u => u.uid === uid);
+    
+    if (!targetUser) return;
+
+    const nextStatus = targetUser.status === "active" ? "inactive" : "active";
     const setter = type === 'student' ? setStudentList : setParentList;
-    setter(prev => prev.map(u => {
-      if (u.uid === uid) {
-        const nextStatus = u.status === "active" ? "inactive" : "active";
-        toast({ title: `Account ${nextStatus === "active" ? "Activated" : "Suspended"}`, description: `${u.name} status updated.` });
-        return { ...u, status: nextStatus };
-      }
-      return u;
-    }));
+    
+    setter(prev => prev.map(u => u.uid === uid ? { ...u, status: nextStatus } : u));
+    
+    // Call toast outside of the state updater callback to avoid render-phase updates
+    toast({ 
+      title: `Account ${nextStatus === "active" ? "Activated" : "Suspended"}`, 
+      description: `${targetUser.name} status updated.` 
+    });
   };
 
   const handleSaveEdit = () => {
@@ -123,8 +128,9 @@ export default function StudentsPage() {
         setStudentList(prev => prev.map(s => s.uid === editingUser.uid ? editingUser : s));
       }
       setIsProcessing(false);
+      const userName = editingUser.name;
       setEditingUser(null);
-      toast({ title: "Account Updated", description: "Changes saved successfully." });
+      toast({ title: "Account Updated", description: `${userName}'s records saved successfully.` });
     }, 800);
   };
 
@@ -296,8 +302,15 @@ export default function StudentsPage() {
       <Dialog open={!!editingUser} onOpenChange={() => setEditingUser(null)}>
         <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
           <DialogHeader className="bg-primary p-8 text-white">
-            <DialogTitle className="text-2xl font-black">Edit User Dossier</DialogTitle>
-            <DialogDescription className="text-white/60">Update institutional records for {editingUser?.name}.</DialogDescription>
+            <div className="flex justify-between items-center">
+              <div>
+                <DialogTitle className="text-2xl font-black">Edit User Dossier</DialogTitle>
+                <DialogDescription className="text-white/60">Update institutional records for {editingUser?.name}.</DialogDescription>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setEditingUser(null)} className="text-white/40 hover:text-white">
+                <X className="w-6 h-6" />
+              </Button>
+            </div>
           </DialogHeader>
           <div className="p-8 space-y-6">
             <div className="space-y-2">
