@@ -15,13 +15,13 @@ service cloud.firestore {
     function isPlatformAdmin() {
       if (!isSignedIn()) return false;
       
-      // 1. Check platform_admins collection (managed by framework/admin)
+      // 1. Check platform_admins collection (explicitly defined admins)
       if (exists(/databases/$(database)/documents/platform_admins/$(request.auth.uid))) return true;
       
       // 2. Check user document role synced from app logic
       let userData = getUserData();
       return userData != null && 
-             userData.role in ['SUPER_ADMIN', 'CEO', 'CTO', 'COO', 'INV', 'Investor'];
+             (userData.role in ['SUPER_ADMIN', 'CEO', 'CTO', 'COO', 'INV', 'Investor']);
     }
 
     function isSchoolAdmin(schoolId) {
@@ -42,10 +42,10 @@ service cloud.firestore {
     }
 
     match /testimonials/{testimonialId} {
-      // 1. Authenticated users (not platform admins) can create new testimonials
-      allow create: if isSignedIn() && !isPlatformAdmin();
+      // 1. Authenticated users can create new testimonials
+      allow create: if isSignedIn();
       
-      // 2. Platform Admins (CEO, CTO, INV, etc.) can read (list/get), update, and delete
+      // 2. Platform Admins can manage (read/update/delete)
       allow read, update, delete: if isPlatformAdmin();
     }
 
