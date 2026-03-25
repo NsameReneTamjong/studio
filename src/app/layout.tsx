@@ -3,6 +3,7 @@ import './globals.css';
 import { AuthProvider } from '@/lib/auth-context';
 import { I18nProvider } from '@/lib/i18n-context';
 import { Toaster } from "@/components/ui/toaster"
+import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
   title: 'EduIgnite | School Management System',
@@ -23,10 +24,12 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased selection:bg-secondary selection:text-secondary-foreground">
         <I18nProvider>
-          <AuthProvider>
-            {children}
-            <Toaster />
-          </AuthProvider>
+          <FirebaseClientProvider>
+            <AuthProvider>
+              {children}
+              <Toaster />
+            </AuthProvider>
+          </FirebaseClientProvider>
         </I18nProvider>
       </body>
     </html>
