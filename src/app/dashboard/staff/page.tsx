@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Users, 
   Search, 
@@ -28,7 +27,9 @@ import {
   User,
   Building2,
   Fingerprint,
-  X
+  X,
+  UserCheck,
+  UserX
 } from "lucide-react";
 import { 
   Dialog, 
@@ -61,8 +62,8 @@ import { cn } from "@/lib/utils";
 const SECTIONS = ["Anglophone Section", "Francophone Section", "Technical Section", "Cross-Sectional"];
 
 const MOCK_STAFF = [
-  { id: "GBHS26T001", uid: "T1", name: "Dr. Aris Tesla", role: "TEACHER", section: "Anglophone Section", avatar: "https://picsum.photos/seed/t1/100/100" },
-  { id: "GBHS26B001", uid: "B1", name: "Mme. Ngono Celine", role: "BURSAR", section: "Cross-Sectional", avatar: "https://picsum.photos/seed/b1/100/100" },
+  { id: "GBHS26T001", uid: "T1", name: "Dr. Aris Tesla", role: "TEACHER", section: "Anglophone Section", avatar: "https://picsum.photos/seed/t1/100/100", status: "active" },
+  { id: "GBHS26B001", uid: "B1", name: "Mme. Ngono Celine", role: "BURSAR", section: "Cross-Sectional", avatar: "https://picsum.photos/seed/b1/100/100", status: "active" },
 ];
 
 export default function StaffManagementPage() {
@@ -109,6 +110,7 @@ export default function StaffManagementPage() {
         id: generatedId,
         uid: Math.random().toString(),
         avatar: `https://picsum.photos/seed/${generatedId}/100/100`,
+        status: "active"
       };
       setStaff([...staff, created]);
       setIsProcessing(false);
@@ -130,14 +132,18 @@ export default function StaffManagementPage() {
     }, 800);
   };
 
-  const handleDeleteStaff = (uid: string) => {
-    const target = staff.find(s => s.uid === uid);
-    setStaff(staff.filter(s => s.uid !== uid));
-    toast({ 
-      variant: "destructive", 
-      title: "Access Suspended", 
-      description: `${target?.name || 'Staff member'} has been removed from active registry.` 
-    });
+  const handleToggleStaffStatus = (uid: string) => {
+    setStaff(prev => prev.map(s => {
+      if (s.uid === uid) {
+        const nextStatus = s.status === "active" ? "inactive" : "active";
+        toast({ 
+          title: nextStatus === "active" ? "Access Restored" : "Access Suspended", 
+          description: `${s.name} is now ${nextStatus}.` 
+        });
+        return { ...s, status: nextStatus };
+      }
+      return s;
+    }));
   };
 
   const getRoleColor = (role: string) => {
@@ -238,6 +244,7 @@ export default function StaffManagementPage() {
                   <TableHead className="pl-8 py-4">Staff ID</TableHead>
                   <TableHead>Professional Profile</TableHead>
                   <TableHead className="text-center">Section</TableHead>
+                  <TableHead className="text-center">Status</TableHead>
                   <TableHead className="text-right pr-8">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -258,6 +265,14 @@ export default function StaffManagementPage() {
                       </div>
                     </TableCell>
                     <TableCell className="text-center text-xs font-bold text-primary">{s.section}</TableCell>
+                    <TableCell className="text-center">
+                      <Badge className={cn(
+                        "text-[9px] font-black uppercase px-3 border-none",
+                        s.status === 'active' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                      )}>
+                        {s.status}
+                      </Badge>
+                    </TableCell>
                     <TableCell className="pr-8 text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -277,11 +292,14 @@ export default function StaffManagementPage() {
                           </DropdownMenuItem>
                           <DropdownMenuSeparator className="bg-accent" />
                           <DropdownMenuItem 
-                            className="gap-3 px-4 py-2.5 text-destructive cursor-pointer hover:bg-red-50"
-                            onClick={() => handleDeleteStaff(s.uid)}
+                            className={cn(
+                              "gap-3 px-4 py-2.5 cursor-pointer",
+                              s.status === "active" ? "text-destructive hover:bg-red-50" : "text-green-600 hover:bg-green-50"
+                            )}
+                            onClick={() => handleToggleStaffStatus(s.uid)}
                           >
-                            <Ban className="w-4 h-4" /> 
-                            <span className="font-bold text-xs">Suspend Access</span>
+                            {s.status === "active" ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+                            <span className="font-bold text-xs">{s.status === "active" ? "Deactivate" : "Activate"}</span>
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -290,7 +308,7 @@ export default function StaffManagementPage() {
                 ))}
                 {filteredStaff.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={4} className="h-40 text-center text-muted-foreground italic">No staff members found matching your search.</TableCell>
+                    <TableCell colSpan={5} className="h-40 text-center text-muted-foreground italic">No staff members found matching your search.</TableCell>
                   </TableRow>
                 )}
               </TableBody>
@@ -340,7 +358,12 @@ export default function StaffManagementPage() {
               </div>
               <div className="space-y-1 text-right">
                 <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Node Status</p>
-                <Badge className="bg-green-100 text-green-700 border-none font-black text-[10px] px-3">VERIFIED</Badge>
+                <Badge className={cn(
+                  "font-black text-[10px] px-3 border-none",
+                  viewingStaff?.status === 'active' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                )}>
+                  {viewingStaff?.status === 'active' ? "VERIFIED" : "SUSPENDED"}
+                </Badge>
               </div>
             </div>
           </div>
