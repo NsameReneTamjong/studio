@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo } from "react";
@@ -38,7 +37,8 @@ import {
   Send,
   Globe,
   Settings2,
-  CheckCircle
+  CheckCircle,
+  Info
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
