@@ -25,14 +25,12 @@ import {
   Loader2, 
   AlertCircle, 
   X, 
-  SearchX,
   CreditCard,
   FileDown,
   Filter,
   CalendarDays,
   FileSpreadsheet,
   CheckCircle,
-  AlertTriangle,
   Download,
   Building2,
   BookMarked
@@ -72,7 +70,6 @@ export default function FeesPage() {
   // Reporting States
   const [reportYear, setReportYear] = useState(ACADEMIC_YEARS[0]);
   const [reportClass, setReportClass] = useState("all");
-  const [reportFeeType, setReportFeeType] = useState("all");
   const [reportStatus, setReportStatus] = useState("all");
 
   // Dynamic State for mock interaction
@@ -167,7 +164,7 @@ export default function FeesPage() {
       setIsProcessing(false);
       toast({
         title: "Export Successful",
-        description: `Institutional list for ${reportYear} generated with status filters.`,
+        description: `Institutional list for ${reportYear} generated.`,
       });
     }, 2000);
   };
@@ -210,7 +207,6 @@ export default function FeesPage() {
           </TabsTrigger>
         </TabsList>
 
-        {/* COLLECTION DESK TAB */}
         <TabsContent value="pay" className="animate-in fade-in slide-in-from-bottom-4 mt-0 space-y-6">
           <Card className="border-none shadow-xl overflow-hidden rounded-[1.5rem] md:rounded-3xl">
             <CardHeader className="bg-white border-b p-4 md:p-6">
@@ -318,7 +314,6 @@ export default function FeesPage() {
           </Card>
         </TabsContent>
 
-        {/* LEDGER TAB */}
         <TabsContent value="ledger" className="mt-0">
           <Card className="border-none shadow-xl overflow-hidden rounded-[1.5rem] md:rounded-3xl">
             <CardHeader className="bg-white border-b p-4 md:p-6">
@@ -361,7 +356,6 @@ export default function FeesPage() {
           </Card>
         </TabsContent>
 
-        {/* REPORTS TAB */}
         <TabsContent value="reports" className="animate-in fade-in slide-in-from-bottom-4 mt-0 space-y-6">
           <Card className="border-none shadow-xl rounded-[1.5rem] md:rounded-3xl overflow-hidden">
             <CardHeader className="bg-primary p-6 md:p-8 text-white">
@@ -504,7 +498,6 @@ export default function FeesPage() {
           </Card>
         </TabsContent>
 
-        {/* OVERVIEW TAB */}
         <TabsContent value="overview" className="mt-0 space-y-6 md:space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="border-none shadow-sm bg-blue-50">
@@ -599,15 +592,15 @@ export default function FeesPage() {
               disabled={isProcessing || !paymentForm.amount}
             >
               {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
-              Finalize & Print Receipt
+              Finalize & Generate Receipt
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* RECEIPT DIALOG */}
+      {/* HIGH-FIDELITY OFFICIAL RECEIPT DIALOG */}
       <Dialog open={!!issuedReceipt} onOpenChange={() => setIssuedReceipt(null)}>
-        <DialogContent className="sm:max-w-xl p-0 border-none shadow-2xl rounded-[1.5rem] md:rounded-[2rem] overflow-hidden">
+        <DialogContent className="sm:max-w-2xl p-0 border-none shadow-2xl rounded-[1.5rem] md:rounded-[2rem] overflow-hidden">
           <DialogHeader className="bg-primary p-6 md:p-8 text-white no-print">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -615,8 +608,8 @@ export default function FeesPage() {
                   <Receipt className="w-6 h-6 md:w-8 md:h-8 text-secondary" />
                 </div>
                 <div>
-                  <DialogTitle className="text-xl md:text-2xl font-black">Official Receipt</DialogTitle>
-                  <DialogDescription className="text-white/60 text-xs">Institutional transaction recorded.</DialogDescription>
+                  <DialogTitle className="text-xl md:text-2xl font-black">Official Receipt Issued</DialogTitle>
+                  <DialogDescription className="text-white/60 text-xs">Institutional financial transaction successfully recorded.</DialogDescription>
                 </div>
               </div>
               <Button variant="ghost" size="icon" onClick={() => setIssuedReceipt(null)} className="text-white/40 hover:text-white">
@@ -626,74 +619,107 @@ export default function FeesPage() {
           </DialogHeader>
 
           <div className="bg-muted p-4 md:p-10 print:p-0 print:bg-white overflow-hidden">
-            <div id="printable-receipt" className="bg-white p-6 md:p-8 border-2 border-black/10 shadow-sm relative flex flex-col space-y-6 font-serif text-black print:border-none print:shadow-none min-w-[300px]">
-               <div className="flex justify-between items-start border-b-2 border-black pb-4 gap-4">
-                  <div className="flex items-center gap-3">
-                    <img src={user?.school?.logo} alt="School" className="w-10 h-10 md:w-12 md:h-12 object-contain" />
-                    <div className="space-y-0.5">
-                      <h2 className="font-black text-[10px] md:text-xs uppercase text-primary leading-tight">{user?.school?.name}</h2>
-                      <p className="text-[7px] md:text-[8px] font-bold uppercase opacity-60">Financial Services Registry</p>
-                    </div>
+            <div id="printable-receipt" className="bg-white p-6 md:p-10 border-2 border-black shadow-sm relative flex flex-col space-y-8 font-serif text-black print:border-none print:shadow-none min-w-[350px]">
+               {/* National Header */}
+               <div className="grid grid-cols-3 gap-2 items-start text-center border-b-2 border-black pb-4">
+                  <div className="space-y-0.5 text-[7px] uppercase font-bold">
+                    <p>Republic of Cameroon</p>
+                    <p>Peace - Work - Fatherland</p>
+                    <div className="h-px bg-black w-6 mx-auto my-0.5" />
+                    <p>Min. of Secondary Education</p>
                   </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-[8px] md:text-[10px] font-black uppercase opacity-40">Receipt No.</p>
-                    <p className="text-xs md:text-sm font-mono font-black">{issuedReceipt?.id}</p>
+                  <div className="flex flex-col items-center">
+                    <img src={user?.school?.logo} alt="School" className="w-10 h-10 md:w-14 md:h-14 object-contain" />
                   </div>
-               </div>
-
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 py-2 md:py-4">
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Student Identity</p>
-                      <p className="font-black text-xs md:text-sm uppercase">{issuedReceipt?.studentName}</p>
-                      <p className="text-[8px] md:text-[9px] font-mono font-bold text-primary">{issuedReceipt?.studentId} • {issuedReceipt?.class}</p>
-                    </div>
-                    <div>
-                      <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Charge Category</p>
-                      <p className="font-black text-xs md:text-sm uppercase">{issuedReceipt?.feeType}</p>
-                    </div>
-                  </div>
-                  <div className="space-y-4 text-left md:text-right">
-                    <div>
-                      <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Transaction Date</p>
-                      <p className="font-bold text-xs md:text-sm">{issuedReceipt?.date}</p>
-                    </div>
-                    <div className="p-3 bg-primary text-white rounded-xl shadow-inner">
-                      <p className="text-[8px] font-black uppercase opacity-60 tracking-widest">Total Amount Received</p>
-                      <p className="font-black text-base md:text-lg text-secondary underline underline-offset-4 decoration-double">{issuedReceipt?.amount} XAF</p>
-                    </div>
+                  <div className="space-y-0.5 text-[7px] uppercase font-bold">
+                    <p>République du Cameroun</p>
+                    <p>Paix - Travail - Patrie</p>
+                    <div className="h-px bg-black w-6 mx-auto my-0.5" />
+                    <p>Min. des Enseignements Sec.</p>
                   </div>
                </div>
 
-               <div className="pt-6 border-t border-black/5 flex justify-between items-end">
+               <div className="text-center space-y-1">
+                  <h2 className="font-black text-sm md:text-base uppercase tracking-tighter text-primary">{user?.school?.name}</h2>
+                  <p className="text-[8px] md:text-[9px] font-bold uppercase opacity-60 tracking-widest underline decoration-double underline-offset-2">Official Financial Receipt</p>
+               </div>
+
+               <div className="flex justify-between items-end bg-accent/5 p-4 border border-black/10 rounded-xl">
+                  <div>
+                    <p className="text-[8px] md:text-[10px] font-black uppercase text-muted-foreground tracking-widest">Receipt Reference</p>
+                    <p className="text-sm md:text-base font-mono font-black text-primary">{issuedReceipt?.id}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[8px] md:text-[10px] font-black uppercase text-muted-foreground tracking-widest">Transaction Date</p>
+                    <p className="font-bold text-xs md:text-sm">{issuedReceipt?.date}</p>
+                  </div>
+               </div>
+
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-2">
+                  <div className="space-y-6">
+                    <div>
+                      <p className="text-[8px] md:text-[9px] font-black uppercase text-muted-foreground tracking-widest border-b border-black/5 pb-1 mb-2">Student Identity</p>
+                      <p className="font-black text-xs md:text-base uppercase leading-tight">{issuedReceipt?.studentName}</p>
+                      <p className="text-[9px] md:text-[10px] font-mono font-bold text-primary mt-1">{issuedReceipt?.studentId} • {issuedReceipt?.class}</p>
+                    </div>
+                    <div>
+                      <p className="text-[8px] md:text-[9px] font-black uppercase text-muted-foreground tracking-widest border-b border-black/5 pb-1 mb-2">Fee Particulars</p>
+                      <Badge variant="outline" className="border-black/20 text-black font-black uppercase text-[10px] px-3">{issuedReceipt?.feeType}</Badge>
+                    </div>
+                  </div>
+                  <div className="space-y-6 text-left md:text-right flex flex-col justify-end">
+                    <div className="p-4 bg-primary text-white rounded-2xl shadow-xl transform md:rotate-1">
+                      <p className="text-[8px] md:text-[9px] font-black uppercase opacity-60 tracking-widest mb-1">Net Amount Received</p>
+                      <p className="font-black text-xl md:text-2xl text-secondary underline underline-offset-4 decoration-double">{issuedReceipt?.amount} XAF</p>
+                    </div>
+                  </div>
+               </div>
+
+               <div className="pt-8 border-t border-black/5 flex justify-between items-end">
                   <div className="flex flex-col items-center gap-2">
-                    <QrCode className="w-12 h-12 md:w-16 md:h-16 opacity-10" />
-                    <p className="text-[7px] font-black uppercase text-muted-foreground opacity-40">Verified Registry</p>
+                    <div className="p-2 bg-white border border-black/10 rounded-lg shadow-inner">
+                      <QrCode className="w-14 h-14 md:w-20 md:h-20 text-primary opacity-20" />
+                    </div>
+                    <p className="text-[7px] font-black uppercase text-muted-foreground opacity-40">Verified Registry Node</p>
                   </div>
-                  <div className="text-center space-y-4">
-                    <div className="h-8 w-20 md:h-10 md:w-24 mx-auto bg-primary/5 rounded border-b border-black/20" />
-                    <p className="text-[8px] font-black uppercase text-primary">Bursar Signature</p>
+                  <div className="text-center space-y-6 w-32">
+                    <div className="h-10 md:h-12 w-full mx-auto bg-primary/5 rounded border-b-2 border-black/40 relative">
+                       <Signature className="absolute inset-0 w-full h-full text-primary/20 p-2" />
+                    </div>
+                    <p className="text-[8px] font-black uppercase text-primary tracking-widest leading-none">The Bursar</p>
                   </div>
                </div>
 
-               <div className="text-center pt-4 border-t border-black/5">
-                  <div className="flex items-center justify-center gap-2">
-                    <img src={platformSettings.logo} alt="EduIgnite" className="w-3 h-3 object-contain opacity-20" />
-                    <p className="text-[6px] md:text-[7px] font-black uppercase text-muted-foreground opacity-30 tracking-[0.3em]">
-                      Powered by {platformSettings.name} • Secure Node Record
+               <div className="text-center pt-6 border-t border-black/5">
+                  <div className="flex items-center justify-center gap-3">
+                    <img src={platformSettings.logo} alt="EduIgnite" className="w-4 h-4 object-contain opacity-20" />
+                    <p className="text-[7px] md:text-[8px] font-black uppercase text-muted-foreground opacity-30 tracking-[0.4em]">
+                      Powered by {platformSettings.name} Academic SaaS • Official Digital Record
                     </p>
                   </div>
                </div>
             </div>
           </div>
 
-          <DialogFooter className="bg-accent/10 p-4 md:p-6 border-t no-print flex flex-col sm:flex-row gap-3">
-            <Button variant="outline" className="flex-1 rounded-xl h-11 md:h-12 font-black uppercase tracking-widest text-[10px] md:text-xs" onClick={() => setIssuedReceipt(null)}>
-              Dismiss
+          <DialogFooter className="bg-accent/10 p-4 md:p-8 border-t no-print flex flex-col sm:flex-row gap-4">
+            <Button variant="outline" className="flex-1 rounded-xl h-12 md:h-14 font-black uppercase tracking-widest text-[10px] md:text-xs" onClick={() => setIssuedReceipt(null)}>
+              Close & Return
             </Button>
-            <Button className="flex-1 rounded-xl h-11 md:h-12 shadow-lg font-black uppercase tracking-widest text-[10px] md:text-xs gap-2 bg-primary text-white" onClick={() => window.print()}>
-              <Printer className="w-4 h-4" /> Print Receipt
-            </Button>
+            <div className="flex flex-1 gap-2">
+              <Button 
+                variant="secondary" 
+                className="flex-1 rounded-xl h-12 md:h-14 font-black uppercase tracking-widest text-[10px] md:text-xs gap-2"
+                onClick={() => toast({ title: "Download Initialized", description: "Receipt PDF is being prepared." })}
+              >
+                <Download className="w-4 h-4" /> Download
+              </Button>
+              <Button 
+                className="flex-1 rounded-xl h-12 md:h-14 shadow-2xl font-black uppercase tracking-widest text-[10px] md:text-xs gap-2 bg-primary text-white" 
+                onClick={() => window.print()}
+              >
+                <Printer className="w-4 h-4" /> Print Receipt
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
