@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -55,6 +56,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
   const { t, language, setLanguage } = useI18n();
 
   const isAdmin = user?.role === "SCHOOL_ADMIN";
+  const isSuperAdmin = user?.role === "SUPER_ADMIN";
 
   const routes = [
     {
@@ -227,11 +229,19 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
     <div className="flex flex-col h-full bg-primary text-white w-full border-r border-white/10">
       <div className="p-6">
         <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="bg-secondary p-1.5 rounded-lg">
-              <Building2 className="w-6 h-6 text-primary" />
-            </div>
-            <span className="text-xl font-bold tracking-tight font-headline">EduIgnite</span>
+          <div className="flex items-center gap-3 overflow-hidden">
+            {!isSuperAdmin && user?.school?.logo ? (
+              <div className="w-8 h-8 rounded-lg bg-white p-1 flex items-center justify-center shrink-0">
+                <img src={user.school.logo} alt="School Logo" className="w-full h-full object-contain" />
+              </div>
+            ) : (
+              <div className="bg-secondary p-1.5 rounded-lg shrink-0">
+                <Building2 className="w-6 h-6 text-primary" />
+              </div>
+            )}
+            <span className="text-lg font-bold tracking-tight font-headline truncate">
+              {isSuperAdmin ? "EduIgnite" : (user?.school?.name || "EduIgnite")}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <DropdownMenu>

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
@@ -167,9 +168,16 @@ export default function DashboardPage() {
     return (
       <div className="space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-primary font-headline">Family Overview</h1>
-            <p className="text-muted-foreground mt-1">Institutional Node: {user.school?.name || "EduIgnite Node"}</p>
+          <div className="flex items-center gap-4">
+            {user.school?.logo && (
+              <div className="w-16 h-16 rounded-2xl bg-white p-2 shadow-xl border-2 border-accent hidden sm:flex items-center justify-center">
+                <img src={user.school.logo} alt="Logo" className="w-full h-full object-contain" />
+              </div>
+            )}
+            <div>
+              <h1 className="text-3xl font-bold text-primary font-headline">Family Overview</h1>
+              <p className="text-muted-foreground mt-1">Institutional Node: {user.school?.name || "EduIgnite Node"}</p>
+            </div>
           </div>
           <div className="bg-primary/5 px-4 py-2 rounded-xl border border-primary/10 flex items-center gap-3">
             <ShieldCheck className="w-5 h-5 text-primary" />
@@ -247,9 +255,16 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-primary font-headline">Welcome, {user.name}</h1>
-          <p className="text-muted-foreground mt-1">Institutional Dashboard: {user.school?.name || "EduIgnite Node"}</p>
+        <div className="flex items-center gap-4">
+          {user.school?.logo && (
+            <div className="w-16 h-16 rounded-2xl bg-white p-2 shadow-xl border-2 border-accent hidden sm:flex items-center justify-center">
+              <img src={user.school.logo} alt="Logo" className="w-full h-full object-contain" />
+            </div>
+          )}
+          <div>
+            <h1 className="text-3xl font-bold text-primary font-headline">Welcome, {user.name}</h1>
+            <p className="text-muted-foreground mt-1">Institutional Dashboard: {user.school?.name || "EduIgnite Node"}</p>
+          </div>
         </div>
         <div className="bg-green-50 px-4 py-2 rounded-xl border border-green-100 flex items-center gap-3">
           <ShieldCheck className="w-5 h-5 text-green-600" />

@@ -36,7 +36,7 @@ const TUTORIAL_LINKS: Record<string, string> = {
 };
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, user, isLoading } = useAuth();
+  const { isAuthenticated, user, isLoading, platformSettings } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
@@ -143,9 +143,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Mobile Header */}
         <header className="md:hidden flex items-center justify-between px-4 py-3 bg-primary text-white shrink-0">
-          <div className="flex items-center gap-2">
-            <Building2 className="w-6 h-6 text-secondary" />
-            <span className="font-bold tracking-tight text-white">EduIgnite</span>
+          <div className="flex items-center gap-2 overflow-hidden">
+            {!isSuperAdmin && user?.school?.logo ? (
+              <div className="w-6 h-6 rounded bg-white p-0.5 flex items-center justify-center shrink-0">
+                <img src={user.school.logo} alt="Logo" className="w-full h-full object-contain" />
+              </div>
+            ) : (
+              <Building2 className="w-6 h-6 text-secondary shrink-0" />
+            )}
+            <span className="font-bold tracking-tight text-white truncate">
+              {isSuperAdmin ? platformSettings.name : (user?.school?.name || platformSettings.name)}
+            </span>
           </div>
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
@@ -173,12 +181,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
                       <div className="p-1.5 bg-primary/5 rounded-lg border border-primary/10">
-                        <Building2 className="w-4 h-4 text-primary" />
+                        {user?.school?.logo ? (
+                          <img src={user.school.logo} alt="School Logo" className="w-4 h-4 object-contain" />
+                        ) : (
+                          <Building2 className="w-4 h-4 text-primary" />
+                        )}
                       </div>
-                      <span className="font-black text-primary uppercase tracking-tighter">EduIgnite Academic SaaS</span>
+                      <span className="font-black text-primary uppercase tracking-tighter">
+                        {user?.school?.name || "EduIgnite Academic SaaS"}
+                      </span>
                     </div>
                     <p className="text-sm text-muted-foreground leading-relaxed max-w-md">
-                      Revolutionizing educational management across Africa. Our mission is to digitize every classroom and streamline institutional workflows for a better future.
+                      Revolutionizing educational management through localized SaaS infrastructure. This institutional node is verified and secured by the {platformSettings.name} platform.
                     </p>
                     <div className="flex items-center gap-4">
                       <Button 
@@ -305,7 +319,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <div className="flex items-center gap-6 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">
                       <span>v2.4.0 High-Availability</span>
                       <span>•</span>
-                      <span>Secure Infrastructure</span>
+                      <span>Powered by {platformSettings.name}</span>
                     </div>
                   </div>
                 </div>
