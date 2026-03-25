@@ -21,7 +21,8 @@ import {
   School,
   Phone,
   Mail,
-  ShieldCheck
+  ShieldCheck,
+  Star
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -75,6 +76,45 @@ const EVENTS: EventItem[] = [
   }
 ];
 
+const FEATURED_TESTIMONIES = [
+  {
+    id: "demo-1",
+    name: "Alice Thompson",
+    role: "STUDENT",
+    schoolName: "GBHS Deido",
+    profileImage: "https://picsum.photos/seed/s1/150/150",
+    message: "The digital report cards are so professional! My parents are very happy with the transparency and I can track my GPA in real-time.",
+    stars: 5
+  },
+  {
+    id: "demo-2",
+    name: "Principal Fonka",
+    role: "SCHOOL_ADMIN",
+    schoolName: "Lycée de Joss",
+    profileImage: "https://picsum.photos/seed/p1/150/150",
+    message: "Managing a school of 2,500 students has never been easier. The Governance Logs and Fee Tracker give me total control over institutional health.",
+    stars: 5
+  },
+  {
+    id: "demo-3",
+    name: "Mr. Robert Thompson",
+    role: "PARENT",
+    schoolName: "GBHS Deido",
+    profileImage: "https://picsum.photos/seed/pa1/150/150",
+    message: "No more queues at the bursary. I pay fees from my phone and get a verified receipt instantly. EduIgnite is a blessing for busy parents.",
+    stars: 5
+  },
+  {
+    id: "demo-4",
+    name: "Dr. Aris Tesla",
+    role: "TEACHER",
+    schoolName: "GBHS Deido",
+    profileImage: "https://picsum.photos/seed/t1/150/150",
+    message: "The AI feedback tool saves me hours of grading. I can now provide deep, personalized academic guidance to every single one of my students.",
+    stars: 5
+  }
+];
+
 export default function CommunityTestimonyPage() {
   const [mounted, setMounted] = useState(false);
   const { testimonials, addOrder } = useAuth();
@@ -92,8 +132,9 @@ export default function CommunityTestimonyPage() {
     subDivision: ""
   });
 
-  // Filter approved testimonials from local context
-  const approvedTestimonies = testimonials?.filter(t => t.status === "approved") || [];
+  // Filter approved testimonials from local context and combine with featured
+  const approvedFromContext = testimonials?.filter(t => t.status === "approved") || [];
+  const allTestimonies = [...FEATURED_TESTIMONIES, ...approvedFromContext];
 
   useEffect(() => {
     setMounted(true);
@@ -136,7 +177,7 @@ export default function CommunityTestimonyPage() {
               <Building2 className="w-6 h-6 text-white" />
             </div>
             <span className="text-xl font-black text-primary font-headline tracking-tighter">
-              Community Testimony
+              EduIgnite Community
             </span>
           </Link>
 
@@ -192,7 +233,7 @@ export default function CommunityTestimonyPage() {
               <Card key={event.id} className={cn(
                 "border-none shadow-xl rounded-[2.5rem] overflow-hidden group hover:shadow-2xl transition-all duration-500 bg-white/50 backdrop-blur-sm",
                 "animate-in fade-in slide-in-from-bottom-10"
-              )}>
+              )} style={{ animationDelay: `${idx * 150}ms` }}>
                 <div className="aspect-video relative bg-slate-900">
                   {event.type === "video" ? (
                     <iframe 
@@ -228,11 +269,25 @@ export default function CommunityTestimonyPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {approvedTestimonies?.map((test, idx) => (
-              <Card key={test.id} className="border-none shadow-lg rounded-[2rem] bg-white group hover:-translate-y-2 transition-all duration-500 animate-in zoom-in-95">
+            {allTestimonies.map((test, idx) => (
+              <Card 
+                key={test.id} 
+                className={cn(
+                  "border-none shadow-lg rounded-[2rem] bg-white group hover:-translate-y-2 transition-all duration-500 animate-in zoom-in-95",
+                  "fade-in slide-in-from-bottom-8"
+                )}
+                style={{ animationDelay: `${idx * 100}ms`, animationDuration: '800ms' }}
+              >
                 <CardContent className="p-8 space-y-6 flex flex-col h-full">
-                  <div className="p-3 bg-accent rounded-2xl w-fit group-hover:bg-primary group-hover:text-white transition-colors duration-500">
-                    <Quote className="w-6 h-6 text-primary group-hover:text-secondary transition-colors" />
+                  <div className="flex justify-between items-start">
+                    <div className="p-3 bg-accent rounded-2xl w-fit group-hover:bg-primary group-hover:text-white transition-colors duration-500">
+                      <Quote className="w-6 h-6 text-primary group-hover:text-secondary transition-colors" />
+                    </div>
+                    <div className="flex gap-0.5">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
+                      ))}
+                    </div>
                   </div>
                   
                   <p className="text-sm italic font-medium leading-relaxed text-primary/80 flex-1">
@@ -249,7 +304,7 @@ export default function CommunityTestimonyPage() {
                     <div className="overflow-hidden">
                       <p className="font-black text-primary text-sm truncate uppercase tracking-tight">{test.name}</p>
                       <div className="flex items-center gap-1.5 overflow-hidden">
-                        <Badge variant="secondary" className="bg-secondary/20 text-primary border-none text-[8px] font-black h-4 px-1.5">
+                        <Badge variant="secondary" className="bg-secondary/20 text-primary border-none text-[8px] font-black h-4 px-1.5 shrink-0">
                           {test.role}
                         </Badge>
                         <span className="text-[10px] text-muted-foreground font-bold truncate">@ {test.schoolName}</span>
@@ -259,18 +314,12 @@ export default function CommunityTestimonyPage() {
                 </CardContent>
               </Card>
             ))}
-            {(!approvedTestimonies || approvedTestimonies.length === 0) && (
-              <div className="col-span-full py-20 text-center border-2 border-dashed rounded-3xl opacity-40">
-                <Quote className="w-12 h-12 mx-auto mb-4" />
-                <p>No testimonials have been published yet.</p>
-              </div>
-            )}
           </div>
         </section>
 
         {/* 4. PLACE ORDER FORM SECTION */}
         <section id="order" className="max-w-4xl mx-auto space-y-12">
-          <div className="text-center space-y-4">
+          <div className="text-center space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-1000">
             <div className="flex items-center justify-center gap-4 mb-4">
               <div className="bg-primary p-3 rounded-2xl shadow-xl">
                 <Building2 className="w-10 h-10 text-white" />
@@ -283,7 +332,7 @@ export default function CommunityTestimonyPage() {
             </p>
           </div>
 
-          <Card className="border-none shadow-2xl rounded-[3rem] overflow-hidden bg-white/80 backdrop-blur-xl border border-white">
+          <Card className="border-none shadow-2xl rounded-[3rem] overflow-hidden bg-white/80 backdrop-blur-xl border border-white animate-in zoom-in-95 duration-1000">
             <form onSubmit={handleOrderSubmit}>
               <CardContent className="p-8 md:p-12 space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -341,7 +390,7 @@ export default function CommunityTestimonyPage() {
                 </div>
               </CardContent>
               <CardFooter className="p-8 md:p-12 bg-accent/10 border-t border-accent flex flex-col items-center gap-6">
-                <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto px-16 h-16 rounded-2xl bg-primary shadow-2xl font-black uppercase tracking-widest gap-3">
+                <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto px-16 h-16 rounded-2xl bg-primary shadow-2xl font-black uppercase tracking-widest gap-3 transition-transform active:scale-95">
                   {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : <Send className="w-6 h-6" />}
                   Submit My Order
                 </Button>
