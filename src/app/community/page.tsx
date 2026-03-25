@@ -5,23 +5,13 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
   Building2, 
-  MessageCircle, 
   ArrowRight, 
   Quote, 
-  Video, 
-  Image as ImageIcon,
-  ChevronRight,
   Sparkles,
-  Globe,
   Users,
   Send,
   Loader2,
-  MapPin,
-  Briefcase,
   School,
-  Phone,
-  Mail,
-  ShieldCheck,
   Star
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -76,44 +66,93 @@ const EVENTS: EventItem[] = [
   }
 ];
 
-const FEATURED_TESTIMONIES = [
+const ALL_VOICES = [
   {
-    id: "demo-1",
+    id: "v1",
     name: "Alice Thompson",
     role: "STUDENT",
     schoolName: "GBHS Deido",
     profileImage: "https://picsum.photos/seed/s1/150/150",
-    message: "The digital report cards are so professional! My parents are very happy with the transparency and I can track my GPA in real-time.",
+    message: "The digital report cards are so professional! My parents are very happy with the transparency.",
     stars: 5
   },
   {
-    id: "demo-2",
+    id: "v2",
     name: "Principal Fonka",
     role: "SCHOOL_ADMIN",
     schoolName: "Lycée de Joss",
     profileImage: "https://picsum.photos/seed/p1/150/150",
-    message: "Managing a school of 2,500 students has never been easier. The Governance Logs and Fee Tracker give me total control over institutional health.",
+    message: "Managing a school of 2,500 students has never been easier. The Governance Logs give me total control.",
     stars: 5
   },
   {
-    id: "demo-3",
+    id: "v3",
     name: "Mr. Robert Thompson",
     role: "PARENT",
     schoolName: "GBHS Deido",
     profileImage: "https://picsum.photos/seed/pa1/150/150",
-    message: "No more queues at the bursary. I pay fees from my phone and get a verified receipt instantly. EduIgnite is a blessing for busy parents.",
+    message: "No more queues at the bursary. I pay fees from my phone and get a verified receipt instantly.",
     stars: 5
   },
   {
-    id: "demo-4",
+    id: "v4",
     name: "Dr. Aris Tesla",
     role: "TEACHER",
     schoolName: "GBHS Deido",
     profileImage: "https://picsum.photos/seed/t1/150/150",
-    message: "The AI feedback tool saves me hours of grading. I can now provide deep, personalized academic guidance to every single one of my students.",
+    message: "The AI feedback tool saves me hours of grading. I can provide personalized guidance to every student.",
+    stars: 5
+  },
+  {
+    id: "v5",
+    name: "Mme. Celine Njoh",
+    role: "BURSAR",
+    schoolName: "GBHS Deido",
+    profileImage: "https://picsum.photos/seed/b1/150/150",
+    message: "Fee collection is now 100% digital. Arrears tracking is automatic, improving our institutional revenue.",
+    stars: 5
+  },
+  {
+    id: "v6",
+    name: "Mr. Ebong",
+    role: "LIBRARIAN",
+    schoolName: "Technical Section",
+    profileImage: "https://picsum.photos/seed/l1/150/150",
+    message: "Our catalog is finally organized. Students can check availability and borrow books with a QR scan.",
+    stars: 5
+  },
+  {
+    id: "v7",
+    name: "Sarah Richards",
+    role: "PARENT",
+    schoolName: "Lycée de Joss",
+    profileImage: "https://picsum.photos/seed/pa2/150/150",
+    message: "EduIgnite bridges the gap between home and school. I am always updated on my child's performance.",
+    stars: 5
+  },
+  {
+    id: "v8",
+    name: "Bob Richards",
+    role: "STUDENT",
+    schoolName: "Lycée de Joss",
+    profileImage: "https://picsum.photos/seed/s2/150/150",
+    message: "The MCQ exams with timers prepare us for real national examinations. It's challenging and fun.",
+    stars: 5
+  },
+  {
+    id: "v9",
+    name: "VP Academics",
+    role: "SUB_ADMIN",
+    schoolName: "GBHS Deido",
+    profileImage: "https://picsum.photos/seed/sub1/150/150",
+    message: "Distributing announcements to specific sections ensures the right message reaches the right people.",
     stars: 5
   }
 ];
+
+const Row1 = ALL_VOICES.slice(0, 3);
+const Row2 = ALL_VOICES.slice(3, 6);
+const Row3 = ALL_VOICES.slice(6, 9);
 
 export default function CommunityTestimonyPage() {
   const [mounted, setMounted] = useState(false);
@@ -131,10 +170,6 @@ export default function CommunityTestimonyPage() {
     division: "",
     subDivision: ""
   });
-
-  // Filter approved testimonials from local context and combine with featured
-  const approvedFromContext = testimonials?.filter(t => t.status === "approved") || [];
-  const allTestimonies = [...FEATURED_TESTIMONIES, ...approvedFromContext];
 
   useEffect(() => {
     setMounted(true);
@@ -259,61 +294,42 @@ export default function CommunityTestimonyPage() {
           </div>
         </section>
 
-        {/* 3. TESTIMONY SECTION */}
-        <section id="testimonies" className="space-y-16">
-          <div className="text-center space-y-4">
+        {/* 3. TESTIMONY MARQUEE SECTION */}
+        <section id="testimonies" className="space-y-16 overflow-hidden py-10">
+          <div className="text-center space-y-4 px-4">
             <h2 className="text-4xl font-black text-primary uppercase tracking-tighter">What People Say</h2>
             <p className="text-muted-foreground font-medium max-w-xl mx-auto">
               Real stories from the individuals powering our educational ecosystem.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {allTestimonies.map((test, idx) => (
-              <Card 
-                key={test.id} 
-                className={cn(
-                  "border-none shadow-lg rounded-[2rem] bg-white group hover:-translate-y-2 transition-all duration-500 animate-in zoom-in-95",
-                  "fade-in slide-in-from-bottom-8"
-                )}
-                style={{ animationDelay: `${idx * 100}ms`, animationDuration: '800ms' }}
-              >
-                <CardContent className="p-8 space-y-6 flex flex-col h-full">
-                  <div className="flex justify-between items-start">
-                    <div className="p-3 bg-accent rounded-2xl w-fit group-hover:bg-primary group-hover:text-white transition-colors duration-500">
-                      <Quote className="w-6 h-6 text-primary group-hover:text-secondary transition-colors" />
-                    </div>
-                    <div className="flex gap-0.5">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <p className="text-sm italic font-medium leading-relaxed text-primary/80 flex-1">
-                    "{test.message}"
-                  </p>
+          <div className="flex flex-col gap-8">
+            {/* ROW 1 */}
+            <div className="group flex overflow-hidden p-2 [--gap:2rem] [--duration:40s]">
+              <div className="flex shrink-0 animate-marquee items-stretch gap-[var(--gap)] group-hover:[animation-play-state:paused]">
+                {[...Row1, ...Row1, ...Row1, ...Row1].map((test, idx) => (
+                  <TestimonyCard key={`${test.id}-${idx}`} test={test} />
+                ))}
+              </div>
+            </div>
 
-                  <div className="pt-6 border-t flex items-center gap-4">
-                    <Avatar className="h-12 w-12 border-2 border-white shadow-md ring-1 ring-accent">
-                      <AvatarImage src={test.profileImage} />
-                      <AvatarFallback className="bg-primary/5 text-primary font-black uppercase text-xs">
-                        {test.name?.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="overflow-hidden">
-                      <p className="font-black text-primary text-sm truncate uppercase tracking-tight">{test.name}</p>
-                      <div className="flex items-center gap-1.5 overflow-hidden">
-                        <Badge variant="secondary" className="bg-secondary/20 text-primary border-none text-[8px] font-black h-4 px-1.5 shrink-0">
-                          {test.role}
-                        </Badge>
-                        <span className="text-[10px] text-muted-foreground font-bold truncate">@ {test.schoolName}</span>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+            {/* ROW 2 - REVERSE */}
+            <div className="group flex overflow-hidden p-2 [--gap:2rem] [--duration:50s]">
+              <div className="flex shrink-0 animate-marquee-reverse items-stretch gap-[var(--gap)] group-hover:[animation-play-state:paused]">
+                {[...Row2, ...Row2, ...Row2, ...Row2].map((test, idx) => (
+                  <TestimonyCard key={`${test.id}-${idx}`} test={test} />
+                ))}
+              </div>
+            </div>
+
+            {/* ROW 3 */}
+            <div className="group flex overflow-hidden p-2 [--gap:2rem] [--duration:45s]">
+              <div className="flex shrink-0 animate-marquee items-stretch gap-[var(--gap)] group-hover:[animation-play-state:paused]">
+                {[...Row3, ...Row3, ...Row3, ...Row3].map((test, idx) => (
+                  <TestimonyCard key={`${test.id}-${idx}`} test={test} />
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 
@@ -410,5 +426,48 @@ export default function CommunityTestimonyPage() {
         </div>
       </footer>
     </div>
+  );
+}
+
+function TestimonyCard({ test }: { test: any }) {
+  return (
+    <Card 
+      className="w-[350px] shrink-0 border-none shadow-lg rounded-[2rem] bg-white transition-all duration-500"
+    >
+      <CardContent className="p-8 space-y-6 flex flex-col h-full">
+        <div className="flex justify-between items-start">
+          <div className="p-3 bg-accent rounded-2xl w-fit text-primary">
+            <Quote className="w-6 h-6" />
+          </div>
+          <div className="flex gap-0.5">
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
+            ))}
+          </div>
+        </div>
+        
+        <p className="text-sm italic font-medium leading-relaxed text-primary/80 flex-1">
+          "{test.message}"
+        </p>
+
+        <div className="pt-6 border-t flex items-center gap-4">
+          <Avatar className="h-12 w-12 border-2 border-white shadow-md ring-1 ring-accent">
+            <AvatarImage src={test.profileImage} />
+            <AvatarFallback className="bg-primary/5 text-primary font-black uppercase text-xs">
+              {test.name?.charAt(0)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="overflow-hidden">
+            <p className="font-black text-primary text-sm truncate uppercase tracking-tight">{test.name}</p>
+            <div className="flex items-center gap-1.5 overflow-hidden">
+              <Badge variant="secondary" className="bg-secondary/20 text-primary border-none text-[8px] font-black h-4 px-1.5 shrink-0">
+                {test.role}
+              </Badge>
+              <span className="text-[10px] text-muted-foreground font-bold truncate">@ {test.schoolName}</span>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
