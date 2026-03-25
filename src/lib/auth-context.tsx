@@ -85,7 +85,7 @@ const DEMO_SCHOOL: SchoolInfo = {
   motto: "Discipline - Work - Success",
   logo: "https://picsum.photos/seed/edu1/200/200",
   banner: "https://picsum.photos/seed/school-banner/1200/400",
-  description: "One of the premier government institutions in Douala, dedicated to excellence.",
+  description: "One of the premier government institutions in Douala, dedicated to excellence in pedagogy and character building for the next generation of leaders.",
   location: "Douala, Littoral",
   region: "Littoral",
   division: "Wouri",
@@ -194,7 +194,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (user && (password === "password" || password === "")) {
           setUserData(user);
           localStorage.setItem("edu_nexus_session", JSON.stringify(user));
-          router.push("/dashboard");
+          
+          // Destination logic based on user role
+          if (user.role === "SUPER_ADMIN") {
+            router.push("/dashboard");
+          } else {
+            router.push("/welcome");
+          }
+          
           resolve();
         } else {
           reject(new Error("Invalid Matricule or Password. Use 'password' for demo."));

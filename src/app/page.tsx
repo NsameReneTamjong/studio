@@ -6,18 +6,22 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 
 export default function Home() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, user, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (isLoading) return;
     
-    if (isAuthenticated) {
-      router.push("/dashboard");
+    if (isAuthenticated && user) {
+      if (user.role === "SUPER_ADMIN") {
+        router.push("/dashboard");
+      } else {
+        router.push("/welcome");
+      }
     } else {
       router.push("/login");
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, user, isLoading, router]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
