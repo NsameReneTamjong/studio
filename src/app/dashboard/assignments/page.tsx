@@ -1,11 +1,13 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   FileEdit, 
   Clock, 
@@ -14,7 +16,15 @@ import {
   Trash2,
   Inbox,
   Award,
-  Loader2
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  History,
+  FileText,
+  Paperclip,
+  Table as TableIcon,
+  Search
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -24,7 +34,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import Link from "next/link";
 
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
@@ -35,9 +44,52 @@ const MOCK_ASSIGNMENTS = [
     title: "Newton's Laws Lab Report",
     courseName: "Advanced Physics",
     targetClass: "2nde / Form 5",
-    dueDate: "2024-06-15",
+    dueDate: new Date(Date.now() + 86400000 * 2).toISOString(), // 2 days from now
     maxMarks: 20,
-    status: "upcoming"
+    status: "upcoming",
+    type: "both" // text and file
+  },
+  {
+    id: "2",
+    title: "Algebraic Expressions Set A",
+    courseName: "Mathematics",
+    targetClass: "2nde / Form 5",
+    dueDate: new Date(Date.now() - 86400000).toISOString(), // Yesterday
+    maxMarks: 20,
+    status: "missed",
+    type: "text"
+  },
+  {
+    id: "3",
+    title: "Introduction to Organic Chemistry",
+    courseName: "Chemistry",
+    targetClass: "2nde / Form 5",
+    dueDate: new Date(Date.now() + 86400000 * 5).toISOString(),
+    maxMarks: 20,
+    status: "submitted",
+    submittedAt: new Date().toISOString(),
+    type: "file"
+  },
+  {
+    id: "4",
+    title: "Historical Analysis of the 19th Century",
+    courseName: "History",
+    targetClass: "2nde / Form 5",
+    dueDate: new Date(Date.now() - 86400000 * 10).toISOString(),
+    maxMarks: 20,
+    status: "graded",
+    score: 18,
+    type: "text"
+  },
+  {
+    id: "5",
+    title: "Cancelled Workshop Session",
+    courseName: "Technical Drawing",
+    targetClass: "2nde / Form 5",
+    dueDate: new Date().toISOString(),
+    maxMarks: 10,
+    status: "cancelled",
+    type: "both"
   }
 ];
 
@@ -49,7 +101,6 @@ export default function AssignmentsPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [assignments, setAssignments] = useState(MOCK_ASSIGNMENTS);
-  const [gradingAssignment, setGradingAssignment] = useState<any>(null);
   
   const [newAssignment, setNewAssignment] = useState({
     title: "",
@@ -62,6 +113,11 @@ export default function AssignmentsPage() {
 
   const isTeacher = user?.role === "TEACHER" || user?.role === "SCHOOL_ADMIN";
 
+  // Filter logic for student views
+  const activeTasks = assignments.filter(a => a.status === 'upcoming' && new Date(a.dueDate) > new Date());
+  const myWork = assignments.filter(a => a.status === 'submitted' || a.status === 'graded');
+  const historyTasks = assignments;
+
   const handleCreateAssignment = () => {
     if (!newAssignment.title) return;
     setIsProcessing(true);
@@ -70,7 +126,8 @@ export default function AssignmentsPage() {
         id: Math.random().toString(),
         ...newAssignment,
         courseName: "Physics",
-        status: 'upcoming'
+        status: 'upcoming',
+        type: "both"
       };
       setAssignments([newTask, ...assignments]);
       setIsCreating(false);
@@ -79,36 +136,132 @@ export default function AssignmentsPage() {
     }, 800);
   };
 
-  const handleDeleteAssignment = (id: string) => {
-    setAssignments(assignments.filter(a => a.id !== id));
-    toast({ title: "Assignment Removed", description: "The task has been deleted." });
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'upcoming': return <Badge className="bg-blue-100 text-blue-700 border-none uppercase text-[9px] font-black">Open</Badge>;
+      case 'submitted': return <Badge className="bg-amber-100 text-amber-700 border-none uppercase text-[9px] font-black">Pending Grade</Badge>;
+      case 'graded': return <Badge className="bg-green-100 text-green-700 border-none uppercase text-[9px] font-black">Graded</Badge>;
+      case 'missed': return <Badge className="bg-red-100 text-red-700 border-none uppercase text-[9px] font-black">Missed</Badge>;
+      case 'cancelled': return <Badge className="bg-slate-100 text-slate-700 border-none uppercase text-[9px] font-black">Cancelled</Badge>;
+      default: return null;
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'graded': return <CheckCircle2 className="w-4 h-4 text-green-600" />;
+      case 'missed': return <XCircle className="w-4 h-4 text-red-600" />;
+      case 'cancelled': return <AlertCircle className="w-4 h-4 text-slate-400" />;
+      default: return <Clock className="w-4 h-4 text-primary/40" />;
+    }
   };
 
   if (!isTeacher) {
     return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-2">
-            <FileEdit className="w-8 h-8 text-secondary" />
-            {t("assignments")}
-          </h1>
-          <p className="text-muted-foreground mt-1">Track your homework and project deadlines for {user?.school?.name}.</p>
+      <div className="space-y-8 pb-20">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
+              <div className="p-2 bg-primary rounded-xl shadow-lg">
+                <FileEdit className="w-6 h-6 text-secondary" />
+              </div>
+              {t("assignments")}
+            </h1>
+            <p className="text-muted-foreground mt-1">Official portal for academic submissions and pedagogical tasks.</p>
+          </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {assignments.map((assignment) => (
-            <StudentAssignmentCard key={assignment.id} assignment={assignment} />
-          ))}
-          {assignments.length === 0 && (
-            <div className="col-span-full py-20 text-center border-2 border-dashed rounded-3xl opacity-40">
-              <FileEdit className="w-12 h-12 mx-auto mb-4" />
-              <p>No assignments currently posted for your class.</p>
+
+        <Tabs defaultValue="active" className="w-full">
+          <TabsList className="grid grid-cols-3 w-full md:w-[600px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl">
+            <TabsTrigger value="active" className="gap-2 py-3 rounded-xl transition-all">
+              <Inbox className="w-4 h-4" /> Active Tasks
+            </TabsTrigger>
+            <TabsTrigger value="work" className="gap-2 py-3 rounded-xl transition-all">
+              <CheckCircle2 className="w-4 h-4" /> My Work
+            </TabsTrigger>
+            <TabsTrigger value="history" className="gap-2 py-3 rounded-xl transition-all">
+              <History className="w-4 h-4" /> Full History
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="active" className="animate-in fade-in slide-in-from-bottom-4 mt-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {activeTasks.map((assignment) => (
+                <StudentAssignmentCard key={assignment.id} assignment={assignment} />
+              ))}
+              {activeTasks.length === 0 && (
+                <div className="col-span-full py-20 text-center border-2 border-dashed rounded-3xl bg-white/50 space-y-4">
+                  <div className="p-4 bg-primary/5 rounded-full w-fit mx-auto">
+                    <FileEdit className="w-12 h-12 text-primary/20" />
+                  </div>
+                  <p className="text-muted-foreground font-medium">No active assignments found for your class.</p>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </TabsContent>
+
+          <TabsContent value="work" className="animate-in fade-in slide-in-from-bottom-4 mt-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {myWork.map((assignment) => (
+                <StudentAssignmentCard key={assignment.id} assignment={assignment} />
+              ))}
+              {myWork.length === 0 && (
+                <div className="col-span-full py-20 text-center border-2 border-dashed rounded-3xl bg-white/50">
+                  <p className="text-muted-foreground font-medium">You haven't submitted any work yet.</p>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="history" className="animate-in fade-in slide-in-from-bottom-4 mt-0">
+            <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
+              <CardHeader className="bg-white border-b">
+                <CardTitle className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
+                  <History className="w-4 h-4" /> Assignment Audit Trail
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0 overflow-x-auto">
+                <Table>
+                  <TableHeader className="bg-accent/10">
+                    <TableRow className="uppercase text-[10px] font-black tracking-widest border-b">
+                      <TableHead className="pl-8 py-4">Task Title</TableHead>
+                      <TableHead>Course</TableHead>
+                      <TableHead className="text-center">Due Date</TableHead>
+                      <TableHead className="text-center">Score</TableHead>
+                      <TableHead className="text-right pr-8">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {historyTasks.map((task) => (
+                      <TableRow key={task.id} className="hover:bg-accent/5 transition-colors border-b">
+                        <TableCell className="pl-8 py-4 font-bold text-sm text-primary">{task.title}</TableCell>
+                        <TableCell><Badge variant="outline" className="text-[10px] font-bold">{task.courseName}</Badge></TableCell>
+                        <TableCell className="text-center text-xs font-mono font-medium text-muted-foreground">
+                          {new Date(task.dueDate).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {task.status === 'graded' ? (
+                            <span className="font-black text-primary">{task.score} / {task.maxMarks}</span>
+                          ) : '---'}
+                        </TableCell>
+                        <TableCell className="text-right pr-8">
+                          <div className="flex justify-end">
+                            {getStatusBadge(task.status)}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     );
   }
 
+  // Teacher View Logic...
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -148,7 +301,7 @@ export default function AssignmentsPage() {
               <div className="bg-accent/30 p-3 rounded-xl border border-accent flex justify-between items-center">
                 <div className="space-y-0.5">
                   <p className="text-[9px] font-black uppercase opacity-40">Due Date</p>
-                  <p className="text-xs font-bold">{task.dueDate}</p>
+                  <p className="text-xs font-bold">{new Date(task.dueDate).toLocaleDateString()}</p>
                 </div>
                 <div className="h-8 w-px bg-accent mx-2" />
                 <div className="space-y-0.5 text-right">
@@ -160,7 +313,6 @@ export default function AssignmentsPage() {
             <CardFooter className="pt-0 flex gap-2">
               <Button 
                 className="flex-1 h-10 bg-primary shadow-sm gap-2 text-xs font-bold"
-                onClick={() => setGradingAssignment(task)}
               >
                 <FileEdit className="w-3.5 h-3.5" /> Grade
               </Button>
@@ -168,7 +320,6 @@ export default function AssignmentsPage() {
                 variant="ghost" 
                 size="icon" 
                 className="h-10 w-10 text-destructive/20 hover:text-destructive"
-                onClick={() => handleDeleteAssignment(task.id)}
               >
                 <Trash2 className="w-4 h-4" />
               </Button>
@@ -236,27 +387,64 @@ export default function AssignmentsPage() {
 }
 
 function StudentAssignmentCard({ assignment }: { assignment: any }) {
+  const { language, t } = useI18n();
+  const isSubmitted = assignment.status === 'submitted' || assignment.status === 'graded';
+  
   return (
-    <Card className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-all">
-      <div className="h-1.5 bg-blue-500" />
+    <Card className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-all bg-white">
+      <div className={cn(
+        "h-1.5 w-full",
+        assignment.status === 'graded' ? "bg-green-500" : isSubmitted ? "bg-amber-500" : "bg-primary"
+      )} />
       <CardHeader>
         <div className="flex justify-between items-start mb-2">
-          <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-widest">{assignment.status}</Badge>
-          <Badge className="bg-primary text-white border-none font-bold text-[10px]">MAX: {assignment.maxMarks}</Badge>
+          <Badge variant="outline" className="text-[10px] uppercase font-black tracking-widest border-primary/10 text-primary">
+            {assignment.status === 'upcoming' ? 'Open' : assignment.status}
+          </Badge>
+          <Badge className="bg-primary text-white border-none font-bold text-[10px] px-3">MAX: {assignment.maxMarks}</Badge>
         </div>
-        <CardTitle className="text-xl group-hover:text-primary transition-colors">{assignment.title}</CardTitle>
-        <CardDescription className="font-bold">{assignment.courseName}</CardDescription>
+        <CardTitle className="text-xl font-black text-primary leading-tight group-hover:text-primary transition-colors">
+          {assignment.title}
+        </CardTitle>
+        <CardDescription className="font-bold flex items-center gap-2 mt-1">
+          <Award className="w-3.5 h-3.5" /> {assignment.courseName}
+        </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground bg-accent/20 p-3 rounded-lg">
-          <Clock className="w-4 h-4 text-primary" />
-          <span className="font-bold">DUE: {assignment.dueDate}</span>
+      <CardContent className="space-y-4">
+        {assignment.status === 'graded' ? (
+          <div className="bg-green-50 p-4 rounded-xl border border-green-100 text-center space-y-1">
+            <p className="text-[10px] font-black uppercase text-green-600">Verified Score</p>
+            <p className="text-3xl font-black text-green-700">{assignment.score} <span className="text-sm opacity-40">/ {assignment.maxMarks}</span></p>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 text-xs text-muted-foreground bg-accent/30 p-3 rounded-xl border border-accent">
+            <Clock className="w-4 h-4 text-primary" />
+            <div className="flex flex-col">
+              <span className="text-[9px] uppercase font-black opacity-40">Deadline</span>
+              <span className="font-bold">{new Date(assignment.dueDate).toLocaleDateString()}</span>
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center gap-2 pt-2">
+          <Badge variant="secondary" className="bg-primary/5 text-primary border-none text-[8px] font-black uppercase flex items-center gap-1.5 px-2">
+            {assignment.type === 'both' ? (
+              <><FileText className="w-3 h-3"/> Text & File</>
+            ) : assignment.type === 'file' ? (
+              <><Paperclip className="w-3 h-3"/> File Only</>
+            ) : (
+              <><FileText className="w-3 h-3"/> Text Response</>
+            )}
+          </Badge>
         </div>
       </CardContent>
       <CardFooter className="pt-0 pb-6 px-6">
-        <Button asChild variant="outline" className="w-full justify-between hover:bg-primary hover:text-white transition-all group/btn">
-          <Link href={`/dashboard/assignments/submit?id=${assignment.id}`}>
-            View & Submit
+        <Button asChild variant={isSubmitted ? "outline" : "default"} className={cn(
+          "w-full justify-between transition-all group/btn h-11 rounded-xl shadow-sm font-bold",
+          !isSubmitted && "bg-primary hover:bg-primary/90 text-white"
+        )}>
+          <Link href={isSubmitted ? "#" : `/dashboard/assignments/submit?id=${assignment.id}`}>
+            {isSubmitted ? (language === 'en' ? 'View My Response' : 'Voir ma réponse') : (language === 'en' ? 'Submit Work' : 'Rendre le Travail')}
             <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
           </Link>
         </Button>
