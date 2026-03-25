@@ -58,6 +58,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
 
   const isAdmin = user?.role === "SCHOOL_ADMIN";
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
+  const isBursar = user?.role === "BURSAR";
 
   const routes = [
     {
@@ -136,7 +137,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: t("students"),
       icon: GraduationCap,
       href: "/dashboard/students",
-      roles: ["SCHOOL_ADMIN", "TEACHER", "BURSAR"],
+      roles: ["SCHOOL_ADMIN", "TEACHER"],
     },
     {
       label: t("idCards"),
@@ -145,7 +146,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       roles: ["SCHOOL_ADMIN"],
     },
     {
-      label: language === 'en' ? "Fees & Finance" : "Frais & Finance",
+      label: isBursar ? (language === 'en' ? "Pay Fee" : "Payer les Frais") : (language === 'en' ? "Fees & Finance" : "Frais & Finance"),
       icon: Coins,
       href: "/dashboard/fees",
       roles: ["BURSAR", "SCHOOL_ADMIN"],
