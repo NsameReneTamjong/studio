@@ -40,7 +40,9 @@ import {
   AlertCircle,
   X,
   Signature,
-  TrendingUp
+  TrendingUp,
+  ListChecks,
+  Users
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -111,12 +113,17 @@ const MOCK_SCHEDULE = {
   ],
 };
 
-const MOCK_ATTENDANCE_LOGS = [
-  { date: "Monday, May 24", status: "Present", time: "07:45 AM", session: "Morning" },
-  { date: "Friday, May 21", status: "Present", time: "07:52 AM", session: "Morning" },
-  { date: "Thursday, May 20", status: "Late", time: "08:15 AM", session: "Morning" },
-  { date: "Wednesday, May 19", status: "Present", time: "07:40 AM", session: "Morning" },
-  { date: "Tuesday, May 18", status: "Absent", time: "-", session: "Morning" },
+const MOCK_TODAY_ATTENDANCE = [
+  { subject: "Mathematics", time: "08:00 AM", status: "Present", color: "text-green-600" },
+  { subject: "Physics", time: "10:30 AM", status: "Present", color: "text-green-600" },
+  { subject: "English", time: "01:00 PM", status: "Upcoming", color: "text-amber-600" },
+];
+
+const MOCK_SUBJECT_RECORDS = [
+  { subject: "Mathematics", present: 22, absent: 2, teacher: "Prof. Sarah Smith" },
+  { subject: "Advanced Physics", present: 18, absent: 6, teacher: "Dr. Aris Tesla" },
+  { subject: "English Literature", present: 24, absent: 0, teacher: "Ms. Bennet" },
+  { subject: "History", present: 15, absent: 9, teacher: "Mr. Tabi" },
 ];
 
 const getAppreciation = (note: number) => {
@@ -299,7 +306,7 @@ export default function StudentDetailsPage() {
                 </div>
                 <div className="pt-6 border-t border-white/10 text-center">
                   <QrCode className="w-32 h-32 mx-auto text-white/20 mb-2" />
-                  <p className="text-[10px] uppercase font-bold tracking-widest opacity-40">Digital ID Verified</p>
+                  <p className="text-[10px] font-black uppercase font-bold tracking-widest opacity-40">Digital ID Verified</p>
                 </div>
               </CardContent>
             </Card>
@@ -392,11 +399,11 @@ export default function StudentDetailsPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="attendance" className="mt-6 space-y-6">
+        <TabsContent value="attendance" className="mt-6 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="md:col-span-1 border-none shadow-sm bg-blue-50">
+            <Card className="md:col-span-1 border-none shadow-sm bg-blue-50 h-fit">
               <CardHeader className="pb-2">
-                <CardTitle className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Attendance Summary</CardTitle>
+                <CardTitle className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Aggregate Presence</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="text-4xl font-black text-blue-700">94.5%</div>
@@ -415,44 +422,83 @@ export default function StudentDetailsPage() {
               </CardContent>
             </Card>
 
-            <Card className="md:col-span-2 border-none shadow-sm overflow-hidden">
-              <CardHeader className="bg-white border-b">
-                <CardTitle className="text-sm font-black uppercase text-primary flex items-center gap-2">
-                  <History className="w-4 h-4" /> Recent Session Logs
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader className="bg-accent/10">
-                    <TableRow className="text-[10px] font-black uppercase">
-                      <TableHead className="pl-6">Date</TableHead>
-                      <TableHead>Session</TableHead>
-                      <TableHead>Clock-in</TableHead>
-                      <TableHead className="text-right pr-6">Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {MOCK_ATTENDANCE_LOGS.map((log, i) => (
-                      <TableRow key={i}>
-                        <TableCell className="pl-6 py-3 font-bold text-xs">{log.date}</TableCell>
-                        <TableCell className="text-xs text-muted-foreground">{log.session}</TableCell>
-                        <TableCell className="font-mono text-xs">{log.time}</TableCell>
-                        <TableCell className="text-right pr-6">
-                          <Badge className={cn(
-                            "text-[9px] font-black uppercase px-3 border-none",
-                            log.status === 'Present' ? "bg-green-100 text-green-700" :
-                            log.status === 'Late' ? "bg-amber-100 text-amber-700" :
-                            "bg-red-100 text-red-700"
-                          )}>
-                            {log.status}
-                          </Badge>
-                        </TableCell>
+            <div className="md:col-span-2 space-y-6">
+              {/* Today's Live Presence */}
+              <Card className="border-none shadow-sm overflow-hidden">
+                <CardHeader className="bg-white border-b flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="text-sm font-black uppercase text-primary flex items-center gap-2">
+                      <ListChecks className="w-4 h-4" /> Today's Presence Registry
+                    </CardTitle>
+                    <CardDescription>Live session status for {student.name}</CardDescription>
+                  </div>
+                  <Badge variant="outline" className="bg-accent/50 text-primary border-none text-[10px] font-black">
+                    {new Date().toLocaleDateString(language === 'en' ? 'en-US' : 'fr-FR', { weekday: 'long', month: 'long', day: 'numeric' })}
+                  </Badge>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader className="bg-accent/10">
+                      <TableRow className="text-[10px] font-black uppercase">
+                        <TableHead className="pl-6">Subject</TableHead>
+                        <TableHead>Time Window</TableHead>
+                        <TableHead className="text-right pr-6">Status</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
+                    </TableHeader>
+                    <TableBody>
+                      {MOCK_TODAY_ATTENDANCE.map((att, i) => (
+                        <TableRow key={i}>
+                          <TableCell className="pl-6 py-3 font-bold text-xs text-primary">{att.subject}</TableCell>
+                          <TableCell className="text-[10px] font-mono font-bold text-muted-foreground">{att.time}</TableCell>
+                          <TableCell className="text-right pr-6">
+                            <Badge className={cn("text-[9px] font-black uppercase px-3 border-none", att.status === 'Present' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700")}>
+                              {att.status}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              {/* Subject-wise Statistics */}
+              <Card className="border-none shadow-sm overflow-hidden">
+                <CardHeader className="bg-white border-b">
+                  <CardTitle className="text-sm font-black uppercase text-primary flex items-center gap-2">
+                    <History className="w-4 h-4" /> Cumulative Subject Records
+                  </CardTitle>
+                  <CardDescription>Aggregate performance across all pedagogical sessions.</CardDescription>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader className="bg-accent/10">
+                      <TableRow className="text-[10px] font-black uppercase">
+                        <TableHead className="pl-6">Subject</TableHead>
+                        <TableHead className="text-center text-green-600">Present</TableHead>
+                        <TableHead className="text-center text-red-600">Absent</TableHead>
+                        <TableHead className="text-right pr-6">Teacher</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {MOCK_SUBJECT_RECORDS.map((rec, i) => (
+                        <TableRow key={i}>
+                          <TableCell className="pl-6 py-3 font-bold text-xs text-primary">{rec.subject}</TableCell>
+                          <TableCell className="text-center font-black text-green-600">{rec.present}</TableCell>
+                          <TableCell className="text-center font-black text-red-600">{rec.absent}</TableCell>
+                          <TableCell className="text-right pr-6 text-[10px] font-bold text-muted-foreground italic">
+                            <div className="flex items-center justify-end gap-2">
+                              <User className="w-3 h-3" />
+                              {rec.teacher}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </TabsContent>
 
