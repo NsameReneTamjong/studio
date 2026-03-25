@@ -33,7 +33,8 @@ import {
   CheckCircle,
   Download,
   Building2,
-  BookMarked
+  BookMarked,
+  Signature
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -517,7 +518,7 @@ export default function FeesPage() {
                   <CheckCircle2 className="w-4 h-4 text-green-600" />
                 </div>
                 <div className="text-2xl md:text-3xl font-black text-green-700">1,120 / 1,284</div>
-                <p className="text-[10px] text-green-600/60 font-bold mt-1 uppercase">Active Dashboard Nodes</p>
+                <p className="text-[10px] text-blue-600/60 font-bold mt-1 uppercase">Active Dashboard Nodes</p>
               </CardContent>
             </Card>
             <Card className="border-none shadow-sm bg-amber-50">
