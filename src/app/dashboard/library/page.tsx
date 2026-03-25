@@ -56,6 +56,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 const INITIAL_BOOKS = [
   { id: "B001", title: "Advanced Physics", author: "Dr. Tesla", category: "Science", available: 5, total: 10, cover: "https://picsum.photos/seed/phys/400/600", description: "In-depth study of thermodynamics and classical mechanics for advanced students." },
   { id: "B002", title: "Calculus II", author: "Prof. Smith", category: "Mathematics", available: 2, total: 5, cover: "https://picsum.photos/seed/math/400/600", description: "Comprehensive guide to integration, series, and multivariable calculus." },
+  { id: "B003", title: "Things Fall Apart", author: "Chinua Achebe", category: "Literature", available: 12, total: 15, cover: "https://picsum.photos/seed/lit1/400/600", description: "A classic of modern African literature." },
+  { id: "B004", title: "Organic Chemistry", author: "Marie Curie", category: "Science", available: 0, total: 8, cover: "https://picsum.photos/seed/chem/400/600", description: "Study of carbon compounds and biological molecules." },
 ];
 
 const INITIAL_LOANS = [
@@ -68,6 +70,7 @@ const MOCK_REQUESTS = [
 
 const MOCK_MEMBERS = [
   { id: "S001", name: "Alice Thompson", role: "STUDENT", avatar: "https://picsum.photos/seed/s1/100/100", borrowed: 2, overdue: 0, returned: 12 },
+  { id: "T001", name: "Dr. Aris Tesla", role: "TEACHER", avatar: "https://picsum.photos/seed/t1/100/100", borrowed: 5, overdue: 1, returned: 45 },
 ];
 
 export default function LibraryPage() {
@@ -171,7 +174,9 @@ export default function LibraryPage() {
                 <div className="aspect-[3/4] relative overflow-hidden bg-accent/20">
                    <img src={book.cover} alt={book.title} className="w-full h-full object-cover" />
                    <div className="absolute top-3 right-3">
-                      <Badge className="bg-green-600 uppercase text-[10px]">{book.available > 0 ? "Available" : "Out"}</Badge>
+                      <Badge className={cn("uppercase text-[10px]", book.available > 0 ? "bg-green-600" : "bg-red-600")}>
+                        {book.available > 0 ? "Available" : "Out of Stock"}
+                      </Badge>
                    </div>
                 </div>
                 <CardHeader className="p-5 flex-1">
@@ -179,7 +184,7 @@ export default function LibraryPage() {
                   <CardDescription className="text-xs">{book.author}</CardDescription>
                 </CardHeader>
                 <CardFooter className="p-5 pt-0 gap-2">
-                  <Button variant="outline" className="w-full h-11 text-xs uppercase font-bold" disabled={isAdmin}>
+                  <Button variant="outline" className="w-full h-11 text-xs uppercase font-bold" disabled={isAdmin || book.available === 0}>
                     {isAdmin ? "Oversight Only" : (isLibrarian ? "Edit Details" : "Borrow Book")}
                   </Button>
                 </CardFooter>
@@ -206,7 +211,15 @@ export default function LibraryPage() {
                 <TableBody>
                   {requests.map((req) => (
                     <TableRow key={req.id}>
-                      <TableCell className="pl-6 py-4 font-bold text-sm">{req.userName}</TableCell>
+                      <TableCell className="pl-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={req.userAvatar} />
+                            <AvatarFallback>{req.userName.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <span className="font-bold text-sm">{req.userName}</span>
+                        </div>
+                      </TableCell>
                       <TableCell className="text-sm">{req.bookTitle}</TableCell>
                       <TableCell className="text-right pr-6">
                         <Button size="sm" className="h-8 uppercase text-[10px] font-black" onClick={() => handleIssueBook(req.id)} disabled={isAdmin}>
