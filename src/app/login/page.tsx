@@ -25,7 +25,8 @@ import {
   Sparkles,
   Calendar,
   PlayCircle,
-  ExternalLink
+  ExternalLink,
+  ShieldCheck
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -52,6 +53,7 @@ type AuthMode = "login" | "activate";
 const QUICK_DEMO_ACCOUNTS = [
   { label: "CEO", matricule: "EDUI26CEO001", icon: Crown, color: "bg-primary text-secondary" },
   { label: "Admin", matricule: "GBHS26", icon: Building2, color: "bg-blue-600 text-white" },
+  { label: "Sub-Admin", matricule: "GBHS26A001", icon: ShieldCheck, color: "bg-cyan-600 text-white" },
   { label: "Teacher", matricule: "GBHS26T001", icon: Users, color: "bg-purple-600 text-white" },
   { label: "Student", matricule: "GBHS26S001", icon: GraduationCap, color: "bg-emerald-600 text-white" },
   { label: "Bursar", matricule: "GBHS26B001", icon: Wallet, color: "bg-amber-600 text-white" },
@@ -196,7 +198,7 @@ export default function LoginPage() {
             <h3 className="text-[10px] font-black uppercase text-primary/40 tracking-[0.3em]">Quick Prototype Entry</h3>
             <div className="h-px flex-1 bg-primary/10" />
           </div>
-          <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
+          <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
             {QUICK_DEMO_ACCOUNTS.map((account) => (
               <Button
                 key={account.matricule}
