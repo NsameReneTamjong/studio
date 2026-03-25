@@ -252,20 +252,22 @@ export default function LoginPage() {
 
                   <TabsContent value="testimonials" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {testimonials?.map((test: any) => (
+                      {testimonials?.filter(t => t.status === "approved").map((test) => (
                         <Card key={test.id} className="border-none shadow-sm bg-accent/20 rounded-3xl group overflow-hidden">
                           <CardContent className="p-6 space-y-4">
                             <Quote className="w-8 h-8 text-primary/10 -mb-2" />
                             <p className="text-sm leading-relaxed italic text-primary/80 font-medium">
-                              "{test.content}"
+                              "{test.message}"
                             </p>
                             <div className="flex items-center gap-4 pt-4 border-t border-primary/5">
                               <Avatar className="h-12 w-12 border-2 border-white shadow-md">
-                                <AvatarImage src={test.avatar} />
-                                <AvatarFallback className="bg-primary text-white">{test.author.charAt(0)}</AvatarFallback>
+                                <AvatarImage src={test.profileImage} />
+                                <AvatarFallback className="bg-primary text-white">
+                                  {test.name?.charAt(0) || "U"}
+                                </AvatarFallback>
                               </Avatar>
                               <div>
-                                <p className="font-black text-primary text-sm leading-none mb-1">{test.author}</p>
+                                <p className="font-black text-primary text-sm leading-none mb-1">{test.name}</p>
                                 <div className="flex items-center gap-2">
                                   <Badge className="bg-secondary text-primary border-none text-[8px] h-4 uppercase font-black">{test.role}</Badge>
                                   <span className="text-[10px] text-muted-foreground font-bold">@ {test.schoolName}</span>
