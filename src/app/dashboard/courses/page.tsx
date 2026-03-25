@@ -18,7 +18,8 @@ import {
   Trash2,
   Sparkles,
   BookMarked,
-  Info
+  Info,
+  ChevronRight
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n-context";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
