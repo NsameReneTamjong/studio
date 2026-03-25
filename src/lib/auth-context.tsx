@@ -3,6 +3,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { doc, setDoc } from "firebase/firestore";
+import { useFirestore, useUser } from "@/firebase";
 
 export type UserRole = "SUPER_ADMIN" | "SCHOOL_ADMIN" | "TEACHER" | "STUDENT" | "PARENT" | "BURSAR" | "LIBRARIAN";
 
@@ -83,7 +85,7 @@ const DEMO_SCHOOL: SchoolInfo = {
   id: "GBHS",
   name: "GBHS Deido",
   motto: "Discipline - Work - Success",
-  logo: "https://picsum.photos/seed/school-logo-1/200/200", // Distinct School Logo
+  logo: "https://picsum.photos/seed/school-logo-1/200/200",
   banner: "https://picsum.photos/seed/school-banner/1200/400",
   description: "One of the premier government institutions in Douala, dedicated to excellence in pedagogy and character building for the next generation of leaders.",
   location: "Douala, Littoral",
@@ -174,9 +176,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const [platformSettings, setPlatformSettings] = useState<PlatformSettings>({
     name: "EduIgnite",
-    logo: "https://picsum.photos/seed/eduignite-platform/200/200" // Distinct Platform Logo
+    logo: "https://picsum.photos/seed/eduignite-platform/200/200"
   });
   const router = useRouter();
+  const firestore = useFirestore();
+  const { user: firebaseUser } = useUser();
 
   useEffect(() => {
     const savedUser = localStorage.getItem("edu_nexus_session");
@@ -185,6 +189,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     setIsLoading(false);
   }, []);
+
+  // Sync internal user role to Firestore so security rules can see it
+  useEffect(() => {
+    if (firebaseUser && userData && firestore && userData.role) {
+      const userRef = doc(firestore, "users", firebaseUser.uid);
+      setDoc(userRef, {
+        uid: firebaseUser.uid,
+        id: userData.id,
+        name: userData.name,
+        email: userData.email,
+        role: userData.role,
+        schoolId: userData.schoolId,
+        isLicensePaid: userData.isLicensePaid
+      }, { merge: true });
+    }
+  }, [firebaseUser?.uid, userData?.id, firestore, userData?.role]);
 
   const login = async (matricule: string, password: string) => {
     setIsLoading(true);

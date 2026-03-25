@@ -8,20 +8,30 @@ service cloud.firestore {
     }
     
     function getUserData() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      let userPath = /databases/$(database)/documents/users/$(request.auth.uid);
+      return exists(userPath) ? get(userPath).data : null;
     }
 
     function isPlatformAdmin() {
-      return isSignedIn() && (
-        exists(/databases/$(database)/documents/platform_admins/$(request.auth.uid)) ||
-        getUserData().role in ['SUPER_ADMIN', 'CEO', 'CTO', 'COO', 'INV', 'Investor']
-      );
+      if (!isSignedIn()) return false;
+      
+      // 1. Check platform_admins collection (managed by framework/admin)
+      if (exists(/databases/$(database)/documents/platform_admins/$(request.auth.uid))) return true;
+      
+      // 2. Check user document role synced from app logic
+      let userData = getUserData();
+      return userData != null && 
+             userData.role in ['SUPER_ADMIN', 'CEO', 'CTO', 'COO', 'INV', 'Investor'];
     }
 
     function isSchoolAdmin(schoolId) {
-      return isSignedIn() && 
-        (getUserData().role == 'SCHOOL_ADMIN' || isPlatformAdmin()) &&
-        (getUserData().schoolId == schoolId || isPlatformAdmin());
+      if (!isSignedIn()) return false;
+      if (isPlatformAdmin()) return true;
+      
+      let userData = getUserData();
+      return userData != null && 
+             (userData.role == 'SCHOOL_ADMIN') &&
+             (userData.schoolId == schoolId);
     }
 
     // --- COLLECTION RULES ---
@@ -32,14 +42,11 @@ service cloud.firestore {
     }
 
     match /testimonials/{testimonialId} {
-      // 1. Authenticated users (not super admins) can create new testimonials
-      // 1. They cannot read, update, or delete any testimonial data
+      // 1. Authenticated users (not platform admins) can create new testimonials
       allow create: if isSignedIn() && !isPlatformAdmin();
       
-      // 2. Super Admins (CEO, CTO, Investor) can read, update, and delete testimonials
+      // 2. Platform Admins (CEO, CTO, INV, etc.) can read (list/get), update, and delete
       allow read, update, delete: if isPlatformAdmin();
-      
-      // 3. Public access is implicitly denied (default)
     }
 
     match /featured_videos/{videoId} {
@@ -62,13 +69,13 @@ service cloud.firestore {
     match /users/{uid} {
       allow read: if isSignedIn();
       allow create: if true; 
-      allow update: if isPlatformAdmin() || (isSignedIn() && request.auth.uid == uid) || isSchoolAdmin(resource.data.schoolId);
+      allow update: if isPlatformAdmin() || (isSignedIn() && request.auth.uid == uid);
     }
     
     match /schools/{docId} {
       allow read: if isSignedIn();
       allow create: if isPlatformAdmin();
-      allow update: if isPlatformAdmin() || isSchoolAdmin(resource.data.id);
+      allow update: if isPlatformAdmin() || isSchoolAdmin(docId);
       
       match /courses/{courseId} {
         allow read: if isSignedIn();
