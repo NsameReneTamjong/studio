@@ -15,7 +15,15 @@ import {
   Trash2, 
   Settings2,
   Loader2,
-  Globe
+  Globe,
+  Receipt,
+  CheckCircle2,
+  ShieldCheck,
+  QrCode,
+  Download,
+  Printer,
+  X,
+  Ban
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n-context";
 import { 
@@ -42,7 +50,7 @@ import {
 export default function SchoolsManagementPage() {
   const { t, language } = useI18n();
   const { toast } = useToast();
-  const { schools, addSchool, toggleSchoolStatus, deleteSchool } = useAuth();
+  const { schools, addSchool, toggleSchoolStatus, deleteSchool, platformSettings } = useAuth();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -82,15 +90,25 @@ export default function SchoolsManagementPage() {
         subDivision: "Douala 1er",
         cityVillage: "Douala",
         phone: "+237 600 00 00 00",
-        email: `admin@${newSchoolData.domain || 'school.edu'}`,
+        email: `admin@${newSchoolData.domain || 'school.edu.cm'}`,
       };
       
       addSchool(created);
       setIsProcessing(false);
       setIsAddModalOpen(false);
       setOnboardingSuccess(created);
-      toast({ title: "School Onboarded" });
-    }, 1000);
+      setNewSchoolData({
+        name: "",
+        principal: "",
+        domain: "",
+        address: "",
+        motto: "Discipline - Work - Success",
+        description: "New Institutional Node",
+        logo: "https://picsum.photos/seed/newschool/200/200",
+        banner: "https://picsum.photos/seed/school-banner/1200/400"
+      });
+      toast({ title: "Node Provisioned", description: "Institution successfully onboarded." });
+    }, 1200);
   };
 
   return (
@@ -99,32 +117,49 @@ export default function SchoolsManagementPage() {
         <div>
           <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
             <div className="p-2 bg-primary rounded-xl shadow-lg text-white">
-              <Building2 className="w-6 h-6 text-secondary" />
+              <Globe className="w-6 h-6 text-secondary" />
             </div>
-            {language === 'en' ? "Institutional Nodes" : "Gestion des Nœuds"}
+            Institutional Nodes
           </h1>
-          <p className="text-muted-foreground mt-1">Onboard and monitor educational instances across the SaaS network.</p>
+          <p className="text-muted-foreground mt-1">Manage and monitor institutional dashboard instances across the SaaS network.</p>
         </div>
         
         <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl">
-              <Plus className="w-5 h-5" /> {t("addSchool")}
+            <Button className="gap-2 shadow-xl h-14 px-8 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-xs">
+              <Plus className="w-5 h-5" /> Provision New Node
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+          <DialogContent className="sm:max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
             <DialogHeader className="bg-primary p-8 text-white">
-              <DialogTitle className="text-2xl font-black">{t("addSchool")}</DialogTitle>
-              <DialogDescription className="text-white/60">Initialize a new institutional instance.</DialogDescription>
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-2xl">
+                  <Building2 className="w-8 h-8 text-secondary" />
+                </div>
+                <div>
+                  <DialogTitle className="text-2xl font-black uppercase tracking-tighter">Onboard Institution</DialogTitle>
+                  <DialogDescription className="text-white/60">Initialize a new secure pedagogical node.</DialogDescription>
+                </div>
+              </div>
             </DialogHeader>
             <div className="p-8 space-y-6">
-              <div className="space-y-2"><Label>Institution Name</Label><Input value={newSchoolData.name} onChange={(e) => setNewSchoolData({...newSchoolData, name: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl" /></div>
-              <div className="space-y-2"><Label>Principal Name</Label><Input value={newSchoolData.principal} onChange={(e) => setNewSchoolData({...newSchoolData, principal: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl" /></div>
-              <div className="space-y-2"><Label>Primary Domain</Label><Input value={newSchoolData.domain} onChange={(e) => setNewSchoolData({...newSchoolData, domain: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl" /></div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Full School Name</Label>
+                <Input value={newSchoolData.name} onChange={(e) => setNewSchoolData({...newSchoolData, name: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl font-bold" placeholder="e.g. GBHS Deido" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Head of Institution</Label>
+                <Input value={newSchoolData.principal} onChange={(e) => setNewSchoolData({...newSchoolData, principal: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl" placeholder="e.g. Principal Fonka" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Assigned Domain</Label>
+                <Input value={newSchoolData.domain} onChange={(e) => setNewSchoolData({...newSchoolData, domain: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl" placeholder="e.g. gbhsdeido.edu.cm" />
+              </div>
             </div>
             <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
-              <Button className="w-full h-12 rounded-xl shadow-lg font-bold" onClick={handleSaveSchool} disabled={isProcessing}>
-                {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Onboard Institution"}
+              <Button onClick={handleSaveSchool} className="w-full h-14 rounded-2xl shadow-lg font-black uppercase tracking-widest text-xs gap-3 bg-primary text-white hover:bg-primary/90" disabled={isProcessing}>
+                {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <ShieldCheck className="w-5 h-5 text-secondary" />}
+                Provision & Generate ID
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -138,79 +173,238 @@ export default function SchoolsManagementPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {filteredSchools.map((school) => (
-          <Card key={school.id} className="border-none shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group bg-white">
+          <Card key={school.id} className="border-none shadow-xl hover:shadow-2xl transition-all duration-300 relative overflow-hidden group bg-white rounded-[2rem]">
             <div className="absolute top-0 right-0 p-4">
                <DropdownMenu>
-                 <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 rounded-full"><MoreVertical className="w-4 h-4"/></Button></DropdownMenuTrigger>
-                 <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl">
-                   <DropdownMenuItem onClick={() => setManagedSchool(school)}><Settings2 className="w-4 h-4 mr-2" /> Manage</DropdownMenuItem>
-                   <DropdownMenuItem onClick={() => toggleSchoolStatus(school.id)}>{school.status === 'Active' ? 'Suspend' : 'Reactivate'}</DropdownMenuItem>
+                 <DropdownMenuTrigger asChild>
+                   <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full hover:bg-accent">
+                     <MoreVertical className="w-5 h-5 text-primary/40"/>
+                   </Button>
+                 </DropdownMenuTrigger>
+                 <DropdownMenuContent align="end" className="w-56 rounded-2xl shadow-xl p-2 border-none">
+                   <DropdownMenuLabel className="text-[9px] uppercase font-black opacity-40 px-3">Node Control</DropdownMenuLabel>
+                   <DropdownMenuItem className="gap-3 rounded-xl cursor-pointer" onClick={() => setManagedSchool(school)}>
+                     <Settings2 className="w-4 h-4 text-primary/60" /> 
+                     <span className="font-bold text-xs">Configuration Suite</span>
+                   </DropdownMenuItem>
+                   <DropdownMenuItem className="gap-3 rounded-xl cursor-pointer" onClick={() => toggleSchoolStatus(school.id)}>
+                     {school.status === 'Active' ? <Ban className="w-4 h-4 text-red-500" /> : <CheckCircle2 className="w-4 h-4 text-green-500" />}
+                     <span className="font-bold text-xs">{school.status === 'Active' ? 'Suspend Node' : 'Activate Node'}</span>
+                   </DropdownMenuItem>
                    <DropdownMenuSeparator />
-                   <DropdownMenuItem className="text-destructive" onClick={() => deleteSchool(school.id)}><Trash2 className="w-4 h-4 mr-2" /> Decommission</DropdownMenuItem>
+                   <DropdownMenuItem className="text-destructive gap-3 rounded-xl cursor-pointer" onClick={() => deleteSchool(school.id)}>
+                     <Trash2 className="w-4 h-4" /> 
+                     <span className="font-bold text-xs">Decommission Node</span>
+                   </DropdownMenuItem>
                  </DropdownMenuContent>
                </DropdownMenu>
             </div>
-            <CardHeader className="flex flex-row items-start gap-4">
-              <div className="p-3 bg-primary/10 rounded-xl"><Building2 className="w-6 h-6 text-primary" /></div>
+            
+            <CardHeader className="flex flex-row items-center gap-4 pb-6">
+              <div className="p-4 bg-primary rounded-[1.25rem] text-white shadow-lg">
+                <Building2 className="w-6 h-6 text-secondary" />
+              </div>
               <div>
-                <CardTitle className="text-lg font-black">{school.name}</CardTitle>
-                <Badge className={cn(
-                  "text-[9px] font-black uppercase border-none px-3 mt-1",
-                  school.status === 'Active' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                )}>
-                  {school.status}
-                </Badge>
+                <CardTitle className="text-lg font-black text-primary leading-tight uppercase tracking-tighter">{school.name}</CardTitle>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge className={cn(
+                    "text-[8px] font-black uppercase border-none px-3 h-5",
+                    school.status === 'Active' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                  )}>
+                    {school.status}
+                  </Badge>
+                  <span className="text-[10px] font-mono text-muted-foreground">{school.id}</span>
+                </div>
               </div>
             </CardHeader>
-            <CardContent className="py-4 border-y border-accent/50 space-y-2 bg-accent/5">
-              <div className="flex justify-between text-xs"><span className="text-muted-foreground font-bold">Principal</span><span className="font-bold">{school.principal}</span></div>
-              <div className="flex justify-between text-xs"><span className="text-muted-foreground font-bold">Matricule</span><span className="font-mono font-black">{school.id}</span></div>
-              <div className="flex justify-between text-xs"><span className="text-muted-foreground font-bold">Domain</span><span className="font-bold text-primary">{school.domain || "node.eduignite.cm"}</span></div>
+            
+            <CardContent className="py-6 border-y border-accent/50 space-y-4 bg-accent/5">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground font-black uppercase tracking-widest opacity-60">Principal</span>
+                <span className="font-bold text-primary">{school.principal}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground font-black uppercase tracking-widest opacity-60">Location</span>
+                <span className="font-bold text-primary">{school.location}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground font-black uppercase tracking-widest opacity-60">Digital Link</span>
+                <span className="font-bold text-secondary italic">{school.domain || "node.eduignite.cm"}</span>
+              </div>
             </CardContent>
-            <CardFooter className="pt-4"><Button variant="outline" className="w-full text-[10px] font-black uppercase" onClick={() => setManagedSchool(school)}>Configuration Suite</Button></CardFooter>
+            
+            <CardFooter className="pt-6 pb-6">
+              <Button variant="outline" className="w-full h-11 rounded-xl text-[10px] font-black uppercase tracking-widest gap-2 border-primary/10 text-primary hover:bg-primary/5" onClick={() => setManagedSchool(school)}>
+                <ShieldCheck className="w-4 h-4" /> Node Governance
+              </Button>
+            </CardFooter>
           </Card>
         ))}
       </div>
 
-      {/* Managed School Dialog */}
+      {/* NODE CONFIGURATION DIALOG */}
       <Dialog open={!!managedSchool} onOpenChange={() => setManagedSchool(null)}>
-        <DialogContent className="sm:max-w-xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-          <DialogHeader className={cn("p-8 text-white", managedSchool?.status === 'Active' ? "bg-primary" : "bg-destructive")}>
-            <DialogTitle className="text-3xl font-black">{managedSchool?.name}</DialogTitle>
-            <p className="opacity-70">Matricule: {managedSchool?.id}</p>
+        <DialogContent className="sm:max-w-xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className={cn("p-10 text-white relative", managedSchool?.status === 'Active' ? "bg-primary" : "bg-destructive/80")}>
+            <div className="flex items-center gap-6">
+              <div className="p-4 bg-white/10 rounded-[1.5rem] shadow-xl">
+                <Building2 className="w-10 h-10 text-secondary" />
+              </div>
+              <div>
+                <DialogTitle className="text-3xl font-black uppercase tracking-tighter">{managedSchool?.name}</DialogTitle>
+                <p className="opacity-70 font-mono text-sm uppercase tracking-widest mt-1">Verified Node: {managedSchool?.id}</p>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setManagedSchool(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+              <X className="w-6 h-6" />
+            </Button>
           </DialogHeader>
-          <div className="p-8 space-y-4">
-            <div className="bg-accent/20 p-6 rounded-2xl border border-accent space-y-4">
-               <h3 className="font-black text-primary uppercase text-xs tracking-widest">Node Quick Actions</h3>
-               <div className="grid grid-cols-1 gap-3">
-                  <Button variant="outline" className="w-full justify-between h-12" onClick={() => { toggleSchoolStatus(managedSchool.id); setManagedSchool(null); }}>
-                    Toggle License Status {managedSchool?.status === 'Active' ? <Ban className="w-4 h-4 text-red-500" /> : <CheckCircle2 className="w-4 h-4 text-green-500" />}
+          <div className="p-10 space-y-8">
+            <div className="bg-primary/5 p-6 rounded-[2rem] border border-primary/10 space-y-6">
+               <h3 className="font-black text-primary uppercase text-xs tracking-[0.2em] border-b pb-2 opacity-40">Administrative Interventions</h3>
+               <div className="grid grid-cols-1 gap-4">
+                  <Button variant="outline" className="w-full justify-between h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] bg-white border-primary/10 hover:bg-primary/5 transition-all" onClick={() => { toggleSchoolStatus(managedSchool.id); setManagedSchool(null); }}>
+                    License Authorization {managedSchool?.status === 'Active' ? <Ban className="w-5 h-5 text-red-500" /> : <CheckCircle2 className="w-5 h-5 text-green-500" />}
                   </Button>
-                  <Button variant="destructive" className="w-full justify-between h-12" onClick={() => { deleteSchool(managedSchool.id); setManagedSchool(null); }}>
-                    Permanently Decommission <Trash2 className="w-4 h-4" />
+                  <Button variant="destructive" className="w-full justify-between h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg opacity-80 hover:opacity-100 transition-all" onClick={() => { deleteSchool(managedSchool.id); setManagedSchool(null); }}>
+                    Permanently Decommission <Trash2 className="w-5 h-5" />
                   </Button>
                </div>
+            </div>
+            
+            <div className="flex flex-col items-center gap-4 text-center">
+               <QrCode className="w-24 h-24 text-primary opacity-10" />
+               <p className="text-[10px] font-black uppercase text-muted-foreground tracking-[0.3em]">Institutional Node Certificate</p>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Activation Receipt */}
+      {/* NODE ACTIVATION RECEIPT (EDUIGNITE OFFICIAL) */}
       <Dialog open={!!onboardingSuccess} onOpenChange={() => setOnboardingSuccess(null)}>
-        <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl text-center">
-          <DialogHeader className="bg-green-600 p-8 text-white">
-            <DialogTitle className="text-2xl font-black">Activation Successful</DialogTitle>
-          </DialogHeader>
-          <div className="p-8 space-y-6">
-            <div className="p-6 bg-primary/5 rounded-2xl border-2 border-primary/10">
-              <p className="text-xs font-black uppercase text-muted-foreground tracking-widest">Institutional Matricule ID</p>
-              <p className="text-4xl font-mono font-black text-primary">{onboardingSuccess?.id}</p>
+        <DialogContent className="sm:max-w-2xl p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden">
+          <DialogHeader className="bg-primary p-8 text-white no-print">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-2xl text-secondary">
+                  <CheckCircle2 className="w-8 h-8" />
+                </div>
+                <div>
+                  <DialogTitle className="text-2xl font-black">Provisioning Successful</DialogTitle>
+                  <DialogDescription className="text-white/60">New institutional node has been activated on the network.</DialogDescription>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setOnboardingSuccess(null)} className="text-white/40 hover:text-white">
+                <X className="w-6 h-6" />
+              </Button>
             </div>
-            <p className="text-sm text-muted-foreground italic">Provide this unique ID to the School Administrator.</p>
-            <Button onClick={() => setOnboardingSuccess(null)} className="w-full h-12 rounded-xl shadow-lg font-bold">Done</Button>
+          </DialogHeader>
+
+          <div className="bg-muted p-6 md:p-10 print:p-0 print:bg-white overflow-hidden">
+            <div id="activation-receipt" className="bg-white p-8 md:p-12 border-2 border-black shadow-sm relative flex flex-col space-y-10 font-serif text-black print:border-none print:shadow-none">
+               
+               {/* EduIgnite Platform Header */}
+               <div className="flex justify-between items-center border-b-4 border-black pb-6">
+                  <div className="flex items-center gap-4">
+                    <img src={platformSettings.logo} alt="EduIgnite" className="w-16 h-16 object-contain rounded-2xl bg-primary p-2" />
+                    <div className="space-y-0.5">
+                      <h2 className="font-black text-3xl uppercase tracking-tighter text-primary">{platformSettings.name}</h2>
+                      <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-40">Digital Education Infrastructure</p>
+                    </div>
+                  </div>
+                  <div className="text-right space-y-1">
+                    <Badge variant="outline" className="border-black text-black font-black uppercase text-[10px] px-4 py-1">OFFICIAL NODE TICKET</Badge>
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase">{new Date().toLocaleDateString()}</p>
+                  </div>
+               </div>
+
+               <div className="space-y-8 text-center py-4">
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-black uppercase tracking-tight">Institutional Node Activation</h3>
+                    <p className="text-sm font-medium italic opacity-60">This official document confirms the successful registration of:</p>
+                  </div>
+
+                  <div className="p-8 bg-accent/10 border-2 border-dashed border-black/20 rounded-[2.5rem] relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-5"><Globe className="w-24 h-24" /></div>
+                    <h2 className="text-4xl font-black text-primary uppercase leading-none mb-4">{onboardingSuccess?.name}</h2>
+                    <div className="flex flex-col items-center gap-2">
+                       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-1">Provisioned Institutional ID (Matricule)</p>
+                       <div className="bg-primary text-secondary px-8 py-4 rounded-2xl shadow-xl">
+                          <p className="text-4xl font-mono font-black tracking-tighter leading-none">{onboardingSuccess?.id}</p>
+                       </div>
+                    </div>
+                  </div>
+               </div>
+
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-10 border-t border-black/10 pt-8">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                       <ShieldCheck className="w-5 h-5 text-primary" />
+                       <h4 className="text-xs font-black uppercase tracking-widest">Platform Integrity Notice</h4>
+                    </div>
+                    <p className="text-[11px] leading-relaxed font-medium text-muted-foreground">
+                      "This matricule is the unique identifier for your institutional node. It must be provided to the school administrator to activate the secure dashboard and initialize the pedagogical registry."
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-center justify-center gap-4 text-center">
+                    <div className="p-2 bg-white border-2 border-black rounded-xl shadow-inner">
+                      <QrCode className="w-24 h-24 text-black" />
+                    </div>
+                    <p className="text-[8px] font-black uppercase tracking-widest opacity-40">Encrypted Registry Node</p>
+                  </div>
+               </div>
+
+               <div className="pt-8 border-t-2 border-black/5 flex justify-between items-end">
+                  <div className="space-y-1">
+                    <p className="text-[8px] font-black uppercase text-muted-foreground tracking-[0.2em]">Verified by</p>
+                    <p className="font-black text-sm uppercase tracking-tighter">The Office of the CEO</p>
+                    <img src={platformSettings.logo} alt="EduIgnite" className="w-6 h-6 grayscale opacity-20" />
+                  </div>
+                  <div className="text-center space-y-4 w-40">
+                    <div className="h-12 w-full mx-auto relative flex items-center justify-center">
+                       <Signature className="w-full h-full text-primary/20" />
+                    </div>
+                    <p className="text-[9px] font-black uppercase text-primary border-t border-black/20 pt-1">Platform Registrar</p>
+                  </div>
+               </div>
+
+               <div className="text-center pt-6 opacity-30">
+                  <p className="text-[8px] font-black uppercase tracking-[0.5em]">Secure • Transparent • Global</p>
+               </div>
+            </div>
           </div>
+
+          <DialogFooter className="bg-accent/10 p-8 border-t no-print flex flex-col sm:flex-row gap-4">
+            <Button variant="outline" className="flex-1 rounded-2xl h-14 font-black uppercase tracking-widest text-xs" onClick={() => setOnboardingSuccess(null)}>
+              Return to Registry
+            </Button>
+            <div className="flex flex-1 gap-2">
+              <Button 
+                variant="secondary" 
+                className="flex-1 rounded-2xl h-14 font-black uppercase tracking-widest text-xs gap-2"
+                onClick={() => toast({ title: "Receipt Downloaded" })}
+              >
+                <Download className="w-4 h-4" /> Download PDF
+              </Button>
+              <Button 
+                className="flex-1 rounded-2xl h-14 shadow-2xl font-black uppercase tracking-widest text-xs gap-2 bg-primary text-white" 
+                onClick={() => window.print()}
+              >
+                <Printer className="w-4 h-4" /> Print Ticket
+              </Button>
+            </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function Signature({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M15 30L85 10" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" strokeDasharray="2 2" />
+    </svg>
   );
 }
