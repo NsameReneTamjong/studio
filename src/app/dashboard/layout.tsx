@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { DashboardSidebar } from "@/components/layout/dashboard-sidebar";
-import { Menu, Building2, Heart, Youtube, MessageSquare, Send, CheckCircle2, Loader2, Info, ExternalLink, Lock, Wallet } from "lucide-react";
+import { Menu, Building2, Heart, Youtube, MessageSquare, Send, CheckCircle2, Loader2, Info, ExternalLink, Lock, Wallet, Quote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { 
@@ -42,8 +42,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { toast } = useToast();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
+  const [isTestimonyModalOpen, setIsTestimonyModalOpen] = useState(false);
   const [supportStep, setSupportModalStep] = useState<'form' | 'thanks'>('form');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [testimonyMessage, setTestimonyMessage] = useState("");
+  const [isSubmittingTestimony, setIsSubmittingTestimony] = useState(false);
 
   const [supportData, setSupportData] = useState({
     method: "mtn",
@@ -67,6 +70,35 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     setTimeout(() => {
       setIsProcessing(false);
       setSupportModalStep('thanks');
+    }, 1500);
+  };
+
+  const handleTestimonySubmit = () => {
+    if (!testimonyMessage.trim() || !user) return;
+    setIsSubmittingTestimony(true);
+    
+    // Simulate saving the testimony with user data
+    const submission = {
+      userId: user.id,
+      name: user.name,
+      profileImage: user.avatar,
+      role: user.role,
+      schoolName: user.school?.name || "EduIgnite Node",
+      message: testimonyMessage,
+      status: "pending",
+      createdAt: new Date()
+    };
+
+    console.log("Submitting Testimony:", submission);
+
+    setTimeout(() => {
+      setIsSubmittingTestimony(false);
+      setIsTestimonyModalOpen(false);
+      setTestimonyMessage("");
+      toast({
+        title: "Testimony Received",
+        description: "Your testimony has been submitted for review.",
+      });
     }, 1500);
   };
 
@@ -218,102 +250,152 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         <p className="text-xs text-muted-foreground">Love our work? Help us keep the servers running and features coming.</p>
                       </div>
                       
-                      <Dialog open={isSupportModalOpen} onOpenChange={setIsSupportModalOpen}>
-                        <DialogTrigger asChild>
-                          <Button className="rounded-xl bg-primary text-white shadow-lg h-11 px-8 font-bold gap-2">
-                            Support with a Contribution
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-                          {supportStep === 'form' ? (
-                            <>
-                              <DialogHeader className="bg-primary p-8 text-white">
-                                <div className="flex items-center gap-4">
-                                  <div className="p-3 bg-white/10 rounded-2xl">
-                                    <Heart className="w-8 h-8 text-secondary fill-secondary/20" />
-                                  </div>
-                                  <div>
-                                    <DialogTitle className="text-2xl font-black">Support Platform</DialogTitle>
-                                    <DialogDescription className="text-white/60">Your contribution fuels the digital transformation of education.</DialogDescription>
-                                  </div>
+                      <div className="flex flex-wrap gap-3 md:justify-end">
+                        <Dialog open={isTestimonyModalOpen} onOpenChange={setIsTestimonyModalOpen}>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" className="rounded-xl border-primary/20 text-primary h-11 px-8 font-bold gap-2 bg-white hover:bg-primary/5">
+                              <Quote className="w-4 h-4" />
+                              Give Testimony
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+                            <DialogHeader className="bg-primary p-8 text-white">
+                              <div className="flex items-center gap-4">
+                                <div className="p-3 bg-white/10 rounded-2xl">
+                                  <Quote className="w-8 h-8 text-secondary" />
                                 </div>
-                              </DialogHeader>
-                              <div className="p-8 space-y-6">
-                                <div className="space-y-4">
-                                  <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Method</Label>
-                                      <Select value={supportData.method} onValueChange={(v) => setSupportData({...supportData, method: v})}>
-                                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl">
-                                          <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="mtn">MTN MoMo</SelectItem>
-                                          <SelectItem value="orange">Orange Money</SelectItem>
-                                        </SelectContent>
-                                      </Select>
+                                <div>
+                                  <DialogTitle className="text-2xl font-black">Share Your Story</DialogTitle>
+                                  <DialogDescription className="text-white/60">Help others discover the power of EduIgnite.</DialogDescription>
+                                </div>
+                              </div>
+                            </DialogHeader>
+                            <div className="p-8 space-y-6">
+                              <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Your Message</Label>
+                                <Textarea 
+                                  placeholder="Share your experience with EduIgnite..." 
+                                  className="min-h-[150px] bg-accent/30 border-none rounded-2xl focus-visible:ring-primary p-4"
+                                  value={testimonyMessage}
+                                  onChange={(e) => setTestimonyMessage(e.target.value)}
+                                  required
+                                />
+                              </div>
+                              <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 flex items-center gap-3">
+                                <Info className="w-5 h-5 text-primary opacity-40" />
+                                <p className="text-[10px] text-muted-foreground italic">Your profile details (name, role, school) will be attached to this testimony.</p>
+                              </div>
+                            </div>
+                            <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+                              <Button 
+                                className="w-full h-14 rounded-2xl shadow-xl font-black uppercase text-xs gap-3 bg-primary text-white hover:bg-primary/90" 
+                                onClick={handleTestimonySubmit}
+                                disabled={isSubmittingTestimony || !testimonyMessage.trim()}
+                              >
+                                {isSubmittingTestimony ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+                                Submit for Review
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+
+                        <Dialog open={isSupportModalOpen} onOpenChange={setIsSupportModalOpen}>
+                          <DialogTrigger asChild>
+                            <Button className="rounded-xl bg-primary text-white shadow-lg h-11 px-8 font-bold gap-2">
+                              Support with a Contribution
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+                            {supportStep === 'form' ? (
+                              <>
+                                <DialogHeader className="bg-primary p-8 text-white">
+                                  <div className="flex items-center gap-4">
+                                    <div className="p-3 bg-white/10 rounded-2xl">
+                                      <Heart className="w-8 h-8 text-secondary fill-secondary/20" />
+                                    </div>
+                                    <div>
+                                      <DialogTitle className="text-2xl font-black">Support Platform</DialogTitle>
+                                      <DialogDescription className="text-white/60">Your contribution fuels the digital transformation of education.</DialogDescription>
+                                    </div>
+                                  </div>
+                                </DialogHeader>
+                                <div className="p-8 space-y-6">
+                                  <div className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div className="space-y-2">
+                                        <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Method</Label>
+                                        <Select value={supportData.method} onValueChange={(v) => setSupportData({...supportData, method: v})}>
+                                          <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl">
+                                            <SelectValue />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            <SelectItem value="mtn">MTN MoMo</SelectItem>
+                                            <SelectItem value="orange">Orange Money</SelectItem>
+                                          </SelectContent>
+                                        </Select>
+                                      </div>
+                                      <div className="space-y-2">
+                                        <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Amount (XAF)</Label>
+                                        <Input 
+                                          type="number" 
+                                          placeholder="5,000" 
+                                          className="h-12 bg-accent/30 border-none rounded-xl font-bold" 
+                                          value={supportData.amount}
+                                          onChange={(e) => setSupportData({...supportData, amount: e.target.value})}
+                                        />
+                                      </div>
                                     </div>
                                     <div className="space-y-2">
-                                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Amount (XAF)</Label>
+                                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Phone Number</Label>
                                       <Input 
-                                        type="number" 
-                                        placeholder="5,000" 
-                                        className="h-12 bg-accent/30 border-none rounded-xl font-bold" 
-                                        value={supportData.amount}
-                                        onChange={(e) => setSupportData({...supportData, amount: e.target.value})}
+                                        placeholder="6XX XX XX XX" 
+                                        className="h-12 bg-accent/30 border-none rounded-xl" 
+                                        value={supportData.number}
+                                        onChange={(e) => setSupportData({...supportData, number: e.target.value})}
+                                      />
+                                    </div>
+                                    <div className="space-y-2">
+                                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Personal Message (Optional)</Label>
+                                      <Textarea 
+                                        placeholder="Leave a word for the developers..." 
+                                        className="bg-accent/30 border-none rounded-xl min-h-[80px]" 
+                                        value={supportData.message}
+                                        onChange={(e) => setSupportData({...supportData, message: e.target.value})}
                                       />
                                     </div>
                                   </div>
-                                  <div className="space-y-2">
-                                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Phone Number</Label>
-                                    <Input 
-                                      placeholder="6XX XX XX XX" 
-                                      className="h-12 bg-accent/30 border-none rounded-xl" 
-                                      value={supportData.number}
-                                      onChange={(e) => setSupportData({...supportData, number: e.target.value})}
-                                    />
-                                  </div>
-                                  <div className="space-y-2">
-                                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Personal Message (Optional)</Label>
-                                    <Textarea 
-                                      placeholder="Leave a word for the developers..." 
-                                      className="bg-accent/30 border-none rounded-xl min-h-[80px]" 
-                                      value={supportData.message}
-                                      onChange={(e) => setSupportData({...supportData, message: e.target.value})}
-                                    />
-                                  </div>
                                 </div>
-                              </div>
-                              <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
-                                <Button 
-                                  className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-2" 
-                                  onClick={handleSupportSubmit}
-                                  disabled={isProcessing}
-                                >
-                                  {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-                                  Confirm Contribution
+                                <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+                                  <Button 
+                                    className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-2" 
+                                    onClick={handleSupportSubmit}
+                                    disabled={isProcessing}
+                                  >
+                                    {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+                                    Confirm Contribution
+                                  </Button>
+                                </DialogFooter>
+                              </>
+                            ) : (
+                              <div className="p-12 text-center space-y-6 animate-in zoom-in-95 duration-300">
+                                <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                                  <CheckCircle2 className="w-12 h-12" />
+                                </div>
+                                <div className="space-y-2">
+                                  <h2 className="text-3xl font-black text-primary tracking-tight">Thank You!</h2>
+                                  <p className="text-muted-foreground leading-relaxed">
+                                    Your generous contribution of <span className="font-black text-primary">{parseInt(supportData.amount).toLocaleString()} XAF</span> has been received. 
+                                    People with good hearts like yours make this journey possible.
+                                  </p>
+                                </div>
+                                <Button variant="outline" className="w-full h-12 rounded-xl" onClick={resetSupport}>
+                                  Back to Dashboard
                                 </Button>
-                              </DialogFooter>
-                            </>
-                          ) : (
-                            <div className="p-12 text-center space-y-6 animate-in zoom-in-95 duration-300">
-                              <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
-                                <CheckCircle2 className="w-12 h-12" />
                               </div>
-                              <div className="space-y-2">
-                                <h2 className="text-3xl font-black text-primary tracking-tight">Thank You!</h2>
-                                <p className="text-muted-foreground leading-relaxed">
-                                  Your generous contribution of <span className="font-black text-primary">{parseInt(supportData.amount).toLocaleString()} XAF</span> has been received. 
-                                  People with good hearts like yours make this journey possible.
-                                </p>
-                              </div>
-                              <Button variant="outline" className="w-full h-12 rounded-xl" onClick={resetSupport}>
-                                Back to Dashboard
-                              </Button>
-                            </div>
-                          )}
-                        </DialogContent>
-                      </Dialog>
+                            )}
+                          </DialogContent>
+                        </Dialog>
+                      </div>
                     </div>
                     
                     <div className="flex items-center gap-6 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">
