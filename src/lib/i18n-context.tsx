@@ -101,6 +101,7 @@ const translations: TranslationDict = {
   bursar: { en: "Bursar", fr: "Économe" },
   librarian: { en: "Librarian", fr: "Bibliothécaire" },
   library: { en: "Library", fr: "Bibliothèque" },
+  catalog: { en: "Catalog", fr: "Catalogue" },
   borrow: { en: "Borrow Book", fr: "Emprunter" },
   borrowed: { en: "My Borrowed Books", fr: "Mes Livres Empruntés" },
   libraryHistory: { en: "Library History", fr: "Historique Bibliothèque" },
