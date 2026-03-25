@@ -101,7 +101,7 @@ const translations: TranslationDict = {
   librarian: { en: "Librarian", fr: "Bibliothécaire" },
   library: { en: "Library", fr: "Bibliothèque" },
   borrow: { en: "Borrow Book", fr: "Emprunter" },
-  borrowed: { en: "My Borrowed Books", fr: "Mes Enfants" },
+  borrowed: { en: "My Borrowed Books", fr: "Mes Livres Empruntés" },
   returnDate: { en: "Return Date", fr: "Date de Retour" },
   available: { en: "Available", fr: "Disponible" },
   searchBooks: { en: "Search for books...", fr: "Rechercher un livre..." },
@@ -129,6 +129,21 @@ const translations: TranslationDict = {
   whatPeopleSay: { en: "See what people say about EduIgnite", fr: "Découvrez ce qu'on dit d'EduIgnite" },
   testimonials: { en: "Community Testimonials", fr: "Témoignages de la Communauté" },
   publishTestimonial: { en: "Publish as Testimonial", fr: "Publier comme Témoignage" },
+  termAverage: { en: "Term Average", fr: "Moyenne Trimestrielle" },
+  evaluations: { en: "Evaluations", fr: "Évaluations" },
+  presenceRate: { en: "Presence Rate", fr: "Taux de Présence" },
+  subjects: { en: "Subjects", fr: "Matières" },
+  sessionsPresent: { en: "Sessions Present", fr: "Sessions Présent" },
+  sessionsAbsent: { en: "Sessions Absent", fr: "Sessions Absent" },
+  teacher: { en: "Teacher", fr: "Enseignant" },
+  todayPresence: { en: "Today's Presence", fr: "Présence d'aujourd'hui" },
+  cumulativeRecords: { en: "Cumulative Records", fr: "Registres Cumulatifs" },
+  officialBulletin: { en: "View Official Bulletin", fr: "Voir Bulletin Officiel" },
+  print: { en: "Print", fr: "Imprimer" },
+  address: { en: "Address", fr: "Adresse" },
+  phone: { en: "Phone", fr: "Téléphone" },
+  motto: { en: "Motto", fr: "Devise" },
+  status: { en: "Status", fr: "Statut" },
 };
 
 interface I18nContextType {
@@ -160,11 +175,9 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <div onClick={() => {}}>
-      <I18nContext.Provider value={{ language, setLanguage: handleSetLanguage, t }}>
-        {children}
-      </I18nContext.Provider>
-    </div>
+    <I18nContext.Provider value={{ language, setLanguage: handleSetLanguage, t }}>
+      {children}
+    </I18nContext.Provider>
   );
 };
 

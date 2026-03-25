@@ -39,7 +39,6 @@ import {
   Loader2,
   AlertCircle,
   X,
-  Signature,
   TrendingUp,
   ListChecks,
   Users
@@ -126,14 +125,6 @@ const MOCK_SUBJECT_RECORDS = [
   { subject: "History", present: 15, absent: 9, teacher: "Mr. Tabi" },
 ];
 
-const getAppreciation = (note: number) => {
-  if (note >= 16) return { text: "Très Bien / Excellent", color: "bg-green-600" };
-  if (note >= 14) return { text: "Bien / Very Good", color: "bg-green-500" };
-  if (note >= 12) return { text: "Assez Bien / Good", color: "bg-blue-500" };
-  if (note >= 10) return { text: "Passable / Fair", color: "bg-amber-500" };
-  return { text: "Faible / Poor", color: "bg-red-500" };
-};
-
 export default function StudentDetailsPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -159,6 +150,14 @@ export default function StudentDetailsPage() {
     const totalCoeff = MOCK_GRADES.reduce((acc, curr) => acc + curr.coeff, 0);
     return totalCoeff > 0 ? totalWeighted / totalCoeff : 0;
   }, []);
+
+  const getAppreciation = (note: number) => {
+    if (note >= 16) return { text: language === 'en' ? "Excellent" : "Très Bien", color: "bg-green-600" };
+    if (note >= 14) return { text: language === 'en' ? "Very Good" : "Bien", color: "bg-green-500" };
+    if (note >= 12) return { text: language === 'en' ? "Good" : "Assez Bien", color: "bg-blue-500" };
+    if (note >= 10) return { text: language === 'en' ? "Fair" : "Passable", color: "bg-amber-500" };
+    return { text: language === 'en' ? "Poor" : "Faible", color: "bg-red-500" };
+  };
 
   const handleDownload = (docName: string) => {
     toast({
@@ -209,14 +208,14 @@ export default function StudentDetailsPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2"><Mail className="w-4 h-4" /> Message</Button>
-          <Button className="gap-2 shadow-lg" onClick={() => setPreviewDoc({ type: 'report' })}><Printer className="w-4 h-4" /> Print Bulletin</Button>
+          <Button className="gap-2 shadow-lg" onClick={() => setPreviewDoc({ type: 'report' })}><Printer className="w-4 h-4" /> {t("print")} {t("reportCard")}</Button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="border-none shadow-sm bg-primary text-white">
           <CardHeader className="pb-2">
-            <CardTitle className="text-[10px] font-black opacity-60 uppercase tracking-widest">{language === "en" ? "Term Average" : "Moyenne Trimestrielle"}</CardTitle>
+            <CardTitle className="text-[10px] font-black opacity-60 uppercase tracking-widest">{t("termAverage")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-black text-secondary">{generalAverage.toFixed(2)} / 20</div>
@@ -224,15 +223,15 @@ export default function StudentDetailsPage() {
         </Card>
         <Card className="border-none shadow-sm bg-secondary text-primary">
           <CardHeader className="pb-2">
-            <CardTitle className="text-[10px] font-black opacity-60 uppercase tracking-widest">{language === "en" ? "Evaluations" : "Évaluations"}</CardTitle>
+            <CardTitle className="text-[10px] font-black opacity-60 uppercase tracking-widest">{t("evaluations")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-black">{MOCK_GRADES.length} Subjects</div>
+            <div className="text-3xl font-black">{MOCK_GRADES.length} {t("subjects")}</div>
           </CardContent>
         </Card>
         <Card className="border-none shadow-sm bg-accent text-primary border border-primary/10">
           <CardHeader className="pb-2">
-            <CardTitle className="text-[10px] font-black opacity-60 uppercase tracking-widest">{language === "en" ? "Presence Rate" : "Taux de Présence"}</CardTitle>
+            <CardTitle className="text-[10px] font-black opacity-60 uppercase tracking-widest">{t("presenceRate")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-xl font-black flex items-center gap-2">
@@ -245,16 +244,16 @@ export default function StudentDetailsPage() {
       <Tabs defaultValue="grades" className="w-full">
         <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full bg-white border shadow-sm h-auto p-1 rounded-xl">
           <TabsTrigger value="profile" className="gap-2 py-2">
-            <User className="w-4 h-4" /> {language === 'en' ? 'Profile' : 'Profil'}
+            <User className="w-4 h-4" /> {t("profile")}
           </TabsTrigger>
           <TabsTrigger value="grades" className="gap-2 py-2">
-            <Award className="w-4 h-4" /> {language === "en" ? "Grades" : "Bulletin"}
+            <Award className="w-4 h-4" /> {t("grades")}
           </TabsTrigger>
           <TabsTrigger value="schedule" className="gap-2 py-2">
-            <Calendar className="w-4 h-4" /> {language === "en" ? "Schedule" : "Emploi"}
+            <Calendar className="w-4 h-4" /> {t("schedule")}
           </TabsTrigger>
           <TabsTrigger value="attendance" className="gap-2 py-2">
-            <ClipboardCheck className="w-4 h-4" /> {language === "en" ? "Presence" : "Présence"}
+            <ClipboardCheck className="w-4 h-4" /> {t("presence")}
           </TabsTrigger>
           <TabsTrigger value="documents" className="gap-2 py-2">
             <FileText className="w-4 h-4" /> {t("documents")}
@@ -266,26 +265,26 @@ export default function StudentDetailsPage() {
             <Card className="lg:col-span-2 border-none shadow-sm">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <Info className="w-5 h-5 text-primary" /> Personal Information
+                  <Info className="w-5 h-5 text-primary" /> {t("personalInfo")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-1">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Full Name</p>
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">{t("fullName")}</p>
                     <p className="font-bold text-lg">{student.name}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Matricule ID</p>
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">{t("matricule")}</p>
                     <p className="font-mono font-bold text-lg text-primary">{student.id}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Institutional Email</p>
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">{t("email")}</p>
                     <p className="font-medium text-primary flex items-center gap-2"><Mail className="w-4 h-4"/> {student.email}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Grade / Section</p>
-                    <p className="font-bold">{student.class} - Section {student.section || 'A'}</p>
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">{language === 'en' ? "Grade" : "Niveau"}</p>
+                    <p className="font-bold">{student.class}</p>
                   </div>
                 </div>
               </CardContent>
@@ -293,15 +292,15 @@ export default function StudentDetailsPage() {
 
             <Card className="border-none shadow-sm bg-gradient-to-br from-primary to-primary/90 text-white">
               <CardHeader>
-                <CardTitle className="text-white">Institutional Status</CardTitle>
+                <CardTitle className="text-white">{language === 'en' ? "Institutional Status" : "Statut Institutionnel"}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <span className="opacity-70 text-sm">Status</span>
+                  <span className="opacity-70 text-sm">{t("status")}</span>
                   <Badge className="bg-secondary text-primary border-none uppercase">{student.status || 'Active'}</Badge>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="opacity-70 text-sm">Join Date</span>
+                  <span className="opacity-70 text-sm">{language === 'en' ? "Join Date" : "Date d'Entrée"}</span>
                   <span className="font-bold text-sm">Oct 12, 2023</span>
                 </div>
                 <div className="pt-6 border-t border-white/10 text-center">
@@ -317,18 +316,18 @@ export default function StudentDetailsPage() {
           <Card className="border-none shadow-sm overflow-hidden">
             <CardHeader className="bg-accent/30 border-b flex flex-row items-center justify-between">
               <div>
-                <CardTitle>{language === "en" ? "Current Term Grades" : "Notes du Trimestre Actuel"}</CardTitle>
-                <CardDescription>Academic Session 2024 - Demo Ledger</CardDescription>
+                <CardTitle>{t("grades")}</CardTitle>
+                <CardDescription>Academic Session 2024</CardDescription>
               </div>
               <Button onClick={() => setPreviewDoc({ type: 'report' })} className="gap-2 bg-primary text-white shadow-lg">
-                <Eye className="w-4 h-4" /> {language === 'en' ? 'View Official Bulletin' : 'Voir Bulletin Officiel'}
+                <Eye className="w-4 h-4" /> {t("officialBulletin")}
               </Button>
             </CardHeader>
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50 uppercase text-[10px] font-black tracking-widest">
-                    <TableHead className="pl-6 py-4">Subject</TableHead>
+                    <TableHead className="pl-6 py-4">{t("subjects")}</TableHead>
                     <TableHead className="text-center">Coeff</TableHead>
                     <TableHead className="text-center">Seq 1</TableHead>
                     <TableHead className="text-center">Seq 2</TableHead>
@@ -364,9 +363,9 @@ export default function StudentDetailsPage() {
               </Table>
             </CardContent>
             <CardFooter className="bg-primary/5 p-6 flex justify-between items-center border-t">
-               <p className="text-xs font-bold text-primary italic">Term Average Calculation based on verified school coefficients.</p>
+               <p className="text-xs font-bold text-primary italic">{language === 'en' ? "Term Average Calculation based on verified school coefficients." : "Calcul de la moyenne basé sur les coefficients scolaires vérifiés."}</p>
                <div className="text-right">
-                  <p className="text-[10px] uppercase font-black text-muted-foreground">General Average</p>
+                  <p className="text-[10px] uppercase font-black text-muted-foreground">{t("termAverage")}</p>
                   <p className="text-2xl font-black text-primary">{generalAverage.toFixed(2)} / 20</p>
                </div>
             </CardFooter>
@@ -403,7 +402,7 @@ export default function StudentDetailsPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="md:col-span-1 border-none shadow-sm bg-blue-50 h-fit">
               <CardHeader className="pb-2">
-                <CardTitle className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Aggregate Presence</CardTitle>
+                <CardTitle className="text-[10px] font-black uppercase text-blue-600 tracking-widest">{language === 'en' ? "Aggregate Presence" : "Présence Globale"}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="text-4xl font-black text-blue-700">94.5%</div>
@@ -428,7 +427,7 @@ export default function StudentDetailsPage() {
                 <CardHeader className="bg-white border-b flex flex-row items-center justify-between">
                   <div>
                     <CardTitle className="text-sm font-black uppercase text-primary flex items-center gap-2">
-                      <ListChecks className="w-4 h-4" /> Today's Presence Registry
+                      <ListChecks className="w-4 h-4" /> {t("todayPresence")}
                     </CardTitle>
                     <CardDescription>Live session status for {student.name}</CardDescription>
                   </div>
@@ -440,9 +439,9 @@ export default function StudentDetailsPage() {
                   <Table>
                     <TableHeader className="bg-accent/10">
                       <TableRow className="text-[10px] font-black uppercase">
-                        <TableHead className="pl-6">Subject</TableHead>
+                        <TableHead className="pl-6">{t("subjects")}</TableHead>
                         <TableHead>Time Window</TableHead>
-                        <TableHead className="text-right pr-6">Status</TableHead>
+                        <TableHead className="text-right pr-6">{t("status")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -452,7 +451,7 @@ export default function StudentDetailsPage() {
                           <TableCell className="text-[10px] font-mono font-bold text-muted-foreground">{att.time}</TableCell>
                           <TableCell className="text-right pr-6">
                             <Badge className={cn("text-[9px] font-black uppercase px-3 border-none", att.status === 'Present' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700")}>
-                              {att.status}
+                              {att.status === 'Present' ? t("present") : (att.status === 'Absent' ? t("absent") : t("upcoming"))}
                             </Badge>
                           </TableCell>
                         </TableRow>
@@ -466,7 +465,7 @@ export default function StudentDetailsPage() {
               <Card className="border-none shadow-sm overflow-hidden">
                 <CardHeader className="bg-white border-b">
                   <CardTitle className="text-sm font-black uppercase text-primary flex items-center gap-2">
-                    <History className="w-4 h-4" /> Cumulative Subject Records
+                    <History className="w-4 h-4" /> {t("cumulativeRecords")}
                   </CardTitle>
                   <CardDescription>Aggregate performance across all pedagogical sessions.</CardDescription>
                 </CardHeader>
@@ -474,10 +473,10 @@ export default function StudentDetailsPage() {
                   <Table>
                     <TableHeader className="bg-accent/10">
                       <TableRow className="text-[10px] font-black uppercase">
-                        <TableHead className="pl-6">Subject</TableHead>
-                        <TableHead className="text-center text-green-600">Present</TableHead>
-                        <TableHead className="text-center text-red-600">Absent</TableHead>
-                        <TableHead className="text-right pr-6">Teacher</TableHead>
+                        <TableHead className="pl-6">{t("subjects")}</TableHead>
+                        <TableHead className="text-center text-green-600">{t("sessionsPresent")}</TableHead>
+                        <TableHead className="text-center text-red-600">{t("sessionsAbsent")}</TableHead>
+                        <TableHead className="text-right pr-6">{t("teacher")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -552,11 +551,11 @@ export default function StudentDetailsPage() {
                       </Avatar>
                       <div className="space-y-3 flex-1">
                         <div>
-                          <p className="text-[10px] text-muted-foreground uppercase font-bold">Student Name</p>
+                          <p className="text-[10px] text-muted-foreground uppercase font-bold">{language === 'en' ? "Student Name" : "Nom de l'élève"}</p>
                           <p className="font-black text-primary uppercase text-sm leading-tight">{student.name}</p>
                         </div>
                         <div>
-                          <p className="text-[10px] text-muted-foreground uppercase font-bold">Matricule</p>
+                          <p className="text-[10px] text-muted-foreground uppercase font-bold">{t("matricule")}</p>
                           <p className="font-mono font-bold text-secondary text-sm">{student.id}</p>
                         </div>
                       </div>
@@ -629,7 +628,7 @@ export default function StudentDetailsPage() {
                     <h2 className="text-xl md:text-2xl font-black uppercase underline tracking-tighter">
                       REPORT CARD / BULLETIN DE NOTES
                     </h2>
-                    <p className="font-bold text-sm italic">Academic Year: 2024</p>
+                    <p className="font-bold text-sm italic">{t("academicYear")}: 2024</p>
                  </div>
 
                  <div className="grid grid-cols-12 gap-6 bg-accent/10 p-4 border border-accent rounded-lg items-center">
@@ -641,11 +640,11 @@ export default function StudentDetailsPage() {
                     </div>
                     <div className="col-span-9 space-y-2">
                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                          <span className="font-bold uppercase opacity-60">Student Name:</span>
+                          <span className="font-bold uppercase opacity-60">{t("fullName")}:</span>
                           <span className="font-black uppercase">{student.name}</span>
-                          <span className="font-bold uppercase opacity-60">Matricule / ID No:</span>
+                          <span className="font-bold uppercase opacity-60">{t("matricule")}:</span>
                           <span className="font-mono font-bold text-primary">{student.id}</span>
-                          <span className="font-bold uppercase opacity-60">Grade:</span>
+                          <span className="font-bold uppercase opacity-60">{language === 'en' ? "Grade" : "Niveau"}:</span>
                           <span className="font-bold">{student.class}</span>
                        </div>
                     </div>
@@ -655,7 +654,7 @@ export default function StudentDetailsPage() {
                    <Table className="border border-black">
                       <TableHeader className="bg-black/5">
                         <TableRow className="border-black">
-                          <TableHead className="text-[10px] uppercase font-bold text-black border-r border-black">Subjects</TableHead>
+                          <TableHead className="text-[10px] uppercase font-bold text-black border-r border-black">{t("subjects")}</TableHead>
                           <TableHead className="text-center text-[10px] uppercase font-bold text-black border-r border-black">Coeff</TableHead>
                           <TableHead className="text-center text-[10px] uppercase font-bold text-black border-r border-black">Moy/20</TableHead>
                           <TableHead className="text-right text-[10px] uppercase font-bold text-black">Appreciation</TableHead>
@@ -671,12 +670,12 @@ export default function StudentDetailsPage() {
                           </TableRow>
                         ))}
                         <TableRow className="border-black bg-black/5 font-bold">
-                           <TableCell className="border-r border-black text-right uppercase text-[10px]" colSpan={2}>General Average</TableCell>
+                           <TableCell className="border-r border-black text-right uppercase text-[10px]" colSpan={2}>{t("termAverage")}</TableCell>
                            <TableCell className="text-center border-r border-black text-lg font-black text-primary" colSpan={1}>
                              {generalAverage.toFixed(2)}
                            </TableCell>
                            <TableCell className="text-right uppercase text-[10px]" colSpan={1}>
-                             Rank: 1st / 45
+                             {language === 'en' ? "Rank: 1st / 45" : "Rang: 1er / 45"}
                            </TableCell>
                         </TableRow>
                       </TableBody>
@@ -685,11 +684,11 @@ export default function StudentDetailsPage() {
 
                  <div className="mt-auto grid grid-cols-2 gap-20 pt-12 items-end text-center">
                     <div className="space-y-4">
-                       <p className="text-[10px] uppercase font-bold">The Class Council</p>
+                       <p className="text-[10px] uppercase font-bold">{language === 'en' ? "The Class Council" : "Le Conseil de Classe"}</p>
                        <div className="h-px bg-black w-full" />
                     </div>
                     <div className="space-y-4">
-                       <p className="text-[10px] uppercase font-bold">The Principal</p>
+                       <p className="text-[10px] uppercase font-bold">{language === 'en' ? "The Principal" : "Le Proviseur"}</p>
                        <div className="h-px bg-black w-full" />
                        <Badge variant="outline" className="border-black text-[8px] font-bold uppercase tracking-widest">Official Seal</Badge>
                     </div>
@@ -758,7 +757,7 @@ export default function StudentDetailsPage() {
                         STUDENT ID CARD
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-[8px] font-black text-muted-foreground uppercase">Academic Year</span>
+                        <span className="text-[8px] font-black text-muted-foreground uppercase">{t("academicYear")}</span>
                         <Badge className="bg-secondary text-primary border-none text-[9px] font-black h-5">2023 - 2024</Badge>
                       </div>
                     </div>
@@ -808,7 +807,7 @@ export default function StudentDetailsPage() {
                         </div>
                         <div className="text-center space-y-1 relative">
                           <div className="h-px bg-primary/20 w-24 mx-auto mb-1" />
-                          <p className="text-[8px] font-black text-primary uppercase">The Principal</p>
+                          <p className="text-[8px] font-black text-primary uppercase">{t("proviseur")}</p>
                           <Badge variant="outline" className="text-[7px] border-primary/20 text-primary font-black uppercase">Official Seal</Badge>
                         </div>
                       </div>
@@ -838,10 +837,10 @@ export default function StudentDetailsPage() {
             </div>
             <div className="flex gap-3">
               <Button variant="outline" onClick={() => window.print()} className="gap-2 rounded-xl">
-                <Printer className="w-4 h-4" /> Print
+                <Printer className="w-4 h-4" /> {t("print")}
               </Button>
               <Button onClick={() => { handleDownload('ID Card Suite'); setPreviewDoc(null); }} className="gap-2 shadow-lg bg-primary text-white rounded-xl">
-                <Download className="w-4 h-4" /> Download Digital Suite
+                <Download className="w-4 h-4" /> {t("download")}
               </Button>
             </div>
           </DialogFooter>

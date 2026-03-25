@@ -1,9 +1,9 @@
+
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
   ArrowRight, 
@@ -17,7 +17,6 @@ import {
   Phone,
   Mail,
   Heart,
-  Calendar,
   Clock
 } from "lucide-react";
 import Link from "next/link";
@@ -26,7 +25,7 @@ import { useRouter } from "next/navigation";
 
 export default function SchoolWelcomePage() {
   const { user, isAuthenticated } = useAuth();
-  const { language } = useI18n();
+  const { t, language } = useI18n();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
@@ -92,7 +91,7 @@ export default function SchoolWelcomePage() {
               <div className="p-3 bg-green-50 rounded-2xl mb-1">
                 <ShieldCheck className="w-6 h-6 text-green-600" />
               </div>
-              <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest leading-none">Status</p>
+              <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest leading-none">{t("status")}</p>
               <p className="text-sm font-black text-green-600">Active Campus</p>
             </div>
           </div>
@@ -136,13 +135,15 @@ export default function SchoolWelcomePage() {
                 </Badge>
                 <div className="h-1 w-1 rounded-full bg-muted-foreground/30" />
                 <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1">
-                  <Clock className="w-3 h-3" /> Academic Year 2023/24
+                  <Clock className="w-3 h-3" /> {t("academicYear")} 2023/24
                 </span>
               </div>
             </div>
             <p className="text-muted-foreground leading-relaxed text-lg font-medium">
               {isParent 
-                ? "Experience the future of your children's education. Monitor progress, handle fees, and stay connected with the school administration instantly."
+                ? (language === 'en' 
+                    ? "Experience the future of your children's education. Monitor progress, handle fees, and stay connected with the school administration instantly."
+                    : "Découvrez le futur de l'éducation de vos enfants. Suivez leurs progrès, gérez les frais et restez connecté instantanément avec l'administration scolaire.")
                 : school.description}
             </p>
           </div>
@@ -174,8 +175,12 @@ export default function SchoolWelcomePage() {
               <div className="bg-white/5 p-4 rounded-2xl border border-white/10">
                 <p className="text-xs opacity-80 leading-relaxed font-medium">
                   {isParent 
-                    ? "Your family dashboard is synchronized. Review individual report cards and attendance logs for all registered children below."
-                    : "Your pedagogical dashboard is live. Manage curriculum, track financial status, and access institutional resources securely."}
+                    ? (language === 'en' 
+                        ? "Your family dashboard is synchronized. Review individual report cards and attendance logs for all registered children below."
+                        : "Votre tableau de bord familial est synchronisé. Consultez les bulletins individuels et les registres de présence pour tous les enfants inscrits ci-dessous.")
+                    : (language === 'en'
+                        ? "Your pedagogical dashboard is live. Manage curriculum, track financial status, and access institutional resources securely."
+                        : "Votre tableau de bord pédagogique est en ligne. Gérez le programme, suivez l'état financier et accédez aux ressources institutionnelles en toute sécurité.")}
                 </p>
               </div>
 
