@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/badge";
 import { 
   PenTool, 
   Clock, 
@@ -94,7 +94,7 @@ const MOCK_ONLINE_EXAMS = [
     endTime: new Date(Date.now() - 3600000).toISOString(), 
     duration: 15, 
     questionCount: 10,
-    status: "cancelled", // Mocking a cancelled exam
+    status: "cancelled",
     instructions: "Cancelled due to technical maintenance."
   }
 ];
@@ -102,6 +102,7 @@ const MOCK_ONLINE_EXAMS = [
 const MOCK_EXAM_HISTORY = [
   { id: "H1", title: "Wave Motion Quiz", subject: "Physics", score: 18, total: 20, date: "May 12, 2024", teacher: "Dr. Tesla", status: "VERIFIED" },
   { id: "H2", title: "Algebra Sequence 1", subject: "Mathematics", score: 15, total: 20, date: "April 28, 2024", teacher: "Prof. Smith", status: "VERIFIED" },
+  { id: "H3", title: "Inorganic Chemistry", subject: "Chemistry", score: 0, total: 20, date: "Yesterday", teacher: "Dr. White", status: "ABSENT" },
   { id: "E003", title: "English Vocabulary Speedrun", subject: "English Literature", score: 0, total: 10, date: "Today", teacher: "Ms. Bennet", status: "CANCELLED" },
 ];
 
@@ -170,6 +171,24 @@ export default function ExamsPage() {
     setOnsiteExams(prev => [newExam, ...prev]);
     setIsSchedulingOnsite(false);
     toast({ title: "Onsite Exam Scheduled", description: `${onsiteFormData.teacher} assigned as invigilator.` });
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'VERIFIED': return <CheckCircle2 className="w-3 h-3 mr-1" />;
+      case 'ABSENT': return <XCircle className="w-3 h-3 mr-1" />;
+      case 'CANCELLED': return <AlertCircle className="w-3 h-3 mr-1" />;
+      default: return null;
+    }
+  };
+
+  const getStatusStyles = (status: string) => {
+    switch (status) {
+      case 'VERIFIED': return "bg-green-100 text-green-700";
+      case 'ABSENT': return "bg-red-100 text-red-700";
+      case 'CANCELLED': return "bg-slate-100 text-slate-700";
+      default: return "";
+    }
   };
 
   return (
@@ -341,7 +360,7 @@ export default function ExamsPage() {
             {activeExams.map((exam) => {
               const isLive = new Date(exam.startTime) <= currentTime;
               return (
-                <Card key={exam.id} className="border-none shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-300">
+                <Card key={exam.id} className="border-none shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-300 rounded-3xl bg-white">
                   <div className={cn("h-1.5 w-full", isLive ? "bg-red-600" : "bg-secondary")} />
                   <CardHeader>
                     <div className="flex justify-between items-start mb-2">
@@ -406,7 +425,7 @@ export default function ExamsPage() {
               <CardTitle className="text-sm font-black uppercase text-primary flex items-center gap-2">
                 <History className="w-4 h-4" /> MCQ Attempt History
               </CardTitle>
-              <CardDescription>Verified results from past or cancelled assessments.</CardDescription>
+              <CardDescription>Verified results from past, missed, or cancelled assessments.</CardDescription>
             </CardHeader>
             <CardContent className="p-0 overflow-x-auto">
               <Table className="min-w-[600px]">
@@ -425,15 +444,16 @@ export default function ExamsPage() {
                       <TableCell className="pl-8 py-4 font-bold text-sm text-primary">{hist.title}</TableCell>
                       <TableCell><Badge variant="outline" className="text-[10px]">{hist.subject}</Badge></TableCell>
                       <TableCell className="text-center font-black text-primary">
-                        {hist.status === 'CANCELLED' ? '---' : `${hist.score} / ${hist.total}`}
+                        {['CANCELLED', 'ABSENT'].includes(hist.status) ? '---' : `${hist.score} / ${hist.total}`}
                       </TableCell>
                       <TableCell className="text-center text-xs text-muted-foreground">{hist.date}</TableCell>
                       <TableCell className="text-right pr-8">
                         <Badge className={cn(
                           "text-[9px] font-black uppercase border-none px-3",
-                          hist.status === 'VERIFIED' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                          getStatusStyles(hist.status)
                         )}>
-                          <CheckCircle2 className="w-3 h-3 mr-1" /> {hist.status}
+                          {getStatusIcon(hist.status)}
+                          {hist.status}
                         </Badge>
                       </TableCell>
                     </TableRow>
