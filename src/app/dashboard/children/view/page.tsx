@@ -39,7 +39,8 @@ import {
   Loader2,
   AlertCircle,
   X,
-  Signature
+  Signature,
+  TrendingUp
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -85,6 +86,37 @@ const MOCK_GRADES = [
   { courseId: "PHY101", courseName: "Physics", seq1: 14, seq2: 16, coeff: 4, group: "Sciences" },
   { courseId: "MAT101", courseName: "Mathematics", seq1: 18, seq2: 17, coeff: 5, group: "Sciences" },
   { courseId: "ENG101", courseName: "English", seq1: 12, seq2: 13, coeff: 3, group: "Arts" },
+];
+
+const MOCK_SCHEDULE = {
+  Monday: [
+    { time: "08:00 - 10:00", subject: "Mathematics", room: "Room 101", teacher: "Prof. Smith" },
+    { time: "10:30 - 12:30", subject: "Physics", room: "Lab A", teacher: "Dr. Tesla" },
+  ],
+  Tuesday: [
+    { time: "08:00 - 10:00", subject: "Chemistry", room: "Lab C", teacher: "Dr. White" },
+    { time: "13:00 - 15:00", subject: "History", room: "Room 204", teacher: "Mr. Tabi" },
+  ],
+  Wednesday: [
+    { time: "08:00 - 10:00", subject: "Mathematics", room: "Room 101", teacher: "Prof. Smith" },
+    { time: "10:30 - 12:30", subject: "Biology", room: "Lab B", teacher: "Dr. Fon" },
+  ],
+  Thursday: [
+    { time: "08:00 - 10:00", subject: "English", room: "Room 302", teacher: "Ms. Bennet" },
+    { time: "13:00 - 15:00", subject: "Geography", room: "Room 201", teacher: "Mr. Abena" },
+  ],
+  Friday: [
+    { time: "08:00 - 10:00", subject: "Physics", room: "Lab A", teacher: "Dr. Tesla" },
+    { time: "10:30 - 12:30", subject: "Civics", room: "Hall B", teacher: "Mme. Njoh" },
+  ],
+};
+
+const MOCK_ATTENDANCE_LOGS = [
+  { date: "Monday, May 24", status: "Present", time: "07:45 AM", session: "Morning" },
+  { date: "Friday, May 21", status: "Present", time: "07:52 AM", session: "Morning" },
+  { date: "Thursday, May 20", status: "Late", time: "08:15 AM", session: "Morning" },
+  { date: "Wednesday, May 19", status: "Present", time: "07:40 AM", session: "Morning" },
+  { date: "Tuesday, May 18", status: "Absent", time: "-", session: "Morning" },
 ];
 
 const getAppreciation = (note: number) => {
@@ -193,11 +225,11 @@ export default function StudentDetailsPage() {
         </Card>
         <Card className="border-none shadow-sm bg-accent text-primary border border-primary/10">
           <CardHeader className="pb-2">
-            <CardTitle className="text-[10px] font-black opacity-60 uppercase tracking-widest">{language === "en" ? "License Status" : "Statut Licence"}</CardTitle>
+            <CardTitle className="text-[10px] font-black opacity-60 uppercase tracking-widest">{language === "en" ? "Presence Rate" : "Taux de Présence"}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-xl font-black flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-green-600" /> ACTIVE
+              <CheckCircle2 className="w-5 h-5 text-green-600" /> 94.5%
             </div>
           </CardContent>
         </Card>
@@ -335,22 +367,93 @@ export default function StudentDetailsPage() {
         </TabsContent>
 
         <TabsContent value="schedule" className="mt-6">
-          <div className="col-span-full py-20 text-center border-2 border-dashed border-accent rounded-3xl opacity-40">
-            <Calendar className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-            <p>Timetable data synchronization coming in the next pedagogical update.</p>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            {Object.entries(MOCK_SCHEDULE).map(([day, slots]) => (
+              <div key={day} className="space-y-3">
+                <h3 className="font-black text-xs uppercase text-primary border-b pb-2 tracking-widest">{day}</h3>
+                <div className="space-y-2">
+                  {slots.map((slot, i) => (
+                    <Card key={i} className="border-none shadow-sm bg-white hover:ring-1 hover:ring-primary/20 transition-all">
+                      <CardHeader className="p-3 pb-1">
+                        <Badge variant="outline" className="w-fit text-[8px] font-bold py-0 h-4 border-primary/10">{slot.time}</Badge>
+                        <CardTitle className="text-xs font-black text-primary mt-1">{slot.subject}</CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-3 pt-0">
+                        <div className="flex flex-col gap-1 text-[9px] text-muted-foreground font-bold">
+                          <span className="flex items-center gap-1"><MapPin className="w-2.5 h-2.5" /> {slot.room}</span>
+                          <span className="flex items-center gap-1"><User className="w-2.5 h-2.5" /> {slot.teacher}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </TabsContent>
 
-        <TabsContent value="attendance" className="mt-6 space-y-8">
-          <Card className="border-none shadow-sm">
-            <CardHeader>
-              <CardTitle>{language === "en" ? "Presence Records" : "Registres de Présence"}</CardTitle>
-              <CardDescription>Consolidated attendance logs from classroom registers.</CardDescription>
-            </CardHeader>
-            <CardContent className="py-10 text-center text-muted-foreground italic">
-              Attendance tracking is currently being processed by the dean's office.
-            </CardContent>
-          </Card>
+        <TabsContent value="attendance" className="mt-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="md:col-span-1 border-none shadow-sm bg-blue-50">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Attendance Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-4xl font-black text-blue-700">94.5%</div>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-[10px] font-bold uppercase opacity-60">
+                    <span>Target Met</span>
+                    <span>Yes</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-blue-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-600" style={{ width: '94.5%' }} />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-xs font-bold text-blue-600">
+                  <TrendingUp className="w-4 h-4" /> +2% from last term
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="md:col-span-2 border-none shadow-sm overflow-hidden">
+              <CardHeader className="bg-white border-b">
+                <CardTitle className="text-sm font-black uppercase text-primary flex items-center gap-2">
+                  <History className="w-4 h-4" /> Recent Session Logs
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader className="bg-accent/10">
+                    <TableRow className="text-[10px] font-black uppercase">
+                      <TableHead className="pl-6">Date</TableHead>
+                      <TableHead>Session</TableHead>
+                      <TableHead>Clock-in</TableHead>
+                      <TableHead className="text-right pr-6">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {MOCK_ATTENDANCE_LOGS.map((log, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="pl-6 py-3 font-bold text-xs">{log.date}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{log.session}</TableCell>
+                        <TableCell className="font-mono text-xs">{log.time}</TableCell>
+                        <TableCell className="text-right pr-6">
+                          <Badge className={cn(
+                            "text-[9px] font-black uppercase px-3 border-none",
+                            log.status === 'Present' ? "bg-green-100 text-green-700" :
+                            log.status === 'Late' ? "bg-amber-100 text-amber-700" :
+                            "bg-red-100 text-red-700"
+                          )}>
+                            {log.status}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="documents" className="mt-6">
