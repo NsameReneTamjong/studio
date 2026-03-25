@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -48,7 +47,8 @@ import {
   ShieldAlert,
   CalendarClock,
   History,
-  Signature
+  Signature,
+  X
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -90,7 +90,7 @@ export default function LibraryPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [books, setBooks] = useState(INITIAL_BOOKS);
   const [requests, setRequests] = useState(MOCK_REQUESTS);
-  const [borrowingBook, setBorrowingBook] = useState<any>(null);
+  const [selectedLoanDetails, setSelectedLoanDetails] = useState<any>(null);
   const [loans, setLoans] = useState(INITIAL_LOANS);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -126,6 +126,12 @@ export default function LibraryPage() {
         description: "Library rules and circulation parameters updated across the node.",
       });
     }, 1000);
+  };
+
+  const openLoanDetails = (loan: any) => {
+    // Find matching book in catalog to get more details
+    const bookInfo = INITIAL_BOOKS.find(b => b.title === loan.bookTitle);
+    setSelectedLoanDetails({ ...loan, ...bookInfo });
   };
 
   return (
@@ -274,7 +280,7 @@ export default function LibraryPage() {
                       <TableCell className="text-sm">{isLibrarian || isAdmin ? loan.bookTitle : loan.author}</TableCell>
                       <TableCell className="text-center font-mono text-xs font-black text-secondary">{loan.returnDate}</TableCell>
                       <TableCell className="text-right pr-6">
-                        <Button variant="outline" size="sm" className="h-8 uppercase text-[10px] font-black" onClick={() => handleReturnBook(loan.id)} disabled={isAdmin}>
+                        <Button variant="outline" size="sm" className="h-8 uppercase text-[10px] font-black" onClick={() => isLibrarian ? handleReturnBook(loan.id) : openLoanDetails(loan)} disabled={isAdmin}>
                           {isAdmin ? "Active Loan" : (isLibrarian ? "Record Return" : "Details")}
                         </Button>
                       </TableCell>
@@ -500,6 +506,68 @@ export default function LibraryPage() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* RESOURCE DOSSIER DIALOG (READ-ONLY) */}
+      <Dialog open={!!selectedLoanDetails} onOpenChange={() => setSelectedLoanDetails(null)}>
+        <DialogContent className="sm:max-w-2xl rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="bg-primary p-8 text-white relative">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/10 rounded-2xl">
+                <BookOpen className="w-8 h-8 text-secondary" />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-black">Resource Dossier</DialogTitle>
+                <DialogDescription className="text-white/60">Official collection tracking and pedagogical details.</DialogDescription>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setSelectedLoanDetails(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+              <X className="w-6 h-6" />
+            </Button>
+          </DialogHeader>
+          
+          <div className="p-8 grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+            <div className="md:col-span-4 aspect-[3/4] rounded-2xl overflow-hidden shadow-xl border-4 border-white bg-accent/30">
+               <img src={selectedLoanDetails?.cover} alt={selectedLoanDetails?.bookTitle} className="w-full h-full object-cover" />
+            </div>
+            
+            <div className="md:col-span-8 space-y-6">
+              <div className="space-y-1">
+                <Badge variant="secondary" className="bg-secondary/20 text-primary border-none text-[9px] font-black uppercase tracking-widest mb-2">
+                  {selectedLoanDetails?.category}
+                </Badge>
+                <h2 className="text-2xl font-black text-primary leading-tight uppercase">{selectedLoanDetails?.bookTitle}</h2>
+                <p className="text-sm font-bold text-muted-foreground italic">Authored by {selectedLoanDetails?.author}</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-primary/40 tracking-widest">Pedagogical Description</Label>
+                <p className="text-sm leading-relaxed text-muted-foreground font-medium">
+                  {selectedLoanDetails?.description || "No description available for this institutional resource."}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                <div className="space-y-1">
+                  <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Collection Code</p>
+                  <p className="text-sm font-mono font-black text-primary">{selectedLoanDetails?.collectionCode}</p>
+                </div>
+                <div className="space-y-1 text-right">
+                  <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Return Due</p>
+                  <p className="text-sm font-black text-secondary">{selectedLoanDetails?.returnDate}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter className="bg-accent/10 p-6 border-t border-accent flex justify-between items-center">
+             <div className="flex items-center gap-2 text-muted-foreground">
+                <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                <p className="text-[10px] font-black uppercase tracking-widest italic opacity-40">Verified Institutional Asset</p>
+             </div>
+             <p className="text-[10px] font-bold text-primary/60 italic">Electronic Portfolio Record • EduIgnite SaaS</p>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
