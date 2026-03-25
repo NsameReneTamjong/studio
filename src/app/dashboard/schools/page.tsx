@@ -1,7 +1,8 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,29 +11,11 @@ import {
   Building2, 
   Plus, 
   Search, 
-  Users, 
-  ShieldCheck, 
-  Globe, 
   MoreVertical, 
-  MapPin, 
-  X, 
-  FileCheck, 
-  Printer, 
-  Download, 
-  QrCode, 
-  Signature, 
-  Info,
-  CheckCircle2,
-  Ban,
-  Activity,
-  CreditCard,
-  History,
+  Trash2, 
   Settings2,
-  Trash2,
-  Eye,
-  User,
-  Upload,
-  Loader2
+  Loader2,
+  Globe
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n-context";
 import { 
@@ -55,22 +38,15 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-
-const MOCK_SCHOOLS = [
-  { id: "GBHS26", name: "GBHS Deido", principal: "Dr. Fonka", domain: "gbhsdeido.cm", status: "Active", createdAt: new Date() },
-  { id: "JOSS26", name: "Lycée de Joss", principal: "Mme. Njoh", domain: "lyceejoss.cm", status: "Active", createdAt: new Date() },
-];
 
 export default function SchoolsManagementPage() {
   const { t, language } = useI18n();
   const { toast } = useToast();
+  const { schools, addSchool, toggleSchoolStatus, deleteSchool } = useAuth();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [schools, setSchools] = useState<any[]>([]);
   const [managedSchool, setManagedSchool] = useState<any>(null);
   const [onboardingSuccess, setOnboardingSuccess] = useState<any>(null);
   
@@ -79,51 +55,42 @@ export default function SchoolsManagementPage() {
     principal: "",
     domain: "",
     address: "",
-    logo: "https://picsum.photos/seed/newschool/200/200"
+    motto: "Discipline - Work - Success",
+    description: "New Institutional Node",
+    logo: "https://picsum.photos/seed/newschool/200/200",
+    banner: "https://picsum.photos/seed/school-banner/1200/400"
   });
 
-  useEffect(() => {
-    setTimeout(() => {
-      setSchools(MOCK_SCHOOLS);
-      setIsLoading(false);
-    }, 500);
-  }, []);
-
-  const filteredSchools = schools.filter(s => 
+  const filteredSchools = schools?.filter(s => 
     s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    s.domain.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleToggleStatus = (id: string, currentStatus: string) => {
-    const newStatus = currentStatus === 'Active' ? 'Suspended' : 'Active';
-    setSchools(schools.map(s => s.id === id ? { ...s, status: newStatus } : s));
-    toast({ title: "Status Updated", description: `Institution is now ${newStatus}.` });
-  };
+  ) || [];
 
   const handleSaveSchool = async () => {
     if (!newSchoolData.name || !newSchoolData.principal) return;
     setIsProcessing(true);
+    
+    // Prototype Delay
     setTimeout(() => {
       const generatedId = `EDU-${newSchoolData.name.substring(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
       const created = {
         ...newSchoolData,
         id: generatedId,
-        status: "Active",
-        createdAt: new Date()
+        location: "Douala, Littoral",
+        region: "Littoral",
+        division: "Wouri",
+        subDivision: "Douala 1er",
+        cityVillage: "Douala",
+        phone: "+237 600 00 00 00",
+        email: `admin@${newSchoolData.domain || 'school.edu'}`,
       };
-      setSchools([created, ...schools]);
+      
+      addSchool(created);
       setIsProcessing(false);
       setIsAddModalOpen(false);
       setOnboardingSuccess(created);
       toast({ title: "School Onboarded" });
     }, 1000);
-  };
-
-  const handleDeleteSchool = (id: string) => {
-    setSchools(schools.filter(s => s.id !== id));
-    setManagedSchool(null);
-    toast({ variant: "destructive", title: "Institutional Node Removed" });
   };
 
   return (
@@ -166,39 +133,44 @@ export default function SchoolsManagementPage() {
 
       <div className="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border">
         <Search className="w-4 h-4 text-muted-foreground ml-2" />
-        <Input placeholder="Search institutions..." className="border-none bg-transparent focus-visible:ring-0" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+        <Input placeholder="Search institutions by name, id or domain..." className="border-none bg-transparent focus-visible:ring-0" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center p-20"><Loader2 className="w-12 h-12 animate-spin text-primary opacity-20" /></div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredSchools.map((school) => (
-            <Card key={school.id} className="border-none shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-4">
-                 <DropdownMenu>
-                   <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 rounded-full"><MoreVertical className="w-4 h-4"/></Button></DropdownMenuTrigger>
-                   <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl">
-                     <DropdownMenuItem onClick={() => setManagedSchool(school)}><Settings2 className="w-4 h-4 mr-2" /> Manage</DropdownMenuItem>
-                     <DropdownMenuItem onClick={() => handleToggleStatus(school.id, school.status)}>{school.status === 'Active' ? 'Suspend' : 'Reactivate'}</DropdownMenuItem>
-                     <DropdownMenuSeparator />
-                     <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteSchool(school.id)}><Trash2 className="w-4 h-4 mr-2" /> Decommission</DropdownMenuItem>
-                   </DropdownMenuContent>
-                 </DropdownMenu>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {filteredSchools.map((school) => (
+          <Card key={school.id} className="border-none shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group bg-white">
+            <div className="absolute top-0 right-0 p-4">
+               <DropdownMenu>
+                 <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 rounded-full"><MoreVertical className="w-4 h-4"/></Button></DropdownMenuTrigger>
+                 <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl">
+                   <DropdownMenuItem onClick={() => setManagedSchool(school)}><Settings2 className="w-4 h-4 mr-2" /> Manage</DropdownMenuItem>
+                   <DropdownMenuItem onClick={() => toggleSchoolStatus(school.id)}>{school.status === 'Active' ? 'Suspend' : 'Reactivate'}</DropdownMenuItem>
+                   <DropdownMenuSeparator />
+                   <DropdownMenuItem className="text-destructive" onClick={() => deleteSchool(school.id)}><Trash2 className="w-4 h-4 mr-2" /> Decommission</DropdownMenuItem>
+                 </DropdownMenuContent>
+               </DropdownMenu>
+            </div>
+            <CardHeader className="flex flex-row items-start gap-4">
+              <div className="p-3 bg-primary/10 rounded-xl"><Building2 className="w-6 h-6 text-primary" /></div>
+              <div>
+                <CardTitle className="text-lg font-black">{school.name}</CardTitle>
+                <Badge className={cn(
+                  "text-[9px] font-black uppercase border-none px-3 mt-1",
+                  school.status === 'Active' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                )}>
+                  {school.status}
+                </Badge>
               </div>
-              <CardHeader className="flex flex-row items-start gap-4">
-                <div className="p-3 bg-primary/10 rounded-xl"><Building2 className="w-6 h-6 text-primary" /></div>
-                <div><CardTitle className="text-lg font-black">{school.name}</CardTitle><Badge className="text-[10px] mt-1">{school.status}</Badge></div>
-              </CardHeader>
-              <CardContent className="py-4 border-y border-accent/50 space-y-2 bg-accent/5">
-                <div className="flex justify-between text-xs"><span className="text-muted-foreground font-bold">Principal</span><span className="font-bold">{school.principal}</span></div>
-                <div className="flex justify-between text-xs"><span className="text-muted-foreground font-bold">Matricule</span><span className="font-mono font-black">{school.id}</span></div>
-              </CardContent>
-              <CardFooter className="pt-4"><Button variant="outline" className="w-full text-[10px] font-black uppercase" onClick={() => setManagedSchool(school)}>Configuration Suite</Button></CardFooter>
-            </Card>
-          ))}
-        </div>
-      )}
+            </CardHeader>
+            <CardContent className="py-4 border-y border-accent/50 space-y-2 bg-accent/5">
+              <div className="flex justify-between text-xs"><span className="text-muted-foreground font-bold">Principal</span><span className="font-bold">{school.principal}</span></div>
+              <div className="flex justify-between text-xs"><span className="text-muted-foreground font-bold">Matricule</span><span className="font-mono font-black">{school.id}</span></div>
+              <div className="flex justify-between text-xs"><span className="text-muted-foreground font-bold">Domain</span><span className="font-bold text-primary">{school.domain || "node.eduignite.cm"}</span></div>
+            </CardContent>
+            <CardFooter className="pt-4"><Button variant="outline" className="w-full text-[10px] font-black uppercase" onClick={() => setManagedSchool(school)}>Configuration Suite</Button></CardFooter>
+          </Card>
+        ))}
+      </div>
 
       {/* Managed School Dialog */}
       <Dialog open={!!managedSchool} onOpenChange={() => setManagedSchool(null)}>
@@ -208,8 +180,17 @@ export default function SchoolsManagementPage() {
             <p className="opacity-70">Matricule: {managedSchool?.id}</p>
           </DialogHeader>
           <div className="p-8 space-y-4">
-            <Button variant="outline" className="w-full" onClick={() => handleToggleStatus(managedSchool.id, managedSchool.status)}>Toggle License Status</Button>
-            <Button variant="destructive" className="w-full" onClick={() => handleDeleteSchool(managedSchool.id)}>Permanently Decommission</Button>
+            <div className="bg-accent/20 p-6 rounded-2xl border border-accent space-y-4">
+               <h3 className="font-black text-primary uppercase text-xs tracking-widest">Node Quick Actions</h3>
+               <div className="grid grid-cols-1 gap-3">
+                  <Button variant="outline" className="w-full justify-between h-12" onClick={() => { toggleSchoolStatus(managedSchool.id); setManagedSchool(null); }}>
+                    Toggle License Status {managedSchool?.status === 'Active' ? <Ban className="w-4 h-4 text-red-500" /> : <CheckCircle2 className="w-4 h-4 text-green-500" />}
+                  </Button>
+                  <Button variant="destructive" className="w-full justify-between h-12" onClick={() => { deleteSchool(managedSchool.id); setManagedSchool(null); }}>
+                    Permanently Decommission <Trash2 className="w-4 h-4" />
+                  </Button>
+               </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

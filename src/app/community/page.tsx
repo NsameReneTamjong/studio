@@ -31,11 +31,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
-import { useFirestore } from "@/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
-import { errorEmitter } from "@/firebase/error-emitter";
-import { FirestorePermissionError } from "@/firebase/errors";
 
 // --- DATA STRUCTURES ---
 
@@ -81,8 +77,7 @@ const EVENTS: EventItem[] = [
 
 export default function CommunityTestimonyPage() {
   const [mounted, setMounted] = useState(false);
-  const { testimonials } = useAuth();
-  const db = useFirestore();
+  const { testimonials, addOrder } = useAuth();
   const { toast } = useToast();
   
   const [isSubmitting, setIsProcessing] = useState(false);
@@ -106,20 +101,15 @@ export default function CommunityTestimonyPage() {
 
   const handleOrderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!db) return;
-
     setIsProcessing(true);
-    const orderData = {
-      ...formData,
-      status: "pending",
-      createdAt: serverTimestamp()
-    };
-
-    try {
-      await addDoc(collection(db, "orders"), orderData);
+    
+    // Prototype Delay
+    setTimeout(() => {
+      addOrder(formData);
+      setIsProcessing(false);
       toast({
         title: "Order Received",
-        description: "Your order has been submitted. Our team will contact you shortly.",
+        description: "Your request has been submitted to the Super Admin.",
       });
       setFormData({
         fullName: "",
@@ -131,15 +121,7 @@ export default function CommunityTestimonyPage() {
         division: "",
         subDivision: ""
       });
-    } catch (error) {
-      errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: 'orders',
-        operation: 'create',
-        requestResourceData: orderData
-      }));
-    } finally {
-      setIsProcessing(false);
-    }
+    }, 1000);
   };
 
   if (!mounted) return null;

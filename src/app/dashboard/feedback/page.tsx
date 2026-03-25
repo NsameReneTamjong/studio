@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -24,8 +24,6 @@ import {
   Heart,
   Settings2,
   HelpCircle,
-  Megaphone,
-  Globe,
   Loader2
 } from "lucide-react";
 import { 
@@ -49,63 +47,36 @@ const SUBJECT_OPTIONS = [
   { value: "Other", label: "Other Support Request", icon: HelpCircle, color: "text-muted-foreground" },
 ];
 
-const MOCK_FEEDBACKS = [
-  {
-    id: "FB1",
-    subject: "General Appreciation",
-    message: "The new attendance system is incredibly efficient. My teachers are loving the digital transition.",
-    schoolName: "GBHS Deido",
-    schoolId: "GBHS",
-    schoolLogo: "https://picsum.photos/seed/edu1/200/200",
-    senderName: "Principal Fonka",
-    senderRole: "SCHOOL_ADMIN",
-    senderAvatar: "https://picsum.photos/seed/admin/100/100",
-    status: "New",
-    createdAt: new Date()
-  }
-];
-
 export default function FeedbackPage() {
-  const { user } = useAuth();
+  const { user, feedbacks, addFeedback, resolveFeedback, deleteFeedback } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
   
   const [isSending, setIsSending] = useState(false);
   const [newFeedback, setNewFeedback] = useState({ subject: "", message: "" });
-  const [isLoading, setIsLoading] = useState(true);
-  const [feedbacks, setFeedbacks] = useState<any[]>([]);
 
-  const isSuperAdmin = user?.role === "SUPER_ADMIN";
-
-  useEffect(() => {
-    if (isSuperAdmin) {
-      setTimeout(() => {
-        setFeedbacks(MOCK_FEEDBACKS);
-        setIsLoading(false);
-      }, 500);
-    } else {
-      setIsLoading(false);
-    }
-  }, [isSuperAdmin]);
+  const isSuperAdmin = user?.role === "SUPER_ADMIN" || user?.role === "CEO";
 
   const handleSendFeedback = async () => {
-    if (!newFeedback.message || !newFeedback.subject) return;
+    if (!newFeedback.message || !newFeedback.subject || !user) return;
     setIsSending(true);
+    
+    // Prototype Delay
     setTimeout(() => {
+      addFeedback({
+        ...newFeedback,
+        schoolName: user.school?.name || "EduIgnite Node",
+        schoolId: user.school?.id || "N/A",
+        schoolLogo: user.school?.logo || "",
+        senderName: user.name,
+        senderRole: user.role,
+        senderAvatar: user.avatar || ""
+      });
+      
       setIsSending(false);
       toast({ title: "Feedback Sent", description: "The platform administrator has received your message." });
       setNewFeedback({ subject: "", message: "" });
     }, 1000);
-  };
-
-  const handleResolve = (id: string) => {
-    setFeedbacks(feedbacks.map(f => f.id === id ? { ...f, status: 'Resolved' } : f));
-    toast({ title: "Ticket Resolved" });
-  };
-
-  const handleDelete = (id: string) => {
-    setFeedbacks(feedbacks.filter(f => f.id !== id));
-    toast({ title: "Ticket Deleted" });
   };
 
   if (isSuperAdmin) {
@@ -122,81 +93,83 @@ export default function FeedbackPage() {
             <p className="text-muted-foreground mt-1">Review issues, suggestions, and support requests from institutional admins.</p>
           </div>
           <Badge variant="outline" className="h-10 px-4 rounded-xl border-primary/20 text-primary font-black uppercase tracking-widest">
-            {feedbacks.length} Active Tickets
+            {feedbacks?.length || 0} Active Tickets
           </Badge>
         </div>
 
-        {isLoading ? (
-          <div className="flex justify-center p-20"><Loader2 className="w-12 h-12 animate-spin text-primary opacity-20" /></div>
-        ) : (
-          <div className="grid grid-cols-1 gap-6">
-            {feedbacks.map((fb) => (
-              <Card key={fb.id} className="border-none shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-300">
-                <div className="flex flex-col md:flex-row">
-                  <div className="w-full md:w-64 bg-accent/20 border-r p-6 flex flex-col items-center text-center space-y-4 shrink-0">
-                    <div className="w-20 h-20 rounded-2xl bg-white p-3 border shadow-inner flex items-center justify-center">
-                      <img src={fb.schoolLogo} alt="School" className="w-full h-full object-contain" />
+        <div className="grid grid-cols-1 gap-6">
+          {feedbacks?.map((fb) => (
+            <Card key={fb.id} className="border-none shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-300">
+              <div className="flex flex-col md:flex-row">
+                <div className="w-full md:w-64 bg-accent/20 border-r p-6 flex flex-col items-center text-center space-y-4 shrink-0">
+                  <div className="w-20 h-20 rounded-2xl bg-white p-3 border shadow-inner flex items-center justify-center">
+                    <img src={fb.schoolLogo} alt="School" className="w-full h-full object-contain" />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-primary text-sm uppercase leading-tight">{fb.schoolName}</h3>
+                    <p className="text-[10px] text-muted-foreground uppercase font-bold mt-1">Node: {fb.schoolId}</p>
+                  </div>
+                  <div className="pt-4 border-t border-accent/50 w-full">
+                    <Badge className={cn(
+                      "w-full justify-center py-1 font-black uppercase text-[9px]",
+                      fb.status === 'Resolved' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                    )}>
+                      {fb.status}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="flex-1 p-6 md:p-8 flex flex-col">
+                  <div className="flex items-start justify-between gap-4 mb-6">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-12 w-12 border-2 border-primary">
+                        <AvatarImage src={fb.senderAvatar} />
+                        <AvatarFallback className="bg-primary text-white font-bold">{fb.senderName.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-black text-primary">{fb.senderName}</span>
+                          <Badge className="bg-secondary text-primary border-none text-[8px] h-4 font-black uppercase">{fb.senderRole}</Badge>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                          <Clock className="w-3 h-3" /> {new Date(fb.createdAt).toLocaleString()}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-black text-primary text-sm uppercase leading-tight">{fb.schoolName}</h3>
-                      <p className="text-[10px] text-muted-foreground uppercase font-bold mt-1">Node: {fb.schoolId}</p>
-                    </div>
-                    <div className="pt-4 border-t border-accent/50 w-full">
-                      <Badge className={cn(
-                        "w-full justify-center py-1 font-black uppercase text-[9px]",
-                        fb.status === 'Resolved' ? "bg-green-100 text-green-700" : ""
-                      )}>
-                        {fb.status}
-                      </Badge>
+                    <Button variant="ghost" size="icon" onClick={() => deleteFeedback(fb.id)} className="text-destructive/20 hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                  </div>
+
+                  <div className="space-y-4 flex-1">
+                    <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10 font-bold uppercase text-[10px]">
+                      {fb.subject}
+                    </Badge>
+                    <div className="bg-white/50 border border-accent rounded-2xl p-6 italic text-muted-foreground leading-relaxed">
+                      "{fb.message}"
                     </div>
                   </div>
 
-                  <div className="flex-1 p-6 md:p-8 flex flex-col">
-                    <div className="flex items-start justify-between gap-4 mb-6">
-                      <div className="flex items-center gap-4">
-                        <Avatar className="h-12 w-12 border-2 border-primary">
-                          <AvatarImage src={fb.senderAvatar} />
-                          <AvatarFallback className="bg-primary text-white font-bold">{fb.senderName.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-black text-primary">{fb.senderName}</span>
-                            <Badge className="bg-secondary text-primary border-none text-[8px] h-4 font-black uppercase">{fb.senderRole}</Badge>
-                          </div>
-                          <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
-                            <Clock className="w-3 h-3" /> {fb.createdAt.toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(fb.id)} className="text-destructive/20 hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                  <div className="mt-8 pt-6 border-t flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div className="flex items-center gap-2">
+                       <ShieldCheck className="w-4 h-4 text-green-600" />
+                       <span className="text-[10px] font-black text-muted-foreground tracking-widest italic">Node Verified</span>
                     </div>
-
-                    <div className="space-y-4">
-                      <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10 font-bold uppercase text-[10px]">
-                        {fb.subject}
-                      </Badge>
-                      <div className="bg-white/50 border border-accent rounded-2xl p-6 italic text-muted-foreground leading-relaxed">
-                        "{fb.message}"
-                      </div>
-                    </div>
-
-                    <div className="mt-8 pt-6 border-t flex flex-col sm:flex-row justify-between items-center gap-4">
-                      <div className="flex items-center gap-2">
-                         <ShieldCheck className="w-4 h-4 text-green-600" />
-                         <span className="text-[10px] font-black text-muted-foreground tracking-widest italic">Node Verified</span>
-                      </div>
-                      <div className="flex gap-2 w-full sm:w-auto">
-                        <Button className="gap-2 shadow-lg" onClick={() => handleResolve(fb.id)} disabled={fb.status === 'Resolved'}>
-                          <CheckCircle2 className="w-4 h-4" /> {fb.status === 'Resolved' ? 'Resolved' : 'Resolve Ticket'}
-                        </Button>
-                      </div>
+                    <div className="flex gap-2 w-full sm:w-auto">
+                      <Button className="gap-2 shadow-lg" onClick={() => resolveFeedback(fb.id)} disabled={fb.status === 'Resolved'}>
+                        <CheckCircle2 className="w-4 h-4" /> {fb.status === 'Resolved' ? 'Resolved' : 'Resolve Ticket'}
+                      </Button>
                     </div>
                   </div>
                 </div>
-              </Card>
-            ))}
-          </div>
-        )}
+              </div>
+            </Card>
+          ))}
+          {(!feedbacks || feedbacks.length === 0) && (
+            <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 bg-white/50 rounded-3xl border-2 border-dashed">
+              <MessageSquare className="w-16 h-16 text-primary/10" />
+              <p className="text-muted-foreground">No platform feedback found in the queue.</p>
+            </div>
+          )}
+        </div>
       </div>
     );
   }

@@ -52,13 +52,71 @@ export interface Testimony {
   schoolName: string;
   message: string;
   status: "pending" | "approved";
-  createdAt: any;
+  createdAt: Date;
+}
+
+export interface Feedback {
+  id: string;
+  subject: string;
+  message: string;
+  schoolName: string;
+  schoolId: string;
+  schoolLogo: string;
+  senderName: string;
+  senderRole: string;
+  senderAvatar: string;
+  status: "New" | "Resolved";
+  createdAt: Date;
+}
+
+export interface Order {
+  id: string;
+  fullName: string;
+  occupation: string;
+  schoolName: string;
+  whatsappNumber: string;
+  email: string;
+  region: string;
+  division: string;
+  subDivision: string;
+  status: "pending" | "processed";
+  createdAt: Date;
+}
+
+export interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  target: string;
+  senderName: string;
+  senderRole: string;
+  senderAvatar: string;
+  createdAt: Date;
+  senderUid: string;
+}
+
+export interface SupportContribution {
+  id: string;
+  userName: string;
+  userRole: string;
+  userAvatar: string;
+  amount: number;
+  method: string;
+  phone: string;
+  message: string;
+  status: "New" | "Verified";
+  createdAt: Date;
 }
 
 interface AuthContextType {
   user: User | null;
   platformSettings: PlatformSettings;
   testimonials: Testimony[];
+  feedbacks: Feedback[];
+  orders: Order[];
+  announcements: Announcement[];
+  supportContributions: SupportContribution[];
+  schools: SchoolInfo[];
   featuredVideos: any[];
   login: (matricule: string) => Promise<void>;
   activateAccount: (matricule: string) => Promise<void>;
@@ -67,9 +125,25 @@ interface AuthContextType {
   updatePlatformSettings: (updates: Partial<PlatformSettings>) => Promise<void>;
   markLicensePaid: () => Promise<void>;
   incrementAiRequest: () => Promise<void>;
+  // Data Handlers
   addTestimony: (testimony: Omit<Testimony, "id" | "status" | "createdAt">) => void;
   approveTestimony: (id: string) => void;
   deleteTestimony: (id: string) => void;
+  addFeedback: (feedback: Omit<Feedback, "id" | "status" | "createdAt">) => void;
+  resolveFeedback: (id: string) => void;
+  deleteFeedback: (id: string) => void;
+  addOrder: (order: Omit<Order, "id" | "status" | "createdAt">) => void;
+  processOrder: (id: string) => void;
+  deleteOrder: (id: string) => void;
+  addAnnouncement: (ann: Omit<Announcement, "id" | "createdAt">) => void;
+  deleteAnnouncement: (id: string) => void;
+  addSchool: (school: Omit<SchoolInfo, "status">) => void;
+  toggleSchoolStatus: (id: string) => void;
+  deleteSchool: (id: string) => void;
+  addSupport: (contribution: Omit<SupportContribution, "id" | "status" | "createdAt">) => void;
+  verifySupport: (id: string) => void;
+  deleteSupport: (id: string) => void;
+  // Auth
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -77,23 +151,42 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const DEMO_SCHOOL: SchoolInfo = {
-  id: "GBHS",
-  name: "GBHS Deido",
-  motto: "Discipline - Work - Success",
-  logo: "https://picsum.photos/seed/school-logo-1/200/200",
-  banner: "https://picsum.photos/seed/school-banner/1200/400",
-  description: "One of the premier government institutions in Douala, dedicated to excellence in pedagogy and character building.",
-  location: "Douala, Littoral",
-  region: "Littoral",
-  division: "Wouri",
-  subDivision: "Douala 1er",
-  cityVillage: "Douala",
-  address: "Rue de Deido, BP 123",
-  phone: "+237 670 00 00 00",
-  email: "contact@gbhsdeido.cm",
-  status: "Active"
-};
+const INITIAL_SCHOOLS: SchoolInfo[] = [
+  {
+    id: "GBHS",
+    name: "GBHS Deido",
+    motto: "Discipline - Work - Success",
+    logo: "https://picsum.photos/seed/school-logo-1/200/200",
+    banner: "https://picsum.photos/seed/school-banner/1200/400",
+    description: "One of the premier government institutions in Douala, dedicated to excellence in pedagogy and character building.",
+    location: "Douala, Littoral",
+    region: "Littoral",
+    division: "Wouri",
+    subDivision: "Douala 1er",
+    cityVillage: "Douala",
+    address: "Rue de Deido, BP 123",
+    phone: "+237 670 00 00 00",
+    email: "contact@gbhsdeido.cm",
+    status: "Active"
+  },
+  {
+    id: "JOSS",
+    name: "Lycée de Joss",
+    motto: "Knowledge is Power",
+    logo: "https://picsum.photos/seed/school-logo-2/200/200",
+    banner: "https://picsum.photos/seed/school-banner-2/1200/400",
+    description: "A prestigious institution known for its high academic standards and vibrant student life.",
+    location: "Douala, Littoral",
+    region: "Littoral",
+    division: "Wouri",
+    subDivision: "Douala 1er",
+    cityVillage: "Douala",
+    address: "Bonanjo, Douala",
+    phone: "+237 671 11 11 11",
+    email: "admin@lyceejoss.cm",
+    status: "Active"
+  }
+];
 
 const DEMO_ACCOUNTS: Record<string, any> = {
   "EDUI26CEO001": { name: "Platform CEO", role: "CEO", schoolId: null, isLicensePaid: true },
@@ -105,16 +198,15 @@ const DEMO_ACCOUNTS: Record<string, any> = {
   "GBHS26P001": { name: "Mr. Robert Thompson", role: "PARENT", schoolId: "GBHS", isLicensePaid: true }
 };
 
-const INITIAL_TESTIMONIES: Testimony[] = [
-  { id: "1", userId: "S1", name: "Alice Thompson", profileImage: "https://picsum.photos/seed/s1/100/100", role: "STUDENT", schoolName: "GBHS Deido", message: "EduIgnite has made tracking my grades so much easier! I love the MCQ exams.", status: "approved", createdAt: new Date() },
-  { id: "2", userId: "T1", name: "Dr. Aris Tesla", profileImage: "https://picsum.photos/seed/t1/100/100", role: "TEACHER", schoolName: "GBHS Deido", message: "The AI feedback assistant saves me hours of manual work every week.", status: "approved", createdAt: new Date() },
-  { id: "3", userId: "P1", name: "Robert Thompson", profileImage: "https://picsum.photos/seed/p1/100/100", role: "PARENT", schoolName: "GBHS Deido", message: "Finally a way to pay fees and check attendance from my phone. Incredible!", status: "pending", createdAt: new Date() },
-];
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [userData, setUserData] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [testimonials, setTestimonials] = useState<Testimony[]>(INITIAL_TESTIMONIES);
+  const [schools, setSchools] = useState<SchoolInfo[]>(INITIAL_SCHOOLS);
+  const [testimonials, setTestimonials] = useState<Testimony[]>([]);
+  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [supportContributions, setSupportContributions] = useState<SupportContribution[]>([]);
   const [platformSettings, setPlatformSettings] = useState<PlatformSettings>({
     name: "EduIgnite",
     logo: "https://picsum.photos/seed/eduignite-platform/200/200"
@@ -132,18 +224,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (savedUser) {
       setUserData(JSON.parse(savedUser));
     }
-    const savedTestimonials = localStorage.getItem("eduignite_prototype_testimonials");
-    if (savedTestimonials) {
-      setTestimonials(JSON.parse(savedTestimonials));
-    }
+    
+    // Load collections from local storage for persistence
+    const collections = [
+      { key: "testimonials", setter: setTestimonials },
+      { key: "feedbacks", setter: setFeedbacks },
+      { key: "orders", setter: setOrders },
+      { key: "announcements", setter: setAnnouncements },
+      { key: "support", setter: setSupportContributions },
+      { key: "schools", setter: setSchools, default: INITIAL_SCHOOLS },
+      { key: "platform", setter: setPlatformSettings, default: { name: "EduIgnite", logo: "https://picsum.photos/seed/eduignite-platform/200/200" } }
+    ];
+
+    collections.forEach(c => {
+      const saved = localStorage.getItem(`eduignite_${c.key}`);
+      if (saved) {
+        c.setter(JSON.parse(saved));
+      } else if (c.default) {
+        c.setter(c.default);
+      }
+    });
+
     setIsLoading(false);
   }, []);
 
+  // Persistence Sync
   useEffect(() => {
     if (!isLoading) {
-      localStorage.setItem("eduignite_prototype_testimonials", JSON.stringify(testimonials));
+      localStorage.setItem("eduignite_testimonials", JSON.stringify(testimonials));
+      localStorage.setItem("eduignite_feedbacks", JSON.stringify(feedbacks));
+      localStorage.setItem("eduignite_orders", JSON.stringify(orders));
+      localStorage.setItem("eduignite_announcements", JSON.stringify(announcements));
+      localStorage.setItem("eduignite_support", JSON.stringify(supportContributions));
+      localStorage.setItem("eduignite_schools", JSON.stringify(schools));
+      localStorage.setItem("eduignite_platform", JSON.stringify(platformSettings));
     }
-  }, [testimonials, isLoading]);
+  }, [testimonials, feedbacks, orders, announcements, supportContributions, schools, platformSettings, isLoading]);
 
   const login = async (matricule: string) => {
     setIsLoading(true);
@@ -159,7 +275,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       schoolId: demoData.schoolId,
       isLicensePaid: demoData.isLicensePaid,
       avatar: `https://picsum.photos/seed/${m}/150/150`,
-      school: demoData.schoolId ? DEMO_SCHOOL : undefined
+      school: demoData.schoolId ? schools.find(s => s.id === demoData.schoolId) : undefined
     };
 
     setUserData(mockUser);
@@ -186,7 +302,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateSchool = async (updates: Partial<SchoolInfo>) => {
     if (!userData || !userData.school) return;
-    await updateUser({ school: { ...userData.school, ...updates } });
+    const updated = { ...userData.school, ...updates };
+    setSchools(prev => prev.map(s => s.id === updated.id ? updated : s));
+    await updateUser({ school: updated });
   };
 
   const updatePlatformSettings = async (updates: Partial<PlatformSettings>) => {
@@ -202,22 +320,63 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await updateUser({ aiRequestCount: (userData.aiRequestCount || 0) + 1 });
   };
 
-  const addTestimony = (testimony: Omit<Testimony, "id" | "status" | "createdAt">) => {
-    const newTest: Testimony = {
-      ...testimony,
-      id: Math.random().toString(36).substr(2, 9),
-      status: "pending",
-      createdAt: new Date()
-    };
-    setTestimonials(prev => [newTest, ...prev]);
-  };
+  // --- Collection Handlers ---
 
+  const addTestimony = (t: Omit<Testimony, "id" | "status" | "createdAt">) => {
+    setTestimonials(prev => [{ ...t, id: Math.random().toString(36).substr(2, 9), status: "pending", createdAt: new Date() }, ...prev]);
+  };
   const approveTestimony = (id: string) => {
     setTestimonials(prev => prev.map(t => t.id === id ? { ...t, status: "approved" } : t));
   };
-
   const deleteTestimony = (id: string) => {
     setTestimonials(prev => prev.filter(t => t.id !== id));
+  };
+
+  const addFeedback = (f: Omit<Feedback, "id" | "status" | "createdAt">) => {
+    setFeedbacks(prev => [{ ...f, id: `FB-${Math.random().toString(36).substr(2, 5).toUpperCase()}`, status: "New", createdAt: new Date() }, ...prev]);
+  };
+  const resolveFeedback = (id: string) => {
+    setFeedbacks(prev => prev.map(f => f.id === id ? { ...f, status: "Resolved" } : f));
+  };
+  const deleteFeedback = (id: string) => {
+    setFeedbacks(prev => prev.filter(f => f.id !== id));
+  };
+
+  const addOrder = (o: Omit<Order, "id" | "status" | "createdAt">) => {
+    setOrders(prev => [{ ...o, id: `ORD-${Math.random().toString(36).substr(2, 5).toUpperCase()}`, status: "pending", createdAt: new Date() }, ...prev]);
+  };
+  const processOrder = (id: string) => {
+    setOrders(prev => prev.map(o => o.id === id ? { ...o, status: "processed" } : o));
+  };
+  const deleteOrder = (id: string) => {
+    setOrders(prev => prev.filter(o => o.id !== id));
+  };
+
+  const addAnnouncement = (a: Omit<Announcement, "id" | "createdAt">) => {
+    setAnnouncements(prev => [{ ...a, id: Math.random().toString(), createdAt: new Date() }, ...prev]);
+  };
+  const deleteAnnouncement = (id: string) => {
+    setAnnouncements(prev => prev.filter(a => a.id !== id));
+  };
+
+  const addSchool = (s: Omit<SchoolInfo, "status">) => {
+    setSchools(prev => [{ ...s, status: "Active" }, ...prev]);
+  };
+  const toggleSchoolStatus = (id: string) => {
+    setSchools(prev => prev.map(s => s.id === id ? { ...s, status: s.status === 'Active' ? 'Suspended' : 'Active' } : s));
+  };
+  const deleteSchool = (id: string) => {
+    setSchools(prev => prev.filter(s => s.id !== id));
+  };
+
+  const addSupport = (c: Omit<SupportContribution, "id" | "status" | "createdAt">) => {
+    setSupportContributions(prev => [{ ...c, id: `SUP-${Math.random().toString(36).substr(2, 5).toUpperCase()}`, status: "New", createdAt: new Date() }, ...prev]);
+  };
+  const verifySupport = (id: string) => {
+    setSupportContributions(prev => prev.map(c => c.id === id ? { ...c, status: "Verified" } : c));
+  };
+  const deleteSupport = (id: string) => {
+    setSupportContributions(prev => prev.filter(c => c.id !== id));
   };
 
   const logout = async () => {
@@ -231,6 +390,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       user: userData, 
       platformSettings,
       testimonials,
+      feedbacks,
+      orders,
+      announcements,
+      supportContributions,
+      schools,
       featuredVideos,
       login, 
       activateAccount,
@@ -242,6 +406,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       addTestimony,
       approveTestimony,
       deleteTestimony,
+      addFeedback,
+      resolveFeedback,
+      deleteFeedback,
+      addOrder,
+      processOrder,
+      deleteOrder,
+      addAnnouncement,
+      deleteAnnouncement,
+      addSchool,
+      toggleSchoolStatus,
+      deleteSchool,
+      addSupport,
+      verifySupport,
+      deleteSupport,
       logout, 
       isAuthenticated: !!userData,
       isLoading

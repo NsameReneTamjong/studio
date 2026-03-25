@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -15,63 +16,41 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
-const MOCK_ANNOUNCEMENTS = [
-  {
-    id: "1",
-    title: "End of Term Sequence 2",
-    content: "The academic council has scheduled Sequence 2 evaluations starting from next Monday. All students are advised to clear their records.",
-    target: "everyone",
-    senderName: "Principal Fonka",
-    senderRole: "SCHOOL_ADMIN",
-    senderAvatar: "https://picsum.photos/seed/admin/100/100",
-    createdAt: new Date(),
-    senderUid: "admin-1"
-  }
-];
-
 export default function AnnouncementsPage() {
-  const { user } = useAuth();
+  const { user, announcements, addAnnouncement, deleteAnnouncement } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
   
   const [isSending, setIsSending] = useState(false);
   const [formData, setFormData] = useState({ title: "", content: "", target: "everyone" });
-  const [announcements, setAnnouncements] = useState(MOCK_ANNOUNCEMENTS);
 
-  const isSuperAdmin = user?.role === "SUPER_ADMIN";
-  const canPost = ["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER", "BURSAR", "LIBRARIAN"].includes(user?.role || "");
+  const isSuperAdmin = user?.role === "SUPER_ADMIN" || user?.role === "CEO";
+  const canPost = ["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER", "CEO"].includes(user?.role || "");
 
   const handleSend = async () => {
-    if (!formData.title || !formData.content) return;
+    if (!formData.title || !formData.content || !user) return;
     setIsSending(true);
     
+    // Prototype Delay
     setTimeout(() => {
-      const newAnn = {
-        id: Math.random().toString(),
+      addAnnouncement({
         ...formData,
-        senderUid: user?.id || "demo",
-        senderName: user?.name || "Demo User",
-        senderRole: user?.role || "USER",
-        senderAvatar: user?.avatar || "",
-        createdAt: new Date()
-      };
+        senderUid: user.id,
+        senderName: user.name,
+        senderRole: user.role,
+        senderAvatar: user.avatar || ""
+      });
       
-      setAnnouncements([newAnn, ...announcements]);
       toast({ title: "Announcement Published", description: `The message has been broadcasted to ${formData.target.replace('_', ' ')}.` });
       setFormData({ title: "", content: "", target: "everyone" });
       setIsSending(false);
     }, 800);
   };
 
-  const handleDelete = (id: string) => {
-    setAnnouncements(announcements.filter(a => a.id !== id));
-    toast({ title: "Removed", description: "Announcement deleted successfully." });
-  };
-
   const getTargetIcon = (target: string) => {
-    if (target.includes("Teachers")) return <Users className="w-3 h-3"/>;
-    if (target.includes("Students") || target.includes("Class")) return <GraduationCap className="w-3 h-3"/>;
-    if (target.includes("Admin")) return <ShieldCheck className="w-3 h-3"/>;
+    if (target.includes("teachers")) return <Users className="w-3 h-3"/>;
+    if (target.includes("students")) return <GraduationCap className="w-3 h-3"/>;
+    if (target.includes("admin")) return <ShieldCheck className="w-3 h-3"/>;
     return <Globe className="w-3 h-3"/>;
   };
 
@@ -95,11 +74,11 @@ export default function AnnouncementsPage() {
                 </Badge>
               </div>
               <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                <Clock className="w-3 h-3" /> {ann.createdAt.toLocaleString()}
+                <Clock className="w-3 h-3" /> {new Date(ann.createdAt).toLocaleString()}
               </p>
             </div>
           </div>
-          <Badge variant="outline" className="text-[9px] gap-1 shrink-0">
+          <Badge variant="outline" className="text-[9px] gap-1 shrink-0 uppercase">
             {getTargetIcon(ann.target)}
             {ann.target}
           </Badge>
@@ -117,7 +96,7 @@ export default function AnnouncementsPage() {
             variant="ghost" 
             size="sm" 
             className="text-muted-foreground hover:text-destructive gap-2"
-            onClick={() => handleDelete(ann.id)}
+            onClick={() => deleteAnnouncement(ann.id)}
           >
             <Trash2 className="w-3.5 h-3.5" /> {language === 'en' ? 'Remove' : 'Supprimer'}
           </Button>
@@ -213,7 +192,7 @@ export default function AnnouncementsPage() {
           <Megaphone className="w-5 h-5" /> Recent Dispatches
         </h2>
         
-        {announcements.length > 0 ? (
+        {announcements && announcements.length > 0 ? (
           <div className="grid grid-cols-1 gap-4">
             {announcements.map((ann) => (
               <AnnouncementCard key={ann.id} ann={ann} />
