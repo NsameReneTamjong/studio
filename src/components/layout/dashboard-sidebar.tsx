@@ -38,7 +38,8 @@ import {
   Wallet,
   Video,
   Info,
-  Quote
+  Quote,
+  Network
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -110,12 +111,20 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       href: "/dashboard/institution",
       roles: ["SCHOOL_ADMIN", "TEACHER", "STUDENT", "PARENT", "BURSAR", "LIBRARIAN"],
     },
+    // SCHOOL ADMIN SPECIFIC MANAGEMENT
     {
-      label: isAdmin ? (language === 'en' ? 'Manage Institution' : 'Gérer l\'Institution') : (language === 'en' ? 'Community' : 'Communauté'),
-      icon: isAdmin ? Settings2 : UsersRound,
-      href: isAdmin ? "/dashboard/settings" : "/dashboard/community",
+      label: language === 'en' ? 'Manage Institution' : 'Gérer l\'Institution',
+      icon: Settings2,
+      href: "/dashboard/settings",
       roles: ["SCHOOL_ADMIN"],
     },
+    {
+      label: language === 'en' ? 'Hierarchy & Sections' : 'Hiérarchie & Sections',
+      icon: Network,
+      href: "/dashboard/community",
+      roles: ["SCHOOL_ADMIN"],
+    },
+    // GENERAL DASHBOARD LINKS
     {
       label: t("chat"),
       icon: MessageCircle,
