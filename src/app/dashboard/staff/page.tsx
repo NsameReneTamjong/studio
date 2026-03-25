@@ -25,7 +25,10 @@ import {
   Loader2,
   Pencil,
   Ban,
-  User
+  User,
+  Building2,
+  Fingerprint,
+  X
 } from "lucide-react";
 import { 
   Dialog, 
@@ -74,6 +77,10 @@ export default function StaffManagementPage() {
   const [staff, setStaff] = useState<any[]>([]);
   const [onboardingSuccess, setOnboardingSuccess] = useState<any>(null);
   
+  // View/Edit States
+  const [viewingStaff, setViewingStaff] = useState<any>(null);
+  const [editingStaff, setEditingStaff] = useState<any>(null);
+  
   const [formData, setFormData] = useState({
     name: "",
     role: "TEACHER",
@@ -107,13 +114,30 @@ export default function StaffManagementPage() {
       setIsProcessing(false);
       setIsAddModalOpen(false);
       setOnboardingSuccess(created);
+      setFormData({ name: "", role: "TEACHER", section: "Anglophone Section" });
       toast({ title: "Staff Onboarded", description: `Unique ID: ${generatedId}` });
     }, 1000);
   };
 
+  const handleEditStaff = () => {
+    if (!editingStaff.name) return;
+    setIsProcessing(true);
+    setTimeout(() => {
+      setStaff(prev => prev.map(s => s.uid === editingStaff.uid ? editingStaff : s));
+      setIsProcessing(false);
+      setEditingStaff(null);
+      toast({ title: "Profile Updated", description: `${editingStaff.name}'s records have been synced.` });
+    }, 800);
+  };
+
   const handleDeleteStaff = (uid: string) => {
+    const target = staff.find(s => s.uid === uid);
     setStaff(staff.filter(s => s.uid !== uid));
-    toast({ variant: "destructive", title: "Access Suspended", description: "Staff record has been moved to inactive registry." });
+    toast({ 
+      variant: "destructive", 
+      title: "Access Suspended", 
+      description: `${target?.name || 'Staff member'} has been removed from active registry.` 
+    });
   };
 
   const getRoleColor = (role: string) => {
@@ -151,17 +175,36 @@ export default function StaffManagementPage() {
               <DialogDescription className="text-white/60">Complete the profile to generate appointment records.</DialogDescription>
             </DialogHeader>
             <div className="p-8 space-y-6">
-              <div className="space-y-2"><Label>Full Name</Label><Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="h-11 rounded-xl" /></div>
               <div className="space-y-2">
-                <Label>Role</Label>
-                <Select value={formData.role} onValueChange={(v) => setFormData({...formData, role: v})}>
-                  <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="TEACHER">Teacher</SelectItem>
-                    <SelectItem value="BURSAR">Bursar</SelectItem>
-                    <SelectItem value="LIBRARIAN">Librarian</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Full Name</Label>
+                <Input 
+                  value={formData.name} 
+                  onChange={(e) => setFormData({...formData, name: e.target.value})} 
+                  className="h-12 bg-accent/30 border-none rounded-xl font-bold" 
+                  placeholder="e.g. Dr. Jean Dupont"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Role</Label>
+                  <Select value={formData.role} onValueChange={(v) => setFormData({...formData, role: v})}>
+                    <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="TEACHER">Teacher</SelectItem>
+                      <SelectItem value="BURSAR">Bursar</SelectItem>
+                      <SelectItem value="LIBRARIAN">Librarian</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Section</Label>
+                  <Select value={formData.section} onValueChange={(v) => setFormData({...formData, section: v})}>
+                    <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {SECTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
             <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
@@ -177,7 +220,12 @@ export default function StaffManagementPage() {
         <CardHeader className="bg-white border-b p-6">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder="Search by name, ID..." className="pl-10 h-12 bg-accent/20 border-none rounded-xl" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            <Input 
+              placeholder="Search by name, ID..." 
+              className="pl-10 h-12 bg-accent/20 border-none rounded-xl" 
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)} 
+            />
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -201,7 +249,7 @@ export default function StaffManagementPage() {
                       <div className="flex items-center gap-3">
                         <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent">
                           <AvatarImage src={s.avatar} alt={s.name} />
-                          <AvatarFallback className="bg-primary/5 text-primary text-xs">{s.name?.charAt(0)}</AvatarFallback>
+                          <AvatarFallback className="bg-primary/5 text-primary text-xs font-bold">{s.name?.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
                           <span className="font-bold text-sm text-primary leading-none mb-1">{s.name}</span>
@@ -219,11 +267,11 @@ export default function StaffManagementPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-xl border-none">
                           <DropdownMenuLabel className="text-[10px] uppercase font-black opacity-40 px-4 py-2">Dossier Options</DropdownMenuLabel>
-                          <DropdownMenuItem className="gap-3 px-4 py-2.5 cursor-pointer">
+                          <DropdownMenuItem className="gap-3 px-4 py-2.5 cursor-pointer" onClick={() => setViewingStaff(s)}>
                             <Eye className="w-4 h-4 text-primary/60" /> 
                             <span className="font-bold text-xs">View Profile</span>
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="gap-3 px-4 py-2.5 cursor-pointer">
+                          <DropdownMenuItem className="gap-3 px-4 py-2.5 cursor-pointer" onClick={() => setEditingStaff({...s})}>
                             <Pencil className="w-4 h-4 text-primary/60" /> 
                             <span className="font-bold text-xs">Edit Details</span>
                           </DropdownMenuItem>
@@ -240,11 +288,114 @@ export default function StaffManagementPage() {
                     </TableCell>
                   </TableRow>
                 ))}
+                {filteredStaff.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} className="h-40 text-center text-muted-foreground italic">No staff members found matching your search.</TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           )}
         </CardContent>
       </Card>
+
+      {/* VIEW PROFILE DIALOG */}
+      <Dialog open={!!viewingStaff} onOpenChange={() => setViewingStaff(null)}>
+        <DialogContent className="sm:max-w-xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="bg-primary p-8 text-white relative">
+            <div className="flex items-center gap-6">
+              <Avatar className="h-24 w-24 border-4 border-white shadow-2xl shrink-0">
+                <AvatarImage src={viewingStaff?.avatar} />
+                <AvatarFallback className="text-3xl text-primary bg-white font-black">{viewingStaff?.name?.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <DialogTitle className="text-3xl font-black">{viewingStaff?.name}</DialogTitle>
+                  <Badge className="bg-secondary text-primary border-none font-black h-6">{viewingStaff?.role}</Badge>
+                </div>
+                <div className="flex items-center gap-4 text-white/60 font-mono text-xs">
+                  <span className="flex items-center gap-1.5"><Fingerprint className="w-3.5 h-3.5" /> ID: {viewingStaff?.id}</span>
+                  <span className="opacity-30">|</span>
+                  <span className="flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5" /> {viewingStaff?.section}</span>
+                </div>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setViewingStaff(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+              <X className="w-6 h-6" />
+            </Button>
+          </DialogHeader>
+          <div className="p-10 space-y-8">
+            <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10 space-y-4">
+              <h3 className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-secondary" /> Operational Authority
+              </h3>
+              <p className="text-sm leading-relaxed text-muted-foreground font-medium italic">
+                "This staff member is authorized to access pedagogical modules and manage data related to the {viewingStaff?.section}. All dashboard interactions are logged under the verified digital ID system."
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-1">
+                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Active Record Since</p>
+                <p className="text-sm font-bold text-primary">Jan 12, 2024</p>
+              </div>
+              <div className="space-y-1 text-right">
+                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Node Status</p>
+                <Badge className="bg-green-100 text-green-700 border-none font-black text-[10px] px-3">VERIFIED</Badge>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="bg-accent/10 p-6 border-t border-accent flex justify-end">
+            <Button onClick={() => setViewingStaff(null)} className="rounded-xl px-10 h-12 shadow-lg font-black uppercase tracking-widest text-xs">Close Dossier</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* EDIT DETAILS DIALOG */}
+      <Dialog open={!!editingStaff} onOpenChange={() => setEditingStaff(null)}>
+        <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="bg-primary p-8 text-white">
+            <DialogTitle className="text-2xl font-black">Edit Staff Profile</DialogTitle>
+            <DialogDescription className="text-white/60">Update institutional records for {editingStaff?.name}.</DialogDescription>
+          </DialogHeader>
+          <div className="p-8 space-y-6">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Update Full Name</Label>
+              <Input 
+                value={editingStaff?.name} 
+                onChange={(e) => setEditingStaff({...editingStaff, name: e.target.value})} 
+                className="h-12 bg-accent/30 border-none rounded-xl font-bold" 
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Strategic Role</Label>
+                <Select value={editingStaff?.role} onValueChange={(v) => setEditingStaff({...editingStaff, role: v})}>
+                  <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="TEACHER">Teacher</SelectItem>
+                    <SelectItem value="BURSAR">Bursar</SelectItem>
+                    <SelectItem value="LIBRARIAN">Librarian</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Institutional Section</Label>
+                <Select value={editingStaff?.section} onValueChange={(v) => setEditingStaff({...editingStaff, section: v})}>
+                  <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {SECTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+            <Button onClick={handleEditStaff} className="w-full h-12 rounded-xl shadow-lg font-bold" disabled={isProcessing}>
+              {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Commit Profile Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* APPOINTMENT RECEIPT */}
       <Dialog open={!!onboardingSuccess} onOpenChange={() => setOnboardingSuccess(null)}>
@@ -257,6 +408,9 @@ export default function StaffManagementPage() {
               <p className="text-xs font-black uppercase text-muted-foreground tracking-widest">Matricule / ID</p>
               <p className="text-4xl font-mono font-black text-primary">{onboardingSuccess?.id}</p>
             </div>
+            <p className="text-sm text-muted-foreground italic leading-relaxed">
+              This unique institutional ID has been generated and encrypted. Share this code with the staff member for initial portal activation.
+            </p>
             <Button onClick={() => setOnboardingSuccess(null)} className="w-full h-12 rounded-xl shadow-lg font-bold">Done</Button>
           </div>
         </DialogContent>
