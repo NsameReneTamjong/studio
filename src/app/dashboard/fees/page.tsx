@@ -42,7 +42,8 @@ import {
   User,
   Users,
   Banknote,
-  ArrowUpRight
+  ArrowUpRight,
+  Activity
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -123,9 +124,11 @@ export default function FeesPage() {
       const status = paid >= total ? 'cleared' : 'partial';
       
       const matchesStatus = reportStatus === "all" || status === reportStatus;
-      return matchesYear && matchesClass && matchesStatus;
+      const matchesSearch = s.name.toLowerCase().includes(dossierSearch.toLowerCase()) || s.id.toLowerCase().includes(dossierSearch.toLowerCase());
+      
+      return matchesYear && matchesClass && matchesStatus && matchesSearch;
     });
-  }, [reportYear, reportClass, reportStatus, students, activeFeeFilter]);
+  }, [reportYear, reportClass, reportStatus, students, activeFeeFilter, dossierSearch]);
 
   const handleProcessPayment = () => {
     if (!paymentForm.amount || parseFloat(paymentForm.amount) <= 0) {
@@ -240,8 +243,8 @@ export default function FeesPage() {
           <TabsTrigger value="ledger" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm">
             <History className="w-4 h-4" /> <span className="hidden sm:inline">Transaction</span> Log
           </TabsTrigger>
-          <TabsTrigger value="reports" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm">
-            <FileDown className="w-4 h-4" /> <span className="hidden sm:inline">Download</span> Lists
+          <TabsTrigger value="tracker" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm">
+            <FileSpreadsheet className="w-4 h-4" /> <span className="hidden sm:inline">Fee</span> Tracker
           </TabsTrigger>
           <TabsTrigger value="overview" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm">
             <TrendingUp className="w-4 h-4" /> <span className="hidden sm:inline">Finance</span> Metrics
@@ -483,7 +486,7 @@ export default function FeesPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="reports" className="animate-in fade-in slide-in-from-bottom-4 mt-0 space-y-6">
+        <TabsContent value="tracker" className="animate-in fade-in slide-in-from-bottom-4 mt-0 space-y-6">
           <Card className="border-none shadow-xl rounded-[1.5rem] md:rounded-3xl overflow-hidden">
             <CardHeader className="bg-primary p-6 md:p-8 text-white">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -492,25 +495,34 @@ export default function FeesPage() {
                     <FileSpreadsheet className="w-8 h-8 text-secondary" />
                   </div>
                   <div>
-                    <CardTitle className="text-xl md:text-2xl font-black">Export Institutional Lists</CardTitle>
-                    <CardDescription className="text-white/60">Generate targeted student dossiers based on academic and financial criteria.</CardDescription>
+                    <CardTitle className="text-xl md:text-2xl font-black">Institutional Fee Tracker</CardTitle>
+                    <CardDescription className="text-white/60">Live financial registry with performance auditing and collection status.</CardDescription>
                   </div>
                 </div>
-                <Button 
-                  className="bg-secondary text-primary hover:bg-secondary/90 h-12 px-8 rounded-xl font-black uppercase tracking-widest text-xs gap-2 shadow-lg"
-                  onClick={handleDownloadList}
-                  disabled={isProcessing}
-                >
-                  {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                  Download Institutional List
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline"
+                    className="bg-white/10 border-white/20 text-white hover:bg-white/20 h-12 px-6 rounded-xl font-black uppercase text-xs gap-2"
+                    onClick={() => window.print()}
+                  >
+                    <Printer className="w-4 h-4" /> Print Tracker
+                  </Button>
+                  <Button 
+                    className="bg-secondary text-primary hover:bg-secondary/90 h-12 px-8 rounded-xl font-black uppercase tracking-widest text-xs gap-2 shadow-lg"
+                    onClick={handleDownloadList}
+                    disabled={isProcessing}
+                  >
+                    {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+                    Download Registry
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="p-6 md:p-8 space-y-8">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
-                    <CalendarDays className="w-3.5 h-3.5 text-primary" /> Academic Session
+                    <CalendarDays className="w-3.5 h-3.5 text-primary" /> Session
                   </Label>
                   <Select value={reportYear} onValueChange={setReportYear}>
                     <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold">
@@ -523,21 +535,7 @@ export default function FeesPage() {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
-                    <Building2 className="w-3.5 h-3.5 text-primary" /> Class Filter
-                  </Label>
-                  <Select value={reportClass} onValueChange={setReportClass}>
-                    <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Classes</SelectItem>
-                      {CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
-                    <Filter className="w-3.5 h-3.5 text-primary" /> Fee Category
+                    <Filter className="w-3.5 h-3.5 text-primary" /> Fee Type
                   </Label>
                   <Select value={activeFeeFilter} onValueChange={setActiveFeeFilter}>
                     <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold">
@@ -548,40 +546,28 @@ export default function FeesPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
+                <div className="col-span-1 lg:col-span-2 space-y-2">
                   <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
-                    <CheckCircle className="w-3.5 h-3.5 text-primary" /> Payment Status
+                    <Search className="w-3.5 h-3.5 text-primary" /> Quick Find
                   </Label>
-                  <Select value={reportStatus} onValueChange={setReportStatus}>
-                    <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Both (Paid & Unpaid)</SelectItem>
-                      <SelectItem value="cleared">Paid (Cleared)</SelectItem>
-                      <SelectItem value="partial">Unpaid (Arrears)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Input 
+                    placeholder="Search students in tracker..." 
+                    className="h-12 bg-accent/30 border-none rounded-xl"
+                    value={dossierSearch}
+                    onChange={(e) => setDossierSearch(e.target.value)}
+                  />
                 </div>
               </div>
 
               <div className="pt-6 border-t">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-sm font-black uppercase text-primary tracking-widest">List Preview: {activeFeeFilter}</h3>
-                    <Badge variant="outline" className="text-[10px] border-primary/10 text-primary font-bold">
-                      {reportingList.length} Students Selected
-                    </Badge>
-                  </div>
-                </div>
-                <div className="rounded-2xl border border-accent overflow-hidden shadow-inner">
+                <div className="rounded-2xl border border-accent overflow-hidden shadow-inner bg-white">
                   <Table>
                     <TableHeader className="bg-accent/10">
-                      <TableRow className="uppercase text-[9px] font-black tracking-widest">
-                        <TableHead className="pl-6 py-3">Matricule</TableHead>
-                        <TableHead>Student Name</TableHead>
-                        <TableHead className="hidden sm:table-cell">Class</TableHead>
-                        <TableHead className="text-right pr-6">Fee Status</TableHead>
+                      <TableRow className="uppercase text-[10px] font-black tracking-widest border-b">
+                        <TableHead className="pl-8 py-4">Student Profile</TableHead>
+                        <TableHead>Matricule</TableHead>
+                        <TableHead className="text-center">Collection Status</TableHead>
+                        <TableHead className="text-right pr-8">Performance</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -589,39 +575,70 @@ export default function FeesPage() {
                         const status = getStatusForFee(s, activeFeeFilter);
                         const paid = (s.balances as any)[activeFeeFilter] || 0;
                         const total = (s.totals as any)[activeFeeFilter] || 150000;
+                        const percentage = (paid / total) * 100;
                         
                         return (
-                          <TableRow key={s.id} className="text-xs hover:bg-accent/5 group">
-                            <TableCell className="pl-6 py-3 font-mono font-bold text-primary">{s.id}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold">{s.name}</span>
-                                <div className={cn(
-                                  "w-1.5 h-1.5 rounded-full shrink-0",
-                                  status === 'cleared' ? "bg-green-600" : "bg-amber-600"
-                                )} />
+                          <TableRow key={s.id} className="group hover:bg-accent/5 transition-colors border-b last:border-0">
+                            <TableCell className="pl-8 py-4">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent">
+                                  <AvatarImage src={s.avatar} alt={s.name} />
+                                  <AvatarFallback className="bg-primary/5 text-primary text-xs font-black">{s.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <p className="font-bold text-sm text-primary leading-tight">{s.name}</p>
+                                  <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-tight">{s.class}</p>
+                                </div>
                               </div>
                             </TableCell>
-                            <TableCell className="hidden sm:table-cell font-medium text-muted-foreground">{s.class}</TableCell>
-                            <TableCell className="text-right pr-6">
-                              <div className="flex flex-col items-end">
-                                <span className={cn(
-                                  "font-black",
-                                  status === 'cleared' ? "text-green-700" : "text-amber-700"
-                                )}>
-                                  {paid.toLocaleString()} / {total.toLocaleString()}
-                                </span>
-                                <span className="text-[8px] uppercase font-bold opacity-40">XAF RECORDED</span>
+                            <TableCell className="font-mono text-xs font-bold text-muted-foreground">{s.id}</TableCell>
+                            <TableCell className="text-center">
+                              <Badge className={cn(
+                                "text-[9px] font-black uppercase px-3 h-5 border-none",
+                                status === 'cleared' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                              )}>
+                                {status === 'cleared' ? 'Cleared' : 'Arrears'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right pr-8">
+                              <div className="inline-flex flex-col items-end gap-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[10px] font-black text-primary">{paid.toLocaleString()} / {total.toLocaleString()}</span>
+                                  <span className="text-[10px] font-bold text-muted-foreground">({Math.round(percentage)}%)</span>
+                                </div>
+                                <div className="w-32 h-1.5 bg-accent rounded-full overflow-hidden">
+                                  <div 
+                                    className={cn(
+                                      "h-full transition-all duration-1000",
+                                      status === 'cleared' ? "bg-green-500" : "bg-primary"
+                                    )} 
+                                    style={{ width: `${percentage}%` }} 
+                                  />
+                                </div>
                               </div>
                             </TableCell>
                           </TableRow>
                         );
                       })}
+                      {reportingList.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={4} className="h-40 text-center text-muted-foreground italic">
+                            No records found matching your search and filter criteria.
+                          </TableCell>
+                        </TableRow>
+                      )}
                     </TableBody>
                   </Table>
                 </div>
               </div>
             </CardContent>
+            <CardFooter className="bg-accent/10 p-6 border-t flex justify-between items-center">
+               <div className="flex items-center gap-2 text-muted-foreground">
+                  <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                  <p className="text-[10px] uppercase font-black tracking-widest italic opacity-40">Verified Institutional Financial Record</p>
+               </div>
+               <p className="text-[10px] font-black text-primary/60 uppercase">System Time: {new Date().toLocaleTimeString()}</p>
+            </CardFooter>
           </Card>
         </TabsContent>
 
@@ -661,7 +678,7 @@ export default function FeesPage() {
         </TabsContent>
       </Tabs>
 
-      {/* CLASS FEE DOSSIER DIALOG (ENHANCED) */}
+      {/* CLASS FEE DOSSIER DIALOG */}
       <Dialog open={!!selectedClassDetails} onOpenChange={() => setSelectedClassDetails(null)}>
         <DialogContent className="sm:max-w-5xl max-h-[95vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl rounded-3xl">
           <DialogHeader className={cn(
@@ -757,22 +774,22 @@ export default function FeesPage() {
                         </TableCell>
                         <TableCell className="font-mono text-xs font-bold text-muted-foreground">{s.id}</TableCell>
                         <TableCell className="text-center">
-                          <div className="space-y-1">
-                            <div className="flex items-center justify-center gap-2">
-                               <Banknote className="w-3.5 h-3.5 text-green-600" />
-                               <span className="font-black text-primary text-sm">{paid.toLocaleString()}</span>
-                               <span className="text-[10px] font-bold opacity-40">/ {total.toLocaleString()}</span>
-                            </div>
-                            <Progress value={(paid / total) * 100} className="h-1 w-24 mx-auto" />
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right pr-8">
                           <Badge className={cn(
                             "text-[9px] font-black uppercase px-3 h-5 border-none",
                             status === 'cleared' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
                           )}>
                             {status === 'cleared' ? 'Cleared' : 'Arrears'}
                           </Badge>
+                        </TableCell>
+                        <TableCell className="text-right pr-8">
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-end gap-2">
+                               <Banknote className="w-3.5 h-3.5 text-green-600" />
+                               <span className="font-black text-primary text-sm">{paid.toLocaleString()}</span>
+                               <span className="text-[10px] font-bold opacity-40">/ {total.toLocaleString()}</span>
+                            </div>
+                            <Progress value={(paid / total) * 100} className="h-1 w-24 ml-auto" />
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
@@ -799,7 +816,7 @@ export default function FeesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* PAYMENT MODAL (KEPT FOR FUNCTIONALITY) */}
+      {/* PAYMENT MODAL */}
       <Dialog open={!!selectedStudentForPayment} onOpenChange={() => setSelectedStudentForPayment(null)}>
         <DialogContent className="sm:max-w-md rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl">
           <DialogHeader className="bg-primary p-6 md:p-8 text-white">
