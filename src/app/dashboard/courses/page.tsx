@@ -19,7 +19,18 @@ import {
   Sparkles,
   BookMarked,
   Info,
-  ChevronRight
+  ChevronRight,
+  ArrowLeft,
+  FileText,
+  Video,
+  Link as LinkIcon,
+  Download,
+  Upload,
+  FileDown,
+  MoreVertical,
+  Clock,
+  ShieldCheck,
+  Calendar
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n-context";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
@@ -38,6 +49,12 @@ const INITIAL_COURSES = [
   { id: "ART202", name: "Fine Arts & Design", instructorName: "Mr. Abena", targetClass: "2nde / Form 5", type: "optional", color: "bg-rose-500" },
 ];
 
+const INITIAL_MATERIALS = [
+  { id: "M1", title: "Kinematics Summary PDF", type: "pdf", date: "2024-05-10", size: "2.4 MB", subjectId: "PHY101" },
+  { id: "M2", title: "Thermodynamics Lecture Video", type: "video", date: "2024-05-12", size: "45 MB", subjectId: "PHY101" },
+  { id: "M3", title: "Vector Calculus Notes", type: "pdf", date: "2024-05-14", size: "1.8 MB", subjectId: "MAT101" },
+];
+
 export default function CoursesPage() {
   const { user } = useAuth();
   const { t, language } = useI18n();
@@ -49,7 +66,12 @@ export default function CoursesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [subjects, setSubjects] = useState<any[]>([]);
   
-  // To simulate student's enrolled optional subjects
+  // Materials View State
+  const [viewingMaterialsFor, setViewingMaterialsFor] = useState<any>(null);
+  const [materials, setMaterials] = useState(INITIAL_MATERIALS);
+  const [isAddingMaterial, setIsAddingMaterial] = useState(false);
+  const [newMaterialData, setNewMaterialData] = useState({ title: "", type: "pdf" });
+
   const [myOptionalSubjects, setMyOptionalSubjects] = useState<string[]>([]);
   
   const [newSubject, setNewSubject] = useState({
@@ -61,6 +83,7 @@ export default function CoursesPage() {
     color: "bg-blue-500"
   });
 
+  const isTeacher = user?.role === "TEACHER";
   const isAdmin = user?.role === "SCHOOL_ADMIN";
   const isStudent = user?.role === "STUDENT";
 
@@ -97,6 +120,166 @@ export default function CoursesPage() {
     setSubjects(subjects.filter(s => s.id !== id));
     toast({ title: "Removed", description: "Subject removed from curriculum." });
   };
+
+  const handleAddMaterial = () => {
+    if (!newMaterialData.title) return;
+    setIsProcessing(true);
+    setTimeout(() => {
+      const created = {
+        id: `M-${Math.random().toString(36).substr(2, 5)}`,
+        title: newMaterialData.title,
+        type: newMaterialData.type,
+        date: new Date().toISOString().split('T')[0],
+        size: "1.2 MB",
+        subjectId: viewingMaterialsFor.id
+      };
+      setMaterials([created, ...materials]);
+      setIsProcessing(false);
+      setIsAddingMaterial(false);
+      setNewMaterialData({ title: "", type: "pdf" });
+      toast({ title: "Material Uploaded", description: "Resource added to class archive." });
+    }, 1200);
+  };
+
+  const handleDeleteMaterial = (id: string) => {
+    setMaterials(materials.filter(m => m.id !== id));
+    toast({ title: "Material Removed", description: "Resource deleted from subject library." });
+  };
+
+  // Filter Logic
+  if (viewingMaterialsFor) {
+    const subjectMaterials = materials.filter(m => m.subjectId === viewingMaterialsFor.id);
+    
+    return (
+      <div className="space-y-8 pb-20 animate-in fade-in slide-in-from-right-4 duration-500">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => setViewingMaterialsFor(null)} className="rounded-full hover:bg-white shadow-sm">
+              <ArrowLeft className="w-6 h-6" />
+            </Button>
+            <div>
+              <div className="flex items-center gap-2">
+                <Badge className={cn("text-[9px] font-black border-none", viewingMaterialsFor.color)}>{viewingMaterialsFor.id}</Badge>
+                <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline tracking-tight">{viewingMaterialsFor.name}</h1>
+              </div>
+              <p className="text-muted-foreground mt-1 text-sm">{language === 'en' ? 'Subject Materials Archive' : 'Archives des supports de cours'}</p>
+            </div>
+          </div>
+          <Dialog open={isAddingMaterial} onOpenChange={setIsAddingMaterial}>
+            <DialogTrigger asChild>
+              <Button className="gap-2 shadow-lg h-12 px-8 rounded-2xl bg-primary text-white font-bold">
+                <Upload className="w-5 h-5" /> {language === 'en' ? 'Upload Material' : 'Ajouter un Support'}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+              <DialogHeader className="bg-primary p-8 text-white">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/10 rounded-2xl"><BookMarked className="w-8 h-8 text-secondary" /></div>
+                  <div>
+                    <DialogTitle className="text-2xl font-black">Publish Resource</DialogTitle>
+                    <DialogDescription className="text-white/60">Upload new pedagogical material for students.</DialogDescription>
+                  </div>
+                </div>
+              </DialogHeader>
+              <div className="p-8 space-y-6">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Title / Label</Label>
+                  <Input 
+                    value={newMaterialData.title} 
+                    onChange={(e) => setNewMaterialData({...newMaterialData, title: e.target.value})} 
+                    placeholder="e.g. Chapter 4 Summary" 
+                    className="h-12 bg-accent/30 border-none rounded-xl font-bold"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Resource Type</Label>
+                  <Select value={newMaterialData.type} onValueChange={(v) => setNewMaterialData({...newMaterialData, type: v})}>
+                    <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pdf">PDF Document</SelectItem>
+                      <SelectItem value="video">Lecture Video</SelectItem>
+                      <SelectItem value="link">Reference Link</SelectItem>
+                      <SelectItem value="doc">Worksheet (DOC)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 flex items-center gap-3">
+                  <ShieldCheck className="w-5 h-5 text-primary opacity-40" />
+                  <p className="text-[10px] text-muted-foreground italic leading-relaxed">
+                    This material will be immediately accessible to all students registered in {viewingMaterialsFor.targetClass}.
+                  </p>
+                </div>
+              </div>
+              <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+                <Button onClick={handleAddMaterial} disabled={isProcessing || !newMaterialData.title} className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-2">
+                  {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
+                  Confirm Upload
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {subjectMaterials.map((material) => (
+            <Card key={material.id} className="border-none shadow-sm group hover:shadow-md transition-all overflow-hidden bg-white">
+              <div className="p-6 flex items-start gap-4">
+                <div className={cn(
+                  "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm",
+                  material.type === 'pdf' ? "bg-red-50 text-red-600" :
+                  material.type === 'video' ? "bg-blue-50 text-blue-600" :
+                  material.type === 'link' ? "bg-emerald-50 text-emerald-600" :
+                  "bg-amber-50 text-amber-600"
+                )}>
+                  {material.type === 'pdf' ? <FileText className="w-6 h-6" /> :
+                   material.type === 'video' ? <Video className="w-6 h-6" /> :
+                   material.type === 'link' ? <LinkIcon className="w-6 h-6" /> :
+                   <BookOpen className="w-6 h-6" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-primary text-sm leading-tight truncate mb-1">{material.title}</h3>
+                  <div className="flex items-center gap-3 text-[10px] font-bold text-muted-foreground uppercase tracking-tight">
+                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {material.date}</span>
+                    <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+                    <span>{material.size}</span>
+                  </div>
+                </div>
+              </div>
+              <CardFooter className="bg-accent/10 p-3 border-t flex justify-between gap-2">
+                <div className="flex flex-1 gap-2">
+                  <Button variant="ghost" className="flex-1 h-9 rounded-lg hover:bg-white text-primary text-[10px] font-black uppercase tracking-widest gap-2">
+                    <Eye className="w-3.5 h-3.5" /> View
+                  </Button>
+                  <Button variant="ghost" className="flex-1 h-9 rounded-lg hover:bg-white text-primary text-[10px] font-black uppercase tracking-widest gap-2">
+                    <Download className="w-3.5 h-3.5" /> Get
+                  </Button>
+                </div>
+                {isTeacher && (
+                  <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-destructive/20 hover:text-destructive hover:bg-red-50" onClick={() => handleDeleteMaterial(material.id)}>
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                )}
+              </CardFooter>
+            </Card>
+          ))}
+          {subjectMaterials.length === 0 && (
+            <div className="col-span-full py-20 text-center border-2 border-dashed rounded-[2rem] bg-accent/5 space-y-4">
+              <div className="p-4 bg-white rounded-full w-fit mx-auto shadow-sm">
+                <BookMarked className="w-10 h-10 text-primary/20" />
+              </div>
+              <div className="space-y-1">
+                <p className="font-black text-primary uppercase tracking-tighter">No materials found</p>
+                <p className="text-xs text-muted-foreground">Upload class summaries, videos or notes for your students.</p>
+              </div>
+              <Button variant="outline" size="sm" className="rounded-xl font-bold gap-2" onClick={() => setIsAddingMaterial(true)}>
+                <Plus className="w-4 h-4" /> Add First Material
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   const mandatorySubjects = subjects.filter(s => s.type === "mandatory");
   const enrolledOptional = subjects.filter(s => s.type === "optional" && (isAdmin || myOptionalSubjects.includes(s.id)));
@@ -239,7 +422,7 @@ export default function CoursesPage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {mandatorySubjects.map((course) => (
-                <CourseCard key={course.id} course={course} isAdmin={isAdmin} onDelete={() => handleDeleteSubject(course.id)} />
+                <CourseCard key={course.id} course={course} isAdmin={isAdmin} onDelete={() => handleDeleteSubject(course.id)} onViewMaterials={() => setViewingMaterialsFor(course)} />
               ))}
             </div>
           </section>
@@ -254,7 +437,7 @@ export default function CoursesPage() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {enrolledOptional.map((course) => (
-                  <CourseCard key={course.id} course={course} isAdmin={isAdmin} onDelete={() => handleDeleteSubject(course.id)} />
+                  <CourseCard key={course.id} course={course} isAdmin={isAdmin} onDelete={() => handleDeleteSubject(course.id)} onViewMaterials={() => setViewingMaterialsFor(course)} />
                 ))}
                 {isStudent && enrolledOptional.length === 0 && (
                   <Card className="border-2 border-dashed border-accent bg-accent/5 rounded-3xl p-8 flex flex-col items-center justify-center text-center space-y-4">
@@ -277,7 +460,7 @@ export default function CoursesPage() {
   );
 }
 
-function CourseCard({ course, isAdmin, onDelete }: { course: any, isAdmin: boolean, onDelete: () => void }) {
+function CourseCard({ course, isAdmin, onDelete, onViewMaterials }: { course: any, isAdmin: boolean, onDelete: () => void, onViewMaterials: () => void }) {
   const { language } = useI18n();
   
   return (
@@ -313,7 +496,7 @@ function CourseCard({ course, isAdmin, onDelete }: { course: any, isAdmin: boole
         </div>
       </CardContent>
       <CardFooter className="bg-accent/30 border-t border-accent/50 pt-4 flex gap-2">
-        <Button variant="ghost" className="flex-1 justify-between hover:bg-white h-10 group/btn">
+        <Button variant="ghost" className="flex-1 justify-between hover:bg-white h-10 group/btn" onClick={onViewMaterials}>
           <span className="flex items-center gap-2 font-bold text-xs">
             <Eye className="w-4 h-4" /> {language === 'en' ? 'Materials' : 'Supports'}
           </span>
