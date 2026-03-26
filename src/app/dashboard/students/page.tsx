@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -348,6 +349,7 @@ export default function StudentsPage() {
                   <TableHead className="pl-8 py-4">Matricule</TableHead>
                   <TableHead>Student Profile</TableHead>
                   <TableHead>Academic Level</TableHead>
+                  <TableHead>Contact Info</TableHead>
                   <TableHead className="text-center">Status</TableHead>
                   <TableHead className="text-right pr-8">Actions</TableHead>
                 </TableRow>
@@ -372,6 +374,12 @@ export default function StudentsPage() {
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-[10px] border-primary/10 text-primary font-bold whitespace-nowrap">{s.class}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <p className="text-[10px] text-muted-foreground flex items-center gap-1.5"><Mail className="w-3 h-3"/> {s.email}</p>
+                        <p className="text-[10px] text-muted-foreground flex items-center gap-1.5"><Smartphone className="w-3 h-3"/> {s.phone}</p>
+                      </div>
                     </TableCell>
                     <TableCell className="text-center">
                       <Badge className={cn(
@@ -405,6 +413,7 @@ export default function StudentsPage() {
                   <TableRow className="uppercase text-[10px] font-black tracking-widest border-b">
                     <TableHead className="pl-8 py-4">Matricule</TableHead>
                     <TableHead>Parent Profile</TableHead>
+                    <TableHead>Contact</TableHead>
                     <TableHead>Linked Child</TableHead>
                     <TableHead className="text-center">Status</TableHead>
                     <TableHead className="text-right pr-8">Actions</TableHead>
@@ -422,8 +431,14 @@ export default function StudentsPage() {
                           </Avatar>
                           <div>
                             <p className="font-bold text-sm text-primary">{p.name}</p>
-                            <p className="text-[10px] text-muted-foreground truncate max-w-[150px]">{p.email}</p>
+                            <Badge variant="outline" className="text-[8px] h-4 uppercase border-none bg-primary/5 text-primary font-black tracking-tighter mt-0.5">{p.type}</Badge>
                           </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <p className="text-[10px] text-muted-foreground flex items-center gap-1.5 font-medium"><Mail className="w-3 h-3 text-primary/40"/> {p.email}</p>
+                          <p className="text-[10px] text-muted-foreground flex items-center gap-1.5 font-bold"><Smartphone className="w-3 h-3 text-primary/40"/> {p.phone}</p>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -977,10 +992,10 @@ export default function StudentsPage() {
               <div className="space-y-6">
                 <div className="flex items-center gap-3 border-b border-accent pb-2">
                   <GraduationCap className="w-4 h-4 text-primary/40" />
-                  <h3 className="text-xs font-black uppercase text-primary tracking-widest">Linked Students ({viewingLinkedInfo?.user ? studentList.filter(s => s.guardianId === viewingLinkedInfo.user.id).length : 0})</h3>
+                  <h3 className="text-xs font-black uppercase text-primary tracking-widest">Linked Students ({viewingLinkedInfo?.children?.length || 0})</h3>
                 </div>
                 <div className="grid grid-cols-1 gap-4">
-                  {viewingLinkedInfo?.user && studentList.filter(s => s.guardianId === viewingLinkedInfo.user.id).map((child: any) => (
+                  {viewingLinkedInfo?.children?.map((child: any) => (
                     <Card key={child.id} className="border-none shadow-sm bg-accent/10 hover:bg-accent/20 transition-all cursor-pointer overflow-hidden" onClick={() => router.push(`/dashboard/children/view?id=${child.id}`)}>
                       <CardContent className="p-4 flex items-center justify-between">
                         <div className="flex items-center gap-4">
