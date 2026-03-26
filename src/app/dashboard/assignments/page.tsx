@@ -24,7 +24,11 @@ import {
   FileText,
   Paperclip,
   Table as TableIcon,
-  Search
+  Search,
+  ShieldCheck,
+  Download,
+  Eye,
+  X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -68,6 +72,8 @@ const MOCK_ASSIGNMENTS = [
     maxMarks: 20,
     status: "submitted",
     submittedAt: new Date().toISOString(),
+    submittedContent: "I have completed the analysis of carbon compounds as requested in the session notes.",
+    submittedFileName: "Chemistry_Report_V1.pdf",
     type: "file"
   },
   {
@@ -79,6 +85,8 @@ const MOCK_ASSIGNMENTS = [
     maxMarks: 20,
     status: "graded",
     score: 18,
+    submittedAt: "2024-05-10T14:30:00Z",
+    submittedContent: "The industrial revolution marked a significant shift in socio-economic structures across the European continent...",
     type: "text"
   },
   {
@@ -101,6 +109,7 @@ export default function AssignmentsPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [assignments, setAssignments] = useState(MOCK_ASSIGNMENTS);
+  const [viewingResponse, setViewingResponse] = useState<any>(null);
   
   const [newAssignment, setNewAssignment] = useState({
     title: "",
@@ -147,15 +156,6 @@ export default function AssignmentsPage() {
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'graded': return <CheckCircle2 className="w-4 h-4 text-green-600" />;
-      case 'missed': return <XCircle className="w-4 h-4 text-red-600" />;
-      case 'cancelled': return <AlertCircle className="w-4 h-4 text-slate-400" />;
-      default: return <Clock className="w-4 h-4 text-primary/40" />;
-    }
-  };
-
   if (!isTeacher) {
     return (
       <div className="space-y-8 pb-20">
@@ -187,7 +187,7 @@ export default function AssignmentsPage() {
           <TabsContent value="active" className="animate-in fade-in slide-in-from-bottom-4 mt-0">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {activeTasks.map((assignment) => (
-                <StudentAssignmentCard key={assignment.id} assignment={assignment} />
+                <StudentAssignmentCard key={assignment.id} assignment={assignment} onViewResponse={setViewingResponse} />
               ))}
               {activeTasks.length === 0 && (
                 <div className="col-span-full py-20 text-center border-2 border-dashed rounded-3xl bg-white/50 space-y-4">
@@ -203,7 +203,7 @@ export default function AssignmentsPage() {
           <TabsContent value="work" className="animate-in fade-in slide-in-from-bottom-4 mt-0">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {myWork.map((assignment) => (
-                <StudentAssignmentCard key={assignment.id} assignment={assignment} />
+                <StudentAssignmentCard key={assignment.id} assignment={assignment} onViewResponse={setViewingResponse} />
               ))}
               {myWork.length === 0 && (
                 <div className="col-span-full py-20 text-center border-2 border-dashed rounded-3xl bg-white/50">
@@ -245,8 +245,13 @@ export default function AssignmentsPage() {
                           ) : '---'}
                         </TableCell>
                         <TableCell className="text-right pr-8">
-                          <div className="flex justify-end">
+                          <div className="flex justify-end gap-2 items-center">
                             {getStatusBadge(task.status)}
+                            {(task.status === 'submitted' || task.status === 'graded') && (
+                              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => setViewingResponse(task)}>
+                                <Eye className="w-4 h-4 text-primary/40 hover:text-primary" />
+                              </Button>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
@@ -257,6 +262,99 @@ export default function AssignmentsPage() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* RESPONSE VIEW DIALOG */}
+        <Dialog open={!!viewingResponse} onOpenChange={() => setViewingResponse(null)}>
+          <DialogContent className="sm:max-w-2xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
+            <DialogHeader className="bg-primary p-8 text-white relative">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-2xl">
+                  <ShieldCheck className="w-8 h-8 text-secondary" />
+                </div>
+                <div>
+                  <DialogTitle className="text-2xl font-black">Submission Dossier</DialogTitle>
+                  <DialogDescription className="text-white/60">
+                    {viewingResponse?.title} • {viewingResponse?.courseName}
+                  </DialogDescription>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setViewingResponse(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+                <X className="w-6 h-6" />
+              </Button>
+            </DialogHeader>
+            <div className="p-10 space-y-8 max-h-[70vh] overflow-y-auto">
+              <div className="flex items-center justify-between border-b pb-4">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Submission Timestamp</p>
+                  <p className="text-sm font-bold text-primary">
+                    {viewingResponse?.submittedAt ? new Date(viewingResponse.submittedAt).toLocaleString() : 'N/A'}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Dossier Status</p>
+                  <Badge className={cn(
+                    "font-black text-[10px] px-3 border-none",
+                    viewingResponse?.status === 'graded' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                  )}>
+                    {viewingResponse?.status === 'graded' ? "VERIFIED & GRADED" : "PENDING REVIEW"}
+                  </Badge>
+                </div>
+              </div>
+
+              {viewingResponse?.status === 'graded' && (
+                <div className="p-6 bg-green-50 rounded-2xl border border-green-100 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Award className="w-8 h-8 text-green-600" />
+                    <div>
+                      <p className="text-[10px] font-black uppercase text-green-600 tracking-widest">Final Pedagogical Score</p>
+                      <p className="text-3xl font-black text-green-700">{viewingResponse?.score} <span className="text-sm opacity-40">/ {viewingResponse?.maxMarks}</span></p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-black uppercase text-green-600">Integrity</p>
+                    <Badge variant="outline" className="border-green-200 text-green-700 text-[10px]">DIGITALLY SIGNED</Badge>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 border-b border-accent pb-2">
+                  <FileText className="w-4 h-4 text-primary/40" />
+                  <h3 className="text-xs font-black uppercase text-primary tracking-widest">Submitted Response</h3>
+                </div>
+                <div className="bg-accent/10 p-6 rounded-2xl italic text-primary/80 leading-relaxed font-medium">
+                  {viewingResponse?.submittedContent || "No written response provided."}
+                </div>
+              </div>
+
+              {viewingResponse?.submittedFileName && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 border-b border-accent pb-2">
+                    <Paperclip className="w-4 h-4 text-primary/40" />
+                    <h3 className="text-xs font-black uppercase text-primary tracking-widest">Attached Documentation</h3>
+                  </div>
+                  <div className="flex items-center justify-between p-4 bg-white border rounded-2xl shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/5 rounded-lg text-primary">
+                        <FileText className="w-5 h-5" />
+                      </div>
+                      <span className="text-sm font-bold text-primary">{viewingResponse.submittedFileName}</span>
+                    </div>
+                    <Button variant="ghost" size="sm" className="gap-2 text-[10px] font-black uppercase tracking-widest">
+                      <Download className="w-3.5 h-3.5" /> Download
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+            <DialogFooter className="bg-accent/10 p-6 border-t border-accent flex justify-center">
+               <div className="flex items-center gap-2 text-muted-foreground">
+                  <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] italic opacity-40">Verified Institutional Pedagogical Record</p>
+               </div>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
@@ -386,7 +484,7 @@ export default function AssignmentsPage() {
   );
 }
 
-function StudentAssignmentCard({ assignment }: { assignment: any }) {
+function StudentAssignmentCard({ assignment, onViewResponse }: { assignment: any, onViewResponse: (a: any) => void }) {
   const { language, t } = useI18n();
   const isSubmitted = assignment.status === 'submitted' || assignment.status === 'graded';
   
@@ -439,15 +537,23 @@ function StudentAssignmentCard({ assignment }: { assignment: any }) {
         </div>
       </CardContent>
       <CardFooter className="pt-0 pb-6 px-6">
-        <Button asChild variant={isSubmitted ? "outline" : "default"} className={cn(
-          "w-full justify-between transition-all group/btn h-11 rounded-xl shadow-sm font-bold",
-          !isSubmitted && "bg-primary hover:bg-primary/90 text-white"
-        )}>
-          <Link href={isSubmitted ? "#" : `/dashboard/assignments/submit?id=${assignment.id}`}>
-            {isSubmitted ? (language === 'en' ? 'View My Response' : 'Voir ma réponse') : (language === 'en' ? 'Submit Work' : 'Rendre le Travail')}
+        {isSubmitted ? (
+          <Button 
+            variant="outline" 
+            className="w-full justify-between transition-all group/btn h-11 rounded-xl shadow-sm font-bold"
+            onClick={() => onViewResponse(assignment)}
+          >
+            {language === 'en' ? 'View My Response' : 'Voir ma réponse'}
             <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-          </Link>
-        </Button>
+          </Button>
+        ) : (
+          <Button asChild className="w-full justify-between transition-all group/btn h-11 rounded-xl shadow-sm font-bold bg-primary hover:bg-primary/90 text-white">
+            <Link href={`/dashboard/assignments/submit?id=${assignment.id}`}>
+              {language === 'en' ? 'Submit Work' : 'Rendre le Travail'}
+              <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+            </Link>
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );
