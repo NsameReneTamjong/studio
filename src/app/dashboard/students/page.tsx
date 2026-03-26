@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -44,7 +45,8 @@ import {
   Building2,
   Printer,
   QrCode,
-  ChevronRight
+  ChevronRight,
+  UserRound
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -77,13 +79,14 @@ const MOCK_STUDENTS = [
 ];
 
 const MOCK_PARENTS = [
-  { id: "GBHS26P001", uid: "P1", name: "Mr. Robert Thompson", email: "robert.t@mail.cm", child: "Alice Thompson", phone: "+237 677 00 11 22", status: "active", avatar: "https://picsum.photos/seed/p1/100/100" },
-  { id: "GBHS26P002", uid: "P2", name: "Mrs. Sarah Richards", email: "sarah.r@mail.cm", child: "Bob Richards", phone: "+237 699 33 44 55", status: "active", avatar: "https://picsum.photos/seed/p2/100/100" },
+  { id: "GBHS26P001", uid: "P1", name: "Mr. Robert Thompson", email: "robert.t@mail.cm", child: "Alice Thompson", phone: "+237 677 00 11 22", status: "active", avatar: "https://picsum.photos/seed/p1/100/100", type: "Father" },
+  { id: "GBHS26P002", uid: "P2", name: "Mrs. Sarah Richards", email: "sarah.r@mail.cm", child: "Bob Richards", phone: "+237 699 33 44 55", status: "active", avatar: "https://picsum.photos/seed/p2/100/100", type: "Mother" },
 ];
 
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
 const SECTIONS = ["Anglophone Section", "Francophone Section", "Technical Section"];
 const REGIONS = ["Adamaoua", "Centre", "East", "Far North", "Littoral", "North", "North West", "South", "South West", "West"];
+const GUARDIAN_TYPES = ["Father", "Mother", "Brother", "Sister", "Uncle", "Aunt", "Legal Guardian", "Other"];
 
 export default function StudentsPage() {
   const { user, isLoading: isAuthLoading, platformSettings } = useAuth();
@@ -103,7 +106,6 @@ export default function StudentsPage() {
   const [editingUser, setEditingUser] = useState<any>(null);
   const [admissionSuccess, setAdmissionSuccess] = useState<any>(null);
 
-  // New Admission State
   const [newStudent, setNewStudent] = useState({
     name: "",
     dob: "",
@@ -122,6 +124,7 @@ export default function StudentsPage() {
     email: "",
     phone: "",
     occupation: "Professional",
+    type: "Father",
   });
 
   const isAdmin = ["SCHOOL_ADMIN", "SUPER_ADMIN", "SUB_ADMIN"].includes(user?.role || "");
@@ -170,7 +173,7 @@ export default function StudentsPage() {
     setParentList([...parentList, created]);
     setNewStudent({ ...newStudent, guardianId: created.id });
     setIsAddGuardianOpen(false);
-    setNewGuardian({ name: "", email: "", phone: "", occupation: "Professional" });
+    setNewGuardian({ name: "", email: "", phone: "", occupation: "Professional", type: "Father" });
     toast({ title: "Guardian Registered", description: `${created.name} added to registry.` });
   };
 
@@ -195,7 +198,8 @@ export default function StudentsPage() {
         status: "active",
         avatar: `https://picsum.photos/seed/${studentId}/100/100`,
         guardianName: guardian?.name || "N/A",
-        guardianMatricule: guardian?.id || "N/A"
+        guardianMatricule: guardian?.id || "N/A",
+        guardianType: guardian?.type || "Guardian"
       };
 
       setStudentList([created, ...studentList]);
@@ -228,9 +232,8 @@ export default function StudentsPage() {
         setStudentList(prev => prev.map(s => s.uid === editingUser.uid ? editingUser : s));
       }
       setIsProcessing(false);
-      const userName = editingUser.name;
       setEditingUser(null);
-      toast({ title: "Account Updated", description: `${userName}'s records saved successfully.` });
+      toast({ title: "Account Updated", description: "Records saved successfully." });
     }, 800);
   };
 
@@ -275,7 +278,7 @@ export default function StudentsPage() {
           )}
         </TabsList>
 
-        <Card className="border-none shadow-xl overflow-hidden rounded-[2rem] bg-white">
+        <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
           <CardHeader className="bg-white border-b p-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="relative col-span-1 md:col-span-2">
@@ -373,59 +376,61 @@ export default function StudentsPage() {
             </Table>
           </TabsContent>
 
-          <TabsContent value="parents" className="m-0 overflow-x-auto">
-            <Table>
-              <TableHeader className="bg-accent/10">
-                <TableRow className="uppercase text-[10px] font-black tracking-widest border-b">
-                  <TableHead className="pl-8 py-4">Matricule</TableHead>
-                  <TableHead>Parent Profile</TableHead>
-                  <TableHead>Linked Child</TableHead>
-                  <TableHead className="text-center">Status</TableHead>
-                  <TableHead className="text-right pr-8">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredParents.map((p) => (
-                  <TableRow key={p.uid} className="hover:bg-accent/5 border-b last:border-0">
-                    <TableCell className="pl-8 font-mono text-xs font-bold text-primary">{p.id}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10 border-2 border-white shadow-sm shrink-0">
-                          <AvatarImage src={p.avatar} alt={p.name} />
-                          <AvatarFallback className="bg-primary/5 text-primary font-bold">{p.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-bold text-sm text-primary">{p.name}</p>
-                          <p className="text-[10px] text-muted-foreground truncate max-w-[150px]">{p.email}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary" className="bg-primary/5 text-primary border-none text-[10px] font-bold whitespace-nowrap">
-                        {p.child}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Badge className={cn(
-                        "text-[9px] font-black uppercase px-3 h-5 border-none",
-                        p.status === 'active' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                      )}>
-                        {p.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right pr-8">
-                      <UserActionMenu 
-                        onEdit={() => setEditingUser(p)} 
-                        onToggleStatus={() => handleToggleStatus(p.uid, 'parent')} 
-                        status={p.status}
-                        role={user?.role}
-                      />
-                    </TableCell>
+          {!isTeacher && (
+            <TabsContent value="parents" className="m-0 overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-accent/10">
+                  <TableRow className="uppercase text-[10px] font-black tracking-widest border-b">
+                    <TableHead className="pl-8 py-4">Matricule</TableHead>
+                    <TableHead>Parent Profile</TableHead>
+                    <TableHead>Linked Child</TableHead>
+                    <TableHead className="text-center">Status</TableHead>
+                    <TableHead className="text-right pr-8">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TabsContent>
+                </TableHeader>
+                <TableBody>
+                  {filteredParents.map((p) => (
+                    <TableRow key={p.uid} className="hover:bg-accent/5 border-b last:border-0">
+                      <TableCell className="pl-8 font-mono text-xs font-bold text-primary">{p.id}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10 border-2 border-white shadow-sm shrink-0">
+                            <AvatarImage src={p.avatar} alt={p.name} />
+                            <AvatarFallback className="bg-primary/5 text-primary font-bold">{p.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-bold text-sm text-primary">{p.name}</p>
+                            <p className="text-[10px] text-muted-foreground truncate max-w-[150px]">{p.email}</p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="bg-primary/5 text-primary border-none text-[10px] font-bold whitespace-nowrap">
+                          {p.child}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge className={cn(
+                          "text-[9px] font-black uppercase px-3 h-5 border-none",
+                          p.status === 'active' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                        )}>
+                          {p.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <UserActionMenu 
+                          onEdit={() => setEditingUser(p)} 
+                          onToggleStatus={() => handleToggleStatus(p.uid, 'parent')} 
+                          status={p.status}
+                          role={user?.role}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TabsContent>
+          )}
         </Card>
       </Tabs>
 
@@ -586,6 +591,23 @@ export default function StudentsPage() {
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Guardian Full Name</Label>
               <Input value={newGuardian.name} onChange={(e) => setNewGuardian({...newGuardian, name: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl font-bold" />
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Guardian Type</Label>
+                <Select value={newGuardian.type} onValueChange={(v) => setNewGuardian({...newGuardian, type: v})}>
+                  <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {GUARDIAN_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Occupation</Label>
+                <Input value={newGuardian.occupation} onChange={(e) => setNewGuardian({...newGuardian, occupation: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl" />
+              </div>
+            </div>
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">WhatsApp / Phone</Label>
               <div className="relative">
@@ -626,8 +648,8 @@ export default function StudentsPage() {
             </div>
           </DialogHeader>
 
-          <div className="bg-muted p-6 md:p-10 print:p-0 print:bg-white overflow-y-auto max-h-[70vh]">
-            <div id="printable-admission-dossier" className="bg-white p-10 md:p-16 border-2 border-black/10 shadow-sm relative flex flex-col space-y-12 font-serif text-black print:border-none print:shadow-none min-w-[800px]">
+          <div className="bg-muted p-4 md:p-10 print:p-0 print:bg-white overflow-x-auto">
+            <div id="printable-admission-dossier" className="bg-white p-8 md:p-16 border-2 border-black/10 shadow-sm relative flex flex-col space-y-12 font-serif text-black print:border-none print:shadow-none min-w-[800px]">
                {/* National Header */}
                <div className="grid grid-cols-3 gap-2 items-start text-center border-b-2 border-black pb-6">
                   <div className="space-y-0.5 text-[8px] uppercase font-bold">
@@ -689,7 +711,9 @@ export default function StudentsPage() {
 
                <div className="grid grid-cols-2 gap-12">
                   <div className="space-y-4">
-                    <h4 className="text-xs font-black uppercase text-primary border-b border-black/10 pb-1">Biometric Registry</h4>
+                    <h4 className="text-xs font-black uppercase text-primary border-b border-black/10 pb-1 flex items-center gap-2">
+                      <Fingerprint className="w-4 h-4" /> Biometric Registry
+                    </h4>
                     <div className="space-y-2 text-xs">
                        <p><span className="font-bold opacity-60">Date of Birth:</span> {admissionSuccess?.dob}</p>
                        <p><span className="font-bold opacity-60">Gender:</span> {admissionSuccess?.gender}</p>
@@ -698,23 +722,27 @@ export default function StudentsPage() {
                     </div>
                   </div>
                   <div className="space-y-4">
-                    <h4 className="text-xs font-black uppercase text-primary border-b border-black/10 pb-1">Guardian Information</h4>
+                    <h4 className="text-xs font-black uppercase text-primary border-b border-black/10 pb-1 flex items-center gap-2">
+                      <UserRound className="w-4 h-4" /> Guardian Information
+                    </h4>
                     <div className="space-y-2 text-xs">
-                       <p><span className="font-bold opacity-60">Parent Name:</span> {admissionSuccess?.guardianName}</p>
-                       <p><span className="font-bold opacity-60">Parent Matricule:</span> <span className="font-mono">{admissionSuccess?.guardianMatricule}</span></p>
-                       <p className="italic text-muted-foreground">"Primary account linked for pedagogical tracking."</p>
+                       <p><span className="font-bold opacity-60">Relationship:</span> {admissionSuccess?.guardianType}</p>
+                       <p><span className="font-bold opacity-60">Guardian Name:</span> {admissionSuccess?.guardianName}</p>
+                       <p><span className="font-bold opacity-60">Guardian Matricule:</span> <span className="font-mono">{admissionSuccess?.guardianMatricule}</span></p>
+                       <p className="italic text-muted-foreground mt-2">"Primary account linked for pedagogical tracking."</p>
                     </div>
                   </div>
                </div>
 
-               <div className="border-2 border-black/10 p-8 rounded-[2rem] bg-primary/5 space-y-4">
+               <div className="border-2 border-black/10 p-10 rounded-[2.5rem] bg-primary/5 space-y-4 relative overflow-hidden">
+                  <div className="absolute -top-4 -left-4 opacity-5 rotate-12"><Building2 className="w-32 h-32" /></div>
                   <div className="flex items-center gap-3">
                      <p className="text-sm font-black uppercase text-primary">Incredible Welcome Message</p>
                   </div>
-                  <p className="text-sm leading-relaxed italic text-muted-foreground font-medium">
+                  <p className="text-sm leading-relaxed italic text-muted-foreground font-medium relative z-10">
                     "Welcome to the {user?.school?.name || "EduIgnite family"}. By joining our institution, you are embarking on a journey of pedagogical excellence and character transformation. Our secure digital node ensures that your academic records are maintained with the highest degree of integrity. Together, we build the leaders of tomorrow. Work hard, stay disciplined, and success will be yours."
                   </p>
-                  <p className="text-right font-black text-xs uppercase tracking-tighter">— The Principal's Council</p>
+                  <p className="text-right font-black text-xs uppercase tracking-tighter relative z-10">— The Principal's Council</p>
                </div>
 
                <div className="pt-12 border-t border-black/5 flex justify-between items-end">
@@ -733,7 +761,7 @@ export default function StudentsPage() {
                <div className="text-center pt-6 border-t border-black/5">
                   <div className="flex items-center justify-center gap-3">
                     <img src={platformSettings.logo} alt="EduIgnite" className="w-4 h-4 object-contain opacity-20" />
-                    <p className="text-[8px] font-black uppercase text-muted-foreground opacity-30 tracking-[0.4em]">
+                    <p className="text-[8px] font-black uppercase text-muted-foreground opacity-30 tracking-[0.3em]">
                       Powered by {platformSettings.name} • Secure Registry Node • 2024
                     </p>
                   </div>
@@ -749,7 +777,7 @@ export default function StudentsPage() {
               <Button 
                 variant="secondary" 
                 className="flex-1 rounded-2xl h-14 font-black uppercase tracking-widest text-xs gap-2"
-                onClick={() => toast({ title: "Packet Prepared", description: "PDF is being generated." })}
+                onClick={() => toast({ title: "Packet Prepared", description: "PDF is being generated for local storage." })}
               >
                 <Download className="w-4 h-4" /> Download PDF
               </Button>
