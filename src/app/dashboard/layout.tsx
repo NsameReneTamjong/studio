@@ -129,6 +129,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const isLicensePaid = user.isLicensePaid;
   const isSubscriptionPage = pathname === "/dashboard/subscription";
 
+  // License Enforcement logic
   if (!isLicensePaid && !isPlatformExecutive && !isSubscriptionPage) {
     return (
       <div className="flex h-screen overflow-hidden bg-background">
