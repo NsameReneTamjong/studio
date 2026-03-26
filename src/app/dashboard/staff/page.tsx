@@ -39,7 +39,8 @@ import {
   MapPin,
   QrCode,
   Download,
-  Info
+  Info,
+  ArrowLeft
 } from "lucide-react";
 import { 
   Dialog, 
@@ -786,39 +787,5 @@ function SignatureSVG({ className }: { className?: string }) {
       <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
       <path d="M15 30L85 10" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" strokeDasharray="2 2" />
     </svg>
-  );
-}
-
-function UserActionMenu({ onEdit, onToggleStatus, onView, status, role }: any) {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5">
-          <MoreVertical className="w-4 h-4 text-primary/40 group-hover:text-primary transition-colors" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-xl border-none">
-        <DropdownMenuLabel className="text-[10px] uppercase font-black opacity-40 px-4 py-2">Dossier Options</DropdownMenuLabel>
-        <DropdownMenuItem className="gap-3 px-4 py-2.5 cursor-pointer" onClick={onView}>
-          <Eye className="w-4 h-4 text-primary/60" /> 
-          <span className="font-bold text-xs">View Profile</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem className="gap-3 px-4 py-2.5 cursor-pointer" onClick={onEdit}>
-          <Pencil className="w-4 h-4 text-primary/60" /> 
-          <span className="font-bold text-xs">Edit Details</span>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator className="bg-accent" />
-        <DropdownMenuItem 
-          className={cn(
-            "gap-3 px-4 py-2.5 cursor-pointer",
-            status === "active" ? "text-destructive hover:bg-red-50" : "text-green-600 hover:bg-green-50"
-          )}
-          onClick={onToggleStatus}
-        >
-          {status === "active" ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
-          <span className="font-bold text-xs">{status === "active" ? "Deactivate" : "Activate"}</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
   );
 }
