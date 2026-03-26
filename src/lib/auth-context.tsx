@@ -4,7 +4,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-export type UserRole = "SUPER_ADMIN" | "SCHOOL_ADMIN" | "SUB_ADMIN" | "TEACHER" | "STUDENT" | "PARENT" | "BURSAR" | "LIBRARIAN" | "CEO" | "CTO" | "COO" | "INV" | "DESIGNER";
+export type UserRole = "SUPER_ADMIN" | "CEO" | "CTO" | "COO" | "INV" | "DESIGNER" | "SCHOOL_ADMIN" | "SUB_ADMIN" | "TEACHER" | "STUDENT" | "PARENT" | "BURSAR" | "LIBRARIAN";
 
 export interface SchoolInfo {
   id: string;
@@ -137,6 +137,18 @@ export interface SupportContribution {
   createdAt: Date;
 }
 
+export interface PersonalChat {
+  id: string;
+  senderId: string;
+  senderName: string;
+  senderRole: string;
+  senderAvatar: string;
+  receiverId: string;
+  text: string;
+  timestamp: string;
+  isOfficial: boolean;
+}
+
 export interface PublicEvent {
   id: string;
   type: "video" | "image";
@@ -153,6 +165,7 @@ interface AuthContextType {
   orders: Order[];
   announcements: Announcement[];
   supportContributions: SupportContribution[];
+  personalChats: PersonalChat[];
   schools: SchoolInfo[];
   publicEvents: PublicEvent[];
   login: (matricule: string) => Promise<void>;
@@ -224,25 +237,6 @@ const INITIAL_SCHOOLS: SchoolInfo[] = [
     phone: "+237 670 00 00 00",
     email: "contact@gbhsdeido.cm",
     status: "Active"
-  },
-  {
-    id: "JOSS-L",
-    name: "Lycée de Joss",
-    shortName: "JOSSL",
-    principal: "Mme. Marie Ngono",
-    motto: "Knowledge is Power",
-    logo: "https://picsum.photos/seed/school-logo-2/200/200",
-    banner: "https://picsum.photos/seed/school-banner-2/1200/400",
-    description: "A prestigious institution known for its high academic standards and vibrant student life.",
-    location: "Bonanjo, Douala",
-    region: "Littoral",
-    division: "Wouri",
-    subDivision: "Douala 1er",
-    cityVillage: "Douala",
-    address: "Rue du Gouverneur, Bonanjo",
-    phone: "+237 671 11 11 11",
-    email: "admin@lyceejoss.cm",
-    status: "Active"
   }
 ];
 
@@ -257,29 +251,6 @@ const INITIAL_ANNOUNCEMENTS: Announcement[] = [
     senderAvatar: "https://picsum.photos/seed/cto/100/100",
     senderUid: "mock_EDUI26CTO001",
     createdAt: new Date(Date.now() - 3600000)
-  },
-  {
-    id: "ann-2",
-    title: "Quarterly Growth Portfolio: v2.4 Success",
-    content: "Investor Update: Institutional onboarding has reached a new milestone. Revenue velocity is up by 22% this term. Review the full dividend projection in the board vault.",
-    target: "investors",
-    senderName: "Lead Investor",
-    senderRole: "INV",
-    senderAvatar: "https://picsum.photos/seed/inv/100/100",
-    senderUid: "mock_EDUI26INV001",
-    createdAt: new Date(Date.now() - 7200000)
-  },
-  {
-    id: "ann-demo-appreciation",
-    title: "Strategic Support Verified",
-    content: "Dear Alice Thompson, We have verified your generous contribution. Your support is fueling the digital transformation of education across Africa. The EduIgnite community Love you dear. \n\n— EduIgnite CEO",
-    target: "personal",
-    targetUid: "mock_GBHS26S001",
-    senderName: "EduIgnite CEO",
-    senderRole: "CEO",
-    senderAvatar: "https://picsum.photos/seed/ceo/100/100",
-    senderUid: "mock_EDUI26CEO001",
-    createdAt: new Date()
   }
 ];
 
@@ -328,13 +299,14 @@ const PLATFORM_DEFAULTS: PlatformSettings = {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [userData, setUserData] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [schools, setSchools] = useState<SchoolInfo[]>(INITIAL_SCHOOLS);
+  const [schools, setSchools] = useState<SchoolInfo[]>([]);
   const [testimonials, setTestimonials] = useState<Testimony[]>([]);
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [announcements, setAnnouncements] = useState<Announcement[]>(INITIAL_ANNOUNCEMENTS);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [personalChats, setPersonalChats] = useState<PersonalChat[]>([]);
   const [supportContributions, setSupportContributions] = useState<SupportContribution[]>([]);
-  const [publicEvents, setPublicEvents] = useState<PublicEvent[]>(INITIAL_EVENTS);
+  const [publicEvents, setPublicEvents] = useState<PublicEvent[]>([]);
   const [platformSettings, setPlatformSettings] = useState<PlatformSettings>(PLATFORM_DEFAULTS);
 
   const router = useRouter();
@@ -365,6 +337,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setFeedbacks(loadRegistry("feedbacks", []));
     setOrders(loadRegistry("orders", []));
     setAnnouncements(loadRegistry("announcements", INITIAL_ANNOUNCEMENTS));
+    setPersonalChats(loadRegistry("personal_chats", []));
     setSupportContributions(loadRegistry("support", []));
     setSchools(loadRegistry("schools", INITIAL_SCHOOLS));
     setPublicEvents(loadRegistry("events", INITIAL_EVENTS));
@@ -379,12 +352,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem("eduignite_feedbacks", JSON.stringify(feedbacks));
       localStorage.setItem("eduignite_orders", JSON.stringify(orders));
       localStorage.setItem("eduignite_announcements", JSON.stringify(announcements));
+      localStorage.setItem("eduignite_personal_chats", JSON.stringify(personalChats));
       localStorage.setItem("eduignite_support", JSON.stringify(supportContributions));
       localStorage.setItem("eduignite_schools", JSON.stringify(schools));
       localStorage.setItem("eduignite_events", JSON.stringify(publicEvents));
       localStorage.setItem("eduignite_platform", JSON.stringify(platformSettings));
     }
-  }, [testimonials, feedbacks, orders, announcements, supportContributions, schools, platformSettings, publicEvents, isLoading]);
+  }, [testimonials, feedbacks, orders, announcements, personalChats, supportContributions, schools, platformSettings, publicEvents, isLoading]);
 
   const login = async (matricule: string) => {
     setIsLoading(true);
@@ -504,24 +478,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const verifySupport = (id: string) => {
     setSupportContributions(prev => prev.map(c => {
       if (c.id === id) {
-        // Send Appreciation Message
-        addAnnouncement({
-          title: "Strategic Support Verified",
-          content: `Dear ${c.userName}, We have verified your generous contribution. Your support is fueling the digital transformation of education across Africa. The EduIgnite community Love you dear. \n\n— ${userData?.name || "CEO"}`,
-          target: "personal",
-          targetUid: c.uid,
-          senderName: userData?.name || "CEO",
+        // Send Appreciation Message to Live Chat
+        const msg: PersonalChat = {
+          id: `MSG-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+          senderId: "mock_EDUI26CEO001",
+          senderName: "EduIgnite CEO",
           senderRole: "CEO",
-          senderAvatar: userData?.avatar || "",
-          senderUid: userData?.uid || ""
-        });
+          senderAvatar: "https://picsum.photos/seed/ceo/150/150",
+          receiverId: c.uid,
+          text: `Dear ${c.userName}, We have verified your generous contribution. Your support is fueling the digital transformation of education across Africa. The EduIgnite community Love you dear, EduIgnite CEO.`,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          isOfficial: true
+        };
+        setPersonalChats(prevChats => [...prevChats, msg]);
         return { ...c, status: "Verified" };
       }
       return c;
     }));
   };
   const deleteSupport = (id: string) => {
-    setSupportContributions(prev => prev.filter(c => c.id !== id));
+    setSupportContributions(prev => prev.filter(c => i.id !== id));
   };
 
   const addPublicEvent = (e: Omit<PublicEvent, "id">) => {
@@ -545,6 +521,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       feedbacks,
       orders,
       announcements,
+      personalChats,
       supportContributions,
       schools,
       publicEvents,

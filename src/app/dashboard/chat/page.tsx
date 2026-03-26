@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,14 +9,31 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Search, User, MessageCircle, MoreVertical, ArrowLeft, Crown, Zap, Monitor, Heart, Sparkles } from "lucide-react";
+import { 
+  Send, 
+  Search, 
+  User, 
+  MessageCircle, 
+  MoreVertical, 
+  ArrowLeft, 
+  Crown, 
+  Zap, 
+  Monitor, 
+  Heart, 
+  Sparkles, 
+  Lock, 
+  ShieldCheck,
+  Info
+} from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const BOARD_CONTACTS = [
-  { id: "EDUI26CEO001", name: "EduIgnite CEO", role: "CEO", avatar: "https://picsum.photos/seed/ceo/150/150", lastMsg: "System growth is optimal.", online: true },
-  { id: "EDUI26CTO001", name: "Tech Director", role: "CTO", avatar: "https://picsum.photos/seed/cto/150/150", lastMsg: "Node API patched.", online: true },
-  { id: "EDUI26COO001", name: "Operations Lead", role: "COO", avatar: "https://picsum.photos/seed/coo/150/150", lastMsg: "New nodes activated.", online: false },
-  { id: "EDUI26INV001", name: "Lead Investor", role: "INV", avatar: "https://picsum.photos/seed/inv/150/150", lastMsg: "Quarterly reports ready.", online: true },
+  { id: "mock_EDUI26CEO001", name: "EduIgnite CEO", role: "CEO", avatar: "https://picsum.photos/seed/ceo/150/150", lastMsg: "System growth is optimal.", online: true },
+  { id: "mock_EDUI26CTO001", name: "Tech Director", role: "CTO", avatar: "https://picsum.photos/seed/cto/150/150", lastMsg: "Node API patched.", online: true },
+  { id: "mock_EDUI26COO001", name: "Operations Lead", role: "COO", avatar: "https://picsum.photos/seed/coo/150/150", lastMsg: "New nodes activated.", online: false },
+  { id: "mock_EDUI26INV001", name: "Lead Investor", role: "INV", avatar: "https://picsum.photos/seed/inv/150/150", lastMsg: "Quarterly reports ready.", online: true },
 ];
 
 const MOCK_SCHOOL_CONTACTS = [
@@ -26,31 +43,64 @@ const MOCK_SCHOOL_CONTACTS = [
 ];
 
 const MOCK_MESSAGES = [
-  { id: "M1", senderId: "other", text: "Hello, I wanted to discuss the latest platform metrics.", timestamp: "10:30 AM" },
-  { id: "M2", senderId: "me", text: "I have the creative reports ready for review.", timestamp: "10:32 AM" },
-  { id: "M3", senderId: "other", text: "Excellent. Let's sync during the board meeting.", timestamp: "10:35 AM" },
+  { id: "M1", senderId: "other", text: "Hello, I wanted to discuss the latest platform metrics.", timestamp: "10:30 AM", isOfficial: false },
+  { id: "M2", senderId: "me", text: "I have the creative reports ready for review.", timestamp: "10:32 AM", isOfficial: false },
+  { id: "M3", senderId: "other", text: "Excellent. Let's sync during the board meeting.", timestamp: "10:35 AM", isOfficial: false },
 ];
 
 export default function ChatPage() {
-  const { user } = useAuth();
+  const { user, personalChats } = useAuth();
   const { t, language } = useI18n();
   const [selectedContact, setSelectedContact] = useState<any>(null);
   const [messageText, setMessageText] = useState("");
 
   const isExecutive = ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV", "DESIGNER"].includes(user?.role || "");
-  const isDesigner = user?.role === "DESIGNER";
+  
+  const relevantPersonalMessages = useMemo(() => {
+    if (!user) return [];
+    return personalChats.filter(m => m.receiverId === user.uid || m.senderId === user.uid);
+  }, [personalChats, user]);
 
   const contacts = useMemo(() => {
-    if (isExecutive) return BOARD_CONTACTS.filter(c => c.id !== user?.id);
-    return MOCK_SCHOOL_CONTACTS;
-  }, [isExecutive, user?.id]);
+    let list = isExecutive ? BOARD_CONTACTS.filter(c => c.id !== user?.uid) : [...MOCK_SCHOOL_CONTACTS];
+    
+    // Add CEO to school users if they have personal messages
+    if (!isExecutive && relevantPersonalMessages.some(m => m.senderRole === "CEO")) {
+      const ceoContact = BOARD_CONTACTS.find(c => c.role === "CEO");
+      if (ceoContact && !list.some(c => c.id === ceoContact.id)) {
+        list = [ceoContact, ...list];
+      }
+    }
+    
+    return list;
+  }, [isExecutive, user?.uid, relevantPersonalMessages]);
+
+  const activeMessages = useMemo(() => {
+    if (!selectedContact) return [];
+    
+    // Official System Messages
+    const official = relevantPersonalMessages
+      .filter(m => m.senderId === selectedContact.id || m.receiverId === selectedContact.id)
+      .map(m => ({
+        id: m.id,
+        senderId: m.senderId === user?.uid ? "me" : "other",
+        text: m.text,
+        timestamp: m.timestamp,
+        isOfficial: m.isOfficial
+      }));
+
+    if (official.length > 0) return official;
+    return MOCK_MESSAGES;
+  }, [selectedContact, relevantPersonalMessages, user?.uid]);
 
   const handleSendMessage = () => {
-    if (!messageText.trim()) return;
+    if (!messageText.trim() || selectedContact?.role === "CEO") return;
     setMessageText("");
   };
 
-  if (user?.role === "SUPER_ADMIN" && !isDesigner) { // Keep Super Admin restricted unless specified
+  const isNoReply = selectedContact?.role === "CEO" && activeMessages.some(m => m.isOfficial);
+
+  if (user?.role === "SUPER_ADMIN") {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4 px-4">
         <MessageCircle className="w-16 h-16 text-primary/20" />
@@ -155,12 +205,17 @@ export default function ChatPage() {
                     <p className="text-[9px] md:text-[10px] text-muted-foreground uppercase font-black tracking-widest">{selectedContact.role}</p>
                   </div>
                 </div>
-                <Button variant="ghost" size="icon"><MoreVertical className="w-4 h-4 text-muted-foreground" /></Button>
+                {isNoReply && (
+                  <Badge variant="secondary" className="bg-secondary/20 text-primary border-none text-[8px] font-black uppercase tracking-widest gap-1.5 h-7 px-3">
+                    <ShieldCheck className="w-3.5 h-3.5" /> Official Node
+                  </Badge>
+                )}
+                {!isNoReply && <Button variant="ghost" size="icon"><MoreVertical className="w-4 h-4 text-muted-foreground" /></Button>}
               </div>
 
               <ScrollArea className="flex-1 p-4 md:p-6">
                 <div className="space-y-4 md:space-y-6">
-                  {MOCK_MESSAGES.map((msg) => (
+                  {activeMessages.map((msg) => (
                     <div
                       key={msg.id}
                       className={cn(
@@ -169,11 +224,18 @@ export default function ChatPage() {
                       )}
                     >
                       <div className={cn(
-                        "p-3 md:p-4 rounded-2xl text-sm shadow-sm",
+                        "p-3 md:p-4 rounded-2xl text-sm shadow-sm relative",
                         msg.senderId === "me" 
                           ? "bg-primary text-white rounded-tr-none" 
-                          : "bg-white text-foreground rounded-tl-none border border-accent"
+                          : "bg-white text-foreground rounded-tl-none border border-accent",
+                        msg.isOfficial && "border-2 border-secondary bg-secondary/5 font-medium italic"
                       )}>
+                        {msg.isOfficial && (
+                          <div className="flex items-center gap-2 mb-2 pb-2 border-b border-secondary/20">
+                            <ShieldCheck className="w-4 h-4 text-secondary" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-secondary">Verified Appreciation</span>
+                          </div>
+                        )}
                         {msg.text}
                       </div>
                       <span className="text-[10px] text-muted-foreground mt-1 px-1">{msg.timestamp}</span>
@@ -182,17 +244,28 @@ export default function ChatPage() {
                 </div>
               </ScrollArea>
 
-              <div className="p-3 md:p-4 bg-white border-t flex items-center gap-2 md:gap-3">
-                <Input
-                  placeholder="Type a message..."
-                  className="flex-1 bg-accent/30 border-none h-10 md:h-12 text-sm rounded-xl focus-visible:ring-primary"
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-                />
-                <Button size="icon" className="h-10 w-10 md:h-12 md:w-12 rounded-xl shadow-lg shrink-0 bg-primary hover:bg-primary/90" onClick={handleSendMessage}>
-                  <Send className="w-4 h-4 md:w-5 md:h-5 text-white" />
-                </Button>
+              <div className="p-3 md:p-4 bg-white border-t flex flex-col gap-2">
+                {isNoReply ? (
+                  <div className="flex items-center justify-center gap-3 p-4 bg-accent/30 rounded-2xl border border-accent animate-in fade-in slide-in-from-bottom-2">
+                    <Lock className="w-5 h-5 text-primary opacity-40" />
+                    <p className="text-[10px] font-black uppercase text-primary/60 tracking-widest leading-relaxed text-center">
+                      This message is an official platform record and cannot be replied to.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 md:gap-3">
+                    <Input
+                      placeholder="Type a message..."
+                      className="flex-1 bg-accent/30 border-none h-10 md:h-12 text-sm rounded-xl focus-visible:ring-primary"
+                      value={messageText}
+                      onChange={(e) => setMessageText(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                    />
+                    <Button size="icon" className="h-10 w-10 md:h-12 md:w-12 rounded-xl shadow-lg shrink-0 bg-primary hover:bg-primary/90" onClick={handleSendMessage}>
+                      <Send className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                    </Button>
+                  </div>
+                )}
               </div>
             </>
           ) : (
