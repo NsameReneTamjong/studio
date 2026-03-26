@@ -16,45 +16,35 @@ import {
   Library, 
   Search, 
   Book, 
-  Download, 
-  Printer, 
   CheckCircle2, 
   Clock, 
-  ChevronRight,
   ShieldCheck,
-  Building2,
-  User,
-  MapPin,
-  QrCode,
-  Loader2,
-  Bookmark,
-  Info,
+  Plus, 
+  History,
   BookOpen,
   Settings2,
   Coins,
   AlertCircle,
   Save,
   Users,
-  Plus,
   Pencil,
   Trash2,
   Eye,
-  FileText,
   FileDown,
   ArrowUpRight,
-  CheckCircle,
   ArrowLeftRight,
   Gavel,
   ShieldAlert,
   CalendarClock,
-  History,
-  Signature,
   X,
   BookMarked,
   Filter,
-  BarChart3,
-  TrendingUp,
-  Receipt
+  Receipt,
+  User,
+  QrCode,
+  Printer,
+  Loader2,
+  Signature
 } from "lucide-react";
 import { 
   Dialog, 
@@ -70,7 +60,7 @@ import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-// Mock Data for Books
+// Mock Data
 const INITIAL_BOOKS = [
   { id: "B001", title: "Advanced Physics", author: "Dr. Tesla", category: "Science", available: 5, total: 10, cover: "https://picsum.photos/seed/phys/400/600", description: "In-depth study of thermodynamics and classical mechanics for advanced students.", isbn: "ISBN-922-X" },
   { id: "B002", title: "Calculus II", author: "Prof. Smith", category: "Mathematics", available: 2, total: 5, cover: "https://picsum.photos/seed/math/400/600", description: "Comprehensive guide to integration, series, and multivariable calculus.", isbn: "ISBN-102-M" },
@@ -82,7 +72,7 @@ const INITIAL_LOANS = [
   { id: "LOAN-101", bookTitle: "Organic Chemistry", author: "Marie Curie", borrowerName: "Alice Thompson", borrowerId: "S001", borrowDate: "May 15, 2024", returnDate: "May 29, 2024", status: "Active", collectionCode: "IGN-882-X" }
 ];
 
-const MOCK_STUDENT_HISTORY = [
+const MOCK_PERSONAL_HISTORY = [
   { id: "H1", bookTitle: "Things Fall Apart", author: "Chinua Achebe", borrowDate: "Jan 10, 2024", returnDate: "Jan 24, 2024", status: "Returned", code: "IGN-102-A" },
   { id: "H2", bookTitle: "Advanced Physics", author: "Dr. Tesla", borrowDate: "Dec 05, 2023", returnDate: "Dec 19, 2023", status: "Returned", code: "IGN-405-B" },
   { id: "H3", bookTitle: "Calculus I", author: "Prof. Smith", borrowDate: "Nov 12, 2023", returnDate: "Nov 26, 2023", status: "Returned", code: "IGN-991-Z" },
@@ -551,7 +541,7 @@ export default function LibraryPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {MOCK_STUDENT_HISTORY.map((hist) => (
+                    {MOCK_PERSONAL_HISTORY.map((hist) => (
                       <TableRow key={hist.id} className="hover:bg-accent/5 transition-colors border-b border-accent/10">
                         <TableCell className="pl-8 py-4">
                           <div className="flex items-center gap-3">
@@ -769,7 +759,7 @@ export default function LibraryPage() {
         )}
       </Tabs>
 
-      {/* COLLECTION RECEIPT DIALOG (GEREATED UPON ISSUE) */}
+      {/* COLLECTION RECEIPT DIALOG */}
       <Dialog open={!!issuedReceipt} onOpenChange={() => setIssuedReceipt(null)}>
         <DialogContent className="sm:max-w-xl p-0 border-none shadow-2xl rounded-[2rem] overflow-hidden">
           <DialogHeader className="bg-primary p-8 text-white no-print">
@@ -810,23 +800,23 @@ export default function LibraryPage() {
                <div className="grid grid-cols-2 gap-8 py-4">
                   <div className="space-y-4">
                     <div>
-                      <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Borrower Identity</p>
+                      <p className="text-[8px] md:text-[9px] font-black uppercase text-muted-foreground tracking-widest border-b border-black/5 pb-1 mb-2">Borrower Identity</p>
                       <p className="font-black text-sm uppercase">{issuedReceipt?.userName}</p>
                       <p className="text-[9px] font-mono font-bold text-primary">{issuedReceipt?.userId} • {issuedReceipt?.userRole}</p>
                     </div>
                     <div>
-                      <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Collection Resource</p>
+                      <p className="text-[8px] md:text-[9px] font-black uppercase text-muted-foreground tracking-widest border-b border-black/5 pb-1 mb-2">Collection Resource</p>
                       <p className="font-black text-sm uppercase">{issuedReceipt?.bookTitle}</p>
                       <p className="text-[9px] font-bold italic">By {issuedReceipt?.bookAuthor}</p>
                     </div>
                   </div>
                   <div className="space-y-4 text-right">
                     <div>
-                      <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Issue Date</p>
+                      <p className="text-[8px] md:text-[9px] font-black uppercase text-muted-foreground tracking-widest">Issue Date</p>
                       <p className="font-bold text-sm">{issuedReceipt?.issueDate}</p>
                     </div>
                     <div className="p-3 bg-primary text-white rounded-xl shadow-inner">
-                      <p className="text-[8px] font-black uppercase opacity-60 tracking-widest">Mandatory Due Date</p>
+                      <p className="text-[8px] md:text-[9px] font-black uppercase opacity-60 tracking-widest">Mandatory Due Date</p>
                       <p className="font-black text-lg text-secondary underline underline-offset-4 decoration-double">{issuedReceipt?.dueDate}</p>
                     </div>
                   </div>
@@ -864,14 +854,14 @@ export default function LibraryPage() {
             <Button variant="outline" className="flex-1 rounded-xl h-12 font-black uppercase tracking-widest text-xs" onClick={() => setIssuedReceipt(null)}>
               Dismiss
             </Button>
-            <Button className="flex-1 rounded-xl h-12 shadow-lg font-black uppercase tracking-widest text-xs gap-2 bg-primary text-white" onClick={() => window.print()}>
+            <Button className="flex-1 rounded-xl h-12 shadow-lg font-bold gap-2 bg-primary text-white" onClick={() => window.print()}>
               <Printer className="w-4 h-4" /> Print Receipt
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* RESOURCE DOSSIER DIALOG (READ-ONLY) */}
+      {/* RESOURCE DOSSIER DIALOG */}
       <Dialog open={!!selectedLoanDetails} onOpenChange={() => setSelectedLoanDetails(null)}>
         <DialogContent className="sm:max-w-2xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
           <DialogHeader className="bg-primary p-8 text-white relative">
@@ -898,22 +888,12 @@ export default function LibraryPage() {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 mb-2">
                   <Badge variant="secondary" className="bg-secondary/20 text-primary border-none text-[9px] font-black uppercase tracking-widest">
-                    {selectedLoanDetails?.category}
+                    {selectedLoanDetails?.category || "General"}
                   </Badge>
-                  <Badge variant="outline" className="text-[9px] border-primary/10 font-mono">{selectedLoanDetails?.isbn}</Badge>
                 </div>
                 <h2 className="text-3xl font-black text-primary leading-tight uppercase tracking-tight">{selectedLoanDetails?.bookTitle}</h2>
                 <p className="text-sm font-bold text-muted-foreground italic flex items-center gap-2">
                   <User className="w-4 h-4" /> Authored by {selectedLoanDetails?.author}
-                </p>
-              </div>
-
-              <div className="space-y-3 bg-accent/20 p-6 rounded-2xl border border-accent">
-                <Label className="text-[10px] font-black uppercase text-primary/40 tracking-[0.2em] flex items-center gap-2">
-                  <FileText className="w-3.5 h-3.5" /> Pedagogical Summary
-                </Label>
-                <p className="text-sm leading-relaxed text-muted-foreground font-medium italic">
-                  "{selectedLoanDetails?.description || "This resource is an essential component of the institution's curriculum, specifically curated for advanced sequence study."}"
                 </p>
               </div>
 
@@ -922,7 +902,7 @@ export default function LibraryPage() {
                   <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
                     <QrCode className="w-3.5 h-3.5" /> Registry Code
                   </p>
-                  <p className="text-lg font-mono font-black text-primary">{selectedLoanDetails?.collectionCode}</p>
+                  <p className="text-lg font-mono font-black text-primary">{selectedLoanDetails?.collectionCode || "IGN-X"}</p>
                 </div>
                 <div className="space-y-1 text-right">
                   <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2 justify-end">
@@ -933,17 +913,6 @@ export default function LibraryPage() {
               </div>
             </div>
           </div>
-          
-          <DialogFooter className="bg-accent/10 p-6 border-t border-accent flex justify-between items-center">
-             <div className="flex items-center gap-3 text-muted-foreground">
-                <ShieldCheck className="w-5 h-5 text-primary opacity-40" />
-                <div className="space-y-0.5">
-                  <p className="text-[10px] font-black uppercase tracking-widest italic opacity-40 leading-none">Institutional Asset</p>
-                  <p className="text-[8px] font-bold text-primary/40 uppercase leading-none">Verified Node Sync Active</p>
-                </div>
-             </div>
-             <p className="text-[10px] font-black text-primary/60 uppercase tracking-tighter">Electronic Portfolio • {new Date().getFullYear()}</p>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
