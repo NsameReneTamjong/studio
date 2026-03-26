@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
@@ -17,9 +18,10 @@ import {
   Zap,
   Globe
 } from "lucide-react";
-import Link from "next/link";
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 export default function SchoolWelcomePage() {
   const { user, isAuthenticated, isLoading: isAuthLoading, schools } = useAuth();
@@ -27,6 +29,8 @@ export default function SchoolWelcomePage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [isConnecting, setIsConnecting] = useState(true);
+  const [typingText, setTypingText] = useState("");
+  const fullText = "Insanely great.";
 
   useEffect(() => {
     setMounted(true);
@@ -34,12 +38,23 @@ export default function SchoolWelcomePage() {
       router.push("/login");
     }
 
-    // Simulate high-fidelity connection sequence
     if (isAuthenticated && user) {
+      // 1. Typing Animation logic
+      let i = 0;
+      const interval = setInterval(() => {
+        setTypingText(fullText.slice(0, i));
+        i++;
+        if (i > fullText.length) clearInterval(interval);
+      }, 100);
+
+      // 2. High-fidelity connection sequence delay
       const timer = setTimeout(() => {
         setIsConnecting(false);
-      }, 2500);
-      return () => clearTimeout(timer);
+      }, 3500);
+      return () => {
+        clearTimeout(timer);
+        clearInterval(interval);
+      };
     }
   }, [isAuthenticated, isAuthLoading, user, router]);
 
@@ -48,24 +63,31 @@ export default function SchoolWelcomePage() {
       <div className="flex flex-col items-center justify-center min-h-screen bg-[#F0F2F5] p-8">
         <div className="relative">
           <div className="absolute inset-0 bg-primary/20 rounded-full blur-3xl animate-pulse" />
-          <div className="relative bg-white p-8 rounded-[3rem] shadow-2xl flex flex-col items-center gap-6 text-center max-w-sm border border-white">
+          <div className="relative bg-white p-10 rounded-[3rem] shadow-2xl flex flex-col items-center gap-8 text-center max-w-md border border-white">
             <div className="relative">
-              <div className="absolute inset-0 bg-secondary/20 rounded-2xl animate-ping" />
-              <div className="relative bg-primary p-5 rounded-2xl shadow-xl">
-                <Building2 className="w-10 h-10 text-secondary" />
+              <div className="absolute inset-0 bg-secondary/20 rounded-[2rem] animate-ping" />
+              <div className="relative bg-primary p-6 rounded-[2rem] shadow-xl animate-[spin_4s_linear_infinite]">
+                <Building2 className="w-12 h-12 text-secondary" />
               </div>
             </div>
             
-            <div className="space-y-2">
-              <h2 className="text-2xl font-black text-primary uppercase tracking-tighter leading-tight">
-                Connecting You to Your School
-              </h2>
-              <p className="text-sm text-muted-foreground font-medium">
-                We are setting up your secure pedagogical access. This will only take a few seconds.
-              </p>
+            <div className="space-y-4">
+              <div className="h-8">
+                <p className="text-xl font-black text-primary font-mono tracking-tighter italic">
+                  {typingText}<span className="animate-pulse">|</span>
+                </p>
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-2xl font-black text-primary uppercase tracking-tighter leading-tight">
+                  Connecting You to Your School
+                </h2>
+                <p className="text-sm text-muted-foreground font-medium">
+                  We are setting up your access. This will only take a few seconds.
+                </p>
+              </div>
             </div>
 
-            <div className="flex items-center gap-3 bg-accent/50 px-6 py-3 rounded-2xl w-full border border-accent">
+            <div className="flex items-center gap-3 bg-accent/50 px-6 py-4 rounded-2xl w-full border border-accent">
               <Loader2 className="w-5 h-5 animate-spin text-primary" />
               <span className="text-[10px] font-black uppercase text-primary tracking-widest animate-pulse">Syncing Node Registry</span>
             </div>

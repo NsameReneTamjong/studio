@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
@@ -106,7 +107,7 @@ export default function DashboardPage() {
   const [selectedSchoolId, setSelectedSchoolId] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const activeChartData = DATA_PERIODS[timePeriod] || DATA_PERIODS.monthly;
+  const activeChartData = useMemo(() => DATA_PERIODS[timePeriod] || DATA_PERIODS.monthly, [timePeriod]);
 
   const summaryStats = useMemo(() => {
     return {
@@ -132,10 +133,6 @@ export default function DashboardPage() {
 
   const isPlatformExecutive = ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV", "DESIGNER"].includes(user.role);
   const isInstitutionalAdmin = ["SCHOOL_ADMIN", "SUB_ADMIN"].includes(user.role);
-  const isParent = user.role === "PARENT";
-  const isBursar = user.role === "BURSAR";
-  const isStudent = user.role === "STUDENT";
-  const isTeacher = user.role === "TEACHER";
 
   if (isPlatformExecutive) {
     return (
