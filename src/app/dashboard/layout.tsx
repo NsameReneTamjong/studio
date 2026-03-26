@@ -106,7 +106,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   const handleSupportSubmit = () => {
-    if (!supportData.phone || !user) return;
+    if (!supportData.phone || !user || !supportData.amount) return;
     setIsSubmittingSupport(true);
     
     setTimeout(() => {
@@ -337,40 +337,40 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 </div>
                               </div>
                             </DialogHeader>
-                            <div className="p-8 space-y-6">
+                            <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
                               <div className="space-y-4">
                                 <div className="space-y-2">
-                                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Contribution Amount (XAF)</Label>
-                                  <Select value={supportData.amount} onValueChange={(v) => setSupportData({...supportData, amount: v})}>
-                                    <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-black text-primary">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="500">500 XAF</SelectItem>
-                                      <SelectItem value="1000">1,000 XAF</SelectItem>
-                                      <SelectItem value="2500">2,500 XAF</SelectItem>
-                                      <SelectItem value="5000">5,000 XAF</SelectItem>
-                                      <SelectItem value="10000">10,000 XAF</SelectItem>
-                                    </SelectContent>
-                                  </Select>
+                                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Contribution Amount (XAF)</Label>
+                                  <div className="relative">
+                                    <Input 
+                                      type="number" 
+                                      placeholder="Enter amount..." 
+                                      className="h-12 bg-accent/30 border-none rounded-xl font-black text-primary pl-14"
+                                      value={supportData.amount}
+                                      onChange={(e) => setSupportData({...supportData, amount: e.target.value})}
+                                    />
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-black text-primary/40">XAF</div>
+                                  </div>
                                 </div>
                                 <div className="space-y-2">
-                                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Payment Method</Label>
-                                  <div className="flex gap-2">
+                                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Payment Method</Label>
+                                  <div className="grid grid-cols-2 gap-2">
                                     <Button 
+                                      type="button"
                                       variant={supportData.method === 'MTN MoMo' ? 'default' : 'outline'}
-                                      className="flex-1 h-12 rounded-xl font-bold"
+                                      className={cn("h-12 rounded-xl font-bold", supportData.method === 'MTN MoMo' ? "border-primary" : "border-accent")}
                                       onClick={() => setSupportData({...supportData, method: 'MTN MoMo'})}
                                     >MTN</Button>
                                     <Button 
+                                      type="button"
                                       variant={supportData.method === 'Orange Money' ? 'default' : 'outline'}
-                                      className="flex-1 h-12 rounded-xl font-bold"
+                                      className={cn("h-12 rounded-xl font-bold", supportData.method === 'Orange Money' ? "border-primary" : "border-accent")}
                                       onClick={() => setSupportData({...supportData, method: 'Orange Money'})}
                                     >Orange</Button>
                                   </div>
                                 </div>
                                 <div className="space-y-2">
-                                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Mobile Number</Label>
+                                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Mobile Number</Label>
                                   <div className="relative">
                                     <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
                                     <Input 
@@ -382,7 +382,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                   </div>
                                 </div>
                                 <div className="space-y-2">
-                                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Optional Note</Label>
+                                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Optional Note</Label>
                                   <Textarea 
                                     placeholder="Leave a message of encouragement..." 
                                     className="bg-accent/30 border-none rounded-xl min-h-[80px]"
@@ -396,7 +396,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                               <Button 
                                 className="w-full h-14 rounded-2xl shadow-xl font-black uppercase text-xs gap-3 bg-primary text-white hover:bg-primary/90" 
                                 onClick={handleSupportSubmit}
-                                disabled={isSubmittingSupport || !supportData.phone}
+                                disabled={isSubmittingSupport || !supportData.phone || !supportData.amount}
                               >
                                 {isSubmittingSupport ? <Loader2 className="w-5 h-5 animate-spin" /> : <ShieldCheck className="w-5 h-5 text-secondary" />}
                                 Authorize Contribution
