@@ -46,7 +46,8 @@ import {
   Printer,
   QrCode,
   ChevronRight,
-  UserRound
+  UserRound,
+  Fingerprint
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
