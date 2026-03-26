@@ -29,10 +29,12 @@ export default function SchoolWelcomePage() {
   const [isConnecting, setIsConnecting] = useState(true);
 
   useEffect(() => {
+    // Redirect to login if not authenticated
     if (!isAuthLoading && !isAuthenticated) {
       router.push("/login");
     }
 
+    // High-fidelity loading delay for cinematic effect
     if (isAuthenticated && user) {
       const timer = setTimeout(() => {
         setIsConnecting(false);
@@ -45,17 +47,20 @@ export default function SchoolWelcomePage() {
     return <LoadingScreen />;
   }
 
-  const school = user?.school || (user?.schoolId ? schools.find(s => s.id === user?.schoolId) : schools[0]);
+  // Robust school resolution for prototype
+  const resolvedSchool = user?.school || 
+    (user?.schoolId ? schools.find(s => s.id === user?.schoolId) : null) || 
+    schools[0];
 
-  if (!user || !school) {
+  if (!user || !resolvedSchool) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-background p-8 text-center space-y-6">
         <div className="p-6 bg-primary/5 rounded-full border-2 border-dashed border-primary/20">
           <Building2 className="w-16 h-16 text-primary/20" />
         </div>
         <div className="space-y-2">
-          <h1 className="text-2xl font-black text-primary uppercase tracking-tighter">Connection Timeout</h1>
-          <p className="text-muted-foreground max-w-md mx-auto">We couldn't link your account to an institutional node. Please re-authenticate.</p>
+          <h1 className="text-2xl font-black text-primary uppercase tracking-tighter">Connection Refused</h1>
+          <p className="text-muted-foreground max-w-md mx-auto">We encountered an issue synchronizing your institutional node data. Please try re-authenticating.</p>
         </div>
         <Button variant="outline" className="rounded-xl gap-2 font-bold" onClick={() => router.push("/login")}>
           <RefreshCw className="w-4 h-4" /> Back to Login
@@ -76,8 +81,8 @@ export default function SchoolWelcomePage() {
         <div className="lg:col-span-7 space-y-8">
           <div className="relative aspect-video rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white bg-slate-200 group">
             <img 
-              src={school.banner} 
-              alt={school.name} 
+              src={resolvedSchool.banner} 
+              alt={resolvedSchool.name} 
               className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-primary/95 via-primary/20 to-transparent" />
@@ -85,19 +90,19 @@ export default function SchoolWelcomePage() {
             <div className="absolute bottom-10 left-10 right-10 text-white space-y-4">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 bg-white rounded-2xl p-3 shadow-xl flex items-center justify-center border-2 border-accent transition-transform hover:rotate-3">
-                  <img src={school.logo} alt="Logo" className="w-full h-full object-contain" />
+                  <img src={resolvedSchool.logo} alt="Logo" className="w-full h-full object-contain" />
                 </div>
                 <div>
                   <Badge className="bg-secondary text-primary border-none font-black uppercase text-[9px] px-3 h-6 mb-1">
-                    Node: {school.id}
+                    Node: {resolvedSchool.id}
                   </Badge>
-                  <h1 className="text-4xl md:text-5xl font-black leading-none tracking-tighter">
-                    {school.name}
+                  <h1 className="text-4xl md:text-5xl font-black leading-none tracking-tighter uppercase">
+                    {resolvedSchool.name}
                   </h1>
                 </div>
               </div>
               <p className="text-xl md:text-2xl italic opacity-90 font-serif leading-tight">
-                "{school.motto}"
+                "{resolvedSchool.motto}"
               </p>
             </div>
           </div>
@@ -155,7 +160,7 @@ export default function SchoolWelcomePage() {
                 <Globe className="w-4 h-4 text-primary" />
                 <span className="text-[8px] font-black uppercase tracking-widest">Regional Cluster Littoral</span>
              </div>
-             <p className="text-[8px] font-black uppercase tracking-widest">Powered by EduIgnite SaaS</p>
+             <p className="text-[8px] font-black uppercase tracking-widest">Powered by {resolvedSchool.shortName} SaaS Node</p>
           </div>
         </div>
 

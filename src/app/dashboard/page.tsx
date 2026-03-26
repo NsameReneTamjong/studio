@@ -55,6 +55,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 const DATA_PERIODS = {
   weekly: [
@@ -339,9 +340,7 @@ export default function DashboardPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {(schools || [])
-                  .filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
-                  .map((school) => (
+                {(schools || []).filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase())).map((school) => (
                   <TableRow key={school.id} className="hover:bg-accent/5 transition-colors border-b last:border-0">
                     <TableCell className="pl-8 py-4">
                       <div className="flex items-center gap-3">
