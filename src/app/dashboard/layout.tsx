@@ -20,7 +20,10 @@ import {
   Quote,
   ChevronRight,
   ShieldCheck,
-  Globe
+  Globe,
+  Coins,
+  Smartphone,
+  Star
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
@@ -35,6 +38,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -42,14 +46,25 @@ import Link from "next/link";
 const EXECUTIVE_ROLES: UserRole[] = ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV", "DESIGNER"];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, user, isLoading, platformSettings, addTestimony } = useAuth();
+  const { isAuthenticated, user, isLoading, platformSettings, addTestimony, addSupport } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
+  
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isTestimonyModalOpen, setIsTestimonyModalOpen] = useState(false);
+  const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
+  
   const [testimonyMessage, setTestimonyMessage] = useState("");
   const [isSubmittingTestimony, setIsSubmittingTestimony] = useState(false);
+
+  const [supportData, setSupportData] = useState({
+    amount: "1000",
+    method: "MTN MoMo",
+    phone: "",
+    message: ""
+  });
+  const [isSubmittingSupport, setIsSubmittingSupport] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -76,9 +91,34 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       setTestimonyMessage("");
       toast({
         title: "Testimony Received",
-        description: "Your testimony has been submitted for review.",
+        description: "Your story has been submitted for review.",
       });
     }, 1000);
+  };
+
+  const handleSupportSubmit = () => {
+    if (!supportData.phone || !user) return;
+    setIsSubmittingSupport(true);
+    
+    setTimeout(() => {
+      addSupport({
+        userName: user.name,
+        userRole: user.role,
+        userAvatar: user.avatar || "",
+        amount: parseInt(supportData.amount),
+        method: supportData.method,
+        phone: supportData.phone,
+        message: supportData.message
+      });
+      
+      setIsSubmittingSupport(false);
+      setIsSupportModalOpen(false);
+      setSupportData({ amount: "1000", method: "MTN MoMo", phone: "", message: "" });
+      toast({
+        title: "Contribution Received",
+        description: "Thank you for supporting our institutional movement!",
+      });
+    }, 1500);
   };
 
   if (isLoading) {
@@ -96,7 +136,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const isLicensePaid = user.isLicensePaid;
   const isSubscriptionPage = pathname === "/dashboard/subscription";
 
-  // License Enforcement logic
   if (!isLicensePaid && !isPlatformExecutive && !isSubscriptionPage) {
     return (
       <div className="flex h-screen overflow-hidden bg-background">
@@ -200,24 +239,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       Dedicated to delivering world-class pedagogical excellence through secure digital infrastructure. This institutional node is verified and managed by authorized personnel.
                     </p>
                     <div className="flex flex-wrap items-center gap-4">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="rounded-xl border-primary/20 text-primary font-bold gap-2 h-10 px-4 group"
-                        asChild
-                      >
+                      <Button variant="outline" size="sm" className="rounded-xl border-primary/20 text-primary font-bold gap-2 h-10 px-4 group" asChild>
                         <a href={tutorialUrl} target="_blank" rel="noopener noreferrer">
                           <Youtube className="w-4 h-4 text-red-600" />
                           Training Portal
                           <ChevronRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
                         </a>
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="rounded-xl border-primary/20 text-primary font-bold gap-2 h-10 px-4"
-                        asChild
-                      >
+                      <Button variant="outline" size="sm" className="rounded-xl border-primary/20 text-primary font-bold gap-2 h-10 px-4" asChild>
                         <Link href="/dashboard/feedback">
                           <MessageSquare className="w-4 h-4 text-primary" />
                           Contact Support
@@ -230,14 +259,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <div className="bg-secondary/10 p-6 rounded-3xl border border-secondary/20 flex flex-col md:items-end text-center md:text-right space-y-3">
                       <div>
                         <h4 className="font-black text-primary uppercase text-xs tracking-widest flex items-center md:justify-end gap-2 mb-1">
-                          Share Experience <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500" />
+                          Community & Support <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500" />
                         </h4>
-                        <p className="text-xs text-muted-foreground">Help highlight institutional success stories.</p>
+                        <p className="text-xs text-muted-foreground">Help strengthen our institutional digital vision.</p>
                       </div>
                       
                       <div className="flex flex-wrap gap-3 md:justify-end">
+                        {/* TESTIMONY MODAL */}
                         <Dialog open={isTestimonyModalOpen} onOpenChange={setIsTestimonyModalOpen}>
-                          <Button asChild variant="outline" className="rounded-xl border-primary/20 text-primary h-11 px-8 font-bold gap-2 bg-white hover:bg-primary/5">
+                          <Button asChild variant="outline" className="rounded-xl border-primary/20 text-primary h-11 px-6 font-bold gap-2 bg-white hover:bg-primary/5">
                             <button>
                               <Quote className="w-4 h-4" />
                               Give Testimony
@@ -279,6 +309,92 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                               >
                                 {isSubmittingTestimony ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                                 Submit for Review
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+
+                        {/* SUPPORT US MODAL */}
+                        <Dialog open={isSupportModalOpen} onOpenChange={setIsSupportModalOpen}>
+                          <Button asChild className="rounded-xl bg-primary text-white h-11 px-8 font-black uppercase tracking-widest text-[10px] gap-2 shadow-lg hover:bg-primary/90">
+                            <button>
+                              <Coins className="w-4 h-4 text-secondary" />
+                              Support our Vision
+                            </button>
+                          </Button>
+                          <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+                            <DialogHeader className="bg-primary p-8 text-white">
+                              <div className="flex items-center gap-4">
+                                <div className="p-3 bg-white/10 rounded-2xl">
+                                  <Heart className="w-8 h-8 text-secondary fill-secondary/20" />
+                                </div>
+                                <div>
+                                  <DialogTitle className="text-2xl font-black uppercase">Willing Support</DialogTitle>
+                                  <DialogDescription className="text-white/60">Contribute to the school's digital evolution.</DialogDescription>
+                                </div>
+                              </div>
+                            </DialogHeader>
+                            <div className="p-8 space-y-6">
+                              <div className="space-y-4">
+                                <div className="space-y-2">
+                                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Contribution Amount (XAF)</Label>
+                                  <Select value={supportData.amount} onValueChange={(v) => setSupportData({...supportData, amount: v})}>
+                                    <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-black text-primary"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="500">500 XAF</SelectItem>
+                                      <SelectItem value="1000">1,000 XAF</SelectItem>
+                                      <SelectItem value="2500">2,500 XAF</SelectItem>
+                                      <SelectItem value="5000">5,000 XAF</SelectItem>
+                                      <SelectItem value="10000">10,000 XAF</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-2">
+                                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Payment Method</Label>
+                                  <div className="flex gap-2">
+                                    <Button 
+                                      variant={supportData.method === 'MTN MoMo' ? 'default' : 'outline'}
+                                      className="flex-1 h-12 rounded-xl font-bold"
+                                      onClick={() => setSupportData({...supportData, method: 'MTN MoMo'})}
+                                    >MTN</Button>
+                                    <Button 
+                                      variant={supportData.method === 'Orange Money' ? 'default' : 'outline'}
+                                      className="flex-1 h-12 rounded-xl font-bold"
+                                      onClick={() => setSupportData({...supportData, method: 'Orange Money'})}
+                                    >Orange</Button>
+                                  </div>
+                                </div>
+                                <div className="space-y-2">
+                                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Mobile Number</Label>
+                                  <div className="relative">
+                                    <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
+                                    <Input 
+                                      placeholder="6XX XX XX XX" 
+                                      className="h-12 pl-10 bg-accent/30 border-none rounded-xl font-bold" 
+                                      value={supportData.phone}
+                                      onChange={(e) => setSupportData({...supportData, phone: e.target.value})}
+                                    />
+                                  </div>
+                                </div>
+                                <div className="space-y-2">
+                                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Optional Note</Label>
+                                  <Textarea 
+                                    placeholder="Leave a message of encouragement..." 
+                                    className="bg-accent/30 border-none rounded-xl min-h-[80px]"
+                                    value={supportData.message}
+                                    onChange={(e) => setSupportData({...supportData, message: e.target.value})}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+                              <Button 
+                                className="w-full h-14 rounded-2xl shadow-xl font-black uppercase text-xs gap-3 bg-primary text-white hover:bg-primary/90" 
+                                onClick={handleSupportSubmit}
+                                disabled={isSubmittingSupport || !supportData.phone}
+                              >
+                                {isSubmittingSupport ? <Loader2 className="w-5 h-5 animate-spin" /> : <ShieldCheck className="w-5 h-5 text-secondary" />}
+                                Authorize Contribution
                               </Button>
                             </DialogFooter>
                           </DialogContent>
