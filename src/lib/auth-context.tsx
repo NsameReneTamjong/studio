@@ -297,7 +297,7 @@ const INITIAL_ANNOUNCEMENTS: Announcement[] = [
     title: "SaaS Infrastructure v2.4 Deployment",
     content: "We have finalized the deployment of high-availability nodes across all regional clusters. Latency for MCQ timers has been reduced by 40%.",
     target: "all_schools",
-    senderName: "EduIgnite CEO",
+    senderName: "Platform CEO",
     senderRole: "CEO",
     senderAvatar: "https://picsum.photos/seed/ceo/100/100",
     senderUid: "mock_EDUI26CEO001",
@@ -306,7 +306,7 @@ const INITIAL_ANNOUNCEMENTS: Announcement[] = [
   {
     id: "ann-2",
     title: "Security Patch: Core Node API",
-    content: "A security patch has been applied to the authentication core. CTO requests all board members to verify their biometric MFA status.",
+    content: "A critical security patch has been applied to the authentication core. CTO requests all board members to verify their biometric MFA status immediately.",
     target: "saas_admins",
     senderName: "Tech Director",
     senderRole: "CTO",
@@ -316,6 +316,28 @@ const INITIAL_ANNOUNCEMENTS: Announcement[] = [
   },
   {
     id: "ann-3",
+    title: "Quarterly Growth Portfolio",
+    content: "Growth metrics show a 22% increase in institutional onboarding. Investors are requested to review the dividend projection document.",
+    target: "investors",
+    senderName: "Lead Investor",
+    senderRole: "INV",
+    senderAvatar: "https://picsum.photos/seed/inv/100/100",
+    senderUid: "mock_EDUI26INV001",
+    createdAt: new Date(Date.now() - 10800000)
+  },
+  {
+    id: "ann-4",
+    title: "UI/UX Refresh: Dashboard v2.5",
+    content: "The creative team has finalized the mockups for the new mobile interface. Board members can preview the high-fidelity prototypes in the design lab.",
+    target: "saas_admins",
+    senderName: "Creative Lead",
+    senderRole: "DESIGNER",
+    senderAvatar: "https://picsum.photos/seed/designer/100/100",
+    senderUid: "mock_EDUI26DES001",
+    createdAt: new Date(Date.now() - 14400000)
+  },
+  {
+    id: "ann-5",
     title: "Operational Expansion: North Region",
     content: "Operations team has identified 15 new potential institutional nodes in the North Region. COO requires a budget review for provisioning.",
     target: "board_directors",
@@ -324,17 +346,6 @@ const INITIAL_ANNOUNCEMENTS: Announcement[] = [
     senderAvatar: "https://picsum.photos/seed/coo/100/100",
     senderUid: "mock_EDUI26COO001",
     createdAt: new Date(Date.now() - 86400000)
-  },
-  {
-    id: "ann-4",
-    title: "Quarterly Growth Portfolio",
-    content: "Growth metrics show a 22% increase in institutional onboarding. INV role to prepare the dividend projection for the board.",
-    target: "investors",
-    senderName: "Investment Relations",
-    senderRole: "INV",
-    senderAvatar: "https://picsum.photos/seed/inv/100/100",
-    senderUid: "mock_EDUI26INV001",
-    createdAt: new Date(Date.now() - 172800000)
   }
 ];
 
