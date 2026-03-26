@@ -48,7 +48,9 @@ import {
   Settings2,
   Lock,
   Trash2,
-  Save
+  Save,
+  Pencil,
+  Network
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -56,9 +58,13 @@ import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
 
 // Constants
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
+const SECTIONS = ["Anglophone Section", "Francophone Section", "Technical Section"];
+const ACADEMIC_YEARS = ["2023 / 2024", "2022 / 2023", "2021 / 2022"];
+
 const INITIAL_FEE_TYPES = [
   { id: "ft1", name: "Tuition Fee", amount: 150000, description: "Primary academic registration and instruction fee.", status: "mandatory" },
   { id: "ft2", name: "Uniform Package", amount: 25000, description: "Official institutional attire including sport gear.", status: "mandatory" },
@@ -66,15 +72,13 @@ const INITIAL_FEE_TYPES = [
   { id: "ft4", name: "Examination Fee", amount: 5000, description: "Administrative fee for Sequence and Term exams.", status: "mandatory" },
 ];
 
-const ACADEMIC_YEARS = ["2023 / 2024", "2022 / 2023", "2021 / 2022"];
-
 // Initial Mock Data
 const INITIAL_STUDENTS = [
-  { id: "GBHS26S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", balances: { "Tuition Fee": 125000, "Uniform Package": 25000, "PTA Contribution": 10000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, isLicensePaid: true, class: "2nde / Form 5", year: "2023 / 2024" },
-  { id: "GBHS26S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, isLicensePaid: true, class: "Terminale / Upper Sixth", year: "2023 / 2024" },
-  { id: "GBHS26S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", balances: { "Tuition Fee": 45000, "Uniform Package": 0, "PTA Contribution": 5000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, isLicensePaid: false, class: "1ère / Lower Sixth", year: "2023 / 2024" },
-  { id: "GBHS26S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, isLicensePaid: true, class: "2nde / Form 5", year: "2023 / 2024" },
-  { id: "GBHS26S005", name: "Ethan Hunt", avatar: "https://picsum.photos/seed/s5/100/100", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, isLicensePaid: true, class: "Terminale / Upper Sixth", year: "2023 / 2024" },
+  { id: "GBHS26S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", section: "Anglophone Section", balances: { "Tuition Fee": 125000, "Uniform Package": 25000, "PTA Contribution": 10000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, isLicensePaid: true, class: "2nde / Form 5", year: "2023 / 2024" },
+  { id: "GBHS26S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", section: "Anglophone Section", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, isLicensePaid: true, class: "Terminale / Upper Sixth", year: "2023 / 2024" },
+  { id: "GBHS26S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", section: "Francophone Section", balances: { "Tuition Fee": 45000, "Uniform Package": 0, "PTA Contribution": 5000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, isLicensePaid: false, class: "1ère / Lower Sixth", year: "2023 / 2024" },
+  { id: "GBHS26S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100", section: "Anglophone Section", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, isLicensePaid: true, class: "2nde / Form 5", year: "2023 / 2024" },
+  { id: "GBHS26S005", name: "Ethan Hunt", avatar: "https://picsum.photos/seed/s5/100/100", section: "Technical Section", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, isLicensePaid: true, class: "Terminale / Upper Sixth", year: "2023 / 2024" },
 ];
 
 const MOCK_CLASS_STATS = [
@@ -94,6 +98,7 @@ export default function FeesPage() {
   
   const [searchTerm, setSearchTerm] = useState("");
   const [classFilter, setClassFilter] = useState("all");
+  const [sectionFilter, setSectionFilter] = useState("all");
   const [feeTypes, setFeeTypes] = useState(INITIAL_FEE_TYPES);
   const [activeFeeFilter, setActiveFeeFilter] = useState(INITIAL_FEE_TYPES[0].name);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -123,9 +128,10 @@ export default function FeesPage() {
     return students.filter(s => {
       const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase()) || s.id.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesClass = classFilter === "all" || s.class === classFilter;
-      return matchesSearch && matchesClass;
+      const matchesSection = sectionFilter === "all" || s.section === sectionFilter;
+      return matchesSearch && matchesClass && matchesSection;
     });
-  }, [searchTerm, classFilter, students]);
+  }, [searchTerm, classFilter, sectionFilter, students]);
 
   const reportingList = useMemo(() => {
     return students.filter(s => {
@@ -384,7 +390,7 @@ export default function FeesPage() {
           <TabsContent value="pay" className="animate-in fade-in slide-in-from-bottom-4 mt-0 space-y-6">
             <Card className="border-none shadow-xl overflow-hidden rounded-[1.5rem] md:rounded-3xl">
               <CardHeader className="bg-white border-b p-4 md:p-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="relative col-span-1 md:col-span-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input 
@@ -393,6 +399,21 @@ export default function FeesPage() {
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[9px] font-black uppercase text-muted-foreground ml-1">Sub-School / Section</Label>
+                    <Select value={sectionFilter} onValueChange={setSectionFilter}>
+                      <SelectTrigger className="h-11 bg-accent/20 border-none rounded-xl text-sm">
+                        <div className="flex items-center gap-2">
+                          <Network className="w-3.5 h-3.5 text-primary/40" />
+                          <SelectValue placeholder="All Sections" />
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Sections</SelectItem>
+                        {SECTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-1">
                     <Label className="text-[9px] font-black uppercase text-muted-foreground ml-1">Class Level</Label>
@@ -455,11 +476,14 @@ export default function FeesPage() {
                             </div>
                           </TableCell>
                           <TableCell className="hidden md:table-cell">
-                            <Badge variant="outline" className="text-[10px] border-primary/10 text-primary font-bold">{s.class}</Badge>
+                            <div className="flex flex-col">
+                              <Badge variant="outline" className="text-[10px] border-primary/10 text-primary font-bold w-fit">{s.class}</Badge>
+                              <span className="text-[8px] uppercase font-black text-muted-foreground mt-1">{s.section}</span>
+                            </div>
                           </TableCell>
                           <TableCell className="text-center">
                             <Badge className={cn(
-                              "text-[9px] font-black uppercase border-none px-3 h-5",
+                              "text-[9px] font-black uppercase px-3 h-5 border-none",
                               status === 'cleared' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
                             )}>
                               {status === 'cleared' ? 'Cleared' : 'Arrears'}
