@@ -37,11 +37,21 @@ export interface PlatformFees {
   SUB_ADMIN: string;
 }
 
+export interface TutorialLinks {
+  STUDENT: string;
+  TEACHER: string;
+  PARENT: string;
+  SCHOOL_ADMIN: string;
+  BURSAR: string;
+  LIBRARIAN: string;
+}
+
 interface PlatformSettings {
   name: string;
   logo: string;
   paymentDeadline: string;
   fees: PlatformFees;
+  tutorialLinks: TutorialLinks;
 }
 
 export interface User {
@@ -316,6 +326,15 @@ const DEFAULT_FEES: PlatformFees = {
   SUB_ADMIN: "15000"
 };
 
+const DEFAULT_TUTORIALS: TutorialLinks = {
+  STUDENT: "https://youtube.com/watch?v=eduignite-student",
+  TEACHER: "https://youtube.com/watch?v=eduignite-teacher",
+  PARENT: "https://youtube.com/watch?v=eduignite-parent",
+  SCHOOL_ADMIN: "https://youtube.com/watch?v=eduignite-admin",
+  BURSAR: "https://youtube.com/watch?v=eduignite-bursar",
+  LIBRARIAN: "https://youtube.com/watch?v=eduignite-librarian",
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [userData, setUserData] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -330,7 +349,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     name: "EduIgnite",
     logo: "https://picsum.photos/seed/eduignite-platform/200/200",
     paymentDeadline: "2024-10-31",
-    fees: DEFAULT_FEES
+    fees: DEFAULT_FEES,
+    tutorialLinks: DEFAULT_TUTORIALS
   });
 
   const router = useRouter();
@@ -377,7 +397,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ] },
       { key: "schools", setter: setSchools, default: INITIAL_SCHOOLS },
       { key: "events", setter: setPublicEvents, default: INITIAL_EVENTS },
-      { key: "platform", setter: setPlatformSettings, default: { name: "EduIgnite", logo: "https://picsum.photos/seed/eduignite-platform/200/200", paymentDeadline: "2024-10-31", fees: DEFAULT_FEES } }
+      { key: "platform", setter: setPlatformSettings, default: { name: "EduIgnite", logo: "https://picsum.photos/seed/eduignite-platform/200/200", paymentDeadline: "2024-10-31", fees: DEFAULT_FEES, tutorialLinks: DEFAULT_TUTORIALS } }
     ];
 
     collections.forEach(c => {

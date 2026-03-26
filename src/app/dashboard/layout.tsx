@@ -26,16 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
-const EXECUTIVE_ROLES: UserRole[] = ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV"];
-
-const TUTORIAL_LINKS: Record<string, string> = {
-  STUDENT: "https://youtube.com/watch?v=eduignite-student",
-  TEACHER: "https://youtube.com/watch?v=eduignite-teacher",
-  PARENT: "https://youtube.com/watch?v=eduignite-parent",
-  SCHOOL_ADMIN: "https://youtube.com/watch?v=eduignite-admin",
-  BURSAR: "https://youtube.com/watch?v=eduignite-bursar",
-  LIBRARIAN: "https://youtube.com/watch?v=eduignite-librarian",
-};
+const EXECUTIVE_ROLES: UserRole[] = ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV", "DESIGNER"];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user, isLoading, platformSettings, addTestimony } = useAuth();
@@ -163,6 +154,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
+  const roleForLink = user.role === 'SUB_ADMIN' ? 'SCHOOL_ADMIN' : user.role;
+  const tutorialUrl = (platformSettings.tutorialLinks as any)[roleForLink] || "https://youtube.com";
+
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       {/* Desktop Sidebar */}
@@ -231,7 +225,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         className="rounded-xl border-primary/20 text-primary font-bold gap-2 h-10 px-4"
                         asChild
                       >
-                        <a href={TUTORIAL_LINKS[user.role] || "https://youtube.com"} target="_blank" rel="noopener noreferrer">
+                        <a href={tutorialUrl} target="_blank" rel="noopener noreferrer">
                           <Youtube className="w-4 h-4 text-red-600" />
                           Learn to use your Dashboard
                         </a>

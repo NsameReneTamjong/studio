@@ -1,7 +1,8 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useAuth, type PlatformFees } from "@/lib/auth-context";
+import { useAuth, type PlatformFees, type TutorialLinks } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,7 +34,8 @@ import {
   Video,
   Image as ImageIcon,
   GraduationCap,
-  Link as LinkIcon
+  Link as LinkIcon,
+  PlayCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -51,7 +53,8 @@ export default function PlatformSettingsPage() {
     platformName: platformSettings.name,
     platformLogo: platformSettings.logo,
     paymentDeadline: platformSettings.paymentDeadline,
-    fees: { ...platformSettings.fees }
+    fees: { ...platformSettings.fees },
+    tutorialLinks: { ...platformSettings.tutorialLinks }
   });
 
   const [newEvent, setNewEvent] = useState({
@@ -66,7 +69,8 @@ export default function PlatformSettingsPage() {
       platformName: platformSettings.name,
       platformLogo: platformSettings.logo,
       paymentDeadline: platformSettings.paymentDeadline,
-      fees: { ...platformSettings.fees }
+      fees: { ...platformSettings.fees },
+      tutorialLinks: { ...platformSettings.tutorialLinks }
     });
   }, [platformSettings]);
 
@@ -94,12 +98,13 @@ export default function PlatformSettingsPage() {
         name: formData.platformName,
         logo: formData.platformLogo,
         paymentDeadline: formData.paymentDeadline,
-        fees: formData.fees
+        fees: formData.fees,
+        tutorialLinks: formData.tutorialLinks
       });
       setLoading(false);
       toast({
         title: "Platform Policy Updated",
-        description: "All branding and financial parameters have been synchronized across the network.",
+        description: "All branding, financial, and training parameters have been synchronized.",
       });
     }, 1000);
   };
@@ -109,6 +114,16 @@ export default function PlatformSettingsPage() {
       ...prev,
       fees: {
         ...prev.fees,
+        [role]: value
+      }
+    }));
+  };
+
+  const handleTutorialChange = (role: keyof TutorialLinks, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      tutorialLinks: {
+        ...prev.tutorialLinks,
         [role]: value
       }
     }));
@@ -147,6 +162,25 @@ export default function PlatformSettingsPage() {
     </div>
   );
 
+  const TrainingLinkInput = ({ id, label, value, onChange, icon: Icon }: any) => (
+    <div className="space-y-3 p-4 rounded-2xl bg-accent/30 border border-accent">
+      <Label htmlFor={id} className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+        <Icon className="w-3.5 h-3.5 text-primary" />
+        {label} Link
+      </Label>
+      <div className="relative">
+        <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
+        <Input 
+          id={id}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="https://youtube.com/..."
+          className="bg-white border-none h-11 pl-10 rounded-xl focus-visible:ring-primary text-xs font-bold"
+        />
+      </div>
+    </div>
+  );
+
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -157,7 +191,7 @@ export default function PlatformSettingsPage() {
             </div>
             {t("platformSettings")}
           </h1>
-          <p className="text-muted-foreground mt-1">Govern global SaaS identity, revenue models, and operational deadlines.</p>
+          <p className="text-muted-foreground mt-1">Govern global SaaS identity, revenue models, and educational content.</p>
         </div>
         <Button onClick={handleUpdateSettings} disabled={loading} className="h-14 px-10 shadow-2xl font-black uppercase tracking-widest text-xs gap-3 rounded-2xl bg-primary text-white hover:bg-primary/90 transition-all">
           {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
@@ -166,15 +200,18 @@ export default function PlatformSettingsPage() {
       </div>
 
       <Tabs defaultValue="branding" className="w-full">
-        <TabsList className="grid grid-cols-3 w-full md:w-[700px] mb-10 bg-white shadow-sm border h-auto p-1.5 rounded-3xl">
+        <TabsList className="grid grid-cols-4 w-full md:w-[900px] mb-10 bg-white shadow-sm border h-auto p-1.5 rounded-3xl">
           <TabsTrigger value="branding" className="gap-2 py-3 rounded-2xl transition-all font-bold">
-            <Layout className="w-4 h-4" /> Global Identity
+            <Layout className="w-4 h-4" /> Identity
           </TabsTrigger>
           <TabsTrigger value="revenue" className="gap-2 py-3 rounded-2xl transition-all font-bold">
-            <Coins className="w-4 h-4" /> Revenue & Deadlines
+            <Coins className="w-4 h-4" /> Revenue
+          </TabsTrigger>
+          <TabsTrigger value="training" className="gap-2 py-3 rounded-2xl transition-all font-bold">
+            <PlayCircle className="w-4 h-4" /> Training
           </TabsTrigger>
           <TabsTrigger value="marketing" className="gap-2 py-3 rounded-2xl transition-all font-bold">
-            <Star className="w-4 h-4" /> Public Portfolio
+            <Star className="w-4 h-4" /> Portfolio
           </TabsTrigger>
         </TabsList>
 
@@ -187,7 +224,7 @@ export default function PlatformSettingsPage() {
                 </div>
                 <div>
                   <CardTitle className="text-2xl font-black uppercase tracking-tighter">Strategic Branding</CardTitle>
-                  <CardDescription className="text-white/60">Customize the visual identity of the SaaS platform across all institutional nodes.</CardDescription>
+                  <CardDescription className="text-white/60">Customize the visual identity of the SaaS platform.</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -255,7 +292,7 @@ export default function PlatformSettingsPage() {
                     <Coins className="w-6 h-6 text-secondary" />
                     Annual License Structures
                   </CardTitle>
-                  <CardDescription>Define the platform access fees for non-executive roles across the network.</CardDescription>
+                  <CardDescription>Define the platform access fees for non-executive roles.</CardDescription>
                 </CardHeader>
                 <CardContent className="p-10">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -293,6 +330,36 @@ export default function PlatformSettingsPage() {
               </Card>
             </div>
           </div>
+        </TabsContent>
+
+        <TabsContent value="training" className="space-y-8 animate-in fade-in slide-in-from-bottom-2">
+          <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem]">
+            <CardHeader className="bg-primary p-10 text-white">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-2xl">
+                  <PlayCircle className="w-8 h-8 text-secondary" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl font-black uppercase tracking-tighter">User Training Repository</CardTitle>
+                  <CardDescription className="text-white/60">Manage the educational links found in the "Learn to use your Dashboard" button for each user role.</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <TrainingLinkInput id="tr-student" label="Student" value={formData.tutorialLinks.STUDENT} onChange={(v: string) => handleTutorialChange('STUDENT', v)} icon={GraduationCap} />
+                <TrainingLinkInput id="tr-teacher" label="Teacher" value={formData.tutorialLinks.TEACHER} onChange={(v: string) => handleTutorialChange('TEACHER', v)} icon={Users} />
+                <TrainingLinkInput id="tr-parent" label="Parent" value={formData.tutorialLinks.PARENT} onChange={(v: string) => handleTutorialChange('PARENT', v)} icon={Heart} />
+                <TrainingLinkInput id="tr-admin" label="School Admin" value={formData.tutorialLinks.SCHOOL_ADMIN} onChange={(v: string) => handleTutorialChange('SCHOOL_ADMIN', v)} icon={Building2} />
+                <TrainingLinkInput id="tr-bursar" label="Bursar" value={formData.tutorialLinks.BURSAR} onChange={(v: string) => handleTutorialChange('BURSAR', v)} icon={Wallet} />
+                <TrainingLinkInput id="tr-librarian" label="Librarian" value={formData.tutorialLinks.LIBRARIAN} onChange={(v: string) => handleTutorialChange('LIBRARIAN', v)} icon={BookOpen} />
+              </div>
+            </CardContent>
+            <CardFooter className="bg-accent/10 p-6 border-t flex items-center gap-3">
+               <Info className="w-5 h-5 text-primary opacity-40" />
+               <p className="text-[10px] text-muted-foreground italic">These links are dynamically loaded into the global footer for all authorized users in the network.</p>
+            </CardFooter>
+          </Card>
         </TabsContent>
 
         <TabsContent value="marketing" className="space-y-8 animate-in fade-in slide-in-from-bottom-2">
@@ -443,24 +510,5 @@ export default function PlatformSettingsPage() {
         </TabsContent>
       </Tabs>
     </div>
-  );
-}
-
-function GraduationCapIcon({ className }: { className?: string }) {
-  return (
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      width="24" 
-      height="24" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
-      className={className}
-    >
-      <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
-    </svg>
   );
 }
