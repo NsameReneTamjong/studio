@@ -255,7 +255,7 @@ export default function SchoolWelcomePage() {
                       </div>
                       <div>
                         <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">Official Domain</p>
-                        <p className="font-bold text-primary">{schoolDomain}.edu.cm</p>
+                        <p className="font-bold text-primary">{(resolvedSchool.shortName || "node").toLowerCase()}.edu.cm</p>
                       </div>
                     </div>
                   </div>

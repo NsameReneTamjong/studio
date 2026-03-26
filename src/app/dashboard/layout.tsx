@@ -23,7 +23,7 @@ import {
   Globe
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { 
   Dialog, 
   DialogContent, 
@@ -47,7 +47,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const { toast } = useToast();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
   const [isTestimonyModalOpen, setIsTestimonyModalOpen] = useState(false);
   const [testimonyMessage, setTestimonyMessage] = useState("");
   const [isSubmittingTestimony, setIsSubmittingTestimony] = useState(false);
@@ -154,7 +153,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <img src={user.school.logo} alt="Logo" className="w-full h-full object-contain" />
               </div>
             ) : isPlatformExecutive ? (
-              <Building2 className="w-6 h-6 text-secondary shrink-0" />
+              <div className="bg-secondary p-1 rounded-lg shrink-0">
+                <Building2 className="w-4 h-4 text-primary" />
+              </div>
             ) : null}
             <span className="font-bold tracking-tight text-white truncate uppercase">
               {isPlatformExecutive ? platformSettings.name : (user?.school?.shortName || user?.school?.name || "Institution")}
@@ -167,6 +168,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 border-none w-64">
+              <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
               <DashboardSidebar onClose={() => setIsMobileMenuOpen(false)} />
             </SheetContent>
           </Sheet>
@@ -276,7 +278,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <div className="flex items-center gap-6 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">
                       <span>Node Status: Optimal</span>
                       <span>•</span>
-                      <span>Verified Node</span>
+                      <span>Verified Institutional Registry</span>
                     </div>
                   </div>
                 </div>
