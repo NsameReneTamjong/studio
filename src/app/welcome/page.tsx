@@ -76,7 +76,7 @@ export default function SchoolWelcomePage() {
     );
   }
 
-  const schoolCode = (resolvedSchool?.shortName || resolvedSchool?.id || "node").toLowerCase();
+  const schoolDomain = (resolvedSchool.shortName || resolvedSchool.id || "node").toLowerCase();
 
   return (
     <div className="min-h-screen bg-[#F0F2F5] selection:bg-secondary selection:text-primary flex flex-col items-center relative overflow-x-hidden">
@@ -255,7 +255,7 @@ export default function SchoolWelcomePage() {
                       </div>
                       <div>
                         <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">Official Domain</p>
-                        <p className="font-bold text-primary">{schoolCode}.edu.cm</p>
+                        <p className="font-bold text-primary">{schoolDomain}.edu.cm</p>
                       </div>
                     </div>
                   </div>

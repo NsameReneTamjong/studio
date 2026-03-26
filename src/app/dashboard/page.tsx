@@ -127,7 +127,7 @@ export default function DashboardPage() {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
         <Loader2 className="w-12 h-12 animate-spin text-primary opacity-20" />
-        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Synchronizing Platform Data...</p>
+        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Synchronizing Prototype Data...</p>
       </div>
     );
   }
@@ -401,7 +401,7 @@ export default function DashboardPage() {
               <Building2 className="w-8 h-8 text-secondary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-primary font-headline">Institutional Command</h1>
+              <h1 className="text-3xl font-bold text-primary font-headline uppercase">Institutional Command</h1>
               <p className="text-muted-foreground mt-1">{user.school?.name || "Node Dashboard"} • Head Oversight</p>
             </div>
           </div>
@@ -438,7 +438,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <Card className="lg:col-span-8 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+          <Card className="lg:col-span-8 border-none shadow-xl overflow-hidden rounded-[2rem] bg-white">
             <CardHeader className="bg-primary/5 p-8 border-b">
               <CardTitle className="text-primary flex items-center gap-2 font-black uppercase tracking-tighter">
                 <Activity className="w-5 h-5 text-secondary"/> Node Operational Pulse
@@ -471,7 +471,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <h3 className="text-xl font-black text-primary uppercase tracking-tighter leading-none">Registry Audit</h3>
-                <p className="text-xs text-muted-foreground mt-2 leading-relaxed">Ensure all student and staff records are synchronized with the national delegration standards.</p>
+                <p className="text-xs text-muted-foreground mt-2 leading-relaxed">Ensure all student and staff records are synchronized with the national delegation standards.</p>
               </div>
               <Button asChild className="w-full gap-2 rounded-xl h-11 font-bold bg-primary text-white shadow-lg">
                 <Link href="/dashboard/staff">
@@ -486,7 +486,6 @@ export default function DashboardPage() {
     );
   }
 
-  // Fallback for Students, Teachers, Bursars, Parents
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -534,7 +533,7 @@ export default function DashboardPage() {
             </CardTitle>
             <CardDescription>Visual summary of institutional engagement and activity.</CardDescription>
           </CardHeader>
-          <CardContent className="h-[300px] pt-10">
+          <CardContent className="h-[350px] pt-10">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={DATA_PERIODS.monthly}>
                 <defs>
@@ -569,7 +568,7 @@ export default function DashboardPage() {
                 <h4 className="text-[10px] font-black uppercase tracking-widest opacity-60">System Notice</h4>
              </div>
              <p className="text-xs font-medium leading-relaxed italic">
-               "Dashboard synchronization is currently operating at optimal capacity across the network."
+               "Dashboard synchronization is currently operating at optimal capacity across the node."
              </p>
           </Card>
         </div>

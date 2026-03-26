@@ -253,8 +253,8 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
                 <Building2 className="w-6 h-6 text-primary" />
               </div>
             )}
-            <span className="text-lg font-bold tracking-tight font-headline truncate">
-              {isSuperAdmin ? "EduIgnite" : (user?.school?.name || "Institution")}
+            <span className="text-lg font-bold tracking-tight font-headline truncate uppercase">
+              {isSuperAdmin ? "EduIgnite" : (user?.school?.shortName || user?.school?.name || "Institution")}
             </span>
           </div>
           <div className="flex items-center gap-2">

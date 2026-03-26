@@ -19,7 +19,8 @@ import {
   Wallet, 
   Quote,
   ChevronRight,
-  ShieldCheck
+  ShieldCheck,
+  Globe
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -111,7 +112,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <Lock className="w-12 h-12 text-secondary" />
                 </div>
               </div>
-              <CardTitle className="text-2xl font-black">Dashboard Locked</CardTitle>
+              <CardTitle className="text-2xl font-black uppercase">Dashboard Locked</CardTitle>
               <CardDescription className="text-white/60">Annual Institutional License Required</CardDescription>
             </CardHeader>
             <CardContent className="p-8 text-center space-y-6">
@@ -155,8 +156,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             ) : isPlatformExecutive ? (
               <Building2 className="w-6 h-6 text-secondary shrink-0" />
             ) : null}
-            <span className="font-bold tracking-tight text-white truncate">
-              {isPlatformExecutive ? platformSettings.name : (user?.school?.name || "Institution Portal")}
+            <span className="font-bold tracking-tight text-white truncate uppercase">
+              {isPlatformExecutive ? platformSettings.name : (user?.school?.shortName || user?.school?.name || "Institution")}
             </span>
           </div>
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -205,7 +206,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       >
                         <a href={tutorialUrl} target="_blank" rel="noopener noreferrer">
                           <Youtube className="w-4 h-4 text-red-600" />
-                          Learn to use your Dashboard
+                          Training Portal
                           <ChevronRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
                         </a>
                       </Button>
@@ -216,9 +217,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <div className="bg-secondary/10 p-6 rounded-3xl border border-secondary/20 flex flex-col md:items-end text-center md:text-right space-y-3">
                       <div>
                         <h4 className="font-black text-primary uppercase text-xs tracking-widest flex items-center md:justify-end gap-2 mb-1">
-                          Share Your Experience <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500" />
+                          Share Experience <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500" />
                         </h4>
-                        <p className="text-xs text-muted-foreground">Submit a testimony to help highlight institutional success stories.</p>
+                        <p className="text-xs text-muted-foreground">Help highlight institutional success stories.</p>
                       </div>
                       
                       <div className="flex flex-wrap gap-3 md:justify-end">
@@ -236,7 +237,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                   <Quote className="w-8 h-8 text-secondary" />
                                 </div>
                                 <div>
-                                  <DialogTitle className="text-2xl font-black">Share Your Story</DialogTitle>
+                                  <DialogTitle className="text-2xl font-black uppercase">Share Your Story</DialogTitle>
                                   <DialogDescription className="text-white/60">Help showcase the excellence of our institution.</DialogDescription>
                                 </div>
                               </div>
@@ -273,9 +274,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </div>
                     
                     <div className="flex items-center gap-6 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">
-                      <span>Node Integrity Status: Optimal</span>
+                      <span>Node Status: Optimal</span>
                       <span>•</span>
-                      <span>Verified Infrastructure</span>
+                      <span>Verified Node</span>
                     </div>
                   </div>
                 </div>
