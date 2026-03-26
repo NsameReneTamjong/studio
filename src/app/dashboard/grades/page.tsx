@@ -43,18 +43,25 @@ import {
   Download,
   Signature,
   QrCode,
-  ArrowLeft
+  ArrowLeft,
+  Search,
+  Users
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const SECTIONS = ["Anglophone Section", "Francophone Section", "Technical Section"];
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
 const TERMS = ["Term 1", "Term 2", "Term 3"];
 const ACADEMIC_YEARS = ["2023/2024", "2022/2023"];
+
+// Mock Teacher Subject Assignments
+const TEACHER_SUBJECTS = ["Advanced Physics", "General Chemistry", "General Science"];
+const TEACHER_CLASSES = ["2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
 
 const MOCK_STUDENTS = [
   { uid: "S1", id: "GBHS26S001", name: "Alice Thompson", isLicensePaid: true, section: "Anglophone Section", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s1/100/100", dob: "15/05/2008" },
@@ -64,9 +71,16 @@ const MOCK_STUDENTS = [
 ];
 
 const MOCK_REPORT_HISTORY = [
-  { year: "2022/2023", term: "Term 3", average: "16.45", position: "2nd / 45", status: "PROMOTED" },
-  { year: "2022/2023", term: "Term 2", average: "15.80", position: "4th / 45", status: "PASSED" },
-  { year: "2022/2023", term: "Term 1", average: "14.20", position: "8th / 45", status: "PASSED" },
+  { year: "2023/2024", term: "Term 1", subject: "Advanced Physics", class: "2nde / Form 5", studentCount: 42, id: "H1" },
+  { year: "2022/2023", term: "Term 3", subject: "Advanced Physics", class: "Form 4", studentCount: 40, id: "H2" },
+  { year: "2022/2023", term: "Term 2", subject: "General Chemistry", class: "Form 4", studentCount: 38, id: "H3" },
+];
+
+const MOCK_HISTORY_DETAILS = [
+  { name: "Alice Thompson", mark: 16.5, status: "Pass" },
+  { name: "Bob Richards", mark: 14.0, status: "Pass" },
+  { name: "Charlie Davis", mark: 08.5, status: "Fail" },
+  { name: "Diana Prince", mark: 12.5, status: "Pass" },
 ];
 
 const FULL_SUBJECT_LIST = [
@@ -106,12 +120,14 @@ export default function GradeBookPage() {
 
   const [selectedSection, setSelectedSection] = useState(isSubAdmin ? "Anglophone Section" : "all");
   const [selectedClass, setSelectedClass] = useState("2nde / Form 5");
+  const [selectedSubject, setSelectedSubject] = useState(TEACHER_SUBJECTS[0]);
   const [selectedTerm, setSelectedTerm] = useState("Term 1");
   const [selectedYear, setSelectedYear] = useState("2023/2024");
   const [activeSequence, setActiveSequence] = useState("seq1");
   
   const [isProcessing, setIsProcessing] = useState(false);
   const [previewStudent, setPreviewStudent] = useState<any>(null);
+  const [viewingHistoryRecord, setViewingHistoryRecord] = useState<any>(null);
 
   const filteredStudents = useMemo(() => {
     return MOCK_STUDENTS.filter(s => {
@@ -274,56 +290,12 @@ export default function GradeBookPage() {
           </CardFooter>
         </Card>
 
-        <Card className="border-none shadow-sm overflow-hidden rounded-[2rem] bg-white">
-          <CardHeader className="border-b bg-accent/5 p-6">
-            <div className="flex items-center gap-3">
-              <History className="w-5 h-5 text-primary" />
-              <div>
-                <CardTitle className="text-lg font-black uppercase tracking-tight text-primary">Past Academic Records</CardTitle>
-                <CardDescription className="text-xs">History of term averages and rank progression.</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0 overflow-x-auto">
-            <Table>
-              <TableHeader className="bg-accent/10">
-                <TableRow className="uppercase text-[10px] font-black tracking-widest border-b">
-                  <TableHead className="pl-8 py-4">Academic Year</TableHead>
-                  <TableHead>Term</TableHead>
-                  <TableHead className="text-center">Final Average</TableHead>
-                  <TableHead className="text-center">Rank</TableHead>
-                  <TableHead className="text-center">Status</TableHead>
-                  <TableHead className="text-right pr-8">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {MOCK_REPORT_HISTORY.map((hist, i) => (
-                  <TableRow key={i} className="hover:bg-accent/5 border-b last:border-0">
-                    <TableCell className="pl-8 py-4 font-bold text-sm">{hist.year}</TableCell>
-                    <TableCell className="font-bold text-primary">{hist.term}</TableCell>
-                    <TableCell className="text-center font-black text-lg text-primary">{hist.average} / 20</TableCell>
-                    <TableCell className="text-center font-bold italic">{hist.position}</TableCell>
-                    <TableCell className="text-center">
-                      <Badge className="bg-green-100 text-green-700 border-none text-[9px] font-black">{hist.status}</Badge>
-                    </TableCell>
-                    <TableCell className="text-right pr-8">
-                      <Button variant="ghost" size="icon" className="rounded-full hover:bg-primary/5 text-primary" onClick={() => setPreviewStudent({ ...user, class: user.class || "2nde / Form 5" })}>
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-
         <ReportCardDialog previewStudent={previewStudent} setPreviewStudent={setPreviewStudent} selectedYear={selectedYear} selectedTerm={selectedTerm} getStudentGrades={getStudentGrades} getStudentStats={getStudentStats} />
       </div>
     );
   }
 
-  // ADMIN/TEACHER VIEW
+  // TEACHER & ADMIN VIEW
   return (
     <div className="space-y-8 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -336,12 +308,12 @@ export default function GradeBookPage() {
               <div className="p-2 bg-primary rounded-xl shadow-lg">
                 <Award className="w-6 h-6 text-secondary" />
               </div>
-              {isAdmin ? "Institutional Results Suite" : "Mark Entry Desk"}
+              {isAdmin ? "Institutional Results Suite" : "Pedagogical Mark Entry"}
             </h1>
             <p className="text-muted-foreground mt-1">
               {isAdmin 
                 ? "Govern pedagogical cycles, generate official bulletins, and publish results."
-                : "Record student evaluations for your assigned subjects."}
+                : "Manage evaluations and audit past results for your assigned subjects."}
             </p>
           </div>
         </div>
@@ -352,135 +324,226 @@ export default function GradeBookPage() {
               {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
               Generate Batch Reports
             </Button>
-            {isSchoolAdmin && (
-              <Button className="h-12 px-8 rounded-2xl shadow-xl gap-2 font-black uppercase tracking-widest text-xs w-full sm:w-auto" onClick={handlePublishResults} disabled={isProcessing}>
-                <Globe className="w-4 h-4" />
-                Publish Results
-              </Button>
-            )}
+            <Button className="h-12 px-8 rounded-2xl shadow-xl gap-2 font-black uppercase tracking-widest text-xs w-full sm:w-auto" onClick={handlePublishResults} disabled={isProcessing}>
+              <Globe className="w-4 h-4" />
+              Publish Results
+            </Button>
           </div>
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-4 space-y-6">
-          <Card className="border-none shadow-xl rounded-[2.5rem] bg-white overflow-hidden">
-            <CardHeader className="bg-primary p-6 text-white">
-              <CardTitle className="text-lg font-black flex items-center gap-2 uppercase tracking-tighter">
-                <Settings2 className="w-5 h-5 text-secondary" />
-                Pedagogical Control
-              </CardTitle>
-              <CardDescription className="text-white/60">Configure the active evaluation cycle for staff.</CardDescription>
-            </CardHeader>
-            <CardContent className="p-6 space-y-6">
-              {isSchoolAdmin && (
+      <Tabs defaultValue="current" className="w-full">
+        <TabsList className="grid grid-cols-2 w-full md:w-[400px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl">
+          <TabsTrigger value="current" className="gap-2 py-3 rounded-xl transition-all font-bold">
+            <BookMarked className="w-4 h-4" /> Current Term
+          </TabsTrigger>
+          <TabsTrigger value="history" className="gap-2 py-3 rounded-xl transition-all font-bold">
+            <History className="w-4 h-4" /> Result History
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="current" className="space-y-8 mt-0 animate-in fade-in slide-in-from-bottom-2">
+          {/* Filter Bar */}
+          <Card className="border-none shadow-sm rounded-3xl bg-white overflow-hidden">
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
+                {isTeacher ? (
+                  <>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Assigned Subject</Label>
+                      <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {TEACHER_SUBJECTS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Assigned Class</Label>
+                      <Select value={selectedClass} onValueChange={setSelectedClass}>
+                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {TEACHER_CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Class Level</Label>
+                      <Select value={selectedClass} onValueChange={setSelectedClass}>
+                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                        <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Institutional Section</Label>
+                      <Select value={selectedSection} onValueChange={setSelectedSection}>
+                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Whole Institution</SelectItem>
+                          {SECTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                )}
+                
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Target Section</Label>
-                  <Select value={selectedSection} onValueChange={setSelectedSection}>
-                    <SelectTrigger className="h-11 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Sequence Context</Label>
+                  <Select value={activeSequence} onValueChange={setActiveSequence}>
+                    <SelectTrigger className="h-12 bg-primary/5 border-none rounded-xl font-black text-primary"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Whole Institution</SelectItem>
-                      {SECTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      <SelectItem value="seq1">Sequence 1</SelectItem>
+                      <SelectItem value="seq2">Sequence 2</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-              )}
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Academic Year</Label>
-                  <Select value={selectedYear} onValueChange={setSelectedYear}>
-                    <SelectTrigger className="h-11 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
-                    <SelectContent>{ACADEMIC_YEARS.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Active Term</Label>
-                  <Select value={selectedTerm} onValueChange={setSelectedTerm}>
-                    <SelectTrigger className="h-11 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
-                    <SelectContent>{TERMS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
-                  </Select>
-                </div>
+                <Button className="h-12 rounded-xl shadow-lg font-black uppercase tracking-widest text-[10px] gap-2" onClick={() => toast({ title: "Mark Entry Cycle Updated" })}>
+                  <CheckCircle className="w-4 h-4" /> Save Sequence
+                </Button>
               </div>
-
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Sequence Input Window</Label>
-                <Select value={activeSequence} onValueChange={setActiveSequence}>
-                  <SelectTrigger className="h-11 bg-accent/30 border-none rounded-xl font-bold text-primary"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="seq1">Sequence 1</SelectItem>
-                    <SelectItem value="seq2">Sequence 2</SelectItem>
-                    <SelectItem value="seq3">Sequence 3</SelectItem>
-                    <SelectItem value="seq4">Sequence 4</SelectItem>
-                    <SelectItem value="seq5">Sequence 5</SelectItem>
-                    <SelectItem value="seq6">Sequence 6</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <Button className="w-full h-12 rounded-xl shadow-lg font-bold gap-2" variant="outline">
-                <CheckCircle className="w-4 h-4 text-green-600" />
-                Apply Cycle Update
-              </Button>
             </CardContent>
           </Card>
-        </div>
 
-        <div className="lg:col-span-8 space-y-6">
+          {/* Student Mark Entry Table */}
           <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
-            <CardHeader className="bg-white border-b p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <CardTitle className="text-xl font-black text-primary uppercase tracking-tight">Audit Registry</CardTitle>
-                <CardDescription className="text-xs">Verifying mark entry completion for the selected class.</CardDescription>
-              </div>
-              <div className="flex items-center gap-3 w-full md:w-auto">
-                <Select value={selectedClass} onValueChange={setSelectedClass}>
-                  <SelectTrigger className="h-10 w-full md:w-[180px] bg-accent/20 border-none rounded-lg text-xs font-bold"><SelectValue /></SelectTrigger>
-                  <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-                </Select>
+            <CardHeader className="bg-primary p-8 text-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/10 rounded-2xl">
+                    <PenTool className="w-8 h-8 text-secondary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-2xl font-black uppercase tracking-tight">{isTeacher ? selectedSubject : "Student Registry"}</CardTitle>
+                    <CardDescription className="text-white/60">Class: {selectedClass} • Session: {selectedYear}</CardDescription>
+                  </div>
+                </div>
+                <Badge variant="outline" className="bg-white/10 text-white border-none h-8 px-4 font-black uppercase text-[10px] tracking-[0.2em]">Live Data Node</Badge>
               </div>
             </CardHeader>
             <CardContent className="p-0 overflow-x-auto">
               <Table>
                 <TableHeader className="bg-accent/10 uppercase text-[10px] font-black tracking-widest border-b">
                   <TableRow>
-                    <TableHead className="pl-8 py-4">Matricule</TableHead>
-                    <TableHead>Student Identity</TableHead>
-                    <TableHead className="text-center">Subjects</TableHead>
-                    <TableHead className="text-center">Status</TableHead>
+                    <TableHead className="pl-8 py-4">Student Profile</TableHead>
+                    <TableHead className="text-center">Sequence 1</TableHead>
+                    <TableHead className="text-center">Sequence 2</TableHead>
+                    <TableHead className="text-center">Current Avg/20</TableHead>
                     <TableHead className="text-right pr-8">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredStudents.map((s) => (
-                    <TableRow key={s.uid} className="hover:bg-accent/5 border-b border-accent/10 transition-colors">
-                      <TableCell className="pl-8 font-mono text-xs font-bold text-primary">{s.id}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-8 w-8 border-2 border-white shadow-sm ring-1 ring-accent shrink-0">
-                            <AvatarImage src={s.avatar} />
-                            <AvatarFallback className="bg-primary/5 text-primary text-[10px] font-bold">{s.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex flex-col">
-                            <span className="font-bold text-sm text-primary">{s.name}</span>
-                            <span className="text-[8px] uppercase font-black opacity-40">{s.section}</span>
+                  {filteredStudents.map((s) => {
+                    const grades = getStudentGrades(s.class).find(g => g.subject.includes(selectedSubject)) || FULL_SUBJECT_LIST[0];
+                    const avg = (grades.seq1 + grades.seq2) / 2;
+                    
+                    return (
+                      <TableRow key={s.uid} className="hover:bg-accent/5 transition-colors border-b border-accent/10">
+                        <TableCell className="pl-8 py-4">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent">
+                              <AvatarImage src={s.avatar} />
+                              <AvatarFallback className="bg-primary/5 text-primary text-xs font-black">{s.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-bold text-sm text-primary leading-tight">{s.name}</p>
+                              <p className="text-[9px] font-mono text-muted-foreground uppercase">{s.id}</p>
+                            </div>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="outline" className="text-[10px] font-bold">{getStudentGrades(s.class).length}</Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex items-center justify-center gap-2 text-[9px] font-black uppercase text-green-600">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> VERIFIED
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right pr-8">
-                        <div className="flex justify-end gap-2">
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Input 
+                            type="number" 
+                            defaultValue={grades.seq1} 
+                            className="w-20 h-10 mx-auto text-center font-black text-primary bg-accent/30 border-none rounded-lg"
+                            disabled={!isTeacher}
+                          />
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Input 
+                            type="number" 
+                            defaultValue={grades.seq2} 
+                            className="w-20 h-10 mx-auto text-center font-black text-primary bg-accent/30 border-none rounded-lg"
+                            disabled={!isTeacher}
+                          />
+                        </TableCell>
+                        <TableCell className="text-center font-black text-lg text-primary">
+                          {avg.toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-right pr-8">
                           <Button variant="ghost" size="icon" className="rounded-full hover:bg-primary/5 text-primary" onClick={() => setPreviewStudent(s)}>
                             <Eye className="w-4 h-4" />
                           </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+            <CardFooter className="bg-accent/10 p-6 border-t border-accent flex flex-col sm:flex-row gap-4 justify-between items-center">
+               <div className="flex items-center gap-2 text-muted-foreground italic">
+                  <ShieldCheck className="w-4 h-4 text-green-600" />
+                  <p className="text-[10px] font-black uppercase tracking-widest">End-to-End Encrypted Mark Entry Active.</p>
+               </div>
+               {isTeacher && (
+                 <Button className="font-black uppercase tracking-widest text-xs px-10 h-12 rounded-xl shadow-xl bg-primary text-white hover:bg-primary/90">
+                   Synchronize All Marks
+                 </Button>
+               )}
+            </CardFooter>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="history" className="mt-0 animate-in fade-in slide-in-from-bottom-2">
+          <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+            <CardHeader className="bg-white border-b p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-secondary/20 rounded-2xl">
+                  <History className="w-8 h-8 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl font-black text-primary uppercase tracking-tight">Pedagogical Archive</CardTitle>
+                  <CardDescription>Review results from previous academic terms and sessions.</CardDescription>
+                </div>
+              </div>
+              <Button variant="outline" className="rounded-xl h-11 px-6 font-bold gap-2">
+                <Printer className="w-4 h-4" /> Export Past Result Ledger
+              </Button>
+            </CardHeader>
+            <CardContent className="p-0 overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-accent/10 uppercase text-[10px] font-black tracking-widest border-b">
+                  <TableRow>
+                    <TableHead className="pl-8 py-4">Academic Year</TableHead>
+                    <TableHead>Term</TableHead>
+                    <TableHead>Subject Portfolio</TableHead>
+                    <TableHead>Class Node</TableHead>
+                    <TableHead className="text-center">Students</TableHead>
+                    <TableHead className="text-right pr-8">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {MOCK_REPORT_HISTORY.filter(h => isTeacher ? h.subject.includes(selectedSubject) : true).map((hist) => (
+                    <TableRow key={hist.id} className="hover:bg-accent/5 transition-colors border-b last:border-0">
+                      <TableCell className="pl-8 py-4 font-bold text-sm">{hist.year}</TableCell>
+                      <TableCell className="font-black text-primary">{hist.term}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-[10px] border-primary/10 font-bold">{hist.subject}</Badge>
+                      </TableCell>
+                      <TableCell className="text-xs font-bold text-muted-foreground italic">{hist.class}</TableCell>
+                      <TableCell className="text-center">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100 font-bold text-xs">
+                          <Users className="w-3 h-3" /> {hist.studentCount}
                         </div>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <Button variant="ghost" className="text-[10px] font-black uppercase tracking-widest gap-2 hover:bg-primary hover:text-white" onClick={() => setViewingHistoryRecord(hist)}>
+                          <Eye className="w-3.5 h-3.5" /> View Results
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -488,8 +551,66 @@ export default function GradeBookPage() {
               </Table>
             </CardContent>
           </Card>
-        </div>
-      </div>
+        </TabsContent>
+      </Tabs>
+
+      {/* History Detail Dialog */}
+      <Dialog open={!!viewingHistoryRecord} onOpenChange={() => setViewingHistoryRecord(null)}>
+        <DialogContent className="sm:max-w-3xl max-h-[85vh] overflow-hidden flex flex-col p-0 rounded-[2.5rem] border-none shadow-2xl">
+          <DialogHeader className="bg-primary p-8 text-white relative shrink-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-2xl">
+                  <Award className="w-8 h-8 text-secondary" />
+                </div>
+                <div>
+                  <DialogTitle className="text-2xl font-black">Archive Detail: {viewingHistoryRecord?.term}</DialogTitle>
+                  <DialogDescription className="text-white/60">
+                    {viewingHistoryRecord?.subject} • {viewingHistoryRecord?.class} • {viewingHistoryRecord?.year}
+                  </DialogDescription>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setViewingHistoryRecord(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+                <X className="w-6 h-6" />
+              </Button>
+            </div>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto p-0">
+            <Table>
+              <TableHeader className="bg-accent/30 sticky top-0 z-10 uppercase text-[10px] font-black tracking-widest">
+                <TableRow>
+                  <TableHead className="pl-8 py-4">Student Name</TableHead>
+                  <TableHead className="text-center">Final Mark / 20</TableHead>
+                  <TableHead className="text-right pr-8">Pedagogical Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {MOCK_HISTORY_DETAILS.map((student, idx) => (
+                  <TableRow key={idx} className="hover:bg-accent/5 border-b border-accent/10">
+                    <TableCell className="pl-8 py-4 font-bold text-sm text-primary">{student.name}</TableCell>
+                    <TableCell className="text-center font-black text-lg">{student.mark.toFixed(2)}</TableCell>
+                    <TableCell className="text-right pr-8">
+                      <Badge className={cn(
+                        "text-[9px] font-black uppercase px-3 border-none h-5",
+                        student.status === 'Pass' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                      )}>
+                        {student.status}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          <DialogFooter className="bg-accent/10 p-6 border-t border-accent flex justify-between items-center shrink-0">
+             <div className="flex items-center gap-2 text-muted-foreground italic">
+                <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Verified Institutional Record.</p>
+             </div>
+             <Button onClick={() => setViewingHistoryRecord(null)} className="rounded-xl px-10 h-11 font-black uppercase text-xs">Close Archive</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <ReportCardDialog previewStudent={previewStudent} setPreviewStudent={setPreviewStudent} selectedYear={selectedYear} selectedTerm={selectedTerm} getStudentGrades={getStudentGrades} getStudentStats={getStudentStats} />
     </div>
@@ -508,7 +629,7 @@ function ReportCardDialog({ previewStudent, setPreviewStudent, selectedYear, sel
   return (
     <Dialog open={!!previewStudent} onOpenChange={() => setPreviewStudent(null)}>
       <DialogContent className="sm:max-w-5xl max-h-[95vh] overflow-y-auto p-0 border-none shadow-2xl rounded-[2rem]">
-        <DialogHeader className="p-4 bg-primary text-white no-print">
+        <DialogHeader className="p-4 bg-primary text-white no-print relative">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="p-2 bg-white/10 rounded-xl">
@@ -519,7 +640,7 @@ function ReportCardDialog({ previewStudent, setPreviewStudent, selectedYear, sel
                 <DialogDescription className="text-white/70 text-xs">High-fidelity printable pedagogical record.</DialogDescription>
               </div>
             </div>
-            <Button variant="ghost" size="icon" onClick={() => setPreviewStudent(null)} className="text-white hover:bg-white/10">
+            <Button variant="ghost" size="icon" onClick={() => setPreviewStudent(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
               <X className="w-6 h-6" />
             </Button>
           </div>
