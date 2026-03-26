@@ -9,8 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { User, Camera, Lock, Save, Loader2, Mail, RefreshCw } from "lucide-react";
+import { User, Camera, Lock, Save, Loader2, Mail, RefreshCw, Smartphone, MessageCircle } from "lucide-react";
 
 export default function ProfilePage() {
   const { user, updateUser } = useAuth();
@@ -20,6 +21,9 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState(user?.name || "");
   const [email, setEmail] = useState(user?.email || "");
+  const [phone, setPhone] = useState(user?.phone || "");
+  const [whatsapp, setWhatsapp] = useState(user?.whatsapp || "");
+  
   const [passwords, setPasswords] = useState({
     current: "",
     new: "",
@@ -39,7 +43,7 @@ export default function ProfilePage() {
     setLoading(true);
     // Simulated update delay
     setTimeout(() => {
-      updateUser({ name, email });
+      updateUser({ name, email, phone, whatsapp });
       setLoading(false);
       toast({
         title: t("changesSaved"),
@@ -146,7 +150,7 @@ export default function ProfilePage() {
                 {t("personalInfo")}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">{t("fullName")}</Label>
                 <Input 
@@ -167,6 +171,32 @@ export default function ProfilePage() {
                   onChange={(e) => setEmail(e.target.value)}
                   className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary"
                 />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
+                    <Smartphone className="w-3.5 h-3.5" /> Contact Phone
+                  </Label>
+                  <Input 
+                    id="phone" 
+                    value={phone} 
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+237 6XX XX XX XX"
+                    className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary font-bold"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="whatsapp" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
+                    <MessageCircle className="w-3.5 h-3.5" /> WhatsApp Contact
+                  </Label>
+                  <Input 
+                    id="whatsapp" 
+                    value={whatsapp} 
+                    onChange={(e) => setWhatsapp(e.target.value)}
+                    placeholder="+237 6XX XX XX XX"
+                    className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary font-bold text-secondary"
+                  />
+                </div>
               </div>
             </CardContent>
             <CardFooter className="border-t bg-accent/5 pt-6">

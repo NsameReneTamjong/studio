@@ -59,6 +59,8 @@ export interface User {
   uid: string;
   name: string;
   email: string;
+  phone?: string;
+  whatsapp?: string;
   role: UserRole;
   schoolId: string | null;
   avatar?: string;
@@ -289,18 +291,18 @@ const INITIAL_ANNOUNCEMENTS: Announcement[] = [
 ];
 
 const DEMO_ACCOUNTS: Record<string, any> = {
-  "EDUI26CEO001": { name: "EduIgnite CEO", role: "CEO", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/ceo/150/150" },
-  "EDUI26CTO001": { name: "Tech Director", role: "CTO", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/cto/150/150" },
-  "EDUI26COO001": { name: "Operations Lead", role: "COO", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/coo/150/150" },
-  "EDUI26INV001": { name: "Lead Investor", role: "INV", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/inv/150/150" },
-  "EDUI26DES001": { name: "Creative Lead", role: "DESIGNER", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/designer/150/150" },
-  "GBHS26": { name: "Principal Fonka", role: "SCHOOL_ADMIN", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/p1/150/150" },
-  "GBHS26A001": { name: "VP Academics", role: "SUB_ADMIN", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/subadmin/150/150" },
-  "GBHS26T001": { name: "Dr. Aris Tesla", role: "TEACHER", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/t1/150/150" },
-  "GBHS26B001": { name: "Mme. Ngono Celine", role: "BURSAR", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/b1/150/150" },
-  "GBHS26L001": { name: "Mr. Ebong", role: "LIBRARIAN", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/l1/150/150" },
-  "GBHS26S001": { name: "Alice Thompson", role: "STUDENT", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/s1/150/150" },
-  "GBHS26P001": { name: "Mr. Robert Thompson", role: "PARENT", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/pa1/150/150" }
+  "EDUI26CEO001": { name: "EduIgnite CEO", role: "CEO", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/ceo/150/150", phone: "+237 600 00 00 01", whatsapp: "+237 600 00 00 01" },
+  "EDUI26CTO001": { name: "Tech Director", role: "CTO", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/cto/150/150", phone: "+237 600 00 00 02", whatsapp: "+237 600 00 00 02" },
+  "EDUI26COO001": { name: "Operations Lead", role: "COO", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/coo/150/150", phone: "+237 600 00 00 03", whatsapp: "+237 600 00 00 03" },
+  "EDUI26INV001": { name: "Lead Investor", role: "INV", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/inv/150/150", phone: "+237 600 00 00 04", whatsapp: "+237 600 00 00 04" },
+  "EDUI26DES001": { name: "Creative Lead", role: "DESIGNER", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/designer/150/150", phone: "+237 600 00 00 05", whatsapp: "+237 600 00 00 05" },
+  "GBHS26": { name: "Principal Fonka", role: "SCHOOL_ADMIN", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/p1/150/150", phone: "+237 600 11 11 11", whatsapp: "+237 600 11 11 11" },
+  "GBHS26A001": { name: "VP Academics", role: "SUB_ADMIN", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/subadmin/150/150", phone: "+237 600 22 22 22", whatsapp: "+237 600 22 22 22" },
+  "GBHS26T001": { name: "Dr. Aris Tesla", role: "TEACHER", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/t1/150/150", phone: "+237 600 33 33 33", whatsapp: "+237 600 33 33 33" },
+  "GBHS26B001": { name: "Mme. Ngono Celine", role: "BURSAR", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/b1/150/150", phone: "+237 600 44 44 44", whatsapp: "+237 600 44 44 44" },
+  "GBHS26L001": { name: "Mr. Ebong", role: "LIBRARIAN", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/l1/150/150", phone: "+237 600 55 55 55", whatsapp: "+237 600 55 55 55" },
+  "GBHS26S001": { name: "Alice Thompson", role: "STUDENT", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/s1/150/150", phone: "+237 600 66 66 66", whatsapp: "+237 600 66 66 66" },
+  "GBHS26P001": { name: "Mr. Robert Thompson", role: "PARENT", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/pa1/150/150", phone: "+237 677 00 11 22", whatsapp: "+237 677 00 11 22" }
 };
 
 const DEFAULT_FEES: PlatformFees = {
@@ -403,7 +405,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       id: m,
       uid: `mock_${m}`,
       name: demoData.name,
-      email: `${m.toLowerCase()}@eduignite.io`,
+      email: demoData.email || `${m.toLowerCase()}@eduignite.io`,
+      phone: demoData.phone || "+237 600 00 00 00",
+      whatsapp: demoData.whatsapp || "+237 600 00 00 00",
       role: demoData.role,
       schoolId: demoData.schoolId,
       isLicensePaid: demoData.isLicensePaid,
