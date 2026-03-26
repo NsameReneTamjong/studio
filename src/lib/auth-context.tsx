@@ -294,14 +294,47 @@ const INITIAL_SUPPORT: SupportContribution[] = [
 const INITIAL_ANNOUNCEMENTS: Announcement[] = [
   {
     id: "ann-1",
-    title: "Global Platform Update v2.4.0",
-    content: "We have successfully rolled out high-availability nodes across the region. Performance is now 40% faster.",
+    title: "SaaS Infrastructure v2.4 Deployment",
+    content: "We have finalized the deployment of high-availability nodes across all regional clusters. Latency for MCQ timers has been reduced by 40%.",
     target: "all_schools",
-    senderName: "Platform CEO",
+    senderName: "EduIgnite CEO",
     senderRole: "CEO",
     senderAvatar: "https://picsum.photos/seed/ceo/100/100",
     senderUid: "mock_EDUI26CEO001",
-    createdAt: new Date()
+    createdAt: new Date(Date.now() - 3600000)
+  },
+  {
+    id: "ann-2",
+    title: "Security Patch: Core Node API",
+    content: "A security patch has been applied to the authentication core. CTO requests all board members to verify their biometric MFA status.",
+    target: "saas_admins",
+    senderName: "Tech Director",
+    senderRole: "CTO",
+    senderAvatar: "https://picsum.photos/seed/cto/100/100",
+    senderUid: "mock_EDUI26CTO001",
+    createdAt: new Date(Date.now() - 7200000)
+  },
+  {
+    id: "ann-3",
+    title: "Operational Expansion: North Region",
+    content: "Operations team has identified 15 new potential institutional nodes in the North Region. COO requires a budget review for provisioning.",
+    target: "board_directors",
+    senderName: "Operations Lead",
+    senderRole: "COO",
+    senderAvatar: "https://picsum.photos/seed/coo/100/100",
+    senderUid: "mock_EDUI26COO001",
+    createdAt: new Date(Date.now() - 86400000)
+  },
+  {
+    id: "ann-4",
+    title: "Quarterly Growth Portfolio",
+    content: "Growth metrics show a 22% increase in institutional onboarding. INV role to prepare the dividend projection for the board.",
+    target: "investors",
+    senderName: "Investment Relations",
+    senderRole: "INV",
+    senderAvatar: "https://picsum.photos/seed/inv/100/100",
+    senderUid: "mock_EDUI26INV001",
+    createdAt: new Date(Date.now() - 172800000)
   }
 ];
 
