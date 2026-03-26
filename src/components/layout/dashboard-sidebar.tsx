@@ -107,12 +107,6 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       href: "/dashboard/platform-settings",
       roles: EXECUTIVE_ROLES,
     },
-    {
-      label: t("institution"),
-      icon: Building2,
-      href: "/dashboard/institution",
-      roles: ["SCHOOL_ADMIN", "SUB_ADMIN", "TEACHER", "STUDENT", "PARENT", "BURSAR", "LIBRARIAN"],
-    },
     // SCHOOL ADMIN SPECIFIC MANAGEMENT
     {
       label: language === 'en' ? 'Manage Institution' : 'Gérer l\'Institution',
