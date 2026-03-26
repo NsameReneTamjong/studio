@@ -55,7 +55,7 @@ export default function SchoolWelcomePage() {
   }
 
   // Handle case where school data isn't linked to user yet but exists in registry
-  const school = user?.school || schools.find(s => s.id === user?.schoolId);
+  const school = user?.school || (user?.schoolId ? schools.find(s => s.id === user?.schoolId) : schools[0]);
 
   if (!user || !school) {
     return (

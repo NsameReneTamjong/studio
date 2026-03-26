@@ -245,7 +245,7 @@ const INITIAL_ANNOUNCEMENTS: Announcement[] = [
   {
     id: "ann-1",
     title: "SaaS Infrastructure v2.4 Deployment",
-    content: "We have finalized the deployment of high-availability nodes across all regional clusters. Latency for MCQ timers has been reduced by 40%.",
+    content: "Global Directive: We have finalized the high-availability node sync across all regional clusters. Latency for MCQ timers has been reduced by 40% globally.",
     target: "all_schools",
     senderName: "Platform CEO",
     senderRole: "CEO",
@@ -255,8 +255,8 @@ const INITIAL_ANNOUNCEMENTS: Announcement[] = [
   },
   {
     id: "ann-2",
-    title: "Security Patch: Core Node API",
-    content: "A critical security patch has been applied to the authentication core. CTO requests all board members to verify their biometric MFA status immediately.",
+    title: "Critical Security Patch: Core Node API",
+    content: "Internal Board Alert: A critical security patch has been applied to the authentication core. All board members are requested to verify their biometric MFA status immediately.",
     target: "saas_admins",
     senderName: "Tech Director",
     senderRole: "CTO",
@@ -266,8 +266,8 @@ const INITIAL_ANNOUNCEMENTS: Announcement[] = [
   },
   {
     id: "ann-3",
-    title: "Quarterly Growth Portfolio",
-    content: "Growth metrics show a 22% increase in institutional onboarding. Investors are requested to review the dividend projection document.",
+    title: "Quarterly Growth Portfolio & Projections",
+    content: "Investor Update: Growth metrics show a 22% increase in institutional onboarding. Please review the updated dividend projection document in the board vault.",
     target: "investors",
     senderName: "Lead Investor",
     senderRole: "INV",
@@ -277,8 +277,8 @@ const INITIAL_ANNOUNCEMENTS: Announcement[] = [
   },
   {
     id: "ann-4",
-    title: "UI/UX Refresh: Dashboard v2.5",
-    content: "The creative team has finalized the mockups for the new mobile interface. Board members can preview the high-fidelity prototypes in the design lab.",
+    title: "UI/UX Refresh: Dashboard v2.5 Preview",
+    content: "Creative Notice: Mockups for the new mobile interface are ready. Founders can preview the high-fidelity prototypes in the design lab today.",
     target: "saas_admins",
     senderName: "Creative Lead",
     senderRole: "DESIGNER",
@@ -289,18 +289,18 @@ const INITIAL_ANNOUNCEMENTS: Announcement[] = [
 ];
 
 const DEMO_ACCOUNTS: Record<string, any> = {
-  "EDUI26CEO001": { name: "Platform CEO", role: "CEO", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/ceo/150/150" },
+  "EDUI26CEO001": { name: "EduIgnite CEO", role: "CEO", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/ceo/150/150" },
   "EDUI26CTO001": { name: "Tech Director", role: "CTO", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/cto/150/150" },
   "EDUI26COO001": { name: "Operations Lead", role: "COO", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/coo/150/150" },
   "EDUI26INV001": { name: "Lead Investor", role: "INV", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/inv/150/150" },
   "EDUI26DES001": { name: "Creative Lead", role: "DESIGNER", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/designer/150/150" },
-  "GBHS26": { name: "Principal Fonka", role: "SCHOOL_ADMIN", schoolId: "GBHS-D", isLicensePaid: true },
-  "GBHS26A001": { name: "VP Academics", role: "SUB_ADMIN", schoolId: "GBHS-D", isLicensePaid: true },
-  "GBHS26T001": { name: "Dr. Aris Tesla", role: "TEACHER", schoolId: "GBHS-D", isLicensePaid: true },
-  "GBHS26B001": { name: "Mme. Ngono Celine", role: "BURSAR", schoolId: "GBHS-D", isLicensePaid: true },
-  "GBHS26L001": { name: "Mr. Ebong", role: "LIBRARIAN", schoolId: "GBHS-D", isLicensePaid: true },
-  "GBHS26S001": { name: "Alice Thompson", role: "STUDENT", schoolId: "GBHS-D", isLicensePaid: true },
-  "GBHS26P001": { name: "Mr. Robert Thompson", role: "PARENT", schoolId: "GBHS-D", isLicensePaid: true }
+  "GBHS26": { name: "Principal Fonka", role: "SCHOOL_ADMIN", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/p1/150/150" },
+  "GBHS26A001": { name: "VP Academics", role: "SUB_ADMIN", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/subadmin/150/150" },
+  "GBHS26T001": { name: "Dr. Aris Tesla", role: "TEACHER", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/t1/150/150" },
+  "GBHS26B001": { name: "Mme. Ngono Celine", role: "BURSAR", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/b1/150/150" },
+  "GBHS26L001": { name: "Mr. Ebong", role: "LIBRARIAN", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/l1/150/150" },
+  "GBHS26S001": { name: "Alice Thompson", role: "STUDENT", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/s1/150/150" },
+  "GBHS26P001": { name: "Mr. Robert Thompson", role: "PARENT", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/pa1/150/150" }
 };
 
 const DEFAULT_FEES: PlatformFees = {
@@ -443,7 +443,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUserData(mockUser);
     localStorage.setItem("eduignite_prototype_session", JSON.stringify(mockUser));
     
-    if (["CEO", "CTO", "COO", "INV", "SUPER_ADMIN", "DESIGNER"].includes(mockUser.role)) {
+    const executiveRoles = ["CEO", "CTO", "COO", "INV", "SUPER_ADMIN", "DESIGNER"];
+    if (executiveRoles.includes(mockUser.role)) {
       router.push("/dashboard");
     } else {
       router.push("/welcome");
