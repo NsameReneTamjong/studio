@@ -171,7 +171,7 @@ export default function StudentsPage() {
       avatar: `https://picsum.photos/seed/${id}/100/100`
     };
     setParentList([...parentList, created]);
-    setNewStudent({ ...newStudent, guardianId: created.id });
+    setNewStudent({ ...newStudent, guardianId: id });
     setIsAddGuardianOpen(false);
     setNewGuardian({ name: "", email: "", phone: "", occupation: "Professional", type: "Father" });
     toast({ title: "Guardian Registered", description: `${created.name} added to registry.` });
@@ -737,10 +737,10 @@ export default function StudentsPage() {
                <div className="border-2 border-black/10 p-10 rounded-[2.5rem] bg-primary/5 space-y-4 relative overflow-hidden">
                   <div className="absolute -top-4 -left-4 opacity-5 rotate-12"><Building2 className="w-32 h-32" /></div>
                   <div className="flex items-center gap-3">
-                     <p className="text-sm font-black uppercase text-primary">Incredible Welcome Message</p>
+                     <p className="text-sm font-black uppercase text-primary">Message from the Principal's Council</p>
                   </div>
                   <p className="text-sm leading-relaxed italic text-muted-foreground font-medium relative z-10">
-                    "Welcome to the {user?.school?.name || "EduIgnite family"}. By joining our institution, you are embarking on a journey of pedagogical excellence and character transformation. Our secure digital node ensures that your academic records are maintained with the highest degree of integrity. Together, we build the leaders of tomorrow. Work hard, stay disciplined, and success will be yours."
+                    "Welcome to {user?.school?.name || "our school"}. By joining our institution, you are embarking on a journey of academic excellence and character development. Our commitment is to provide a nurturing environment where every student can achieve their full potential. Together, we work towards building a bright future through hard work and discipline. We are honored to have you as part of our academic community."
                   </p>
                   <p className="text-right font-black text-xs uppercase tracking-tighter relative z-10">— The Principal's Council</p>
                </div>
@@ -748,7 +748,7 @@ export default function StudentsPage() {
                <div className="pt-12 border-t border-black/5 flex justify-between items-end">
                   <div className="flex flex-col items-center gap-2">
                     <QrCode className="w-20 h-20 opacity-10" />
-                    <p className="text-[8px] font-black uppercase text-muted-foreground opacity-40">Digital Node Verification</p>
+                    <p className="text-[8px] font-black uppercase text-muted-foreground opacity-40">Institutional Verification</p>
                   </div>
                   <div className="text-center space-y-6 w-48">
                     <div className="h-14 w-full mx-auto bg-primary/5 rounded-xl border-b-2 border-black/40 relative flex items-center justify-center overflow-hidden shadow-inner">
@@ -760,9 +760,9 @@ export default function StudentsPage() {
 
                <div className="text-center pt-6 border-t border-black/5">
                   <div className="flex items-center justify-center gap-3">
-                    <img src={platformSettings.logo} alt="EduIgnite" className="w-4 h-4 object-contain opacity-20" />
+                    <img src={platformSettings.logo} alt="SaaS" className="w-4 h-4 object-contain opacity-20" />
                     <p className="text-[8px] font-black uppercase text-muted-foreground opacity-30 tracking-[0.3em]">
-                      Powered by {platformSettings.name} • Secure Registry Node • 2024
+                      Verified Educational Record • Secure Registry Node • 2024
                     </p>
                   </div>
                </div>
