@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -45,7 +44,6 @@ import {
   Building2,
   Printer,
   QrCode,
-  Signature,
   ChevronRight
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -711,8 +709,7 @@ export default function StudentsPage() {
 
                <div className="border-2 border-black/10 p-8 rounded-[2rem] bg-primary/5 space-y-4">
                   <div className="flex items-center gap-3">
-                     <Quote className="w-6 h-6 text-primary/40" />
-                     <h4 className="text-sm font-black uppercase text-primary">Incredible Welcome Message</h4>
+                     <p className="text-sm font-black uppercase text-primary">Incredible Welcome Message</p>
                   </div>
                   <p className="text-sm leading-relaxed italic text-muted-foreground font-medium">
                     "Welcome to the {user?.school?.name || "EduIgnite family"}. By joining our institution, you are embarking on a journey of pedagogical excellence and character transformation. Our secure digital node ensures that your academic records are maintained with the highest degree of integrity. Together, we build the leaders of tomorrow. Work hard, stay disciplined, and success will be yours."
@@ -727,7 +724,7 @@ export default function StudentsPage() {
                   </div>
                   <div className="text-center space-y-6 w-48">
                     <div className="h-14 w-full mx-auto bg-primary/5 rounded-xl border-b-2 border-black/40 relative flex items-center justify-center overflow-hidden shadow-inner">
-                       <Signature className="w-full h-full text-primary/20 p-2" />
+                       <AdmissionSignature className="w-full h-full text-primary/20 p-2" />
                     </div>
                     <p className="text-[10px] font-black uppercase text-primary tracking-widest leading-none">Registrar Signature</p>
                   </div>
@@ -859,7 +856,7 @@ function UserActionMenu({ onEdit, onToggleStatus, onView, status, role }: any) {
   );
 }
 
-function Signature({ className }: { className?: string }) {
+function AdmissionSignature({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />

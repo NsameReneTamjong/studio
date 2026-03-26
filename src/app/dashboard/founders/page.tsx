@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -18,24 +17,19 @@ import {
   Trash2, 
   MoreVertical, 
   Plus, 
-  Settings2,
   Fingerprint,
   CheckCircle2,
   Loader2,
   Ban,
-  Pencil,
   ShieldAlert,
   Save,
   X,
   Lock,
-  Eye,
   Globe,
   TrendingUp,
   MessageSquare,
   Activity,
   Zap,
-  Network,
-  Users,
   History,
   Download,
   Printer,
@@ -444,11 +438,11 @@ export default function FoundersManagementPage() {
       {/* APPOINTMENT RECEIPT DIALOG (SHOWN UPON SUCCESSFUL ONBOARDING) */}
       <Dialog open={!!onboardingSuccess} onOpenChange={() => setOnboardingSuccess(null)}>
         <DialogContent className="sm:max-w-2xl p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden">
-          <DialogHeader className="bg-primary p-8 text-white no-print">
+          <DialogHeader className="bg-primary p-8 text-white no-print relative">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-white/10 rounded-2xl text-secondary">
-                  <Crown className="w-8 h-8" />
+                  <Crown className="w-8 h-8 text-secondary" />
                 </div>
                 <div>
                   <DialogTitle className="text-2xl font-black">Board Appointment Finalized</DialogTitle>
@@ -533,7 +527,7 @@ export default function FoundersManagementPage() {
                   </div>
                   <div className="text-center space-y-4 w-40">
                     <div className="h-12 w-full mx-auto relative flex items-center justify-center">
-                       <Signature className="w-full h-full text-primary/20" />
+                       <SignatureSVG className="w-full h-full text-primary/20" />
                     </div>
                     <p className="text-[9px] font-black uppercase text-primary border-t border-black/20 pt-1">Platform Registrar</p>
                   </div>
@@ -571,7 +565,7 @@ export default function FoundersManagementPage() {
   );
 }
 
-function Signature({ className }: { className?: string }) {
+function SignatureSVG({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />

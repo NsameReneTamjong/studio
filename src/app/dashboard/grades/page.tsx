@@ -12,39 +12,23 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Award, 
-  AlertCircle,
-  CheckCircle2,
-  Lock,
-  Eye,
-  Loader2,
-  Printer,
-  ShieldCheck,
-  Building2,
-  History,
-  FileText,
-  User,
-  GraduationCap,
-  TrendingUp,
-  X,
-  Scale,
-  Unlock,
-  BarChart3,
-  PieChart,
-  ChevronRight,
-  BookMarked,
-  Filter,
-  Layers,
-  Send,
-  Globe,
-  Settings2,
-  CheckCircle,
-  Info,
-  Download,
-  Signature,
-  QrCode,
-  ArrowLeft,
-  Search,
-  Users,
+  CheckCircle2, 
+  Eye, 
+  Loader2, 
+  Printer, 
+  ShieldCheck, 
+  History, 
+  FileText, 
+  User, 
+  TrendingUp, 
+  X, 
+  Scale, 
+  BookMarked, 
+  Globe, 
+  CheckCircle, 
+  Info, 
+  ArrowLeft, 
+  Users, 
   PenTool
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -171,7 +155,6 @@ export default function GradeBookPage() {
     }, 2000);
   };
 
-  // STUDENT PERSONAL VIEW
   if (isStudent) {
     const myGrades = getStudentGrades(user.class || "2nde / Form 5");
     const myStats = getStudentStats(myGrades);
@@ -295,7 +278,6 @@ export default function GradeBookPage() {
     );
   }
 
-  // TEACHER & ADMIN VIEW
   return (
     <div className="space-y-8 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -343,7 +325,6 @@ export default function GradeBookPage() {
         </TabsList>
 
         <TabsContent value="current" className="space-y-8 mt-0 animate-in fade-in slide-in-from-bottom-2">
-          {/* Filter Bar */}
           <Card className="border-none shadow-sm rounded-3xl bg-white overflow-hidden">
             <CardContent className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
@@ -408,7 +389,6 @@ export default function GradeBookPage() {
             </CardContent>
           </Card>
 
-          {/* Student Mark Entry Table */}
           <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
             <CardHeader className="bg-primary p-8 text-white">
               <div className="flex items-center justify-between">
@@ -554,7 +534,8 @@ export default function GradeBookPage() {
         </TabsContent>
       </Tabs>
 
-      {/* History Detail Dialog */}
+      <ReportCardDialog previewStudent={previewStudent} setPreviewStudent={setPreviewStudent} selectedYear={selectedYear} selectedTerm={selectedTerm} getStudentGrades={getStudentGrades} getStudentStats={getStudentStats} />
+      
       <Dialog open={!!viewingHistoryRecord} onOpenChange={() => setViewingHistoryRecord(null)}>
         <DialogContent className="sm:max-w-3xl max-h-[85vh] overflow-hidden flex flex-col p-0 rounded-[2.5rem] border-none shadow-2xl">
           <DialogHeader className="bg-primary p-8 text-white relative shrink-0">
@@ -611,8 +592,6 @@ export default function GradeBookPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <ReportCardDialog previewStudent={previewStudent} setPreviewStudent={setPreviewStudent} selectedYear={selectedYear} selectedTerm={selectedTerm} getStudentGrades={getStudentGrades} getStudentStats={getStudentStats} />
     </div>
   );
 }
@@ -766,7 +745,7 @@ function ReportCardDialog({ previewStudent, setPreviewStudent, selectedYear, sel
                       <div className="mt-auto pt-2 flex justify-between items-end border-t border-black/10">
                          <div className="text-center space-y-0.5">
                             <p className="text-[7px] font-black uppercase">Class Master</p>
-                            <div className="h-6 w-12 mx-auto flex items-center justify-center opacity-30"><Signature className="w-full h-full" /></div>
+                            <div className="h-6 w-12 mx-auto flex items-center justify-center opacity-30"><SignatureSVG className="w-full h-full text-primary/20" /></div>
                             <div className="h-px bg-black w-12 mx-auto" />
                          </div>
                          <div className="text-center space-y-0.5">
@@ -803,5 +782,14 @@ function ReportCardDialog({ previewStudent, setPreviewStudent, selectedYear, sel
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function SignatureSVG({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M15 30L85 10" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" strokeDasharray="2 2" />
+    </svg>
   );
 }

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo } from "react";
@@ -31,22 +30,13 @@ import {
   Filter,
   CalendarDays,
   FileSpreadsheet,
-  CheckCircle,
   Download,
   Building2,
   BookMarked,
-  Signature,
-  ChevronRight,
   ArrowRight,
-  PieChart,
-  User,
   Users,
-  Banknote,
-  ArrowUpRight,
-  Activity,
   Plus,
   Settings2,
-  Lock,
   Trash2,
   Save,
   Pencil,
@@ -220,7 +210,7 @@ export default function FeesPage() {
       };
       setFeeTypes([...feeTypes, created]);
       setIsProcessing(false);
-      setIsAddingBook(false);
+      setIsAddingFeeType(false);
       setNewFeeTypeData({ name: "", amount: "", description: "", status: "mandatory" });
       toast({ title: "Fee Category Defined", description: `${created.name} added to institutional structure.` });
     }, 1000);
@@ -291,17 +281,12 @@ export default function FeesPage() {
           <TabsTrigger value="ledger" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm whitespace-nowrap">
             <History className="w-4 h-4" /> Transactions
           </TabsTrigger>
-          <TabsTrigger value="tracker" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm whitespace-nowrap">
+          <TabsTrigger value="tracker" className="gap-2 py-3 rounded-xl transition-all whitespace-nowrap text-xs md:text-sm">
             <FileSpreadsheet className="w-4 h-4" /> Tracker
           </TabsTrigger>
           {isBursar && (
-            <TabsTrigger value="structure" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm whitespace-nowrap">
+            <TabsTrigger value="structure" className="gap-2 py-3 rounded-xl transition-all whitespace-nowrap text-xs md:text-sm">
               <Settings2 className="w-4 h-4" /> Fee Types
-            </TabsTrigger>
-          )}
-          {!isBursar && (
-            <TabsTrigger value="overview" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm whitespace-nowrap">
-              <TrendingUp className="w-4 h-4" /> Finance Metrics
             </TabsTrigger>
           )}
         </TabsList>
@@ -797,41 +782,6 @@ export default function FeesPage() {
             </CardContent>
           </Card>
         </TabsContent>
-
-        <TabsContent value="overview" className="mt-0 space-y-6 md:space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="border-none shadow-sm bg-blue-50">
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Global Collection</p>
-                  <TrendingUp className="w-4 h-4 text-blue-600" />
-                </div>
-                <div className="text-2xl md:text-3xl font-black text-blue-700">84.2%</div>
-                <p className="text-[10px] text-blue-600/60 font-bold mt-1 uppercase">Across all fee categories</p>
-              </CardContent>
-            </Card>
-            <Card className="border-none shadow-sm bg-green-50">
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-[10px] font-black uppercase text-green-600 tracking-widest">Platform Licenses</p>
-                  <CheckCircle2 className="w-4 h-4 text-green-600" />
-                </div>
-                <div className="text-2xl md:text-3xl font-black text-green-700">1,120 / 1,284</div>
-                <p className="text-[10px] text-blue-600/60 font-bold mt-1 uppercase">Active Dashboard Nodes</p>
-              </CardContent>
-            </Card>
-            <Card className="border-none shadow-sm bg-amber-50">
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-[10px] font-black uppercase text-amber-600 tracking-widest">Tuition Arrears</p>
-                  <AlertCircle className="w-4 h-4 text-amber-600" />
-                </div>
-                <div className="text-2xl md:text-3xl font-black text-amber-700">4.6M XAF</div>
-                <p className="text-[10px] text-blue-600/60 font-bold mt-1 uppercase">Sequence 2 Recovery Required</p>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
       </Tabs>
 
       {/* PAYMENT MODAL */}
@@ -967,9 +917,22 @@ export default function FeesPage() {
                   </div>
                   <div className="text-center space-y-6 w-32">
                     <div className="h-10 md:h-12 w-full mx-auto bg-primary/5 rounded border-b-2 border-black/40 relative flex items-center justify-center">
-                       <Signature className="w-full h-full text-primary/20 p-2" />
+                       <SignatureSVG className="w-full h-full text-primary/20 p-2" />
                     </div>
                     <p className="text-[8px] font-black uppercase text-primary tracking-widest leading-none">The Bursar</p>
+                  </div>
+               </div>
+
+               <div className="bg-accent/30 p-3 rounded-lg text-[8px] leading-relaxed italic text-muted-foreground border border-accent">
+                 "This resource is public property. Failure to return the item by the due date will result in institutional fines."
+               </div>
+
+               <div className="text-center pt-4 border-t border-black/5">
+                  <div className="flex items-center justify-center gap-2">
+                    <img src={platformSettings.logo} alt="EduIgnite" className="w-3 h-3 object-contain opacity-20" />
+                    <p className="text-[7px] font-black uppercase text-muted-foreground opacity-30 tracking-[0.3em]">
+                      Powered by {platformSettings.name} SaaS Platform • Official Digital Record
+                    </p>
                   </div>
                </div>
             </div>
@@ -986,5 +949,14 @@ export default function FeesPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function SignatureSVG({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M15 30L85 10" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" strokeDasharray="2 2" />
+    </svg>
   );
 }
