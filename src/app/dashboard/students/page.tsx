@@ -629,28 +629,29 @@ export default function StudentsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* ADMISSION SUCCESS & DOSSIER DIALOG */}
+      {/* ADMISSION SUCCESS & DOSSIER DIALOG - RESPONSIVE OVERHAUL */}
       <Dialog open={!!admissionSuccess} onOpenChange={() => setAdmissionSuccess(null)}>
-        <DialogContent className="sm:max-w-5xl max-h-[95vh] p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden">
-          <DialogHeader className="bg-primary p-8 text-white no-print relative">
+        <DialogContent className="sm:max-w-5xl max-h-[95vh] p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col">
+          <DialogHeader className="bg-primary p-6 md:p-8 text-white no-print relative shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-white/10 rounded-2xl text-secondary">
                   <CheckCircle2 className="w-8 h-8" />
                 </div>
                 <div>
-                  <DialogTitle className="text-2xl font-black uppercase tracking-tighter">Admission Dossier Generated</DialogTitle>
-                  <DialogDescription className="text-white/60">Verified institutional onboarding packet for {admissionSuccess?.name}.</DialogDescription>
+                  <DialogTitle className="text-xl md:text-2xl font-black uppercase tracking-tighter">Admission Dossier Generated</DialogTitle>
+                  <DialogDescription className="text-white/60 text-xs md:text-sm">Verified institutional onboarding packet for {admissionSuccess?.name}.</DialogDescription>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setAdmissionSuccess(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+              <Button variant="ghost" size="icon" onClick={() => setAdmissionSuccess(null)} className="text-white/40 hover:text-white">
                 <X className="w-6 h-6" />
               </Button>
             </div>
           </DialogHeader>
 
-          <div className="bg-muted p-4 md:p-10 print:p-0 print:bg-white overflow-x-auto">
-            <div id="printable-admission-dossier" className="bg-white p-8 md:p-16 border-2 border-black/10 shadow-sm relative flex flex-col space-y-12 font-serif text-black print:border-none print:shadow-none min-w-[800px]">
+          {/* HORIZONTAL SCROLL WRAPPER FOR MOBILE */}
+          <div className="bg-muted flex-1 overflow-y-auto overflow-x-auto p-4 md:p-10 print:p-0 print:bg-white no-scrollbar">
+            <div id="printable-admission-dossier" className="bg-white p-8 md:p-16 border-2 border-black/10 shadow-sm relative flex flex-col space-y-12 font-serif text-black print:border-none print:shadow-none min-w-[800px] mx-auto">
                {/* National Header */}
                <div className="grid grid-cols-3 gap-2 items-start text-center border-b-2 border-black pb-6">
                   <div className="space-y-0.5 text-[8px] uppercase font-bold">
@@ -770,11 +771,11 @@ export default function StudentsPage() {
             </div>
           </div>
 
-          <DialogFooter className="bg-accent/10 p-8 border-t no-print flex flex-col sm:flex-row gap-4">
+          <DialogFooter className="bg-accent/10 p-6 md:p-8 border-t no-print flex flex-col sm:flex-row gap-4 shrink-0">
             <Button variant="outline" className="flex-1 rounded-2xl h-14 font-black uppercase tracking-widest text-xs" onClick={() => setAdmissionSuccess(null)}>
               Return to Registry
             </Button>
-            <div className="flex flex-1 gap-2">
+            <div className="flex flex-col sm:flex-row flex-1 gap-2">
               <Button 
                 variant="secondary" 
                 className="flex-1 rounded-2xl h-14 font-black uppercase tracking-widest text-xs gap-2"
