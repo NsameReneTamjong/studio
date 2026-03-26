@@ -77,10 +77,10 @@ import {
 import { cn } from "@/lib/utils";
 
 const MOCK_STUDENTS = [
-  { id: "GBHS26S001", uid: "S1", name: "Alice Thompson", email: "alice.t@school.edu", phone: "+237 600 11 22 33", whatsapp: "+237 600 11 22 33", class: "2nde / Form 5", section: "Anglophone Section", isLicensePaid: true, status: "active", avatar: "https://picsum.photos/seed/s1/100/100", guardianId: "GBHS26P001" },
-  { id: "GBHS26S002", uid: "S2", name: "Bob Richards", email: "bob.r@school.edu", phone: "+237 600 44 55 66", whatsapp: "+237 600 44 55 66", class: "Terminale / Upper Sixth", section: "Anglophone Section", isLicensePaid: true, status: "active", avatar: "https://picsum.photos/seed/s2/100/100", guardianId: "GBHS26P002" },
-  { id: "GBHS26S003", uid: "S3", name: "Charlie Davis", email: "charlie.d@school.edu", phone: "+237 600 77 88 99", whatsapp: "+237 600 77 88 99", class: "1ère / Lower Sixth", section: "Francophone Section", isLicensePaid: false, status: "active", avatar: "https://picsum.photos/seed/s3/100/100", guardianId: "GBHS26P001" },
-  { id: "GBHS26S004", uid: "S4", name: "Diana Prince", email: "diana.p@school.edu", phone: "+237 600 00 11 22", whatsapp: "+237 600 00 11 22", class: "2nde / Form 5", section: "Technical Section", isLicensePaid: true, status: "inactive", avatar: "https://picsum.photos/seed/s4/100/100", guardianId: "GBHS26P002" },
+  { id: "GBHS26S001", uid: "S1", name: "Alice Thompson", email: "alice.t@school.edu", phone: "+237 600 11 22 33", whatsapp: "+237 600 11 22 33", class: "2nde / Form 5", section: "Anglophone Section", isLicensePaid: true, status: "active", avatar: "https://picsum.photos/seed/s1/100/100", guardianId: "GBHS26P001", studentIdNumber: "" },
+  { id: "GBHS26S002", uid: "S2", name: "Bob Richards", email: "bob.r@school.edu", phone: "+237 600 44 55 66", whatsapp: "+237 600 44 55 66", class: "Terminale / Upper Sixth", section: "Anglophone Section", isLicensePaid: true, status: "active", avatar: "https://picsum.photos/seed/s2/100/100", guardianId: "GBHS26P002", studentIdNumber: "" },
+  { id: "GBHS26S003", uid: "S3", name: "Charlie Davis", email: "charlie.d@school.edu", phone: "+237 600 77 88 99", whatsapp: "+237 600 77 88 99", class: "1ère / Lower Sixth", section: "Francophone Section", isLicensePaid: false, status: "active", avatar: "https://picsum.photos/seed/s3/100/100", guardianId: "GBHS26P001", studentIdNumber: "" },
+  { id: "GBHS26S004", uid: "S4", name: "Diana Prince", email: "diana.p@school.edu", phone: "+237 600 00 11 22", whatsapp: "+237 600 00 11 22", class: "2nde / Form 5", section: "Technical Section", isLicensePaid: true, status: "inactive", avatar: "https://picsum.photos/seed/s4/100/100", guardianId: "GBHS26P002", studentIdNumber: "" },
 ];
 
 const MOCK_PARENTS = [
@@ -114,6 +114,7 @@ export default function StudentsPage() {
 
   const [newStudent, setNewStudent] = useState({
     name: "",
+    studentIdNumber: "",
     email: "",
     phone: "",
     whatsapp: "",
@@ -220,6 +221,7 @@ export default function StudentsPage() {
       setIsAdmissionOpen(false);
       setNewStudent({
         name: "",
+        studentIdNumber: "",
         email: "",
         phone: "",
         whatsapp: "",
@@ -511,6 +513,10 @@ export default function StudentsPage() {
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Full Student Name</Label>
                   <Input value={newStudent.name} onChange={(e) => setNewStudent({...newStudent, name: e.target.value})} placeholder="e.g. Alice Thompson" className="h-12 bg-accent/30 border-none rounded-xl font-bold" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Student ID Number (Optional)</Label>
+                  <Input value={newStudent.studentIdNumber} onChange={(e) => setNewStudent({...newStudent, studentIdNumber: e.target.value})} placeholder="e.g. 123456789" className="h-12 bg-accent/30 border-none rounded-xl" />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Date of Birth</Label>
