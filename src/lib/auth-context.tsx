@@ -188,6 +188,62 @@ const INITIAL_SCHOOLS: SchoolInfo[] = [
   }
 ];
 
+const INITIAL_ORDERS: Order[] = [
+  {
+    id: "ORD-7291",
+    fullName: "Principal Fonka",
+    occupation: "Institutional Head",
+    schoolName: "GBHS Deido",
+    whatsappNumber: "+237 670 00 11 22",
+    email: "fonka@gbhsdeido.cm",
+    region: "Littoral",
+    division: "Wouri",
+    subDivision: "Douala 1er",
+    status: "pending",
+    createdAt: new Date("2024-05-24T10:00:00Z")
+  },
+  {
+    id: "ORD-8821",
+    fullName: "Mme. Celine Njoh",
+    occupation: "Bursar",
+    schoolName: "Lycée de Joss",
+    whatsappNumber: "+237 699 00 22 33",
+    email: "njoh@joss.cm",
+    region: "Littoral",
+    division: "Wouri",
+    subDivision: "Douala 1er",
+    status: "processed",
+    createdAt: new Date("2024-05-23T14:30:00Z")
+  }
+];
+
+const INITIAL_SUPPORT: SupportContribution[] = [
+  {
+    id: "SUP-1029",
+    userName: "Mr. Robert Thompson",
+    userRole: "PARENT",
+    userAvatar: "https://picsum.photos/seed/p1/100/100",
+    amount: 15000,
+    method: "MTN MoMo",
+    phone: "677001122",
+    message: "The digital report cards saved me 3 hours of queueing. Thank you!",
+    status: "Verified",
+    createdAt: new Date("2024-05-24T09:15:00Z")
+  },
+  {
+    id: "SUP-2931",
+    userName: "Dr. Aris Tesla",
+    userRole: "TEACHER",
+    userAvatar: "https://picsum.photos/seed/t1/100/100",
+    amount: 5000,
+    method: "Orange Money",
+    phone: "699334455",
+    message: "Supporting the pedagogical innovation.",
+    status: "New",
+    createdAt: new Date("2024-05-24T11:45:00Z")
+  }
+];
+
 const DEMO_ACCOUNTS: Record<string, any> = {
   "EDUI26CEO001": { name: "Platform CEO", role: "CEO", schoolId: null, isLicensePaid: true },
   "GBHS26": { name: "Principal Fonka", role: "SCHOOL_ADMIN", schoolId: "GBHS", isLicensePaid: true },
@@ -205,9 +261,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [schools, setSchools] = useState<SchoolInfo[]>(INITIAL_SCHOOLS);
   const [testimonials, setTestimonials] = useState<Testimony[]>([]);
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [supportContributions, setSupportContributions] = useState<SupportContribution[]>([]);
+  const [supportContributions, setSupportContributions] = useState<SupportContribution[]>(INITIAL_SUPPORT);
   const [platformSettings, setPlatformSettings] = useState<PlatformSettings>({
     name: "EduIgnite",
     logo: "https://picsum.photos/seed/eduignite-platform/200/200"
@@ -230,9 +286,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const collections = [
       { key: "testimonials", setter: setTestimonials },
       { key: "feedbacks", setter: setFeedbacks },
-      { key: "orders", setter: setOrders },
+      { key: "orders", setter: setOrders, default: INITIAL_ORDERS },
       { key: "announcements", setter: setAnnouncements },
-      { key: "support", setter: setSupportContributions },
+      { key: "support", setter: setSupportContributions, default: INITIAL_SUPPORT },
       { key: "schools", setter: setSchools, default: INITIAL_SCHOOLS },
       { key: "platform", setter: setPlatformSettings, default: { name: "EduIgnite", logo: "https://picsum.photos/seed/eduignite-platform/200/200" } }
     ];
