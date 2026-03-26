@@ -23,7 +23,8 @@ import {
   Globe,
   Coins,
   Smartphone,
-  Star
+  Star,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
@@ -253,12 +254,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                           Training Portal
                           <ChevronRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
                         </a>
-                      </Button>
-                      <Button variant="outline" size="sm" className="rounded-xl border-primary/20 text-primary font-bold gap-2 h-10 px-4" asChild>
-                        <Link href="/dashboard/feedback">
-                          <MessageSquare className="w-4 h-4 text-primary" />
-                          Contact Support
-                        </Link>
                       </Button>
                     </div>
                   </div>

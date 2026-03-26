@@ -95,13 +95,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       roles: EXECUTIVE_ROLES,
     },
     {
-      label: language === 'en' ? 'Contact Support' : 'Contacter Support',
-      icon: MessageSquare,
-      href: "/dashboard/feedback",
-      roles: [...EXECUTIVE_ROLES, "SCHOOL_ADMIN", "SUB_ADMIN", "TEACHER", "STUDENT", "PARENT", "BURSAR", "LIBRARIAN"],
-    },
-    {
-      label: t("platformSettings"),
+      label: language === 'en' ? 'Platform Policy' : 'Politique Platforme',
       icon: Settings2,
       href: "/dashboard/platform-settings",
       roles: EXECUTIVE_ROLES,
@@ -244,7 +238,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 overflow-hidden">
             {!isSuperAdmin && user?.school?.logo ? (
-              <div className="w-8 h-8 rounded-lg bg-white p-1 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-white p-1.5 flex items-center justify-center shrink-0 shadow-lg">
                 <img src={user.school.logo} alt="School Logo" className="w-full h-full object-contain" />
               </div>
             ) : isSuperAdmin && (

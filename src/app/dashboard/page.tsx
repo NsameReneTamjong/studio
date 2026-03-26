@@ -58,6 +58,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -392,114 +393,25 @@ export default function DashboardPage() {
     );
   }
 
-  if (isInstitutionalAdmin) {
-    return (
-      <div className="space-y-8 pb-20 animate-in fade-in duration-500">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-primary rounded-2xl shadow-xl border-2 border-white">
-              <Building2 className="w-8 h-8 text-secondary" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-primary font-headline uppercase">Institutional Command</h1>
-              <p className="text-muted-foreground mt-1">{user.school?.name || "Node Dashboard"} • Head Oversight</p>
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <Button asChild variant="outline" className="rounded-xl h-11 border-primary/20 font-bold">
-              <Link href="/dashboard/students">Manage Registry</Link>
-            </Button>
-            <Button asChild className="rounded-xl h-11 px-8 shadow-lg font-bold gap-2 bg-primary text-white">
-              <Link href="/dashboard/announcements">
-                <Zap className="w-4 h-4" /> Broadcast
-              </Link>
-            </Button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { label: "Total Students", value: "1,284", icon: GraduationCap, color: "text-blue-600", desc: "Active Node" },
-            { label: "Total Staff", value: "85", icon: Users, color: "text-purple-600", desc: "Professionals" },
-            { label: "Fee Intake", value: "92%", icon: Coins, color: "text-green-600", desc: "Target: 100%" },
-            { label: "Pending Tasks", value: "12", icon: ClipboardCheck, color: "text-amber-600", desc: "Action Required" },
-          ].map((stat, i) => (
-            <Card key={i} className="border-none shadow-sm group hover:shadow-md transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{stat.label}</CardTitle>
-                <stat.icon className={cn("w-4 h-4 transition-transform group-hover:scale-110", stat.color)} />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-black text-primary">{stat.value}</div>
-                <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase">{stat.desc}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <Card className="lg:col-span-8 border-none shadow-xl overflow-hidden rounded-[2rem] bg-white">
-            <CardHeader className="bg-primary/5 p-8 border-b">
-              <CardTitle className="text-primary flex items-center gap-2 font-black uppercase tracking-tighter">
-                <Activity className="w-5 h-5 text-secondary"/> Node Operational Pulse
-              </CardTitle>
-              <CardDescription>Institutional activity trends for the current academic session.</CardDescription>
-            </CardHeader>
-            <CardContent className="h-[350px] pt-10">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={DATA_PERIODS.monthly}>
-                  <defs>
-                    <linearGradient id="colorNode" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.15}/>
-                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                  <YAxis axisLine={false} tickLine={false} />
-                  <RechartsTooltip />
-                  <Area type="monotone" dataKey="users" stroke="hsl(var(--primary))" strokeWidth={4} fill="url(#colorNode)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          <div className="lg:col-span-4 space-y-6">
-            <Card className="border-none shadow-sm rounded-[2rem] bg-secondary/10 p-8 flex flex-col items-center text-center space-y-4">
-              <div className="p-4 bg-white rounded-[1.5rem] shadow-xl">
-                <ShieldCheck className="w-10 h-10 text-primary" />
-              </div>
-              <div>
-                <h3 className="text-xl font-black text-primary uppercase tracking-tighter leading-none">Registry Audit</h3>
-                <p className="text-xs text-muted-foreground mt-2 leading-relaxed">Ensure all student and staff records are synchronized with the national delegation standards.</p>
-              </div>
-              <Button asChild className="w-full gap-2 rounded-xl h-11 font-bold bg-primary text-white shadow-lg">
-                <Link href="/dashboard/staff">
-                  Staff Registry
-                  <ChevronRight className="w-4 h-4" />
-                </Link>
-              </Button>
-            </Card>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+  // SCHOOL USER OVERVIEW (Admin, Teacher, Student, etc.)
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-white p-2 shadow-xl border-2 border-accent hidden sm:flex items-center justify-center overflow-hidden shrink-0">
-            {user.school?.logo ? (
-              <img src={user.school.logo} alt="Logo" className="w-full h-full object-contain" />
-            ) : (
-              <Building2 className="w-8 h-8 text-primary/40" />
-            )}
-          </div>
+          <Avatar className="h-16 w-16 md:h-20 md:w-20 border-4 border-white shadow-xl shrink-0 ring-4 ring-primary/5">
+            <AvatarImage src={user.avatar} alt={user.name} />
+            <AvatarFallback className="bg-primary/5 text-primary text-2xl font-black">{user.name.charAt(0)}</AvatarFallback>
+          </Avatar>
           <div>
-            <h1 className="text-3xl font-bold text-primary font-headline tracking-tighter">Welcome, {user.name}</h1>
-            <p className="text-muted-foreground mt-1">Institutional Dashboard: {user.school?.name || "Node Dashboard"}</p>
+            <h1 className="text-3xl font-bold text-primary font-headline tracking-tighter">Welcome back, {user.name}</h1>
+            <div className="flex items-center gap-2 mt-1">
+              <Badge variant="secondary" className="bg-primary/5 text-primary border-none font-black uppercase text-[10px] h-5 px-3">
+                {user.role.replace('_', ' ')}
+              </Badge>
+              {user.school && (
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">• {user.school.name}</span>
+              )}
+            </div>
           </div>
         </div>
         <div className="bg-green-50 px-4 py-2 rounded-xl border border-green-100 flex items-center gap-3 shrink-0">
