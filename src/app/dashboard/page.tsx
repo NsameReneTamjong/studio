@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
@@ -401,7 +402,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <h1 className="text-3xl font-bold text-primary font-headline">Institutional Command</h1>
-              <p className="text-muted-foreground mt-1">{user.school?.name || "EduIgnite Node"} • Head Oversight</p>
+              <p className="text-muted-foreground mt-1">{user.school?.name || "Node Dashboard"} • Head Oversight</p>
             </div>
           </div>
           <div className="flex gap-2">
@@ -499,7 +500,7 @@ export default function DashboardPage() {
           </div>
           <div>
             <h1 className="text-3xl font-bold text-primary font-headline tracking-tighter">Welcome, {user.name}</h1>
-            <p className="text-muted-foreground mt-1">Institutional Dashboard: {user.school?.name || "EduIgnite Node"}</p>
+            <p className="text-muted-foreground mt-1">Institutional Dashboard: {user.school?.name || "Node Dashboard"}</p>
           </div>
         </div>
         <div className="bg-green-50 px-4 py-2 rounded-xl border border-green-100 flex items-center gap-3 shrink-0">

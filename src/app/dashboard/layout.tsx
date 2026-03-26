@@ -18,7 +18,8 @@ import {
   Lock, 
   Wallet, 
   Quote,
-  ChevronRight 
+  ChevronRight,
+  ShieldCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -66,7 +67,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         name: user.name,
         profileImage: user.avatar || "",
         role: user.role,
-        schoolName: user.school?.name || "EduIgnite Node",
+        schoolName: user.school?.name || "Institution Node",
         message: testimonyMessage,
       });
       
@@ -115,7 +116,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </CardHeader>
             <CardContent className="p-8 text-center space-y-6">
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Your account dashboard has been locked because the annual EduIgnite license fee for the current academic session is outstanding. 
+                Your account dashboard has been locked because the annual institutional license fee for the current academic session is outstanding. 
               </p>
               <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 flex gap-3 text-left">
                 <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
@@ -135,7 +136,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
-  // Safe tutorial mapping with fallback
   const roleForLink = user.role === 'SUB_ADMIN' ? 'SCHOOL_ADMIN' : user.role;
   const tutorialUrl = platformSettings?.tutorialLinks?.[roleForLink as keyof typeof platformSettings.tutorialLinks] || "https://youtube.com";
 
@@ -152,11 +152,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <div className="w-6 h-6 rounded bg-white p-0.5 flex items-center justify-center shrink-0">
                 <img src={user.school.logo} alt="Logo" className="w-full h-full object-contain" />
               </div>
-            ) : (
+            ) : isPlatformExecutive ? (
               <Building2 className="w-6 h-6 text-secondary shrink-0" />
-            )}
+            ) : null}
             <span className="font-bold tracking-tight text-white truncate">
-              {isPlatformExecutive ? platformSettings.name : (user?.school?.name || platformSettings.name)}
+              {isPlatformExecutive ? platformSettings.name : (user?.school?.name || "Institution Portal")}
             </span>
           </div>
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -190,11 +190,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         )}
                       </div>
                       <span className="font-black text-primary uppercase tracking-tighter">
-                        {user?.school?.name || "EduIgnite Academic SaaS"}
+                        {user?.school?.name || "Institutional Node"}
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground leading-relaxed max-w-md">
-                      Revolutionizing educational management through localized SaaS infrastructure. This institutional node is verified and secured by the {platformSettings.name} platform.
+                      Dedicated to delivering world-class pedagogical excellence through secure digital infrastructure. This institutional node is verified and managed by authorized personnel.
                     </p>
                     <div className="flex items-center gap-4">
                       <Button 
@@ -216,9 +216,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <div className="bg-secondary/10 p-6 rounded-3xl border border-secondary/20 flex flex-col md:items-end text-center md:text-right space-y-3">
                       <div>
                         <h4 className="font-black text-primary uppercase text-xs tracking-widest flex items-center md:justify-end gap-2 mb-1">
-                          Support the Platform <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500" />
+                          Share Your Experience <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500" />
                         </h4>
-                        <p className="text-xs text-muted-foreground">Love our work? Help us keep the servers running and features coming.</p>
+                        <p className="text-xs text-muted-foreground">Submit a testimony to help highlight institutional success stories.</p>
                       </div>
                       
                       <div className="flex flex-wrap gap-3 md:justify-end">
@@ -237,7 +237,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 </div>
                                 <div>
                                   <DialogTitle className="text-2xl font-black">Share Your Story</DialogTitle>
-                                  <DialogDescription className="text-white/60">Help others discover the power of EduIgnite.</DialogDescription>
+                                  <DialogDescription className="text-white/60">Help showcase the excellence of our institution.</DialogDescription>
                                 </div>
                               </div>
                             </DialogHeader>
@@ -245,7 +245,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                               <div className="space-y-2">
                                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Your Message</Label>
                                 <Textarea 
-                                  placeholder="Share your experience with EduIgnite..." 
+                                  placeholder="Share your experience..." 
                                   className="min-h-[150px] bg-accent/30 border-none rounded-2xl focus-visible:ring-primary p-4"
                                   value={testimonyMessage}
                                   onChange={(e) => setTestimonyMessage(e.target.value)}
@@ -254,7 +254,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                               </div>
                               <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 flex items-center gap-3">
                                 <Info className="w-5 h-5 text-primary opacity-40" />
-                                <p className="text-[10px] text-muted-foreground italic">Your profile details (name, role, school) will be attached to this testimony.</p>
+                                <p className="text-[10px] text-muted-foreground italic">Your professional profile details will be attached to this submission.</p>
                               </div>
                             </div>
                             <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
@@ -269,17 +269,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             </DialogFooter>
                           </DialogContent>
                         </Dialog>
-
-                        <Button className="rounded-xl bg-primary text-white shadow-lg h-11 px-8 font-bold gap-2" onClick={() => setIsSupportModalOpen(true)}>
-                          Support with a Contribution
-                        </Button>
                       </div>
                     </div>
                     
                     <div className="flex items-center gap-6 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">
-                      <span>v2.4.0 High-Availability (Prototype)</span>
+                      <span>Node Integrity Status: Optimal</span>
                       <span>•</span>
-                      <span>Powered by {platformSettings.name}</span>
+                      <span>Verified Infrastructure</span>
                     </div>
                   </div>
                 </div>

@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -247,13 +248,13 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
               <div className="w-8 h-8 rounded-lg bg-white p-1 flex items-center justify-center shrink-0">
                 <img src={user.school.logo} alt="School Logo" className="w-full h-full object-contain" />
               </div>
-            ) : (
+            ) : isSuperAdmin && (
               <div className="bg-secondary p-1.5 rounded-lg shrink-0">
                 <Building2 className="w-6 h-6 text-primary" />
               </div>
             )}
             <span className="text-lg font-bold tracking-tight font-headline truncate">
-              {isSuperAdmin ? "EduIgnite" : (user?.school?.name || "EduIgnite")}
+              {isSuperAdmin ? "EduIgnite" : (user?.school?.name || "Institution")}
             </span>
           </div>
           <div className="flex items-center gap-2">

@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { 
   ArrowRight, 
   Building2, 
@@ -85,7 +85,7 @@ export default function SchoolWelcomePage() {
       
       <div className="max-w-6xl w-full px-4 md:px-8 py-12 space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
         
-        {/* 1. TOP BRANDING: LOGO */}
+        {/* 1. TOP BRANDING: LOGO - ABSOLUTE TOP */}
         <div className="flex flex-col items-center text-center space-y-6">
           <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-[2.5rem] p-5 shadow-2xl flex items-center justify-center border-4 border-white ring-4 ring-primary/5 transition-transform hover:rotate-3">
             <img src={resolvedSchool.logo} alt="Logo" className="w-full h-full object-contain" />
@@ -106,7 +106,7 @@ export default function SchoolWelcomePage() {
           </div>
         </div>
 
-        {/* 2. HERO IMAGE: BANNER */}
+        {/* 2. HERO IMAGE: BANNER - FOLLOWS LOGO */}
         <div className="relative w-full aspect-[21/9] md:aspect-[3/1] rounded-[2.5rem] md:rounded-[3.5rem] overflow-hidden shadow-2xl border-4 border-white bg-slate-200 group">
           <img 
             src={resolvedSchool.banner} 
@@ -136,10 +136,10 @@ export default function SchoolWelcomePage() {
               {language === 'en' ? `Welcome, ${user.name}` : `Bienvenue, ${user.name}`}
             </h2>
             <Badge className="bg-primary/5 text-primary border-primary/10 h-7 px-4 font-black uppercase text-[10px] tracking-widest">
-              Authenticated as: {user.role.replace('_', ' ')}
+              {user.role.replace('_', ' ')}
             </Badge>
             <p className="text-lg text-muted-foreground font-medium leading-relaxed max-w-xl">
-              Your institutional gateway is synchronized. Step into your high-availability dashboard to manage your academic and administrative sequence.
+              Your institutional gateway is synchronized. Step into your specialized dashboard to manage your academic and administrative sequence.
             </p>
           </div>
           
@@ -174,7 +174,7 @@ export default function SchoolWelcomePage() {
           </Card>
         </div>
 
-        {/* 5. INSTITUTIONAL DEPTH: MISSION & PRINCIPAL */}
+        {/* 5. INSTITUTIONAL PROFILE CONTENT */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-8 space-y-8">
             <Card className="border-none shadow-sm overflow-hidden rounded-[2.5rem] bg-white">
@@ -202,7 +202,7 @@ export default function SchoolWelcomePage() {
                       <Globe className="w-4 h-4 text-secondary" /> Global Standard
                     </h4>
                     <p className="text-sm text-primary/70 leading-relaxed font-bold">
-                      Operating as an official digital node within the EduIgnite ecosystem for enhanced data integrity.
+                      Operating as an official digital node within the high-fidelity pedagogical ecosystem.
                     </p>
                   </div>
                 </div>
@@ -255,7 +255,7 @@ export default function SchoolWelcomePage() {
                       </div>
                       <div>
                         <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">Official Domain</p>
-                        <p className="font-bold text-primary">{schoolCode}.eduignite.cm</p>
+                        <p className="font-bold text-primary">{schoolCode}.edu.cm</p>
                       </div>
                     </div>
                   </div>
@@ -307,12 +307,12 @@ export default function SchoolWelcomePage() {
                <div className="space-y-2">
                   <h4 className="text-xs font-black text-primary uppercase">Institutional Credibility</h4>
                   <p className="text-[10px] text-muted-foreground leading-relaxed">
-                    This school is a registered public pedagogical entity, recognized by the Ministry of Secondary Education and verified on the EduIgnite platform.
+                    This school is a registered pedagogical entity, recognized by the Ministry of Secondary Education and verified on the secure digital network.
                   </p>
                </div>
                <div className="bg-accent/30 p-4 rounded-2xl flex items-center justify-center gap-3">
                   <ShieldCheck className="w-5 h-5 text-primary" />
-                  <span className="text-[9px] font-black text-primary uppercase tracking-widest">Digital License Active</span>
+                  <span className="text-[9px] font-black text-primary uppercase tracking-widest">Node Registry Active</span>
                </div>
             </Card>
           </div>
@@ -321,9 +321,9 @@ export default function SchoolWelcomePage() {
         <div className="flex flex-col md:flex-row items-center justify-between opacity-40 py-8 border-t">
            <div className="flex items-center gap-2">
               <Globe className="w-4 h-4 text-primary" />
-              <span className="text-[8px] font-black uppercase tracking-widest">Regional Cluster Littoral</span>
+              <span className="text-[8px] font-black uppercase tracking-widest">Regional Cluster Node</span>
            </div>
-           <p className="text-[8px] font-black uppercase tracking-widest">Powered by EduIgnite SaaS Node v2.4.0 • Secure Infrastructure</p>
+           <p className="text-[8px] font-black uppercase tracking-widest">Verified Institutional Secure Infrastructure</p>
         </div>
       </div>
     </div>
