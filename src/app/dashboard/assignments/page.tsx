@@ -544,14 +544,14 @@ export default function AssignmentsPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center font-black text-primary">
-                      {sub.score ? `${sub.score} / ${gradingAssignment.maxMarks}` : '---'}
+                      {sub.score ? `${sub.score} / ${gradingAssignment?.maxMarks}` : '---'}
                     </TableCell>
                     <TableCell className="text-right pr-8">
                       <Button 
                         variant="ghost" 
                         size="sm" 
                         className="text-[10px] font-black uppercase gap-2 hover:bg-primary hover:text-white"
-                        onClick={() => setReviewingSubmission({ ...sub, maxMarks: gradingAssignment.maxMarks })}
+                        onClick={() => setReviewingSubmission({ ...sub, maxMarks: gradingAssignment?.maxMarks })}
                       >
                         <Eye className="w-3.5 h-3.5" /> Review
                       </Button>
