@@ -36,7 +36,10 @@ import {
   Zap,
   Network,
   Users,
-  History
+  History,
+  Download,
+  Printer,
+  QrCode
 } from "lucide-react";
 import { 
   Dialog, 
@@ -70,9 +73,9 @@ import { cn } from "@/lib/utils";
 const ROLES = ["CEO", "CTO", "COO", "CFO", "INV", "Investor", "Board Member", "Adviser"];
 
 const MOCK_FOUNDERS = [
-  { id: "F1", name: "EduIgnite Founder", email: "ceo@eduignite.io", role: "CEO", status: "Active", isPrimary: true, avatar: "https://picsum.photos/seed/ceo/150/150", permissions: { manageSchools: true, manageTeam: true, viewAnalytics: true, manageSupport: true } },
-  { id: "F2", name: "Tech Director", email: "cto@eduignite.io", role: "CTO", status: "Active", isPrimary: false, avatar: "https://picsum.photos/seed/cto/150/150", permissions: { manageSchools: true, manageTeam: false, viewAnalytics: true, manageSupport: false } },
-  { id: "F3", name: "Operations Lead", email: "coo@eduignite.io", role: "COO", status: "Active", isPrimary: false, avatar: "https://picsum.photos/seed/coo/150/150", permissions: { manageSchools: true, manageTeam: false, viewAnalytics: false, manageSupport: true } },
+  { id: "EduI24CEO001", name: "EduIgnite Founder", email: "ceo@eduignite.io", role: "CEO", status: "Active", isPrimary: true, avatar: "https://picsum.photos/seed/ceo/150/150", permissions: { manageSchools: true, manageTeam: true, viewAnalytics: true, manageSupport: true } },
+  { id: "EduI24CTO001", name: "Tech Director", email: "cto@eduignite.io", role: "CTO", status: "Active", isPrimary: false, avatar: "https://picsum.photos/seed/cto/150/150", permissions: { manageSchools: true, manageTeam: false, viewAnalytics: true, manageSupport: false } },
+  { id: "EduI24COO001", name: "Operations Lead", email: "coo@eduignite.io", role: "COO", status: "Active", isPrimary: false, avatar: "https://picsum.photos/seed/coo/150/150", permissions: { manageSchools: true, manageTeam: false, viewAnalytics: false, manageSupport: true } },
 ];
 
 export default function FoundersManagementPage() {
@@ -84,6 +87,7 @@ export default function FoundersManagementPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [founders, setFounders] = useState<any[]>([]);
+  const [onboardingSuccess, setOnboardingSuccess] = useState<any>(null);
   
   const [newFounderData, setNewFounderData] = useState({
     name: "",
@@ -107,20 +111,28 @@ export default function FoundersManagementPage() {
   const handleAddFounder = async () => {
     if (!newFounderData.name || !newFounderData.email) return;
     setIsProcessing(true);
+    
+    // Prototype Delay
     setTimeout(() => {
+      const year = new Date().getFullYear().toString().slice(-2);
+      const roleCode = newFounderData.role.substring(0, 3).toUpperCase();
+      const generatedId = `EduI${year}${roleCode}${Math.floor(100 + Math.random() * 899)}`;
+      
       const created = {
         ...newFounderData,
-        id: `EDU-F${Math.floor(100 + Math.random() * 900)}`,
+        id: generatedId,
         status: "Active",
         isPrimary: false,
-        avatar: `https://picsum.photos/seed/${newFounderData.name}/100/100`,
+        avatar: `https://picsum.photos/seed/${generatedId}/150/150`,
       };
+      
       setFounders([...founders, created]);
       setIsProcessing(false);
       setIsAddModalOpen(false);
+      setOnboardingSuccess(created);
       setNewFounderData({ name: "", email: "", role: "COO", permissions: { manageSchools: false, manageTeam: false, viewAnalytics: true, manageSupport: false } });
-      toast({ title: "Executive Onboarded", description: `${newFounderData.name} has been authorized.` });
-    }, 1000);
+      toast({ title: "Executive Onboarded", description: `${created.name} has been authorized.` });
+    }, 1200);
   };
 
   const handleRemoveFounder = (id: string) => {
@@ -428,6 +440,133 @@ export default function FoundersManagementPage() {
            </div>
         </CardFooter>
       </Card>
+
+      {/* APPOINTMENT RECEIPT DIALOG (SHOWN UPON SUCCESSFUL ONBOARDING) */}
+      <Dialog open={!!onboardingSuccess} onOpenChange={() => setOnboardingSuccess(null)}>
+        <DialogContent className="sm:max-w-2xl p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden">
+          <DialogHeader className="bg-primary p-8 text-white no-print">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-2xl text-secondary">
+                  <Crown className="w-8 h-8" />
+                </div>
+                <div>
+                  <DialogTitle className="text-2xl font-black">Board Appointment Finalized</DialogTitle>
+                  <DialogDescription className="text-white/60">New platform executive authorized successfully.</DialogDescription>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setOnboardingSuccess(null)} className="text-white/40 hover:text-white">
+                <X className="w-6 h-6" />
+              </Button>
+            </div>
+          </DialogHeader>
+
+          <div className="bg-muted p-6 md:p-10 print:p-0 print:bg-white overflow-hidden">
+            <div id="executive-welcome-receipt" className="bg-white p-8 md:p-12 border-2 border-black shadow-sm relative flex flex-col space-y-10 font-serif text-black print:border-none print:shadow-none">
+               
+               {/* EduIgnite Platform Header */}
+               <div className="flex justify-between items-center border-b-4 border-black pb-6">
+                  <div className="flex items-center gap-4">
+                    <img src={platformSettings.logo} alt="EduIgnite" className="w-16 h-16 object-contain rounded-2xl bg-primary p-2" />
+                    <div className="space-y-0.5">
+                      <h2 className="font-black text-3xl uppercase tracking-tighter text-primary">{platformSettings.name}</h2>
+                      <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-40">Executive Governance Node</p>
+                    </div>
+                  </div>
+                  <div className="text-right space-y-1">
+                    <Badge variant="outline" className="border-black text-black font-black uppercase text-[10px] px-4 py-1">APPOINTMENT TICKET</Badge>
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase">ISSUED: {new Date().toLocaleDateString()}</p>
+                  </div>
+               </div>
+
+               <div className="space-y-8 text-center py-4">
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-black uppercase tracking-tight">Welcome to the Board</h3>
+                    <p className="text-sm font-medium italic opacity-60">Strategic authorization for executive access granted to:</p>
+                  </div>
+
+                  <div className="p-8 bg-accent/10 border-2 border-dashed border-black/20 rounded-[2.5rem] relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-5"><Crown className="w-24 h-24" /></div>
+                    <div className="flex flex-col items-center gap-4">
+                       <Avatar className="h-24 w-24 border-4 border-white shadow-xl">
+                          <AvatarImage src={onboardingSuccess?.avatar} />
+                          <AvatarFallback className="text-2xl font-black">{onboardingSuccess?.name?.charAt(0)}</AvatarFallback>
+                       </Avatar>
+                       <div>
+                          <h2 className="text-3xl font-black text-primary uppercase leading-none">{onboardingSuccess?.name}</h2>
+                          <Badge className="bg-primary text-white border-none mt-2 font-black uppercase px-4 py-1">{onboardingSuccess?.role}</Badge>
+                       </div>
+                    </div>
+                    
+                    <div className="flex flex-col items-center gap-2 mt-8 pt-6 border-t border-black/5">
+                       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-1">Corporate Platform Matricule</p>
+                       <div className="bg-primary text-secondary px-10 py-4 rounded-2xl shadow-xl">
+                          <p className="text-4xl font-mono font-black tracking-tighter leading-none">{onboardingSuccess?.id}</p>
+                       </div>
+                    </div>
+                  </div>
+               </div>
+
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-10 border-t border-black/10 pt-8">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                       <ShieldCheck className="w-5 h-5 text-primary" />
+                       <h4 className="text-xs font-black uppercase tracking-widest text-primary">Strategic Authorization</h4>
+                    </div>
+                    <p className="text-[11px] leading-relaxed font-medium text-muted-foreground italic">
+                      "As an authorized board member of the EduIgnite SaaS platform, you are entrusted with the governance of institutional nodes and system-wide data integrity. Your unique matricule provides full access to the executive dashboard."
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-center justify-center gap-4 text-center">
+                    <div className="p-2 bg-white border-2 border-black rounded-xl shadow-inner">
+                      <QrCode className="w-24 h-24 text-black" />
+                    </div>
+                    <p className="text-[8px] font-black uppercase tracking-widest opacity-40">Encrypted Governance Registry</p>
+                  </div>
+               </div>
+
+               <div className="pt-8 border-t-2 border-black/5 flex justify-between items-end">
+                  <div className="space-y-1">
+                    <p className="text-[8px] font-black uppercase text-muted-foreground tracking-[0.2em]">Verified by</p>
+                    <p className="font-black text-sm uppercase tracking-tighter">The Office of the CEO</p>
+                    <img src={platformSettings.logo} alt="EduIgnite" className="w-6 h-6 grayscale opacity-20" />
+                  </div>
+                  <div className="text-center space-y-4 w-40">
+                    <div className="h-12 w-full mx-auto relative flex items-center justify-center">
+                       <Signature className="w-full h-full text-primary/20" />
+                    </div>
+                    <p className="text-[9px] font-black uppercase text-primary border-t border-black/20 pt-1">Platform Registrar</p>
+                  </div>
+               </div>
+
+               <div className="text-center pt-6 opacity-30">
+                  <p className="text-[8px] font-black uppercase tracking-[0.5em]">Vision • Innovation • Integrity</p>
+               </div>
+            </div>
+          </div>
+
+          <DialogFooter className="bg-accent/10 p-8 border-t no-print flex flex-col sm:flex-row gap-4">
+            <Button variant="outline" className="flex-1 rounded-2xl h-14 font-black uppercase tracking-widest text-xs" onClick={() => setOnboardingSuccess(null)}>
+              Return to Registry
+            </Button>
+            <div className="flex flex-1 gap-2">
+              <Button 
+                variant="secondary" 
+                className="flex-1 rounded-2xl h-14 font-black uppercase tracking-widest text-xs gap-2"
+                onClick={() => toast({ title: "Welcome Packet Prepared", description: "Receipt PDF is being generated." })}
+              >
+                <Download className="w-4 h-4" /> Download PDF
+              </Button>
+              <Button 
+                className="flex-1 rounded-2xl h-14 shadow-2xl font-black uppercase tracking-widest text-xs gap-2 bg-primary text-white" 
+                onClick={() => window.print()}
+              >
+                <Printer className="w-4 h-4" /> Print Receipt
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
