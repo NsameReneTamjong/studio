@@ -33,7 +33,9 @@ import {
   Eye,
   ListChecks,
   CalendarDays,
-  ArrowLeft
+  ArrowLeft,
+  Loader2,
+  Save
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -123,6 +125,7 @@ export default function AttendancePage() {
   const [selectedClassDetails, setSelectedClassDetails] = useState<any>(null);
   const [viewingSubjectLogs, setViewingSubjectLogs] = useState<any>(null);
   const [viewingHistoryDetails, setViewingHistoryDetails] = useState<any>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   
   const isTeacher = user?.role === "TEACHER";
   const isAdmin = user?.role === "SCHOOL_ADMIN";
@@ -134,6 +137,17 @@ export default function AttendancePage() {
       title: "Report Generated",
       description: `${scope} attendance report is ready for download.`,
     });
+  };
+
+  const handleSubmitRegistry = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      setIsProcessing(false);
+      toast({
+        title: "Registry Synchronized",
+        description: "Pedagogical presence data has been committed to the node.",
+      });
+    }, 1500);
   };
 
   if (isParent) {
@@ -342,7 +356,7 @@ export default function AttendancePage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-20">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full hover:bg-white shadow-sm shrink-0">
@@ -414,7 +428,7 @@ export default function AttendancePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {MOCK_CLASSES_ATTENDANCE.map((cls) => (
-              <Card key={cls.id} className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-all">
+              <Card key={cls.id} className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-all bg-white">
                 <div className={cn(
                   "h-1.5 w-full",
                   cls.status === 'high' ? "bg-green-500" : cls.status === 'medium' ? "bg-blue-500" : "bg-red-500"
@@ -498,10 +512,17 @@ export default function AttendancePage() {
           </TabsList>
 
           <TabsContent value="register" className="animate-in fade-in slide-in-from-bottom-4 mt-0">
-            <Card className="border-none shadow-xl rounded-3xl overflow-hidden">
+            <Card className="border-none shadow-xl rounded-3xl overflow-hidden bg-white">
               <CardHeader className="bg-primary text-white p-8">
-                <CardTitle>Session Register: Form 5A</CardTitle>
-                <CardDescription className="text-white/60">Mark presence for students in this academic session.</CardDescription>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <CardTitle className="text-2xl font-black">Session Register: Form 5A</CardTitle>
+                    <CardDescription className="text-white/60">Mark presence for students in this academic session.</CardDescription>
+                  </div>
+                  <Badge variant="outline" className="bg-white/10 text-white border-none h-8 px-4 font-black uppercase text-[10px] tracking-widest flex items-center gap-2">
+                    <Clock className="w-3.5 h-3.5" /> 08:45 AM
+                  </Badge>
+                </div>
               </CardHeader>
               <CardContent className="p-0 overflow-x-auto">
                 <Table>
@@ -514,23 +535,23 @@ export default function AttendancePage() {
                   </TableHeader>
                   <TableBody>
                     {MOCK_STUDENTS.map(s => (
-                      <TableRow key={s.id} className="hover:bg-accent/5">
+                      <TableRow key={s.id} className="group hover:bg-accent/5 transition-colors">
                         <TableCell className="pl-8 py-4">
                           <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent">
+                            <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent shrink-0">
                               <AvatarImage src={s.avatar} />
-                              <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                              <AvatarFallback className="bg-primary/5 text-primary text-xs font-bold">{s.name.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <span className="font-bold text-sm text-primary">{s.name}</span>
                           </div>
                         </TableCell>
                         <TableCell className="text-center">
-                          <Badge className="bg-green-100 text-green-700 border-none text-[9px] font-black uppercase">Confirmed</Badge>
+                          <Badge className="bg-green-100 text-green-700 border-none text-[9px] font-black uppercase px-3 h-5">Verified</Badge>
                         </TableCell>
                         <TableCell className="text-right pr-8">
                           <div className="flex justify-end gap-2">
-                            <Button size="sm" variant="outline" className="text-[10px] uppercase font-black px-4 hover:bg-primary hover:text-white transition-colors">Present</Button>
-                            <Button size="sm" variant="outline" className="text-[10px] uppercase font-black px-4 hover:bg-destructive hover:text-white transition-colors">Absent</Button>
+                            <Button size="sm" variant="outline" className="text-[10px] uppercase font-black px-4 h-8 hover:bg-green-600 hover:text-white transition-colors border-green-200 text-green-700">Present</Button>
+                            <Button size="sm" variant="outline" className="text-[10px] uppercase font-black px-4 h-8 hover:bg-red-600 hover:text-white transition-colors border-red-200 text-red-700">Absent</Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -538,45 +559,74 @@ export default function AttendancePage() {
                   </TableBody>
                 </Table>
               </CardContent>
-              <CardFooter className="bg-accent/10 border-t p-6 flex flex-col sm:flex-row gap-4 justify-between items-center">
-                <p className="text-[10px] font-black uppercase text-muted-foreground italic">Submit within 15 minutes of session start.</p>
-                <Button className="font-black uppercase tracking-widest text-xs px-8 h-11 rounded-xl shadow-lg w-full sm:w-auto">Submit Registry</Button>
+              <CardFooter className="bg-accent/10 border-t p-6 flex flex-col sm:flex-row gap-6 justify-between items-center">
+                <div className="flex items-center gap-3 text-muted-foreground italic">
+                  <ShieldCheck className="w-5 h-5 text-primary opacity-40" />
+                  <p className="text-[10px] font-black uppercase tracking-widest">Automated attendance lock in 15 minutes.</p>
+                </div>
+                <div className="flex gap-3 w-full sm:w-auto">
+                  <Button variant="outline" className="h-12 px-8 rounded-xl font-bold gap-2 flex-1 sm:flex-none bg-white">
+                    <Save className="w-4 h-4" /> Save Draft
+                  </Button>
+                  <Button className="font-black uppercase tracking-widest text-xs px-10 h-12 rounded-xl shadow-xl bg-primary text-white hover:bg-primary/90 flex-1 sm:flex-none" onClick={handleSubmitRegistry} disabled={isProcessing}>
+                    {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
+                    Submit Registry
+                  </Button>
+                </div>
               </CardFooter>
             </Card>
           </TabsContent>
 
           <TabsContent value="records" className="animate-in fade-in slide-in-from-bottom-4 mt-0">
-            <Card className="border-none shadow-sm overflow-hidden rounded-3xl">
+            <Card className="border-none shadow-sm overflow-hidden rounded-3xl bg-white">
               <CardHeader className="bg-white border-b flex flex-col md:flex-row items-center justify-between gap-4">
                 <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <History className="w-5 h-5 text-primary" />
-                    Subject Records
+                  <CardTitle className="flex items-center gap-2 text-primary font-black uppercase tracking-tight">
+                    <History className="w-5 h-5" />
+                    Cumulative Subject Records
                   </CardTitle>
-                  <CardDescription>Comprehensive term presence records for your subject.</CardDescription>
+                  <CardDescription>Comprehensive term presence records for your assigned subjects.</CardDescription>
                 </div>
-                <Button variant="outline" size="sm" className="gap-2 w-full md:w-auto" onClick={() => handleDownloadReport("Subject-Specific")}>
+                <Button variant="outline" size="sm" className="gap-2 w-full md:w-auto rounded-xl h-10 font-bold border-primary/10" onClick={() => handleDownloadReport("Subject-Specific")}>
                   <Download className="w-4 h-4" /> Download Records
                 </Button>
               </CardHeader>
               <CardContent className="p-0 overflow-x-auto">
                 <Table>
-                  <TableHeader className="bg-muted/50 uppercase text-[10px] font-black tracking-widest">
+                  <TableHeader className="bg-accent/10 uppercase text-[10px] font-black tracking-widest border-b">
                     <TableRow>
-                      <TableHead className="pl-8 py-4">Student</TableHead>
+                      <TableHead className="pl-8 py-4">Student Identity</TableHead>
                       <TableHead className="text-center">Sessions Present</TableHead>
                       <TableHead className="text-center">Sessions Absent</TableHead>
-                      <TableHead className="text-right pr-8">Aggregate %</TableHead>
+                      <TableHead className="text-right pr-8">Attendance Ratio</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {MOCK_STUDENTS.map((s) => (
-                      <TableRow key={s.id}>
-                        <TableCell className="pl-8 py-4 font-bold text-sm text-primary">{s.name}</TableCell>
-                        <TableCell className="text-center font-bold text-green-600">{s.presentCount}</TableCell>
-                        <TableCell className="text-center font-bold text-red-600">{s.absentCount}</TableCell>
-                        <TableCell className="text-right pr-8 font-mono font-black text-primary">
-                          {Math.round((s.presentCount / (s.presentCount + s.absentCount)) * 100)}%
+                      <TableRow key={s.id} className="hover:bg-accent/5 border-b last:border-0">
+                        <TableCell className="pl-8 py-4">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8 shrink-0">
+                              <AvatarImage src={s.avatar} />
+                              <AvatarFallback className="text-[10px] font-black">{s.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-bold text-sm text-primary leading-none">{s.name}</p>
+                              <p className="text-[9px] font-mono text-muted-foreground mt-1">{s.id}</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center font-black text-green-600">{s.presentCount}</TableCell>
+                        <TableCell className="text-center font-black text-red-600">{s.absentCount}</TableCell>
+                        <TableCell className="text-right pr-8">
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="font-mono font-black text-primary text-xs">
+                              {Math.round((s.presentCount / (s.presentCount + s.absentCount)) * 100)}%
+                            </span>
+                            <div className="w-24 h-1 bg-accent rounded-full overflow-hidden">
+                              <div className="h-full bg-primary" style={{ width: `${(s.presentCount / (s.presentCount + s.absentCount)) * 100}%` }} />
+                            </div>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -592,12 +642,12 @@ export default function AttendancePage() {
       <Dialog open={!!selectedClassDetails} onOpenChange={() => setSelectedClassDetails(null)}>
         <DialogContent className="sm:max-w-5xl max-h-[90vh] overflow-y-auto p-0 border-none shadow-2xl rounded-3xl">
           <DialogHeader className={cn(
-            "p-8 text-white",
+            "p-8 text-white relative",
             selectedClassDetails?.status === 'high' ? "bg-green-600" : selectedClassDetails?.status === 'medium' ? "bg-blue-600" : "bg-red-600"
           )}>
             <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
               <div>
-                <DialogTitle className="text-3xl font-black">{selectedClassDetails?.name}</DialogTitle>
+                <DialogTitle className="text-3xl font-black uppercase tracking-tighter">{selectedClassDetails?.name}</DialogTitle>
                 <DialogDescription className="text-white/70 font-bold flex items-center gap-2 mt-1">
                   <User className="w-4 h-4" /> Lead Teacher: {selectedClassDetails?.teacher}
                 </DialogDescription>
@@ -615,6 +665,9 @@ export default function AttendancePage() {
                 </Button>
               </div>
             </div>
+            <Button variant="ghost" size="icon" onClick={() => setSelectedClassDetails(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+              <XCircle className="w-6 h-6" />
+            </Button>
           </DialogHeader>
           
           <div className="p-8 space-y-10">
@@ -721,7 +774,7 @@ export default function AttendancePage() {
                     <History className="w-4 h-4 text-primary" /> Full Session Logs
                   </Button>
                   <Button 
-                    className="w-full gap-3 h-12 rounded-xl shadow-lg bg-primary text-xs font-black uppercase tracking-widest text-white"
+                    className="w-full gap-3 h-12 rounded-xl shadow-lg bg-primary text-xs font-black uppercase tracking-widest text-white hover:bg-primary/90"
                     onClick={() => handleDownloadReport(`Parent Contact List - ${selectedClassDetails?.name}`)}
                   >
                     <Download className="w-4 h-4 text-secondary" /> Download Contact List
@@ -740,7 +793,7 @@ export default function AttendancePage() {
       {/* Subject-Specific Detail Dialog */}
       <Dialog open={!!viewingSubjectLogs} onOpenChange={() => setViewingSubjectLogs(null)}>
         <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0 rounded-3xl border-none shadow-2xl">
-          <DialogHeader className="p-8 bg-primary text-white shrink-0">
+          <DialogHeader className="p-8 bg-primary text-white shrink-0 relative">
             <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-white/10 rounded-2xl text-secondary">
@@ -763,6 +816,9 @@ export default function AttendancePage() {
                 <FileDown className="w-6 h-6" />
               </Button>
             </div>
+            <Button variant="ghost" size="icon" onClick={() => setViewingSubjectLogs(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+              <XCircle className="w-6 h-6" />
+            </Button>
           </DialogHeader>
           
           <div className="flex-1 overflow-hidden flex flex-col">
@@ -802,12 +858,12 @@ export default function AttendancePage() {
                         <TableCell className="text-center font-mono text-xs font-bold text-muted-foreground">{student.id}</TableCell>
                         <TableCell className="text-center">
                           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-100 font-bold text-xs">
-                            <CheckCircle2 className="w-3 h-3" /> {student.presentCount}
+                            <CheckCircle2 className="w-3.5 h-3.5" /> {student.presentCount}
                           </div>
                         </TableCell>
                         <TableCell className="text-center">
                           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 text-red-700 border border-red-100 font-bold text-xs">
-                            <XCircle className="w-3 h-3" /> {student.absentCount}
+                            <XCircle className="w-3.5 h-3.5" /> {student.absentCount}
                           </div>
                         </TableCell>
                         <TableCell className="pr-8 text-right">
