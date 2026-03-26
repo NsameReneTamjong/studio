@@ -25,7 +25,9 @@ import {
   X,
   Ban,
   MapPin,
-  User
+  User,
+  Mail,
+  Fingerprint
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n-context";
 import { 
@@ -63,9 +65,9 @@ export default function SchoolsManagementPage() {
   
   const [newSchoolData, setNewSchoolData] = useState({
     name: "",
+    shortName: "",
     principal: "",
-    domain: "",
-    address: "",
+    email: "",
     motto: "Discipline - Work - Success",
     description: "New Institutional Node",
     logo: "https://picsum.photos/seed/newschool/200/200",
@@ -78,12 +80,16 @@ export default function SchoolsManagementPage() {
   ) || [];
 
   const handleSaveSchool = async () => {
-    if (!newSchoolData.name || !newSchoolData.principal) return;
+    if (!newSchoolData.name || !newSchoolData.principal || !newSchoolData.shortName || !newSchoolData.email) {
+      toast({ variant: "destructive", title: "Missing Information", description: "Please complete all required fields." });
+      return;
+    }
+    
     setIsProcessing(true);
     
-    // Prototype Delay
+    // Prototype Delay to simulate node provisioning
     setTimeout(() => {
-      const generatedId = `EDU-${newSchoolData.name.substring(0, 3).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const generatedId = `EDU-${newSchoolData.shortName.toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
       const created = {
         ...newSchoolData,
         id: generatedId,
@@ -93,7 +99,6 @@ export default function SchoolsManagementPage() {
         subDivision: "Douala 1er",
         cityVillage: "Douala",
         phone: "+237 600 00 00 00",
-        email: `admin@${newSchoolData.domain || 'school.edu.cm'}`,
       };
       
       addSchool(created);
@@ -102,15 +107,15 @@ export default function SchoolsManagementPage() {
       setOnboardingSuccess(created);
       setNewSchoolData({
         name: "",
+        shortName: "",
         principal: "",
-        domain: "",
-        address: "",
+        email: "",
         motto: "Discipline - Work - Success",
         description: "New Institutional Node",
         logo: "https://picsum.photos/seed/newschool/200/200",
         banner: "https://picsum.photos/seed/school-banner/1200/400"
       });
-      toast({ title: "Node Provisioned", description: "Institution successfully onboarded." });
+      toast({ title: "Node Provisioned", description: "Institution successfully onboarded to the network." });
     }, 1200);
   };
 
@@ -148,21 +153,51 @@ export default function SchoolsManagementPage() {
             <div className="p-8 space-y-6">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Full School Name</Label>
-                <Input value={newSchoolData.name} onChange={(e) => setNewSchoolData({...newSchoolData, name: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl font-bold" placeholder="e.g. GBHS Deido" />
+                <Input 
+                  value={newSchoolData.name} 
+                  onChange={(e) => setNewSchoolData({...newSchoolData, name: e.target.value})} 
+                  className="h-12 bg-accent/30 border-none rounded-xl font-bold" 
+                  placeholder="e.g. Government Bilingual High School Deido" 
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Short Name (Code)</Label>
+                  <Input 
+                    value={newSchoolData.shortName} 
+                    onChange={(e) => setNewSchoolData({...newSchoolData, shortName: e.target.value})} 
+                    className="h-12 bg-accent/30 border-none rounded-xl font-black uppercase" 
+                    placeholder="e.g. GBHS" 
+                    maxLength={6}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Principal Name</Label>
+                  <Input 
+                    value={newSchoolData.principal} 
+                    onChange={(e) => setNewSchoolData({...newSchoolData, principal: e.target.value})} 
+                    className="h-12 bg-accent/30 border-none rounded-xl font-bold" 
+                    placeholder="e.g. Dr. Jean Dupont" 
+                  />
+                </div>
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Head of Institution (Principal)</Label>
-                <Input value={newSchoolData.principal} onChange={(e) => setNewSchoolData({...newSchoolData, principal: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl" placeholder="e.g. Principal Fonka" />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Assigned Domain</Label>
-                <Input value={newSchoolData.domain} onChange={(e) => setNewSchoolData({...newSchoolData, domain: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl" placeholder="e.g. gbhsdeido.edu.cm" />
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Official Email Address</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
+                  <Input 
+                    value={newSchoolData.email} 
+                    onChange={(e) => setNewSchoolData({...newSchoolData, email: e.target.value})} 
+                    className="h-12 bg-accent/30 border-none rounded-xl pl-10" 
+                    placeholder="admin@school.edu.cm" 
+                  />
+                </div>
               </div>
             </div>
             <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
               <Button onClick={handleSaveSchool} className="w-full h-14 rounded-2xl shadow-lg font-black uppercase tracking-widest text-xs gap-3 bg-primary text-white hover:bg-primary/90" disabled={isProcessing}>
                 {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <ShieldCheck className="w-5 h-5 text-secondary" />}
-                Provision & Generate ID
+                Provision Node & Generate ID
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -243,11 +278,11 @@ export default function SchoolsManagementPage() {
               </div>
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-primary/5 rounded-lg">
-                  <Globe className="w-4 h-4 text-primary/60" />
+                  <Mail className="w-4 h-4 text-primary/60" />
                 </div>
                 <div className="space-y-0.5">
-                  <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest leading-none">Digital Link</p>
-                  <p className="text-sm font-bold text-secondary italic truncate max-w-[200px]">{school.domain || "node.eduignite.cm"}</p>
+                  <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest leading-none">Official Contact</p>
+                  <p className="text-sm font-bold text-secondary italic truncate max-w-[200px]">{school.email}</p>
                 </div>
               </div>
             </CardContent>
@@ -351,9 +386,14 @@ export default function SchoolsManagementPage() {
                         <AvatarImage src={onboardingSuccess?.logo} className="object-contain p-2 bg-white" />
                         <AvatarFallback className="text-2xl font-black">{onboardingSuccess?.name.charAt(0)}</AvatarFallback>
                       </Avatar>
-                      <h2 className="text-3xl font-black text-primary uppercase leading-none">{onboardingSuccess?.name}</h2>
+                      <h2 className="text-2xl font-black text-primary uppercase leading-tight">{onboardingSuccess?.name}</h2>
+                      <div className="flex items-center gap-4 text-sm font-bold text-muted-foreground mt-1">
+                        <span className="flex items-center gap-1.5"><User className="w-4 h-4" /> {onboardingSuccess?.principal}</span>
+                        <span>•</span>
+                        <span className="flex items-center gap-1.5"><Mail className="w-4 h-4" /> {onboardingSuccess?.email}</span>
+                      </div>
                     </div>
-                    <div className="flex flex-col items-center gap-2 mt-6">
+                    <div className="flex flex-col items-center gap-2 mt-8">
                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-1">Provisioned Institutional ID (Matricule)</p>
                        <div className="bg-primary text-secondary px-8 py-4 rounded-2xl shadow-xl">
                           <p className="text-4xl font-mono font-black tracking-tighter leading-none">{onboardingSuccess?.id}</p>
