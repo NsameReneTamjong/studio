@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
-import { Megaphone, Send, Globe, Building2, Clock, Trash2, User, Users, GraduationCap, ShieldCheck, Loader2, Crown, Briefcase, Heart } from "lucide-react";
+import { Megaphone, Send, Globe, Building2, Clock, Trash2, User, Users, GraduationCap, ShieldCheck, Loader2, Crown, Briefcase, Heart, ShieldAlert, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -70,8 +70,13 @@ export default function AnnouncementsPage() {
   };
 
   const AnnouncementCard = ({ ann }: { ann: any }) => (
-    <Card className="border-none shadow-sm relative overflow-hidden group hover:shadow-md transition-all bg-white">
-      <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
+    <Card className="border-none shadow-sm relative overflow-hidden group hover:shadow-md transition-all bg-white rounded-2xl">
+      <div className={cn(
+        "absolute top-0 left-0 w-1.5 h-full",
+        ann.target === 'all_schools' ? "bg-primary" : 
+        ann.target === 'saas_admins' ? "bg-secondary" :
+        ann.target === 'investors' ? "bg-rose-500" : "bg-blue-500"
+      )} />
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start gap-4">
           <div className="flex gap-3">
@@ -84,7 +89,7 @@ export default function AnnouncementsPage() {
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold text-primary">{ann.senderName}</span>
-                <Badge variant="secondary" className="text-[9px] h-4 py-0 font-bold uppercase tracking-wider bg-secondary/20 text-primary border-none">
+                <Badge variant="secondary" className="text-[9px] h-4 py-0 font-black uppercase tracking-wider bg-secondary/20 text-primary border-none">
                   {ann.senderRole}
                 </Badge>
               </div>
@@ -100,7 +105,7 @@ export default function AnnouncementsPage() {
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        <CardTitle className="text-lg font-bold text-primary">{ann.title}</CardTitle>
+        <CardTitle className="text-lg font-black text-primary leading-tight">{ann.title}</CardTitle>
         <p className="text-sm text-muted-foreground leading-relaxed">
           {ann.content}
         </p>
@@ -110,7 +115,7 @@ export default function AnnouncementsPage() {
           <Button 
             variant="ghost" 
             size="sm" 
-            className="text-muted-foreground hover:text-destructive gap-2 text-[10px] font-black uppercase"
+            className="text-muted-foreground hover:text-destructive gap-2 text-[10px] font-black uppercase h-8"
             onClick={() => deleteAnnouncement(ann.id)}
           >
             <Trash2 className="w-3.5 h-3.5" /> {language === 'en' ? 'Remove' : 'Supprimer'}
@@ -121,18 +126,21 @@ export default function AnnouncementsPage() {
   );
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
       {canPost && (
-        <div className="lg:col-span-1 space-y-6">
-          <div>
+        <div className="lg:col-span-4 space-y-6">
+          <div className="space-y-1">
             <h1 className="text-3xl font-bold text-primary font-headline">Broadcast</h1>
-            <p className="text-muted-foreground mt-1">Regulated official messaging suite.</p>
+            <p className="text-muted-foreground text-sm">Strategic platform messaging suite.</p>
           </div>
 
           <Card className="border-none shadow-xl bg-primary text-white rounded-[2rem] overflow-hidden">
             <CardHeader className="bg-white/10 p-8 border-b border-white/5">
-              <CardTitle className="text-white uppercase tracking-tighter">New Announcement</CardTitle>
-              <CardDescription className="text-white/60">Choose your audience carefully.</CardDescription>
+              <CardTitle className="text-white uppercase tracking-tighter flex items-center gap-3">
+                <Megaphone className="w-6 h-6 text-secondary" />
+                Dispatch Directive
+              </CardTitle>
+              <CardDescription className="text-white/60">Target your audience across the node network.</CardDescription>
             </CardHeader>
             <CardContent className="p-8 space-y-6">
               <div className="space-y-2">
@@ -141,18 +149,18 @@ export default function AnnouncementsPage() {
                   <SelectTrigger className="bg-white/10 border-white/20 text-white h-12 rounded-xl">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="rounded-xl">
                     {isPlatformExecutive ? (
                       <SelectGroup>
-                        <SelectLabel>Platform Authority</SelectLabel>
-                        {isCEO && <SelectItem value="all_schools">All Registered Schools (CEO Only)</SelectItem>}
+                        <SelectLabel className="text-[10px] font-black uppercase opacity-40 px-3 py-2">Board Channels</SelectLabel>
+                        {isCEO && <SelectItem value="all_schools" className="font-bold">All Registered Schools (CEO)</SelectItem>}
                         <SelectItem value="saas_admins">Full Board of Directors</SelectItem>
-                        <SelectItem value="board_directors">Strategic Operations (Directorship)</SelectItem>
+                        <SelectItem value="board_directors">Strategic Operations (Directors)</SelectItem>
                         <SelectItem value="investors">Investor Relations</SelectItem>
                       </SelectGroup>
                     ) : (
                       <SelectGroup>
-                        <SelectLabel>School-wide</SelectLabel>
+                        <SelectLabel className="text-[10px] font-black uppercase opacity-40 px-3 py-2">Institutional Scope</SelectLabel>
                         <SelectItem value="everyone">Everyone (School-wide)</SelectItem>
                         <SelectItem value="teachers">All Teachers</SelectItem>
                         <SelectItem value="students">All Students</SelectItem>
@@ -165,7 +173,7 @@ export default function AnnouncementsPage() {
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-white/60">Title</Label>
                 <Input 
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/30 h-12 rounded-xl"
+                  className="bg-white/10 border-white/20 text-white placeholder:text-white/30 h-12 rounded-xl font-bold"
                   placeholder="e.g. System Update or Fee Notice" 
                   value={formData.title}
                   onChange={(e) => setFormData({...formData, title: e.target.value})}
@@ -184,7 +192,7 @@ export default function AnnouncementsPage() {
             <CardFooter className="p-8 pt-0">
               <Button 
                 variant="secondary" 
-                className="w-full h-14 gap-3 shadow-lg font-black uppercase tracking-widest text-xs rounded-2xl" 
+                className="w-full h-14 gap-3 shadow-lg font-black uppercase tracking-widest text-xs rounded-2xl bg-secondary text-primary hover:bg-secondary/90" 
                 onClick={handleSend}
                 disabled={isSending || !formData.title || !formData.content}
               >
@@ -196,16 +204,22 @@ export default function AnnouncementsPage() {
         </div>
       )}
 
-      <div className={cn("space-y-4", canPost ? "lg:col-span-2" : "lg:col-span-3")}>
-        {!canPost && (
-          <div>
-            <h1 className="text-3xl font-bold text-primary font-headline">{t("announcements")}</h1>
-            <p className="text-muted-foreground mt-1">Stay updated with official platform notices and school-wide alerts.</p>
+      <div className={cn("space-y-6", canPost ? "lg:col-span-8" : "lg:col-span-12")}>
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <h2 className="text-xl font-black text-primary uppercase tracking-tighter flex items-center gap-3">
+              <ShieldAlert className="w-6 h-6 text-secondary" />
+              Strategic Dispatch Ledger
+            </h2>
+            <p className="text-xs text-muted-foreground">Authorized platform communiqués and institutional alerts.</p>
           </div>
-        )}
-        <h2 className="text-xl font-bold text-primary mb-4 flex items-center gap-2 uppercase tracking-tighter">
-          <Megaphone className="w-5 h-5 text-secondary" /> Recent Dispatches
-        </h2>
+          {isPlatformExecutive && (
+            <Badge variant="outline" className="h-8 px-4 rounded-xl border-primary/10 text-primary font-black uppercase tracking-widest flex items-center gap-2">
+              <Zap className="w-3.5 h-3.5 text-secondary" />
+              Board Feed
+            </Badge>
+          )}
+        </div>
         
         <div className="grid grid-cols-1 gap-4">
           {announcements && announcements.length > 0 ? (
@@ -218,17 +232,18 @@ export default function AnnouncementsPage() {
                 if (ann.target === "board_directors") return ["CEO", "CTO", "COO", "SUPER_ADMIN", "DESIGNER"].includes(userRole);
                 if (ann.target === "investors") return ["CEO", "INV", "SUPER_ADMIN"].includes(userRole);
                 
-                // If it's a school target, only show to people who belong to a school (prototype simulation)
-                // executives should only see school announcements if they are the sender
+                // If it's a school target, only show to people who belong to a school
+                // executives only see school announcements if they are the sender
                 return !isPlatformExecutive || ann.senderUid === user?.id;
               })
+              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
               .map((ann) => (
                 <AnnouncementCard key={ann.id} ann={ann} />
               ))
           ) : (
-            <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 bg-white/50 rounded-[2.5rem] border-2 border-dashed border-primary/10">
-              <Megaphone className="w-12 h-12 text-primary/10" />
-              <p className="text-muted-foreground font-medium">No announcements found for your dashboard.</p>
+            <div className="flex flex-col items-center justify-center py-24 text-center space-y-4 bg-white/50 rounded-[2.5rem] border-2 border-dashed border-primary/10">
+              <Megaphone className="w-16 h-16 text-primary/10" />
+              <p className="text-muted-foreground font-black uppercase tracking-widest text-xs">No announcements in the registry.</p>
             </div>
           )}
         </div>

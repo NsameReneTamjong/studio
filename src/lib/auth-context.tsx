@@ -277,14 +277,26 @@ const INITIAL_ANNOUNCEMENTS: Announcement[] = [
     senderAvatar: "https://picsum.photos/seed/designer/100/100",
     senderUid: "mock_EDUI26DES001",
     createdAt: new Date(Date.now() - 14400000)
+  },
+  {
+    id: "ann-5",
+    title: "Operations: New Node Provisioning",
+    content: "Four new institutional nodes in the Center region are ready for activation. COOs should ensure that regional training sessions are scheduled.",
+    target: "board_directors",
+    senderName: "Operations Lead",
+    senderRole: "COO",
+    senderAvatar: "https://picsum.photos/seed/coo/100/100",
+    senderUid: "mock_EDUI26COO001",
+    createdAt: new Date(Date.now() - 18000000)
   }
 ];
 
 const DEMO_ACCOUNTS: Record<string, any> = {
-  "EDUI26CEO001": { name: "Platform CEO", role: "CEO", schoolId: null, isLicensePaid: true },
-  "EDUI26CTO001": { name: "Tech Director", role: "CTO", schoolId: null, isLicensePaid: true },
-  "EDUI26INV001": { name: "Lead Investor", role: "INV", schoolId: null, isLicensePaid: true },
-  "EDUI26DES001": { name: "Creative Lead", role: "DESIGNER", schoolId: null, isLicensePaid: true },
+  "EDUI26CEO001": { name: "Platform CEO", role: "CEO", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/ceo/150/150" },
+  "EDUI26CTO001": { name: "Tech Director", role: "CTO", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/cto/150/150" },
+  "EDUI26INV001": { name: "Lead Investor", role: "INV", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/inv/150/150" },
+  "EDUI26COO001": { name: "Operations Lead", role: "COO", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/coo/150/150" },
+  "EDUI26DES001": { name: "Creative Lead", role: "DESIGNER", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/designer/150/150" },
   "GBHS26": { name: "Principal Fonka", role: "SCHOOL_ADMIN", schoolId: "GBHS-D", isLicensePaid: true },
   "GBHS26A001": { name: "VP Academics", role: "SUB_ADMIN", schoolId: "GBHS-D", isLicensePaid: true },
   "GBHS26T001": { name: "Dr. Aris Tesla", role: "TEACHER", schoolId: "GBHS-D", isLicensePaid: true },
@@ -408,7 +420,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       role: demoData.role,
       schoolId: demoData.schoolId,
       isLicensePaid: demoData.isLicensePaid,
-      avatar: `https://picsum.photos/seed/${m}/150/150`,
+      avatar: demoData.avatar || `https://picsum.photos/seed/${m}/150/150`,
       school: demoData.schoolId ? schools.find(s => s.id === demoData.schoolId) : undefined
     };
 
