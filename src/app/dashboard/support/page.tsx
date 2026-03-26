@@ -23,7 +23,9 @@ import {
   MapPin,
   Mail,
   Phone,
-  Globe
+  Globe,
+  User,
+  Star
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -37,7 +39,7 @@ export default function SupportLedgerPage() {
 
   const handleVerifyContribution = (id: string) => {
     verifySupport(id);
-    toast({ title: "Contribution Verified" });
+    toast({ title: "Contribution Verified", description: "An official appreciation message has been dispatched." });
   };
 
   const handleProcessOrderAction = (id: string) => {
@@ -155,13 +157,21 @@ export default function SupportLedgerPage() {
                     </Avatar>
                     <div className="space-y-1">
                       <h3 className="font-black text-primary text-sm uppercase leading-tight">{entry.userName}</h3>
-                      <Badge variant="secondary" className="bg-secondary/20 text-primary border-none text-[8px] h-4 uppercase px-2">{entry.userRole || "User"}</Badge>
+                      <Badge variant="secondary" className="bg-secondary/20 text-primary border-none text-[8px] h-4 uppercase px-2">{entry.userRole}</Badge>
+                    </div>
+                    <div className="space-y-1 pt-2">
+                       <p className="text-[10px] font-black uppercase text-muted-foreground opacity-60">Associated Node</p>
+                       <div className="flex items-center justify-center gap-1 text-primary/60">
+                          <Building2 className="w-3 h-3" />
+                          <span className="text-[10px] font-bold">{entry.schoolName}</span>
+                       </div>
                     </div>
                     <div className="pt-4 border-t border-accent/50 w-full">
                       <Badge className={cn(
                         "w-full justify-center py-1 font-black uppercase text-[9px]",
                         entry.status === 'Verified' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
                       )}>
+                        {entry.status === 'Verified' ? <CheckCircle2 className="w-3 h-3 mr-1" /> : <Clock className="w-3 h-3 mr-1" />}
                         {entry.status}
                       </Badge>
                     </div>
@@ -195,7 +205,7 @@ export default function SupportLedgerPage() {
                         <Clock className="w-4 h-4 text-primary/40" /> Received: {new Date(entry.createdAt).toLocaleString()}
                       </span>
                       <Button className="gap-2 shadow-lg" onClick={() => handleVerifyContribution(entry.id)} disabled={entry.status === 'Verified'}>
-                        <CheckCircle2 className="w-4 h-4" /> {entry.status === 'Verified' ? 'Verified' : 'Verify Contribution'}
+                        <CheckCircle2 className="w-4 h-4" /> {entry.status === 'Verified' ? 'Appreciation Sent' : 'Verify & Appreciate'}
                       </Button>
                     </div>
                   </div>

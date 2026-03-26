@@ -114,6 +114,7 @@ export interface Announcement {
   title: string;
   content: string;
   target: string;
+  targetUid?: string;
   senderName: string;
   senderRole: string;
   senderAvatar: string;
@@ -123,9 +124,11 @@ export interface Announcement {
 
 export interface SupportContribution {
   id: string;
+  uid: string;
   userName: string;
   userRole: string;
   userAvatar: string;
+  schoolName: string;
   amount: number;
   method: string;
   phone: string;
@@ -265,28 +268,6 @@ const INITIAL_ANNOUNCEMENTS: Announcement[] = [
     senderAvatar: "https://picsum.photos/seed/inv/100/100",
     senderUid: "mock_EDUI26INV001",
     createdAt: new Date(Date.now() - 7200000)
-  },
-  {
-    id: "ann-3",
-    title: "UI/UX Refresh: Dashboard v2.5 Preview",
-    content: "Creative Notice: The high-fidelity prototypes for the next-gen mobile dashboard are now available for review. The experience is designed to be truly insanely great.",
-    target: "saas_admins",
-    senderName: "Creative Lead",
-    senderRole: "DESIGNER",
-    senderAvatar: "https://picsum.photos/seed/designer/100/100",
-    senderUid: "mock_EDUI26DES001",
-    createdAt: new Date(Date.now() - 10800000)
-  },
-  {
-    id: "ann-4",
-    title: "Operational Logistics: 4 New Nodes Activated",
-    content: "Executive Report: Provisioning for 4 new institutions in the Littoral region is complete. Synchronization with regional pedagogical clusters is active.",
-    target: "saas_admins",
-    senderName: "Operations Lead",
-    senderRole: "COO",
-    senderAvatar: "https://picsum.photos/seed/coo/100/100",
-    senderUid: "mock_EDUI26COO001",
-    createdAt: new Date(Date.now() - 14400000)
   }
 ];
 
@@ -509,7 +490,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSupportContributions(prev => [{ ...c, id: `SUP-${Math.random().toString(36).substr(2, 5).toUpperCase()}`, status: "New", createdAt: new Date() }, ...prev]);
   };
   const verifySupport = (id: string) => {
-    setSupportContributions(prev => prev.map(c => c.id === id ? { ...c, status: "Verified" } : c));
+    setSupportContributions(prev => prev.map(c => {
+      if (c.id === id) {
+        // Send Appreciation Message
+        addAnnouncement({
+          title: "Strategic Support Verified",
+          content: `Dear ${c.userName}, We have verified your generous contribution. Your support is fueling the digital transformation of education across Africa. The EduIgnite community Love you dear. \n\n— ${userData?.name || "CEO"}`,
+          target: "personal",
+          targetUid: c.uid,
+          senderName: userData?.name || "CEO",
+          senderRole: "CEO",
+          senderAvatar: userData?.avatar || "",
+          senderUid: userData?.uid || ""
+        });
+        return { ...c, status: "Verified" };
+      }
+      return c;
+    }));
   };
   const deleteSupport = (id: string) => {
     setSupportContributions(prev => prev.filter(c => c.id !== id));

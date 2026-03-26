@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
-import { Megaphone, Send, Globe, Building2, Clock, Trash2, User, Users, GraduationCap, ShieldCheck, Loader2, Crown, Briefcase, Heart, ShieldAlert, Zap } from "lucide-react";
+import { Megaphone, Send, Globe, Building2, Clock, Trash2, User, Users, GraduationCap, ShieldCheck, Loader2, Crown, Briefcase, Heart, ShieldAlert, Zap, MessageCircle, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -40,7 +40,7 @@ export default function AnnouncementsPage() {
     setTimeout(() => {
       addAnnouncement({
         ...formData,
-        senderUid: user.id,
+        senderUid: user.uid,
         senderName: user.name,
         senderRole: user.role,
         senderAvatar: user.avatar || ""
@@ -63,6 +63,7 @@ export default function AnnouncementsPage() {
     if (target === "teachers") return <Users className="w-3 h-3"/>;
     if (target === "students") return <GraduationCap className="w-3 h-3"/>;
     if (target === "administration") return <ShieldCheck className="w-3 h-3"/>;
+    if (target === "personal") return <Star className="w-3 h-3 text-secondary"/>;
     return <Building2 className="w-3 h-3"/>;
   };
 
@@ -70,6 +71,7 @@ export default function AnnouncementsPage() {
     <Card className="border-none shadow-sm relative overflow-hidden group hover:shadow-md transition-all bg-white rounded-2xl">
       <div className={cn(
         "absolute top-0 left-0 w-1.5 h-full",
+        ann.target === 'personal' ? "bg-secondary" :
         ann.target === 'all_schools' ? "bg-primary" : 
         ann.target === 'saas_admins' ? "bg-secondary" :
         ann.target === 'investors' ? "bg-rose-500" : "bg-blue-500"
@@ -95,19 +97,30 @@ export default function AnnouncementsPage() {
               </p>
             </div>
           </div>
-          <Badge variant="outline" className="text-[9px] gap-1 shrink-0 uppercase border-primary/10 text-primary font-black">
+          <Badge variant="outline" className={cn(
+            "text-[9px] gap-1 shrink-0 uppercase border-primary/10 font-black",
+            ann.target === 'personal' ? "border-secondary text-primary bg-secondary/10" : "text-primary"
+          )}>
             {getTargetIcon(ann.target)}
-            {ann.target.replace('_', ' ')}
+            {ann.target === 'personal' ? 'Personal Alert' : ann.target.replace('_', ' ')}
           </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
         <CardTitle className="text-lg font-black text-primary leading-tight">{ann.title}</CardTitle>
-        <p className="text-sm text-muted-foreground leading-relaxed">
+        <div className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
           {ann.content}
-        </p>
+        </div>
       </CardContent>
-      {(isCEO || user?.id === ann.senderUid) && (
+      {ann.target === 'personal' && (
+        <CardFooter className="bg-accent/10 py-2 border-t flex justify-center">
+           <div className="flex items-center gap-2 text-muted-foreground">
+              <ShieldCheck className="w-3 h-3 text-secondary" />
+              <span className="text-[8px] font-black uppercase tracking-widest italic opacity-60">This message is an official platform record and cannot be replied to.</span>
+           </div>
+        </CardFooter>
+      )}
+      {(isCEO || user?.uid === ann.senderUid) && (
         <CardFooter className="pt-0 justify-end">
           <Button 
             variant="ghost" 
@@ -222,8 +235,15 @@ export default function AnnouncementsPage() {
           {announcements && announcements.length > 0 ? (
             announcements
               .filter(ann => {
+                const userUid = user?.uid || "";
                 const userRole = user?.role || "";
-                // Executive Visibility: Board members see all board-level targets
+                
+                // Personal Targeted Messages
+                if (ann.target === "personal") {
+                  return ann.targetUid === userUid;
+                }
+
+                // Executive Visibility
                 if (isPlatformExecutive) {
                   if (["all_schools", "saas_admins", "board_directors", "investors"].includes(ann.target)) return true;
                 }
@@ -235,7 +255,7 @@ export default function AnnouncementsPage() {
                 if (ann.target === "investors") return ["CEO", "INV", "SUPER_ADMIN"].includes(userRole);
                 
                 // My own messages
-                if (ann.senderUid === user?.id) return true;
+                if (ann.senderUid === userUid) return true;
 
                 // School-level visibility
                 return !isPlatformExecutive;
