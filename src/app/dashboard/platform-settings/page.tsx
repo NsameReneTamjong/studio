@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -35,7 +34,8 @@ import {
   Image as ImageIcon,
   GraduationCap,
   Link as LinkIcon,
-  PlayCircle
+  PlayCircle,
+  Info
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
