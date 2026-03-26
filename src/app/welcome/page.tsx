@@ -80,32 +80,29 @@ export default function SchoolWelcomePage() {
 
   return (
     <div className="min-h-screen bg-[#F0F2F5] selection:bg-secondary selection:text-primary flex flex-col items-center relative overflow-x-hidden">
-      {/* Background Decorative Element */}
-      <div className="absolute top-0 inset-x-0 h-[500px] bg-primary/5 -z-10" />
-      
-      <div className="max-w-6xl w-full px-4 md:px-8 py-12 space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-        
-        {/* 1. LOGO-FIRST BRANDING */}
-        <div className="flex flex-col items-center text-center space-y-6">
-          <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-[2.5rem] p-5 shadow-2xl flex items-center justify-center border-4 border-white ring-4 ring-primary/5 transition-transform hover:rotate-3">
-            <img src={resolvedSchool.logo} alt="Logo" className="w-full h-full object-contain" />
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-center gap-2">
-              <Badge className="bg-secondary text-primary border-none font-black uppercase text-[10px] px-4 h-6">
-                Node ID: {resolvedSchool.id}
-              </Badge>
-              <Badge variant="outline" className="border-primary/20 text-primary font-bold text-[10px] uppercase h-6">Verified Institution</Badge>
-            </div>
-            <h1 className="text-4xl md:text-6xl font-black text-primary tracking-tighter leading-none uppercase">
-              {resolvedSchool.name}
-            </h1>
-            <p className="text-lg md:text-2xl italic text-muted-foreground font-serif">
-              "{resolvedSchool.motto}"
-            </p>
-          </div>
+      {/* 1. LOGO-FIRST BRANDING AT TOP */}
+      <div className="w-full bg-white/80 backdrop-blur-xl border-b border-primary/5 py-8 flex flex-col items-center gap-4 shrink-0">
+        <div className="w-24 h-24 md:w-32 bg-white rounded-[2.5rem] p-5 shadow-2xl flex items-center justify-center border-4 border-white ring-4 ring-primary/5 transition-transform hover:rotate-3">
+          <img src={resolvedSchool.logo} alt="Logo" className="w-full h-full object-contain" />
         </div>
-
+        <div className="text-center space-y-1">
+          <div className="flex items-center justify-center gap-2">
+            <Badge className="bg-secondary text-primary border-none font-black uppercase text-[10px] px-4 h-6">
+              Node ID: {resolvedSchool.id}
+            </Badge>
+            <Badge variant="outline" className="border-primary/20 text-primary font-bold text-[10px] uppercase h-6">Verified Institution</Badge>
+          </div>
+          <h1 className="text-2xl md:text-4xl font-black text-primary tracking-tighter leading-none uppercase max-w-2xl px-4">
+            {resolvedSchool.name}
+          </h1>
+          <p className="text-sm md:text-lg italic text-muted-foreground font-serif">
+            "{resolvedSchool.motto}"
+          </p>
+        </div>
+      </div>
+      
+      <div className="max-w-6xl w-full px-4 md:px-8 py-8 space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+        
         {/* 2. RESPONSIVE HERO BANNER */}
         <div className="relative w-full aspect-[21/9] md:aspect-[3/1] rounded-[2.5rem] md:rounded-[3.5rem] overflow-hidden shadow-2xl border-4 border-white bg-slate-200 group">
           <img 
@@ -236,7 +233,7 @@ export default function SchoolWelcomePage() {
                       </div>
                       <div>
                         <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">Official Domain</p>
-                        <p className="font-bold text-primary">{(resolvedSchool.shortName || "node").toLowerCase()}.edu.cm</p>
+                        <p className="font-bold text-primary">{schoolDomain}.edu.cm</p>
                       </div>
                     </div>
                   </div>
