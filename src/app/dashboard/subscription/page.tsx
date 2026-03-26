@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -24,8 +25,15 @@ import {
   Lock,
   ArrowRight,
   History,
-  QrCode
+  QrCode,
+  Printer,
+  Download,
+  X,
+  FileText,
+  Signature,
+  Info
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -39,18 +47,19 @@ const ROLE_FEES: Record<string, string> = {
 };
 
 export default function SubscriptionPage() {
-  const { user, markLicensePaid } = useAuth();
+  const { user, platformSettings, markLicensePaid } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
   
   const [isProcessing, setIsProcessing] = useState(false);
+  const [issuedReceipt, setIssuedReceipt] = useState<any>(null);
   const [paymentData, setPaymentData] = useState({
     method: "mtn",
     number: "",
   });
 
   const userFee = ROLE_FEES[user?.role || "STUDENT"] || "5000";
-  const deadline = "2024-10-31";
+  const deadline = platformSettings.paymentDeadline;
   const paymentStatus = user?.isLicensePaid ? 'paid' : 'pending';
 
   const handlePaySubscription = () => {
@@ -68,13 +77,45 @@ export default function SubscriptionPage() {
     setTimeout(() => {
       setIsProcessing(false);
       markLicensePaid();
+      
+      const receipt = {
+        id: `LIC-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+        userName: user?.name,
+        userMatricule: user?.id,
+        userRole: user?.role,
+        schoolName: user?.school?.name,
+        schoolLogo: user?.school?.logo,
+        amount: parseInt(userFee).toLocaleString(),
+        date: new Date().toLocaleDateString(language === 'en' ? 'en-US' : 'fr-FR'),
+        expiry: "Oct 2024",
+        ref: `TXN-${Math.floor(100000 + Math.random() * 900000)}`
+      };
+      
+      setIssuedReceipt(receipt);
+      
       toast({
         title: language === 'en' ? "Payment Successful" : "Paiement Réussi",
         description: language === 'en' 
-          ? "Your annual institutional license has been activated. You can now access all dashboard modules." 
-          : "Votre licence institutionnelle annuelle a été activée. Vous pouvez maintenant accéder à tous les modules.",
+          ? "Your annual institutional license has been activated. You can now download your receipt." 
+          : "Votre licence institutionnelle annuelle a été activée. Vous pouvez maintenant télécharger votre reçu.",
       });
     }, 2000);
+  };
+
+  const handleGenerateReceipt = () => {
+    const receipt = {
+      id: `LIC-REC-${user?.id}`,
+      userName: user?.name,
+      userMatricule: user?.id,
+      userRole: user?.role,
+      schoolName: user?.school?.name,
+      schoolLogo: user?.school?.logo,
+      amount: parseInt(userFee).toLocaleString(),
+      date: new Date().toLocaleDateString(language === 'en' ? 'en-US' : 'fr-FR'),
+      expiry: "Oct 2024",
+      ref: `TXN-AUDIT-${Math.floor(100000 + Math.random() * 900000)}`
+    };
+    setIssuedReceipt(receipt);
   };
 
   return (
@@ -88,23 +129,29 @@ export default function SubscriptionPage() {
             {t("subscription")}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Manage your annual institutional license and dashboard access fees.
+            {language === 'en' ? 'Manage your annual institutional license and dashboard access fees.' : 'Gérez votre licence institutionnelle annuelle et vos frais d\'accès au tableau de bord.'}
           </p>
         </div>
-        <Badge 
-          variant={paymentStatus === 'paid' ? 'secondary' : 'outline'} 
-          className={cn(
-            "h-10 px-6 rounded-xl font-black uppercase tracking-widest",
-            paymentStatus === 'paid' ? "bg-green-100 text-green-700 border-none" : "border-primary/20 text-primary"
+        <div className="flex gap-2">
+          {paymentStatus === 'paid' && (
+            <Button variant="outline" className="h-10 rounded-xl font-bold gap-2 border-primary/20" onClick={handleGenerateReceipt}>
+              <Printer className="w-4 h-4" /> {language === 'en' ? 'Receipt' : 'Reçu'}
+            </Button>
           )}
-        >
-          {paymentStatus === 'paid' ? t("paid") : t("unpaid")}
-        </Badge>
+          <Badge 
+            variant={paymentStatus === 'paid' ? 'secondary' : 'outline'} 
+            className={cn(
+              "h-10 px-6 rounded-xl font-black uppercase tracking-widest",
+              paymentStatus === 'paid' ? "bg-green-100 text-green-700 border-none" : "border-primary/20 text-primary"
+            )}
+          >
+            {paymentStatus === 'paid' ? t("paid") : t("unpaid")}
+          </Badge>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-7 space-y-8">
-          {/* License Status Card */}
           <Card className="border-none shadow-xl overflow-hidden rounded-[2rem]">
             <CardHeader className="bg-primary p-8 text-white">
               <div className="flex items-center justify-between">
@@ -163,9 +210,16 @@ export default function SubscriptionPage() {
               )}
 
               <div className="pt-6 border-t space-y-4">
-                <h4 className="text-xs font-black uppercase text-primary tracking-widest flex items-center gap-2">
-                  <History className="w-4 h-4" /> Transaction History
-                </h4>
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-black uppercase text-primary tracking-widest flex items-center gap-2">
+                    <History className="w-4 h-4" /> Transaction History
+                  </h4>
+                  {paymentStatus === 'paid' && (
+                    <Button variant="link" className="h-auto p-0 text-[10px] font-black uppercase text-secondary" onClick={handleGenerateReceipt}>
+                      Download Receipt <ArrowRight className="w-3 h-3 ml-1" />
+                    </Button>
+                  )}
+                </div>
                 <div className="space-y-2">
                   {paymentStatus === 'paid' ? (
                     <div className="flex items-center justify-between p-4 rounded-xl bg-accent/30 border border-accent">
@@ -175,7 +229,7 @@ export default function SubscriptionPage() {
                         </div>
                         <div>
                           <p className="text-sm font-bold">Annual Renewal 2023/24</p>
-                          <p className="text-[10px] text-muted-foreground uppercase">Today, Just now</p>
+                          <p className="text-[10px] text-muted-foreground uppercase">Today, Successfully Recorded</p>
                         </div>
                       </div>
                       <span className="font-black text-primary">{parseInt(userFee).toLocaleString()} XAF</span>
@@ -190,7 +244,6 @@ export default function SubscriptionPage() {
         </div>
 
         <div className="lg:col-span-5 space-y-8">
-          {/* Payment Gateway Card */}
           <Card className={cn(
             "border-none shadow-2xl overflow-hidden rounded-[2rem] transition-all duration-500",
             paymentStatus === 'paid' ? "opacity-50 grayscale pointer-events-none" : ""
@@ -261,7 +314,6 @@ export default function SubscriptionPage() {
             </CardFooter>
           </Card>
 
-          {/* Secure System Badge */}
           <div className="p-8 rounded-[2rem] bg-white border shadow-sm space-y-6 text-center">
              <div className="flex justify-center">
                 <div className="p-4 bg-accent rounded-full">
@@ -281,6 +333,131 @@ export default function SubscriptionPage() {
           </div>
         </div>
       </div>
+
+      {/* OFFICIAL LICENSE RECEIPT DIALOG */}
+      <Dialog open={!!issuedReceipt} onOpenChange={() => setIssuedReceipt(null)}>
+        <DialogContent className="sm:max-w-2xl p-0 border-none shadow-2xl rounded-[2rem] overflow-hidden">
+          <DialogHeader className="bg-primary p-8 text-white no-print">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-2xl">
+                  <FileText className="w-8 h-8 text-secondary" />
+                </div>
+                <div>
+                  <DialogTitle className="text-xl md:text-2xl font-black">Official License Receipt</DialogTitle>
+                  <DialogDescription className="text-white/60">Annual pedagogical dashboard authorization record.</DialogDescription>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setIssuedReceipt(null)} className="text-white/40 hover:text-white">
+                <X className="w-6 h-6" />
+              </Button>
+            </div>
+          </DialogHeader>
+
+          <div className="bg-muted p-6 md:p-10 print:p-0 print:bg-white overflow-hidden">
+            <div id="printable-license-receipt" className="bg-white p-8 border-2 border-black/10 shadow-sm relative flex flex-col space-y-10 font-serif text-black print:border-none print:shadow-none min-w-[350px]">
+               {/* National Header */}
+               <div className="grid grid-cols-3 gap-2 items-start text-center border-b-2 border-black pb-4">
+                  <div className="space-y-0.5 text-[7px] uppercase font-bold">
+                    <p>Republic of Cameroon</p>
+                    <p>Peace - Work - Fatherland</p>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <img src={issuedReceipt?.schoolLogo} alt="School" className="w-12 h-12 object-contain" />
+                  </div>
+                  <div className="space-y-0.5 text-[7px] uppercase font-bold">
+                    <p>République du Cameroun</p>
+                    <p>Paix - Travail - Patrie</p>
+                  </div>
+               </div>
+
+               <div className="text-center space-y-1">
+                  <h2 className="font-black text-sm md:text-base uppercase tracking-tighter text-primary leading-tight">{issuedReceipt?.schoolName}</h2>
+                  <p className="text-[8px] md:text-[10px] font-bold uppercase opacity-60 tracking-widest underline decoration-double underline-offset-2">Dashboard License Activation Receipt</p>
+               </div>
+
+               <div className="flex justify-between items-end bg-accent/5 p-4 border border-black/10 rounded-xl">
+                  <div>
+                    <p className="text-[8px] md:text-[10px] font-black uppercase text-muted-foreground tracking-widest">License Code</p>
+                    <p className="text-sm md:text-base font-mono font-black text-primary">{issuedReceipt?.id}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[8px] md:text-[10px] font-black uppercase text-muted-foreground tracking-widest">Transaction Date</p>
+                    <p className="font-bold text-xs md:text-sm">{issuedReceipt?.date}</p>
+                  </div>
+               </div>
+
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-2">
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-[8px] md:text-[9px] font-black uppercase text-muted-foreground tracking-widest border-b border-black/5 pb-1 mb-2">User Identity</p>
+                      <p className="font-black text-xs md:text-base uppercase leading-tight">{issuedReceipt?.userName}</p>
+                      <p className="text-[9px] font-mono font-bold text-primary mt-1">ID: {issuedReceipt?.userMatricule}</p>
+                      <p className="text-[8px] font-black uppercase opacity-40 mt-1">{issuedReceipt?.userRole}</p>
+                    </div>
+                    <div>
+                      <p className="text-[8px] md:text-[9px] font-black uppercase text-muted-foreground tracking-widest border-b border-black/5 pb-1 mb-2">Service Description</p>
+                      <p className="text-[10px] leading-relaxed italic">"Annual Platform Access License for the 2023/24 Academic Session. Grants full access to pedagogical modules, grade books, and secure communication channels."</p>
+                    </div>
+                  </div>
+                  <div className="text-left md:text-right flex flex-col justify-between">
+                    <div className="p-4 bg-primary text-white rounded-2xl shadow-xl">
+                      <p className="text-[8px] md:text-[9px] font-black uppercase opacity-60 tracking-widest mb-1">Fee Amount Received</p>
+                      <p className="font-black text-xl md:text-2xl text-secondary underline underline-offset-4 decoration-double">{issuedReceipt?.amount} XAF</p>
+                    </div>
+                    <div className="mt-4">
+                       <p className="text-[8px] font-black uppercase text-muted-foreground">Transaction Reference</p>
+                       <p className="text-[10px] font-mono font-bold">{issuedReceipt?.ref}</p>
+                    </div>
+                  </div>
+               </div>
+
+               <div className="pt-8 border-t border-black/5 flex justify-between items-end">
+                  <div className="flex flex-col items-center gap-2">
+                    <QrCode className="w-14 h-14 md:w-20 md:h-20 text-primary opacity-20" />
+                    <p className="text-[7px] font-black uppercase text-muted-foreground opacity-40">Verified Registry Node</p>
+                  </div>
+                  <div className="text-center space-y-6 w-32">
+                    <div className="h-10 md:h-12 w-full mx-auto bg-primary/5 rounded border-b-2 border-black/40 relative flex items-center justify-center">
+                       <Signature className="w-full h-full text-primary/20 p-2" />
+                    </div>
+                    <p className="text-[8px] font-black uppercase text-primary tracking-widest leading-none">The Registrar</p>
+                  </div>
+               </div>
+
+               <div className="text-center pt-4 border-t border-black/5">
+                  <div className="flex items-center justify-center gap-3">
+                    <img src={platformSettings.logo} alt="Platform" className="w-3 h-3 object-contain opacity-20" />
+                    <p className="text-[7px] font-black uppercase text-muted-foreground opacity-30 tracking-[0.3em]">
+                      Verified Educational Record • {platformSettings.name} Secure Node Record
+                    </p>
+                  </div>
+               </div>
+            </div>
+          </div>
+
+          <DialogFooter className="bg-accent/10 p-6 md:p-8 border-t no-print flex flex-col sm:flex-row gap-4">
+            <Button variant="outline" className="flex-1 rounded-xl h-12 md:h-14 font-black uppercase tracking-widest text-xs" onClick={() => setIssuedReceipt(null)}>
+              Dismiss
+            </Button>
+            <div className="flex flex-1 gap-2">
+              <Button 
+                variant="secondary" 
+                className="flex-1 rounded-xl h-12 md:h-14 font-black uppercase tracking-widest text-xs gap-2"
+                onClick={() => toast({ title: "Receipt Prepared", description: "Document sent to print queue." })}
+              >
+                <Download className="w-4 h-4" /> PDF
+              </Button>
+              <Button 
+                className="flex-1 rounded-xl h-12 md:h-14 shadow-2xl font-black uppercase tracking-widest text-xs gap-2 bg-primary text-white" 
+                onClick={() => window.print()}
+              >
+                <Printer className="w-4 h-4" /> Print Receipt
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
