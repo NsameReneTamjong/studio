@@ -32,7 +32,8 @@ import {
   Heart,
   BookOpen,
   Video,
-  Image as ImageIcon
+  Image as ImageIcon,
+  GraduationCap
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
