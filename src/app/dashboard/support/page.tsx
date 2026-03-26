@@ -33,7 +33,7 @@ export default function SupportLedgerPage() {
   const { t, language } = useI18n();
   const { toast } = useToast();
   
-  const isSuperAdmin = user?.role === "SUPER_ADMIN" || user?.role === "CEO";
+  const isSuperAdmin = ["SUPER_ADMIN", "CEO", "CTO", "COO"].includes(user?.role || "");
 
   const handleVerifyContribution = (id: string) => {
     verifySupport(id);
