@@ -28,11 +28,8 @@ import {
   Lock,
   ArrowRight,
   Award,
-  Heart,
-  Wallet,
   CheckCircle2,
-  Clock,
-  ArrowRightLeft
+  Clock
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -57,7 +54,6 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 import Link from "next/link";
 
 const DATA_PERIODS = {
@@ -101,7 +97,7 @@ const USER_DISTRIBUTION = [
 
 export default function DashboardPage() {
   const { user, schools, isLoading } = useAuth();
-  const { t, language } = useI18n();
+  const { t } = useI18n();
 
   const [timePeriod, setTimePeriod] = useState<"weekly" | "monthly" | "yearly">("monthly");
   const [selectedSchoolId, setSelectedSchoolId] = useState("all");
@@ -426,7 +422,7 @@ export default function DashboardPage() {
             { label: "Pending Tasks", value: "12", icon: ClipboardCheck, color: "text-amber-600", desc: "Action Required" },
           ].map((stat, i) => (
             <Card key={i} className="border-none shadow-sm group hover:shadow-md transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                 <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{stat.label}</CardTitle>
                 <stat.icon className={cn("w-4 h-4 transition-transform group-hover:scale-110", stat.color)} />
               </CardHeader>
@@ -439,7 +435,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <Card className="lg:col-span-8 border-none shadow-xl overflow-hidden rounded-[2.5rem]">
+          <Card className="lg:col-span-8 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
             <CardHeader className="bg-primary/5 p-8 border-b">
               <CardTitle className="text-primary flex items-center gap-2 font-black uppercase tracking-tighter">
                 <Activity className="w-5 h-5 text-secondary"/> Node Operational Pulse
