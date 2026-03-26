@@ -181,17 +181,17 @@ export default function StudentsPage() {
                 />
               </div>
               
-              <TabsContent value="students" className="mt-0 flex gap-4 col-span-1 md:col-span-2">
+              <div className="flex gap-4 col-span-1 md:col-span-2">
                 <div className="flex-1">
                   <Select value={sectionFilter} onValueChange={setSectionFilter}>
                     <SelectTrigger className="h-12 bg-accent/20 border-none rounded-xl font-bold">
                       <div className="flex items-center gap-2">
                         <Network className="w-4 h-4 text-primary/40" />
-                        <SelectValue placeholder="All Sections" />
+                        <SelectValue placeholder="Sub-Schools" />
                       </div>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Entire Node</SelectItem>
+                      <SelectItem value="all">All Sections</SelectItem>
                       {SECTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                     </SelectContent>
                   </Select>
@@ -207,7 +207,7 @@ export default function StudentsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-              </TabsContent>
+              </div>
             </div>
           </CardHeader>
 
@@ -234,7 +234,9 @@ export default function StudentsPage() {
                         </Avatar>
                         <div>
                           <p className="font-bold text-sm text-primary leading-tight">{s.name}</p>
-                          <p className="text-[9px] font-black uppercase text-muted-foreground mt-0.5">{s.section}</p>
+                          <Badge variant="outline" className="text-[8px] h-4 uppercase border-none bg-primary/5 text-primary font-black tracking-tighter mt-0.5">
+                            {s.section}
+                          </Badge>
                         </div>
                       </div>
                     </TableCell>

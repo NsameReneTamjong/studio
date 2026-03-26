@@ -273,8 +273,10 @@ export default function IdCardsPage() {
                           </div>
                           <div className="flex-1">
                             <p className="text-[8px] font-black uppercase text-muted-foreground leading-none mb-0.5">Ministry of Secondary Education</p>
-                            <h3 className="text-xs font-black uppercase text-primary leading-tight">{user?.school?.name}</h3>
-                            <p className="text-[7px] font-bold text-muted-foreground italic">"{user?.school?.motto}"</p>
+                            <h3 className="text-xs font-black uppercase text-primary leading-tight">
+                              {user?.school?.name || "GOVERNMENT BILINGUAL HIGH SCHOOL DEIDO"}
+                            </h3>
+                            <p className="text-[7px] font-bold text-muted-foreground italic">"{user?.school?.motto || "Discipline - Work - Success"}"</p>
                           </div>
                         </div>
 
