@@ -29,7 +29,11 @@ import {
   ArrowRight,
   Award,
   CheckCircle2,
-  Clock
+  Clock,
+  Wallet,
+  User,
+  Radio,
+  PenTool
 } from "lucide-react";
 import { 
   AreaChart, 

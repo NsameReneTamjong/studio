@@ -244,46 +244,46 @@ const INITIAL_SCHOOLS: SchoolInfo[] = [
 const INITIAL_ANNOUNCEMENTS: Announcement[] = [
   {
     id: "ann-1",
-    title: "SaaS Infrastructure v2.4 Deployment",
-    content: "Global Directive: We have finalized the high-availability node sync across all regional clusters. Latency for MCQ timers has been reduced by 40% globally.",
-    target: "all_schools",
-    senderName: "EduIgnite CEO",
-    senderRole: "CEO",
-    senderAvatar: "https://picsum.photos/seed/ceo/100/100",
-    senderUid: "mock_EDUI26CEO001",
-    createdAt: new Date(Date.now() - 3600000)
-  },
-  {
-    id: "ann-2",
-    title: "Critical Security Patch: Node API",
-    content: "Internal Board Alert: A critical security patch has been applied to the authentication core. All board members are requested to verify their biometric MFA status immediately.",
+    title: "Critical Security Patch: Node API Core",
+    content: "Internal Board Alert: A critical security patch has been applied to the authentication core. All board members must verify their biometric MFA status. Systems are operating at 100% integrity.",
     target: "saas_admins",
     senderName: "Tech Director",
     senderRole: "CTO",
     senderAvatar: "https://picsum.photos/seed/cto/100/100",
     senderUid: "mock_EDUI26CTO001",
-    createdAt: new Date(Date.now() - 7200000)
+    createdAt: new Date(Date.now() - 3600000)
   },
   {
-    id: "ann-3",
-    title: "Quarterly Growth Portfolio & Projections",
-    content: "Investor Update: Growth metrics show a 22% increase in institutional onboarding. Please review the updated dividend projection document in the board vault.",
+    id: "ann-2",
+    title: "Quarterly Growth Portfolio: v2.4 Success",
+    content: "Investor Update: Institutional onboarding has reached a new milestone. Revenue velocity is up by 22% this term. Review the full dividend projection in the board vault.",
     target: "investors",
     senderName: "Lead Investor",
     senderRole: "INV",
     senderAvatar: "https://picsum.photos/seed/inv/100/100",
     senderUid: "mock_EDUI26INV001",
-    createdAt: new Date(Date.now() - 10800000)
+    createdAt: new Date(Date.now() - 7200000)
   },
   {
-    id: "ann-4",
+    id: "ann-3",
     title: "UI/UX Refresh: Dashboard v2.5 Preview",
-    content: "Creative Notice: Mockups for the new mobile interface are ready. Founders can preview the high-fidelity prototypes in the design lab today.",
+    content: "Creative Notice: The high-fidelity prototypes for the next-gen mobile dashboard are now available for review. The experience is designed to be truly insanely great.",
     target: "saas_admins",
     senderName: "Creative Lead",
     senderRole: "DESIGNER",
     senderAvatar: "https://picsum.photos/seed/designer/100/100",
     senderUid: "mock_EDUI26DES001",
+    createdAt: new Date(Date.now() - 10800000)
+  },
+  {
+    id: "ann-4",
+    title: "Operational Logistics: 4 New Nodes Activated",
+    content: "Executive Report: Provisioning for 4 new institutions in the Littoral region is complete. Synchronization with regional pedagogical clusters is active.",
+    target: "saas_admins",
+    senderName: "Operations Lead",
+    senderRole: "COO",
+    senderAvatar: "https://picsum.photos/seed/coo/100/100",
+    senderUid: "mock_EDUI26COO001",
     createdAt: new Date(Date.now() - 14400000)
   }
 ];

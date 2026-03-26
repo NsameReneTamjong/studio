@@ -29,12 +29,10 @@ export default function SchoolWelcomePage() {
   const [isConnecting, setIsConnecting] = useState(true);
 
   useEffect(() => {
-    // Redirect to login if not authenticated
     if (!isAuthLoading && !isAuthenticated) {
       router.push("/login");
     }
 
-    // High-fidelity loading delay for cinematic effect
     if (isAuthenticated && user) {
       const timer = setTimeout(() => {
         setIsConnecting(false);
@@ -47,7 +45,7 @@ export default function SchoolWelcomePage() {
     return <LoadingScreen />;
   }
 
-  // Robust school resolution for prototype
+  // Smart resolution for prototype nodes
   const resolvedSchool = user?.school || 
     (user?.schoolId ? schools.find(s => s.id === user?.schoolId) : null) || 
     schools[0];
@@ -59,8 +57,8 @@ export default function SchoolWelcomePage() {
           <Building2 className="w-16 h-16 text-primary/20" />
         </div>
         <div className="space-y-2">
-          <h1 className="text-2xl font-black text-primary uppercase tracking-tighter">Connection Refused</h1>
-          <p className="text-muted-foreground max-w-md mx-auto">We encountered an issue synchronizing your institutional node data. Please try re-authenticating.</p>
+          <h1 className="text-2xl font-black text-primary uppercase tracking-tighter">Connection Failed</h1>
+          <p className="text-muted-foreground max-w-md mx-auto">We couldn't synchronize your institutional node data. Please re-authenticate.</p>
         </div>
         <Button variant="outline" className="rounded-xl gap-2 font-bold" onClick={() => router.push("/login")}>
           <RefreshCw className="w-4 h-4" /> Back to Login
