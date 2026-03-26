@@ -54,7 +54,7 @@ export default function SchoolWelcomePage() {
     );
   }
 
-  // Robustly handle school data lookup
+  // Prototype Lookup: Find the user's school or fallback to first available to avoid blank screens
   const school = user?.school || (user?.schoolId ? schools.find(s => s.id === user?.schoolId) : schools[0]);
 
   if (!user || !school) {

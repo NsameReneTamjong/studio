@@ -47,7 +47,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
   const [isTestimonyModalOpen, setIsTestimonyModalOpen] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [testimonyMessage, setTestimonyMessage] = useState("");
   const [isSubmittingTestimony, setIsSubmittingTestimony] = useState(false);
 
@@ -136,8 +135,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
+  // Safe tutorial mapping
   const roleForLink = user.role === 'SUB_ADMIN' ? 'SCHOOL_ADMIN' : user.role;
-  const tutorialUrl = (platformSettings.tutorialLinks as any)?.[roleForLink] || "https://youtube.com";
+  const tutorialUrl = (platformSettings?.tutorialLinks as any)?.[roleForLink] || "https://youtube.com";
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -200,12 +200,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="rounded-xl border-primary/20 text-primary font-bold gap-2 h-10 px-4"
+                        className="rounded-xl border-primary/20 text-primary font-bold gap-2 h-10 px-4 group"
                         asChild
                       >
                         <a href={tutorialUrl} target="_blank" rel="noopener noreferrer">
                           <Youtube className="w-4 h-4 text-red-600" />
                           Learn to use your Dashboard
+                          <ChevronRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
                         </a>
                       </Button>
                     </div>

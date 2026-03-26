@@ -25,7 +25,8 @@ import {
   Crown,
   Search,
   Info,
-  Lock
+  Lock,
+  ArrowRight
 } from "lucide-react";
 import { 
   AreaChart, 
