@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
@@ -247,7 +246,7 @@ const INITIAL_ANNOUNCEMENTS: Announcement[] = [
     title: "SaaS Infrastructure v2.4 Deployment",
     content: "Global Directive: We have finalized the high-availability node sync across all regional clusters. Latency for MCQ timers has been reduced by 40% globally.",
     target: "all_schools",
-    senderName: "Platform CEO",
+    senderName: "EduIgnite CEO",
     senderRole: "CEO",
     senderAvatar: "https://picsum.photos/seed/ceo/100/100",
     senderUid: "mock_EDUI26CEO001",
@@ -255,7 +254,7 @@ const INITIAL_ANNOUNCEMENTS: Announcement[] = [
   },
   {
     id: "ann-2",
-    title: "Critical Security Patch: Core Node API",
+    title: "Critical Security Patch: Node API",
     content: "Internal Board Alert: A critical security patch has been applied to the authentication core. All board members are requested to verify their biometric MFA status immediately.",
     target: "saas_admins",
     senderName: "Tech Director",
@@ -355,12 +354,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) ? parsed.length >= 0 : Object.keys(parsed).length >= 0) {
-            if (!Array.isArray(parsed) && typeof defaultValue === 'object') {
-              return { ...defaultValue, ...parsed };
-            }
-            return parsed;
+          if (Array.isArray(parsed)) {
+            return parsed.length > 0 ? parsed : defaultValue;
           }
+          return { ...defaultValue, ...parsed };
         } catch (e) {
           console.error(`Error loading registry ${key}`, e);
         }

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
@@ -9,18 +8,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { 
   ArrowRight, 
   Building2, 
-  MapPin, 
-  GraduationCap, 
   ShieldCheck, 
-  Sparkles,
   BookOpen,
   Users,
-  Phone,
-  Mail,
-  Heart,
-  Clock,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  Sparkles,
+  Zap,
+  Globe
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -28,33 +23,63 @@ import { useRouter } from "next/navigation";
 
 export default function SchoolWelcomePage() {
   const { user, isAuthenticated, isLoading: isAuthLoading, schools } = useAuth();
-  const { t, language } = useI18n();
+  const { language } = useI18n();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(true);
 
   useEffect(() => {
     setMounted(true);
     if (!isAuthLoading && !isAuthenticated) {
       router.push("/login");
     }
-    
-    // Board members and CEO go straight to dashboard
-    const executiveRoles = ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV", "DESIGNER"];
-    if (user && executiveRoles.includes(user.role)) {
-      router.push("/dashboard");
+
+    // Simulate high-fidelity connection sequence
+    if (isAuthenticated && user) {
+      const timer = setTimeout(() => {
+        setIsConnecting(false);
+      }, 2500);
+      return () => clearTimeout(timer);
     }
   }, [isAuthenticated, isAuthLoading, user, router]);
 
-  if (!mounted || isAuthLoading) {
+  if (!mounted || isAuthLoading || isConnecting) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-background gap-4">
-        <Loader2 className="w-12 h-12 animate-spin text-primary opacity-20" />
-        <p className="text-primary/40 font-black uppercase text-[10px] tracking-[0.3em] animate-pulse">Syncing Portal Access</p>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#F0F2F5] p-8">
+        <div className="relative">
+          <div className="absolute inset-0 bg-primary/20 rounded-full blur-3xl animate-pulse" />
+          <div className="relative bg-white p-8 rounded-[3rem] shadow-2xl flex flex-col items-center gap-6 text-center max-w-sm border border-white">
+            <div className="relative">
+              <div className="absolute inset-0 bg-secondary/20 rounded-2xl animate-ping" />
+              <div className="relative bg-primary p-5 rounded-2xl shadow-xl">
+                <Building2 className="w-10 h-10 text-secondary" />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <h2 className="text-2xl font-black text-primary uppercase tracking-tighter leading-tight">
+                Connecting You to Your School
+              </h2>
+              <p className="text-sm text-muted-foreground font-medium">
+                We are setting up your secure pedagogical access. This will only take a few seconds.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 bg-accent/50 px-6 py-3 rounded-2xl w-full border border-accent">
+              <Loader2 className="w-5 h-5 animate-spin text-primary" />
+              <span className="text-[10px] font-black uppercase text-primary tracking-widest animate-pulse">Syncing Node Registry</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="mt-12 flex items-center gap-4 opacity-30">
+           <img src="https://picsum.photos/seed/eduignite/100/100" className="w-6 h-6 grayscale rounded" alt="Logo" />
+           <p className="text-[8px] font-black uppercase tracking-[0.4em] text-primary">EduIgnite Secure Infrastructure</p>
+        </div>
       </div>
     );
   }
 
-  // Robust Lookup: Find the user's school or fallback to first available school node
   const school = user?.school || (user?.schoolId ? schools.find(s => s.id === user?.schoolId) : schools[0]);
 
   if (!user || !school) {
@@ -64,173 +89,111 @@ export default function SchoolWelcomePage() {
           <Building2 className="w-16 h-16 text-primary/20" />
         </div>
         <div className="space-y-2">
-          <h1 className="text-2xl font-black text-primary uppercase tracking-tighter">Linking Institutional Node</h1>
-          <p className="text-muted-foreground max-w-md mx-auto">
-            Your account is being synchronized with the institutional pedagogical node.
-          </p>
+          <h1 className="text-2xl font-black text-primary uppercase tracking-tighter">Connection Timeout</h1>
+          <p className="text-muted-foreground max-w-md mx-auto">We couldn't link your account to an institutional node. Please re-authenticate.</p>
         </div>
-        <Button variant="outline" className="rounded-xl gap-2 font-bold" onClick={() => window.location.reload()}>
-          <RefreshCw className="w-4 h-4" /> Retry Synchronization
+        <Button variant="outline" className="rounded-xl gap-2 font-bold" onClick={() => router.push("/login")}>
+          <RefreshCw className="w-4 h-4" /> Back to Login
         </Button>
       </div>
     );
   }
 
-  const isParent = user.role === "PARENT";
-
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 md:p-8">
+    <div className="min-h-screen bg-[#F0F2F5] selection:bg-secondary selection:text-primary flex flex-col items-center justify-center p-4 md:p-8 relative overflow-hidden">
       <div className="absolute top-0 inset-x-0 h-1/2 bg-primary/5 -z-10" />
-      
-      <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center">
-        <div className="lg:col-span-7 space-y-8 animate-in fade-in slide-in-from-left-8 duration-700">
-          <div className="relative aspect-video rounded-[2.5rem] overflow-hidden shadow-2xl group border-4 border-white bg-slate-200">
+      <div className="absolute top-[-10%] right-[-5%] w-96 h-96 bg-secondary/10 rounded-full blur-[100px]" />
+      <div className="absolute bottom-[-10%] left-[-5%] w-96 h-96 bg-primary/5 rounded-full blur-[100px]" />
+
+      <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-center animate-in fade-in slide-in-from-bottom-4 duration-1000">
+
+        {/* LEFT SIDE: SCHOOL BRANDING */}
+        <div className="lg:col-span-7 space-y-8">
+          <div className="relative aspect-video rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white bg-slate-200 group">
             <img 
               src={school.banner} 
               alt={school.name} 
               className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/20 to-transparent" />
-            <div className="absolute bottom-8 left-8 right-8 text-white">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="bg-secondary p-2 rounded-xl">
-                  <Building2 className="w-6 h-6 text-primary" />
+            <div className="absolute inset-0 bg-gradient-to-t from-primary/95 via-primary/20 to-transparent" />
+
+            <div className="absolute bottom-10 left-10 right-10 text-white space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-white rounded-2xl p-3 shadow-xl flex items-center justify-center border-2 border-accent transition-transform hover:rotate-3">
+                  <img src={school.logo} alt="Logo" className="w-full h-full object-contain" />
                 </div>
-                <span className="font-black uppercase tracking-widest text-xs opacity-80">Official Institutional Portal</span>
+                <div>
+                  <Badge className="bg-secondary text-primary border-none font-black uppercase text-[9px] px-3 h-6 mb-1">
+                    Node: {school.id}
+                  </Badge>
+                  <h1 className="text-4xl md:text-5xl font-black leading-none tracking-tighter">
+                    {school.name}
+                  </h1>
+                </div>
               </div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black font-headline tracking-tighter leading-none">{school.name}</h1>
-              <p className="text-lg lg:text-xl italic opacity-90 mt-2 font-serif">"{school.motto}"</p>
+              <p className="text-xl md:text-2xl italic opacity-90 font-serif leading-tight">
+                "{school.motto}"
+              </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <div className="bg-white p-6 rounded-3xl shadow-sm border border-accent flex flex-col items-center text-center gap-2 transition-transform hover:-translate-y-1">
-              <div className="p-3 bg-blue-50 rounded-2xl mb-1">
-                <Users className="w-6 h-6 text-blue-600" />
-              </div>
-              <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest leading-none">Community</p>
-              <p className="text-sm font-black text-primary">2,500+ Students</p>
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-white/80 backdrop-blur-sm p-6 rounded-[2rem] text-center border border-white shadow-sm hover:shadow-md transition-all">
+              <Users className="w-6 h-6 mx-auto mb-3 text-blue-600" />
+              <p className="text-xs font-black text-primary uppercase tracking-widest">2,500+ Students</p>
             </div>
-            <div className="bg-white p-6 rounded-3xl shadow-sm border border-accent flex flex-col items-center text-center gap-2 transition-transform hover:-translate-y-1">
-              <div className="p-3 bg-purple-50 rounded-2xl mb-1">
-                <BookOpen className="w-6 h-6 text-purple-600" />
-              </div>
-              <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest leading-none">Curriculum</p>
-              <p className="text-sm font-black text-primary">45+ Subjects</p>
+            <div className="bg-white/80 backdrop-blur-sm p-6 rounded-[2rem] text-center border border-white shadow-sm hover:shadow-md transition-all">
+              <BookOpen className="w-6 h-6 mx-auto mb-3 text-purple-600" />
+              <p className="text-xs font-black text-primary uppercase tracking-widest">45+ Subjects</p>
             </div>
-            <div className="bg-white p-6 rounded-3xl shadow-sm border border-accent flex flex-col items-center text-center gap-2 transition-transform hover:-translate-y-1">
-              <div className="p-3 bg-green-50 rounded-2xl mb-1">
-                <ShieldCheck className="w-6 h-6 text-green-600" />
-              </div>
-              <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest leading-none">{t("status")}</p>
-              <p className="text-sm font-black text-green-600">Active Campus</p>
+            <div className="bg-white/80 backdrop-blur-sm p-6 rounded-[2rem] text-center border border-white shadow-sm hover:shadow-md transition-all">
+              <ShieldCheck className="w-6 h-6 mx-auto mb-3 text-green-600" />
+              <p className="text-xs font-black text-green-600 uppercase tracking-widest">Active Campus</p>
             </div>
-          </div>
-
-          <div className="bg-primary/5 p-8 rounded-[2rem] border border-primary/10 flex flex-wrap justify-between gap-8 backdrop-blur-sm">
-             <div className="flex items-start gap-4 text-sm font-bold text-primary/70">
-                <div className="p-2 bg-white rounded-lg shadow-sm border border-accent">
-                  <MapPin className="w-5 h-5 text-secondary" />
-                </div>
-                <div className="flex flex-col">
-                   <span className="text-primary font-black">{school.address}</span>
-                   <span className="text-[10px] opacity-60 uppercase font-bold tracking-wider">{school.location} • {school.postalCode}</span>
-                </div>
-             </div>
-             <div className="flex items-center gap-8">
-                <div className="flex items-center gap-3">
-                   <Phone className="w-4 h-4 text-secondary" />
-                   <span className="text-sm font-black text-primary/80">{school.phone}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                   <Mail className="w-4 h-4 text-secondary" />
-                   <span className="text-sm font-black text-primary/80">{school.email}</span>
-                </div>
-             </div>
           </div>
         </div>
 
-        <div className="lg:col-span-5 space-y-8 animate-in fade-in slide-in-from-right-8 duration-700">
-          <div className="space-y-6">
-            <div className="w-28 h-28 bg-white rounded-[2rem] shadow-2xl p-5 flex items-center justify-center border-4 border-accent mb-2 transition-transform hover:rotate-3">
-              <img src={school.logo} alt="Logo" className="w-full h-full object-contain" />
+        {/* RIGHT SIDE: USER WELCOME */}
+        <div className="lg:col-span-5 space-y-10">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-secondary" />
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/40">Portal Initialized</span>
             </div>
-            <div className="space-y-2">
-              <h2 className="text-5xl font-black text-primary leading-none tracking-tight">
-                {language === 'en' ? `Welcome, ${user.name}` : `Bienvenue, ${user.name}`}
-              </h2>
-              <div className="flex items-center gap-2">
-                <Badge className="bg-secondary text-primary border-none font-black uppercase text-[10px] px-3">
-                  {user.role.replace('_', ' ')}
-                </Badge>
-                <div className="h-1 w-1 rounded-full bg-muted-foreground/30" />
-                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1">
-                  <Clock className="w-3 h-3" /> {t("academicYear")} 2023/24
-                </span>
-              </div>
-            </div>
-            <p className="text-muted-foreground leading-relaxed text-lg font-medium">
-              {isParent 
-                ? (language === 'en' 
-                    ? "Experience the future of your children's education. Monitor progress, handle fees, and stay connected with the school administration instantly."
-                    : "Découvrez le futur de l'éducation de vos enfants. Suivez leurs progrès, gérez les frais et restez connecté instantanément avec l'administration scolaire.")
-                : school.description}
+            <h2 className="text-5xl font-black text-primary tracking-tighter leading-[0.9]">
+              {language === 'en' ? `Welcome, ${user.name}` : `Bienvenue, ${user.name}`}
+            </h2>
+            <Badge className="bg-primary/5 text-primary border-primary/10 h-7 px-4 font-black uppercase text-[10px] tracking-widest">
+              {user.role.replace('_', ' ')}
+            </Badge>
+            <p className="text-lg text-muted-foreground font-medium leading-relaxed">
+              Run your entire academic life in one place. No more spreadsheets, no lost records, no stress.
             </p>
           </div>
 
-          <Card className="border-none shadow-2xl bg-primary text-white overflow-hidden relative rounded-[2.5rem]">
-            <CardContent className="p-8 space-y-6 relative z-10">
-              <div className="space-y-1">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Verified Node Registry</p>
-                <div className="flex items-center gap-3">
-                  {isParent ? (
-                    <div className="p-3 bg-secondary/20 rounded-2xl">
-                      <Heart className="w-8 h-8 text-secondary fill-secondary/20" />
-                    </div>
-                  ) : (
-                    <div className="p-3 bg-secondary/20 rounded-2xl">
-                      <GraduationCap className="w-8 h-8 text-secondary" />
-                    </div>
-                  )}
-                  <div>
-                    <p className="text-2xl font-black uppercase tracking-tighter">Access Authorized</p>
-                    <p className="text-[10px] font-mono text-white/40">ID: {user.id}</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-white/5 p-4 rounded-2xl border border-white/10">
-                <p className="text-xs opacity-80 leading-relaxed font-medium">
-                  {isParent 
-                    ? (language === 'en' 
-                        ? "Your family dashboard is synchronized. Review individual report cards and attendance logs for all registered children below."
-                        : "Votre tableau de bord familial est synchronisé. Consultez les bulletins individuels et les registres de présence pour tous les enfants inscrits ci-dessous.")
-                    : (language === 'en'
-                        ? "Your pedagogical dashboard is live. Manage curriculum, track financial status, and access institutional resources securely."
-                        : "Votre tableau de bord pédagogique est en ligne. Gérez le programme, suivez l'état financier et accédez aux ressources institutionnelles en toute sécurité.")}
-                </p>
-              </div>
-
-              <Button 
-                asChild 
-                className="w-full bg-secondary text-primary hover:bg-secondary/90 h-16 text-xl font-black uppercase tracking-tighter gap-3 shadow-lg shadow-black/20 rounded-2xl active:scale-95 transition-all"
-              >
+          <Card className="bg-primary text-white rounded-[2.5rem] shadow-2xl border-none overflow-hidden relative group">
+            <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform"><Zap className="w-20 h-20 text-secondary" /></div>
+            <CardContent className="p-10 space-y-6 relative z-10">
+              <p className="text-base font-medium opacity-80 leading-relaxed">
+                Your high-availability dashboard is ready. All institutional nodes are synchronized and secured.
+              </p>
+              <Button asChild size="lg" className="w-full bg-secondary text-primary hover:bg-secondary/90 font-black uppercase tracking-widest text-xs h-16 rounded-2xl shadow-xl transition-all active:scale-95 gap-3">
                 <Link href="/dashboard">
-                  {language === 'en' ? 'Enter Dashboard' : 'Accéder au Tableau de Bord'}
-                  <ArrowRight className="w-6 h-6" />
+                  Enter Secure Dashboard <ArrowRight className="w-5 h-5" />
                 </Link>
               </Button>
             </CardContent>
           </Card>
 
-          <div className="flex items-center justify-center gap-4 text-muted-foreground opacity-30">
-            <div className="h-px w-8 bg-current" />
-            <p className="text-[10px] font-black uppercase tracking-[0.4em]">
-              Powered by EduIgnite SaaS
-            </p>
-            <div className="h-px w-8 bg-current" />
+          <div className="flex items-center justify-between opacity-40">
+             <div className="flex items-center gap-2">
+                <Globe className="w-4 h-4 text-primary" />
+                <span className="text-[8px] font-black uppercase tracking-widest">Regional Cluster Littoral</span>
+             </div>
+             <p className="text-[8px] font-black uppercase tracking-widest">Powered by EduIgnite SaaS</p>
           </div>
         </div>
+
       </div>
     </div>
   );
