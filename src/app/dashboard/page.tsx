@@ -26,7 +26,10 @@ import {
   Search,
   Info,
   Lock,
-  ArrowRight
+  ArrowRight,
+  Award,
+  Heart,
+  Wallet
 } from "lucide-react";
 import { 
   AreaChart, 

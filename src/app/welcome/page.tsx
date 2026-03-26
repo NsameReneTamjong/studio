@@ -54,7 +54,8 @@ export default function SchoolWelcomePage() {
     );
   }
 
-  // Prototype Lookup: Find the user's school or fallback to first available to avoid blank screens
+  // Robust Lookup: Find the user's school or fallback to first available school node
+  // This ensures that in a prototype with no backend, users always see a high-fidelity portal.
   const school = user?.school || (user?.schoolId ? schools.find(s => s.id === user?.schoolId) : schools[0]);
 
   if (!user || !school) {
@@ -66,7 +67,7 @@ export default function SchoolWelcomePage() {
         <div className="space-y-2">
           <h1 className="text-2xl font-black text-primary uppercase tracking-tighter">Linking Institutional Node</h1>
           <p className="text-muted-foreground max-w-md mx-auto">
-            Your account is being synchronized with the institutional pedagogical node. Please wait a moment.
+            Your account is being synchronized with the institutional pedagogical node.
           </p>
         </div>
         <Button variant="outline" className="rounded-xl gap-2 font-bold" onClick={() => window.location.reload()}>
