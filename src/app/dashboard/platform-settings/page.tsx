@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -376,7 +377,6 @@ export default function PlatformSettingsPage() {
               </div>
             </CardHeader>
             <CardContent className="p-10 space-y-10">
-              {/* NEW MEDIA FORM (URL ONLY) */}
               <div className="p-8 bg-accent/30 rounded-[2rem] border border-accent space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
                   <div className="md:col-span-4 space-y-4 flex flex-col">
@@ -398,7 +398,6 @@ export default function PlatformSettingsPage() {
                       </Button>
                     </div>
                     
-                    {/* PREVIEW BOX */}
                     <div className="w-full aspect-video bg-white rounded-2xl border-2 border-dashed border-primary/10 flex items-center justify-center overflow-hidden shadow-inner mt-2">
                       {newEvent.url ? (
                         newEvent.type === 'video' ? (
@@ -450,7 +449,6 @@ export default function PlatformSettingsPage() {
                           className="h-12 border-none bg-white rounded-xl pl-10 pr-4" 
                         />
                       </div>
-                      <p className="text-[9px] text-muted-foreground italic px-1">Note: Please provide a direct link or embed URL.</p>
                     </div>
                   </div>
                 </div>
@@ -459,7 +457,6 @@ export default function PlatformSettingsPage() {
                 </Button>
               </div>
 
-              {/* ACTIVE PORTFOLIO LIST */}
               <div className="space-y-6">
                 <h3 className="text-sm font-black uppercase text-primary tracking-[0.3em] border-b pb-2 flex items-center gap-2">
                   <Layout className="w-4 h-4" /> Active Gallery Contents

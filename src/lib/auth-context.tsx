@@ -370,36 +370,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setTestimonials(loadRegistry("testimonials", []));
     setFeedbacks(loadRegistry("feedbacks", []));
-    setOrders(loadRegistry("orders", [
-      {
-        id: "ORD-1001",
-        fullName: "Dr. Jean-Pierre Biya",
-        occupation: "School Principal",
-        schoolName: "GBHS Douala",
-        whatsappNumber: "+237 677 88 99 00",
-        email: "principal@gbhsdouala.cm",
-        region: "Littoral",
-        division: "Wouri",
-        subDivision: "Douala 1er",
-        status: "pending",
-        createdAt: new Date()
-      }
-    ]));
+    setOrders(loadRegistry("orders", []));
     setAnnouncements(loadRegistry("announcements", INITIAL_ANNOUNCEMENTS));
-    setSupportContributions(loadRegistry("support", [
-      {
-        id: "SUP-2001",
-        userName: "Alice Thompson",
-        userRole: "STUDENT",
-        userAvatar: "https://picsum.photos/seed/s1/100/100",
-        amount: 5000,
-        method: "MTN MoMo",
-        phone: "677001122",
-        message: "I love the new MCQ exams! Keep up the good work.",
-        status: "Verified",
-        createdAt: new Date()
-      }
-    ]));
+    setSupportContributions(loadRegistry("support", []));
     setSchools(loadRegistry("schools", INITIAL_SCHOOLS));
     setPublicEvents(loadRegistry("events", INITIAL_EVENTS));
     setPlatformSettings(loadRegistry("platform", PLATFORM_DEFAULTS));
