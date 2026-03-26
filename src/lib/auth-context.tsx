@@ -189,20 +189,6 @@ const INITIAL_EVENTS: PublicEvent[] = [
     title: "New STEM Laboratory Launch",
     description: "Inaugurating state-of-the-art facilities at GBHS Deido to empower future engineers.",
     url: "https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=1986&auto=format&fit=crop",
-  },
-  {
-    id: "e3",
-    type: "video",
-    title: "Student Leadership Summit",
-    description: "Highlights from our quarterly summit where student leaders discuss the future of education.",
-    url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-  },
-  {
-    id: "e4",
-    type: "image",
-    title: "Community Outreach Program",
-    description: "Bridging the gap between technology and traditional learning in rural communities.",
-    url: "https://images.unsplash.com/photo-1524178232363-1fb28f74b671?q=80&w=2070&auto=format&fit=crop",
   }
 ];
 
@@ -244,50 +230,6 @@ const INITIAL_SCHOOLS: SchoolInfo[] = [
     phone: "+237 671 11 11 11",
     email: "admin@lyceejoss.cm",
     status: "Active"
-  }
-];
-
-const INITIAL_ORDERS: Order[] = [
-  {
-    id: "ORD-1001",
-    fullName: "Dr. Jean-Pierre Biya",
-    occupation: "School Principal",
-    schoolName: "GBHS Douala",
-    whatsappNumber: "+237 677 88 99 00",
-    email: "principal@gbhsdouala.cm",
-    region: "Littoral",
-    division: "Wouri",
-    subDivision: "Douala 1er",
-    status: "pending",
-    createdAt: new Date()
-  },
-  {
-    id: "ORD-1002",
-    fullName: "Mme. Elise Ngo",
-    occupation: "Bursar",
-    schoolName: "Lycée de Bonamoussadi",
-    whatsappNumber: "+237 699 11 22 33",
-    email: "bursar@lyceebona.cm",
-    region: "Littoral",
-    division: "Wouri",
-    subDivision: "Douala 5ème",
-    status: "processed",
-    createdAt: new Date(Date.now() - 86400000)
-  }
-];
-
-const INITIAL_SUPPORT: SupportContribution[] = [
-  {
-    id: "SUP-2001",
-    userName: "Alice Thompson",
-    userRole: "STUDENT",
-    userAvatar: "https://picsum.photos/seed/s1/100/100",
-    amount: 5000,
-    method: "MTN MoMo",
-    phone: "677001122",
-    message: "I love the new MCQ exams! Keep up the good work.",
-    status: "Verified",
-    createdAt: new Date()
   }
 ];
 
@@ -335,36 +277,13 @@ const INITIAL_ANNOUNCEMENTS: Announcement[] = [
     senderAvatar: "https://picsum.photos/seed/designer/100/100",
     senderUid: "mock_EDUI26DES001",
     createdAt: new Date(Date.now() - 14400000)
-  },
-  {
-    id: "ann-5",
-    title: "Operational Expansion: North Region",
-    content: "Operations team has identified 15 new potential institutional nodes in the North Region. COO requires a budget review for provisioning.",
-    target: "board_directors",
-    senderName: "Operations Lead",
-    senderRole: "COO",
-    senderAvatar: "https://picsum.photos/seed/coo/100/100",
-    senderUid: "mock_EDUI26COO001",
-    createdAt: new Date(Date.now() - 86400000)
-  }
-];
-
-const INITIAL_TESTIMONIALS: Testimony[] = [
-  {
-    id: "test-1",
-    userId: "S1",
-    name: "Alice Thompson",
-    role: "STUDENT",
-    schoolName: "GBHS Deido",
-    profileImage: "https://picsum.photos/seed/s1/150/150",
-    message: "EduIgnite has completely changed how I study. The MCQ timers are great for preparation!",
-    status: "approved",
-    createdAt: new Date()
   }
 ];
 
 const DEMO_ACCOUNTS: Record<string, any> = {
   "EDUI26CEO001": { name: "Platform CEO", role: "CEO", schoolId: null, isLicensePaid: true },
+  "EDUI26CTO001": { name: "Tech Director", role: "CTO", schoolId: null, isLicensePaid: true },
+  "EDUI26INV001": { name: "Lead Investor", role: "INV", schoolId: null, isLicensePaid: true },
   "EDUI26DES001": { name: "Creative Lead", role: "DESIGNER", schoolId: null, isLicensePaid: true },
   "GBHS26": { name: "Principal Fonka", role: "SCHOOL_ADMIN", schoolId: "GBHS-D", isLicensePaid: true },
   "GBHS26A001": { name: "VP Academics", role: "SUB_ADMIN", schoolId: "GBHS-D", isLicensePaid: true },
@@ -391,9 +310,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [schools, setSchools] = useState<SchoolInfo[]>(INITIAL_SCHOOLS);
   const [testimonials, setTestimonials] = useState<Testimony[]>([]);
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
-  const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [supportContributions, setSupportContributions] = useState<SupportContribution[]>(INITIAL_SUPPORT);
+  const [supportContributions, setSupportContributions] = useState<SupportContribution[]>([]);
   const [publicEvents, setPublicEvents] = useState<PublicEvent[]>(INITIAL_EVENTS);
   const [platformSettings, setPlatformSettings] = useState<PlatformSettings>({
     name: "EduIgnite",
@@ -410,13 +329,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUserData(JSON.parse(savedUser));
     }
     
-    // Load collections from local storage
+    // Load collections from local storage with explicit empty checks
     const collections = [
-      { key: "testimonials", setter: setTestimonials, default: INITIAL_TESTIMONIALS },
+      { key: "testimonials", setter: setTestimonials, default: [] },
       { key: "feedbacks", setter: setFeedbacks, default: [] },
-      { key: "orders", setter: setOrders, default: INITIAL_ORDERS },
+      { key: "orders", setter: (data: any) => setOrders(data), default: [
+        {
+          id: "ORD-1001",
+          fullName: "Dr. Jean-Pierre Biya",
+          occupation: "School Principal",
+          schoolName: "GBHS Douala",
+          whatsappNumber: "+237 677 88 99 00",
+          email: "principal@gbhsdouala.cm",
+          region: "Littoral",
+          division: "Wouri",
+          subDivision: "Douala 1er",
+          status: "pending",
+          createdAt: new Date()
+        }
+      ] },
       { key: "announcements", setter: setAnnouncements, default: INITIAL_ANNOUNCEMENTS },
-      { key: "support", setter: setSupportContributions, default: INITIAL_SUPPORT },
+      { key: "support", setter: setSupportContributions, default: [
+        {
+          id: "SUP-2001",
+          userName: "Alice Thompson",
+          userRole: "STUDENT",
+          userAvatar: "https://picsum.photos/seed/s1/100/100",
+          amount: 5000,
+          method: "MTN MoMo",
+          phone: "677001122",
+          message: "I love the new MCQ exams! Keep up the good work.",
+          status: "Verified",
+          createdAt: new Date()
+        }
+      ] },
       { key: "schools", setter: setSchools, default: INITIAL_SCHOOLS },
       { key: "events", setter: setPublicEvents, default: INITIAL_EVENTS },
       { key: "platform", setter: setPlatformSettings, default: { name: "EduIgnite", logo: "https://picsum.photos/seed/eduignite-platform/200/200", paymentDeadline: "2024-10-31", fees: DEFAULT_FEES } }
@@ -427,7 +373,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const parsed = saved ? JSON.parse(saved) : null;
       if (parsed && (Array.isArray(parsed) ? parsed.length > 0 : Object.keys(parsed).length > 0)) {
         c.setter(parsed);
-      } else if (c.default) {
+      } else {
         c.setter(c.default);
       }
     });
