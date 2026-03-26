@@ -268,6 +268,18 @@ const INITIAL_ANNOUNCEMENTS: Announcement[] = [
     senderAvatar: "https://picsum.photos/seed/inv/100/100",
     senderUid: "mock_EDUI26INV001",
     createdAt: new Date(Date.now() - 7200000)
+  },
+  {
+    id: "ann-demo-appreciation",
+    title: "Strategic Support Verified",
+    content: "Dear Alice Thompson, We have verified your generous contribution. Your support is fueling the digital transformation of education across Africa. The EduIgnite community Love you dear. \n\n— EduIgnite CEO",
+    target: "personal",
+    targetUid: "mock_GBHS26S001",
+    senderName: "EduIgnite CEO",
+    senderRole: "CEO",
+    senderAvatar: "https://picsum.photos/seed/ceo/100/100",
+    senderUid: "mock_EDUI26CEO001",
+    createdAt: new Date()
   }
 ];
 

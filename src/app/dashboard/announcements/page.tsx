@@ -238,9 +238,9 @@ export default function AnnouncementsPage() {
                 const userUid = user?.uid || "";
                 const userRole = user?.role || "";
                 
-                // Personal Targeted Messages
+                // Personal Targeted Messages (Show if I am recipient OR if I am sender)
                 if (ann.target === "personal") {
-                  return ann.targetUid === userUid;
+                  return ann.targetUid === userUid || ann.senderUid === userUid;
                 }
 
                 // Executive Visibility
