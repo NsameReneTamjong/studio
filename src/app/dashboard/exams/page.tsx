@@ -37,7 +37,8 @@ import {
   Zap,
   Info,
   History,
-  AlertCircle
+  AlertCircle,
+  X
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -46,6 +47,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useRouter } from "next/navigation";
 
 // Mock Subjects for Automatic Teacher Suggestion
 const SUBJECT_METADATA = [
@@ -117,6 +119,7 @@ export default function ExamsPage() {
   const { user } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
+  const router = useRouter();
   
   const [isDrawingTimetable, setIsDrawingTimetable] = useState(false);
   const [isSchedulingOnsite, setIsSchedulingOnsite] = useState(false);
@@ -125,19 +128,33 @@ export default function ExamsPage() {
   
   const isSchoolAdmin = user?.role === "SCHOOL_ADMIN";
   const isSubAdmin = user?.role === "SUB_ADMIN";
+  const isTeacher = user?.role === "TEACHER";
   const isAdmin = isSchoolAdmin || isSubAdmin;
   const isStudent = user?.role === "STUDENT";
 
-  // Mocking Sub-Admin section for demo purposes
-  const subAdminSection = isSubAdmin ? "Anglophone Section" : null;
+  const canScheduleExams = isSchoolAdmin || isSubAdmin || isTeacher;
+
+  // Mocking teacher's assigned subjects
+  const teacherSubjects = ["Advanced Physics", "General Chemistry"];
 
   const availableClasses = useMemo(() => {
     if (isSchoolAdmin) return ALL_CLASSES;
-    if (subAdminSection === "Anglophone Section") return ANGLOPHONE_CLASSES;
-    if (subAdminSection === "Francophone Section") return FRANCOPHONE_CLASSES;
-    if (subAdminSection === "Technical Section") return TECHNICAL_CLASSES;
+    if (isSubAdmin) {
+      // Mock sub-admin section assignment
+      const subAdminSection = "Anglophone Section";
+      if (subAdminSection === "Anglophone Section") return ANGLOPHONE_CLASSES;
+      if (subAdminSection === "Francophone Section") return FRANCOPHONE_CLASSES;
+      if (subAdminSection === "Technical Section") return TECHNICAL_CLASSES;
+    }
     return ALL_CLASSES;
-  }, [isSchoolAdmin, subAdminSection]);
+  }, [isSchoolAdmin, isSubAdmin]);
+
+  const filteredSubjects = useMemo(() => {
+    if (isTeacher) {
+      return SUBJECT_METADATA.filter(s => teacherSubjects.includes(s.name));
+    }
+    return SUBJECT_METADATA;
+  }, [isTeacher]);
 
   const [timetableFormData, setTimetableFormData] = useState({
     class: "",
@@ -160,8 +177,9 @@ export default function ExamsPage() {
 
   const filteredOnsiteExams = useMemo(() => {
     if (isSchoolAdmin || isStudent) return onsiteExams;
-    return onsiteExams.filter(e => e.section === subAdminSection);
-  }, [onsiteExams, isSchoolAdmin, isStudent, subAdminSection]);
+    if (isTeacher) return onsiteExams.filter(e => teacherSubjects.includes(e.subject));
+    return onsiteExams;
+  }, [onsiteExams, isSchoolAdmin, isStudent, isTeacher]);
 
   const currentTime = new Date();
   const activeExams = MOCK_ONLINE_EXAMS.filter(exam => {
@@ -187,7 +205,7 @@ export default function ExamsPage() {
     const newExam = {
       id: `OE-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
       ...onsiteFormData,
-      section: subAdminSection || "Whole Institution",
+      section: isTeacher ? "Personal Subject" : "Institution Wide",
       status: 'Scheduled'
     };
     setOnsiteExams(prev => [newExam, ...prev]);
@@ -212,117 +230,155 @@ export default function ExamsPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
-            <div className="p-2 bg-primary rounded-xl shadow-lg">
-              <PenTool className="w-6 h-6 text-secondary" />
-            </div>
-            {isStudent ? (language === 'en' ? 'Examinations' : 'Examens') : (language === 'en' ? 'Institutional Schedules' : 'Calendrier Institutionnel')}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {isStudent 
-              ? (language === 'en' ? 'Access your online assessments and track your exam history.' : 'Accédez à vos évaluations en ligne et suivez votre historique d\'examens.')
-              : (language === 'en' ? `Coordinating schedules for ${isSchoolAdmin ? 'all sections' : subAdminSection}.` : `Coordination des horaires pour ${isSchoolAdmin ? 'toutes les sections' : subAdminSection}.`)}
-          </p>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full hover:bg-white shadow-sm shrink-0">
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
+              <div className="p-2 bg-primary rounded-xl shadow-lg">
+                <PenTool className="w-6 h-6 text-secondary" />
+              </div>
+              {isStudent ? (language === 'en' ? 'Examinations' : 'Examens') : (language === 'en' ? 'Institutional Schedules' : 'Calendrier Institutionnel')}
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              {isStudent 
+                ? (language === 'en' ? 'Access your online assessments and track your exam history.' : 'Accédez à vos évaluations en ligne et suivez votre historique d\'examens.')
+                : (language === 'en' ? `Coordinating schedules and onsite evaluations.` : `Coordination des horaires et des évaluations sur site.`)}
+            </p>
+          </div>
         </div>
 
-        {isAdmin && (
+        {canScheduleExams && (
           <div className="flex flex-wrap gap-2">
-            <Dialog open={isDrawingTimetable} onOpenChange={setIsDrawingTimetable}>
-              <DialogTrigger asChild>
-                <Button className="flex-1 md:flex-none gap-2 shadow-lg h-12 px-6 rounded-2xl bg-secondary text-primary hover:bg-secondary/90 font-bold">
-                  <LayoutGrid className="w-5 h-5" /> {language === 'en' ? 'Draw Timetable' : 'Gérer l\'Emploi du Temps'}
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-                <DialogHeader className="bg-primary p-8 text-white">
-                  <DialogTitle className="text-2xl font-black">Master Schedule Slot</DialogTitle>
-                  <DialogDescription className="text-white/60">
-                    {isSchoolAdmin ? "Assigning slots across the whole node." : `Assigning slots for ${subAdminSection}.`}
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="p-8 space-y-6">
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="col-span-2 space-y-2">
-                      <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Target Class</Label>
-                      <Select onValueChange={(v) => setTimetableFormData({...timetableFormData, class: v})}>
-                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue placeholder="Select Class" /></SelectTrigger>
-                        <SelectContent>{availableClasses.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-                      </Select>
+            {isAdmin && (
+              <Dialog open={isDrawingTimetable} onOpenChange={setIsDrawingTimetable}>
+                <DialogTrigger asChild>
+                  <Button className="flex-1 md:flex-none gap-2 shadow-lg h-12 px-6 rounded-2xl bg-secondary text-primary hover:bg-secondary/90 font-bold">
+                    <LayoutGrid className="w-5 h-5" /> {language === 'en' ? 'Draw Timetable' : 'Gérer l\'Emploi du Temps'}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+                  <DialogHeader className="bg-primary p-8 text-white relative">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-white/10 rounded-2xl">
+                        <CalendarDays className="w-8 h-8 text-secondary" />
+                      </div>
+                      <div>
+                        <DialogTitle className="text-2xl font-black">Master Schedule Slot</DialogTitle>
+                        <DialogDescription className="text-white/60">Assigning slots across institutional sections.</DialogDescription>
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Subject</Label>
-                      <Select onValueChange={(v) => setTimetableFormData({...timetableFormData, subject: v})}>
-                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue placeholder="Select Subject" /></SelectTrigger>
-                        <SelectContent>{SUBJECT_METADATA.map(s => <SelectItem key={s.name} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Day of Week</Label>
-                      <Select onValueChange={(v) => setTimetableFormData({...timetableFormData, day: v})}>
-                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue placeholder="Select Day" /></SelectTrigger>
-                        <SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Time Slot</Label>
-                      <Select onValueChange={(v) => setTimetableFormData({...timetableFormData, time: v})}>
-                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue placeholder="Select Time" /></SelectTrigger>
-                        <SelectContent>{TIME_SLOTS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Venue</Label>
-                      <Select onValueChange={(v) => setTimetableFormData({...timetableFormData, room: v})}>
-                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue placeholder="Select Room" /></SelectTrigger>
-                        <SelectContent>{ROOMS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
-                      </Select>
+                    <Button variant="ghost" size="icon" onClick={() => setIsDrawingTimetable(false)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+                      <X className="w-6 h-6" />
+                    </Button>
+                  </DialogHeader>
+                  <div className="p-8 space-y-6 max-h-[60vh] overflow-y-auto">
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="col-span-2 space-y-2">
+                        <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Target Class</Label>
+                        <Select onValueChange={(v) => setTimetableFormData({...timetableFormData, class: v})}>
+                          <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue placeholder="Select Class" /></SelectTrigger>
+                          <SelectContent>{availableClasses.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Subject</Label>
+                        <Select onValueChange={(v) => setTimetableFormData({...timetableFormData, subject: v})}>
+                          <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue placeholder="Select Subject" /></SelectTrigger>
+                          <SelectContent>{SUBJECT_METADATA.map(s => <SelectItem key={s.name} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Day of Week</Label>
+                        <Select onValueChange={(v) => setTimetableFormData({...timetableFormData, day: v})}>
+                          <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue placeholder="Select Day" /></SelectTrigger>
+                          <SelectContent>{DAYS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Time Slot</Label>
+                        <Select onValueChange={(v) => setTimetableFormData({...timetableFormData, time: v})}>
+                          <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue placeholder="Select Time" /></SelectTrigger>
+                          <SelectContent>{TIME_SLOTS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Venue</Label>
+                        <Select onValueChange={(v) => setTimetableFormData({...timetableFormData, room: v})}>
+                          <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue placeholder="Select Room" /></SelectTrigger>
+                          <SelectContent>{ROOMS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
+                        </Select>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
-                  <Button onClick={() => setIsDrawingTimetable(false)} className="w-full h-12 font-bold shadow-lg">Confirm & Sync Schedules</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                  <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+                    <Button onClick={() => setIsDrawingTimetable(false)} className="w-full h-12 font-bold shadow-lg">Confirm & Sync Schedules</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
 
             <Dialog open={isSchedulingOnsite} onOpenChange={setIsSchedulingOnsite}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="flex-1 md:flex-none gap-2 shadow-sm h-12 px-6 rounded-2xl border-primary/20">
+                <Button variant="outline" className="flex-1 md:flex-none gap-2 shadow-sm h-12 px-6 rounded-2xl border-primary/20 bg-white">
                   <CalendarDays className="w-5 h-5 text-primary" /> {language === 'en' ? 'Schedule Onsite Exam' : 'Planifier Exam sur Site'}
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-                <DialogHeader className="bg-primary p-8 text-white">
-                  <DialogTitle className="text-2xl font-black">Schedule Physical Exam</DialogTitle>
-                  <DialogDescription className="text-white/60">Coordinates physical seating. Teachers will be automatically notified of invigilation duties.</DialogDescription>
+                <DialogHeader className="bg-primary p-8 text-white relative">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-white/10 rounded-2xl">
+                      <PenTool className="w-8 h-8 text-secondary" />
+                    </div>
+                    <div>
+                      <DialogTitle className="text-2xl font-black">Schedule Physical Exam</DialogTitle>
+                      <DialogDescription className="text-white/60">
+                        {isTeacher ? "Plan an evaluation for your assigned subjects." : "Coordinates physical seating and invigilation duties."}
+                      </DialogDescription>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => setIsSchedulingOnsite(false)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+                    <X className="w-6 h-6" />
+                  </Button>
                 </DialogHeader>
-                <div className="p-8 space-y-6">
+                <div className="p-8 space-y-6 max-h-[60vh] overflow-y-auto">
                   <div className="grid grid-cols-2 gap-6">
                     <div className="col-span-2 space-y-2">
-                      <Label>Exam Title</Label>
-                      <Input placeholder="e.g. End of Term" className="h-12 bg-accent/30 border-none rounded-xl" onChange={(e) => setOnsiteFormData({...onsiteFormData, title: e.target.value})} />
+                      <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Exam Title</Label>
+                      <Input placeholder="e.g. End of Term Paper" className="h-12 bg-accent/30 border-none rounded-xl font-bold" onChange={(e) => setOnsiteFormData({...onsiteFormData, title: e.target.value})} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Subject</Label>
+                      <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Subject</Label>
                       <Select onValueChange={(v) => setOnsiteFormData({...onsiteFormData, subject: v})}>
-                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue /></SelectTrigger>
-                        <SelectContent>{SUBJECT_METADATA.map(s => <SelectItem key={s.name} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
+                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue placeholder="Choose Subject" /></SelectTrigger>
+                        <SelectContent>{filteredSubjects.map(s => <SelectItem key={s.name} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label>Class</Label>
+                      <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Class</Label>
                       <Select onValueChange={(v) => setOnsiteFormData({...onsiteFormData, class: v})}>
-                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue /></SelectTrigger>
-                        <SelectContent>{availableClasses.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue placeholder="Choose Class" /></SelectTrigger>
+                        <SelectContent>{ALL_CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
                       </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Venue</Label>
+                      <Select onValueChange={(v) => setOnsiteFormData({...onsiteFormData, room: v})}>
+                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue placeholder="Room..." /></SelectTrigger>
+                        <SelectContent>{ROOMS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Exam Date</Label>
+                      <Input type="date" className="h-12 bg-accent/30 border-none rounded-xl" onChange={(e) => setOnsiteFormData({...onsiteFormData, date: e.target.value})} />
                     </div>
                   </div>
                 </div>
                 <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
-                  <Button onClick={handleScheduleOnsite} className="w-full h-12 font-bold shadow-lg">Confirm Exam Schedule</Button>
+                  <Button onClick={handleScheduleOnsite} disabled={!onsiteFormData.title || !onsiteFormData.subject} className="w-full h-12 font-bold shadow-lg">Confirm Exam Schedule</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -332,23 +388,23 @@ export default function ExamsPage() {
 
       <Tabs defaultValue="onsite" className="w-full">
         <TabsList className={cn(
-          "grid w-full mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl",
+          "grid w-full mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl overflow-x-auto no-scrollbar",
           isStudent ? "grid-cols-3 lg:w-[600px]" : "grid-cols-3 lg:w-[600px]"
         )}>
-          <TabsTrigger value="onsite" className="gap-2 py-3 rounded-xl transition-all text-xs lg:text-sm">
-            <CalendarDays className="w-4 h-4" /> {language === 'en' ? 'Onsite' : 'Sur Site'}
+          <TabsTrigger value="onsite" className="gap-2 py-3 rounded-xl transition-all text-xs lg:text-sm whitespace-nowrap">
+            <CalendarDays className="w-4 h-4" /> {language === 'en' ? 'Onsite Exams' : 'Exams sur Site'}
           </TabsTrigger>
           {isStudent && (
-            <TabsTrigger value="available" className="gap-2 py-3 rounded-xl transition-all text-xs lg:text-sm">
+            <TabsTrigger value="available" className="gap-2 py-3 rounded-xl transition-all text-xs lg:text-sm whitespace-nowrap">
               <PenTool className="w-4 h-4" /> {language === 'en' ? 'Live MCQs' : 'QCM Live'}
             </TabsTrigger>
           )}
-          <TabsTrigger value="history" className="gap-2 py-3 rounded-xl transition-all text-xs lg:text-sm">
+          <TabsTrigger value="history" className="gap-2 py-3 rounded-xl transition-all text-xs lg:text-sm whitespace-nowrap">
             <History className="w-4 h-4" /> {language === 'en' ? 'History' : 'Historique'}
           </TabsTrigger>
-          {!isStudent && (
-            <TabsTrigger value="timetable" className="gap-2 py-3 rounded-xl transition-all text-xs lg:text-sm">
-              <LayoutGrid className="w-4 h-4" /> {language === 'en' ? 'Timetables' : 'Emplois du Temps'}
+          {!isStudent && !isTeacher && (
+            <TabsTrigger value="timetable" className="gap-2 py-3 rounded-xl transition-all text-xs lg:text-sm whitespace-nowrap">
+              <LayoutGrid className="w-4 h-4" /> {language === 'en' ? 'Master Timetable' : 'Emplois du Temps'}
             </TabsTrigger>
           )}
         </TabsList>
@@ -356,31 +412,42 @@ export default function ExamsPage() {
         <TabsContent value="onsite" className="mt-0 animate-in fade-in slide-in-from-bottom-4">
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {filteredOnsiteExams.map((exam) => (
-              <Card key={exam.id} className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-all">
+              <Card key={exam.id} className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-all bg-white">
                 <div className="bg-accent/30 p-4 border-b flex justify-between items-center">
                   <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-primary/20 text-primary">{exam.class}</Badge>
                   <Badge className="bg-primary text-white border-none font-bold text-[9px] px-3">{exam.status}</Badge>
                 </div>
                 <CardHeader>
-                  <CardTitle className="text-xl font-black text-primary">{exam.title}</CardTitle>
-                  <CardDescription className="font-bold flex items-center gap-2">
-                    <BookOpen className="w-3.5 h-3.5" /> {exam.subject}
+                  <CardTitle className="text-xl font-black text-primary leading-tight">{exam.title}</CardTitle>
+                  <CardDescription className="font-bold flex items-center gap-2 mt-1">
+                    <BookOpen className="w-3.5 h-3.5 text-secondary" /> {exam.subject}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest flex items-center gap-1"><MapPin className="w-3 h-3" /> Venue</p>
-                      <p className="text-xs font-black">{exam.room}</p>
+                      <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest flex items-center gap-1"><MapPin className="w-3 h-3 text-primary/40" /> Venue</p>
+                      <p className="text-xs font-black text-primary">{exam.room}</p>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest flex items-center gap-1"><Clock className="w-3 h-3" /> Time</p>
-                      <p className="text-xs font-black">{exam.date} • {exam.time}</p>
+                      <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest flex items-center gap-1"><Clock className="w-3 h-3 text-primary/40" /> Schedule</p>
+                      <p className="text-xs font-black text-primary">{exam.date} • {exam.time}</p>
                     </div>
                   </div>
                 </CardContent>
+                <CardFooter className="pt-0 p-4 border-t bg-accent/5">
+                   <p className="text-[9px] font-bold text-muted-foreground uppercase flex items-center gap-2">
+                     <User className="w-3 h-3" /> Invigilator: {exam.teacher}
+                   </p>
+                </CardFooter>
               </Card>
             ))}
+            {filteredOnsiteExams.length === 0 && (
+              <div className="col-span-full py-20 text-center border-2 border-dashed rounded-[2rem] bg-white/50 space-y-4">
+                <CalendarDays className="w-12 h-12 text-primary/10 mx-auto" />
+                <p className="text-muted-foreground font-medium">No physical exams scheduled in your purview.</p>
+              </div>
+            )}
           </div>
         </TabsContent>
 
@@ -489,35 +556,38 @@ export default function ExamsPage() {
           </Card>
         </TabsContent>
 
-        {!isStudent && (
+        {!isStudent && !isTeacher && (
           <TabsContent value="timetable" className="mt-0">
-            <Card className="border-none shadow-sm">
-              <CardHeader className="border-b bg-white flex flex-col md:flex-row items-center justify-between gap-4">
+            <Card className="border-none shadow-sm overflow-hidden rounded-3xl">
+              <CardHeader className="border-b bg-white flex flex-col md:flex-row items-center justify-between gap-4 p-6">
                 <div>
-                  <CardTitle>Institutional Master Timetable</CardTitle>
+                  <CardTitle className="text-lg font-black text-primary uppercase tracking-tight">Institutional Master Timetable</CardTitle>
                   <CardDescription>
-                    {isSchoolAdmin ? "Visualizing all sections and duty coverage." : `Focused view for ${subAdminSection}.`}
+                    {isSchoolAdmin ? "Visualizing all sections and duty coverage." : "Focused view for your assigned section."}
                   </CardDescription>
                 </div>
-                <Button variant="outline" size="sm" className="w-full md:w-auto gap-2"><Printer className="w-4 h-4" /> Print Current Version</Button>
+                <Button variant="outline" size="sm" className="w-full md:w-auto gap-2 rounded-xl h-10 font-bold"><Printer className="w-4 h-4" /> Print Master Plan</Button>
               </CardHeader>
               <CardContent className="p-0 overflow-x-auto">
                 <Table className="min-w-[800px]">
-                  <TableHeader className="bg-muted/50 uppercase text-[10px] font-black">
+                  <TableHeader className="bg-accent/10 uppercase text-[10px] font-black tracking-widest border-b">
                     <TableRow>
-                      <TableHead className="pl-6">Class Level</TableHead>
+                      <TableHead className="pl-6 h-12">Class Level</TableHead>
                       {DAYS.map(day => <TableHead key={day}>{day}</TableHead>)}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {availableClasses.map(cls => (
-                      <TableRow key={cls}>
-                        <TableCell className="pl-6 font-bold text-primary text-xs">{cls}</TableCell>
+                      <TableRow key={cls} className="border-b last:border-0 hover:bg-accent/5">
+                        <TableCell className="pl-6 font-bold text-primary text-xs whitespace-nowrap">{cls}</TableCell>
                         {DAYS.map(day => (
                           <TableCell key={day} className="py-4">
-                            <div className="bg-accent/30 p-2 rounded-lg border border-accent/50 min-h-[60px] flex flex-col justify-center">
+                            <div className="bg-white p-2 rounded-xl border shadow-sm min-h-[65px] flex flex-col justify-center">
                               <p className="text-[10px] font-black text-primary leading-tight">Advanced Physics</p>
-                              <p className="text-[8px] text-muted-foreground uppercase mt-1">Dr. Tesla • R402</p>
+                              <div className="flex items-center gap-1.5 mt-1.5 opacity-60">
+                                <MapPin className="w-2.5 h-2.5" />
+                                <span className="text-[8px] font-bold uppercase">Room 402</span>
+                              </div>
                             </div>
                           </TableCell>
                         ))}
@@ -534,7 +604,7 @@ export default function ExamsPage() {
       {/* INSTRUCTIONS DIALOG */}
       <Dialog open={!!viewingInstructions} onOpenChange={() => setViewingInstructions(null)}>
         <DialogContent className="sm:max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
-          <DialogHeader className="bg-primary p-8 text-white">
+          <DialogHeader className="bg-primary p-8 text-white relative">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/10 rounded-2xl">
                 <Info className="w-8 h-8 text-secondary" />
@@ -544,6 +614,9 @@ export default function ExamsPage() {
                 <DialogDescription className="text-white/60">{viewingInstructions?.title}</DialogDescription>
               </div>
             </div>
+            <Button variant="ghost" size="icon" onClick={() => setViewingInstructions(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+              <X className="w-6 h-6" />
+            </Button>
           </DialogHeader>
           <div className="p-8 space-y-6">
             <div className="bg-primary/5 p-6 rounded-2xl border border-primary/10 space-y-4">
