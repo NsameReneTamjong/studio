@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -109,7 +108,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
     },
     // SCHOOL ADMIN SPECIFIC MANAGEMENT
     {
-      label: language === 'en' ? 'Manage Institution' : 'Gérer l\'Institution',
+      label: language === 'en' ? 'Manage Settings' : 'Gérer les Paramètres',
       icon: Settings2,
       href: "/dashboard/settings",
       roles: ["SCHOOL_ADMIN"],

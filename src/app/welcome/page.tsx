@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
@@ -160,7 +159,7 @@ export default function SchoolWelcomePage() {
           </div>
         </div>
 
-        {/* DETAILED INSTITUTIONAL CONTENT (MIGRATED FROM INSTITUTION TAB) */}
+        {/* DETAILED INSTITUTIONAL CONTENT */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-8 space-y-8">
             <Card className="border-none shadow-sm overflow-hidden rounded-[2.5rem] bg-white">
@@ -241,7 +240,7 @@ export default function SchoolWelcomePage() {
                       </div>
                       <div>
                         <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">Official Domain</p>
-                        <p className="font-bold text-primary">{resolvedSchool.shortName.toLowerCase()}.eduignite.cm</p>
+                        <p className="font-bold text-primary">{(resolvedSchool?.shortName || resolvedSchool?.id || "node").toLowerCase()}.eduignite.cm</p>
                       </div>
                     </div>
                   </div>
