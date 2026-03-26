@@ -28,7 +28,11 @@ import {
   ShieldCheck,
   Download,
   Eye,
-  X
+  X,
+  User,
+  GraduationCap,
+  ArrowRight,
+  ListChecks
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -38,6 +42,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
@@ -48,17 +53,17 @@ const MOCK_ASSIGNMENTS = [
     title: "Newton's Laws Lab Report",
     courseName: "Advanced Physics",
     targetClass: "2nde / Form 5",
-    dueDate: new Date(Date.now() + 86400000 * 2).toISOString(), // 2 days from now
+    dueDate: new Date(Date.now() + 86400000 * 2).toISOString(),
     maxMarks: 20,
     status: "upcoming",
-    type: "both" // text and file
+    type: "both"
   },
   {
     id: "2",
     title: "Algebraic Expressions Set A",
     courseName: "Mathematics",
     targetClass: "2nde / Form 5",
-    dueDate: new Date(Date.now() - 86400000).toISOString(), // Yesterday
+    dueDate: new Date(Date.now() - 86400000).toISOString(),
     maxMarks: 20,
     status: "missed",
     type: "text"
@@ -75,30 +80,12 @@ const MOCK_ASSIGNMENTS = [
     submittedContent: "I have completed the analysis of carbon compounds as requested in the session notes.",
     submittedFileName: "Chemistry_Report_V1.pdf",
     type: "file"
-  },
-  {
-    id: "4",
-    title: "Historical Analysis of the 19th Century",
-    courseName: "History",
-    targetClass: "2nde / Form 5",
-    dueDate: new Date(Date.now() - 86400000 * 10).toISOString(),
-    maxMarks: 20,
-    status: "graded",
-    score: 18,
-    submittedAt: "2024-05-10T14:30:00Z",
-    submittedContent: "The industrial revolution marked a significant shift in socio-economic structures across the European continent...",
-    type: "text"
-  },
-  {
-    id: "5",
-    title: "Cancelled Workshop Session",
-    courseName: "Technical Drawing",
-    targetClass: "2nde / Form 5",
-    dueDate: new Date().toISOString(),
-    maxMarks: 10,
-    status: "cancelled",
-    type: "both"
   }
+];
+
+const MOCK_SUBMISSIONS = [
+  { id: "sub1", studentName: "Alice Thompson", studentId: "GBHS26S001", avatar: "https://picsum.photos/seed/s1/100/100", submittedAt: "2024-05-24T10:30:00Z", status: "pending", content: "I have finished the lab report on Newton's Laws. I found the friction part challenging but interesting.", fileName: "Lab_Report_Alice.pdf" },
+  { id: "sub2", studentName: "Bob Richards", studentId: "GBHS26S002", avatar: "https://picsum.photos/seed/s2/100/100", submittedAt: "2024-05-23T14:15:00Z", status: "graded", score: 18, content: "The acceleration calculations were performed using the standard formula. See attached data sheet.", fileName: "Data_Calculations.xlsx" },
 ];
 
 export default function AssignmentsPage() {
@@ -110,6 +97,8 @@ export default function AssignmentsPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [assignments, setAssignments] = useState(MOCK_ASSIGNMENTS);
   const [viewingResponse, setViewingResponse] = useState<any>(null);
+  const [gradingAssignment, setGradingAssignment] = useState<any>(null);
+  const [reviewingSubmission, setReviewingSubmission] = useState<any>(null);
   
   const [newAssignment, setNewAssignment] = useState({
     title: "",
@@ -122,7 +111,6 @@ export default function AssignmentsPage() {
 
   const isTeacher = user?.role === "TEACHER" || user?.role === "SCHOOL_ADMIN";
 
-  // Filter logic for student views
   const activeTasks = assignments.filter(a => a.status === 'upcoming' && new Date(a.dueDate) > new Date());
   const myWork = assignments.filter(a => a.status === 'submitted' || a.status === 'graded');
   const historyTasks = assignments;
@@ -143,6 +131,11 @@ export default function AssignmentsPage() {
       setIsProcessing(false);
       toast({ title: "Task Published", description: "The assignment is now visible to students." });
     }, 800);
+  };
+
+  const handleDeleteAssignment = (id: string) => {
+    setAssignments(prev => prev.filter(a => a.id !== id));
+    toast({ variant: "destructive", title: "Assignment Deleted", description: "The task has been removed from the registry." });
   };
 
   const getStatusBadge = (status: string) => {
@@ -340,7 +333,7 @@ export default function AssignmentsPage() {
                       </div>
                       <span className="text-sm font-bold text-primary">{viewingResponse.submittedFileName}</span>
                     </div>
-                    <Button variant="ghost" size="sm" className="gap-2 text-[10px] font-black uppercase tracking-widest">
+                    <Button variant="ghost" size="sm" className="gap-2 text-[10px] font-black uppercase tracking-widest" onClick={() => toast({ title: "Download Started" })}>
                       <Download className="w-3.5 h-3.5" /> Download
                     </Button>
                   </div>
@@ -359,9 +352,9 @@ export default function AssignmentsPage() {
     );
   }
 
-  // Teacher View Logic...
+  // Teacher View Logic
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
@@ -379,7 +372,7 @@ export default function AssignmentsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {assignments.map((task) => (
-          <Card key={task.id} className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-all">
+          <Card key={task.id} className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-all bg-white rounded-2xl">
             <div className="h-1.5 w-full bg-primary" />
             <CardHeader>
               <div className="flex justify-between items-start">
@@ -387,7 +380,7 @@ export default function AssignmentsPage() {
                   <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-widest border-primary/20 text-primary mb-2">
                     {task.targetClass}
                   </Badge>
-                  <CardTitle className="text-xl text-primary font-black">{task.title}</CardTitle>
+                  <CardTitle className="text-xl text-primary font-black leading-tight">{task.title}</CardTitle>
                   <CardDescription className="font-bold flex items-center gap-2 mt-1">
                     <Award className="w-3.5 h-3.5" /> {task.courseName}
                   </CardDescription>
@@ -411,13 +404,15 @@ export default function AssignmentsPage() {
             <CardFooter className="pt-0 flex gap-2">
               <Button 
                 className="flex-1 h-10 bg-primary shadow-sm gap-2 text-xs font-bold"
+                onClick={() => setGradingAssignment(task)}
               >
                 <FileEdit className="w-3.5 h-3.5" /> Grade
               </Button>
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="h-10 w-10 text-destructive/20 hover:text-destructive"
+                className="h-10 w-10 text-destructive/40 hover:text-destructive hover:bg-red-50"
+                onClick={() => handleDeleteAssignment(task.id)}
               >
                 <Trash2 className="w-4 h-4" />
               </Button>
@@ -426,22 +421,30 @@ export default function AssignmentsPage() {
         ))}
       </div>
 
+      {/* CREATE DIALOG - RESPONSIVE */}
       <Dialog open={isCreating} onOpenChange={setIsCreating}>
-        <DialogContent className="sm:max-w-2xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+        <DialogContent className="sm:max-w-2xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
           <DialogHeader className="bg-primary p-8 text-white">
-            <DialogTitle className="text-2xl font-black">Setup New Task</DialogTitle>
-            <DialogDescription className="text-white/60">Configure an academic assignment for your class.</DialogDescription>
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/10 rounded-2xl">
+                <Plus className="w-8 h-8 text-secondary" />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-black">Setup New Task</DialogTitle>
+                <DialogDescription className="text-white/60">Configure an academic assignment for your class.</DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
-          <div className="p-8 space-y-6">
-            <div className="grid grid-cols-2 gap-6">
-              <div className="col-span-2 space-y-2">
-                <Label>Assignment Title</Label>
-                <Input value={newAssignment.title} onChange={(e) => setNewAssignment({...newAssignment, title: e.target.value})} placeholder="e.g. Chapter 4 Exercises" className="h-12 bg-accent/30 border-none rounded-xl" />
+          <div className="p-8 space-y-6 max-h-[60vh] overflow-y-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="md:col-span-2 space-y-2">
+                <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Assignment Title</Label>
+                <Input value={newAssignment.title} onChange={(e) => setNewAssignment({...newAssignment, title: e.target.value})} placeholder="e.g. Chapter 4 Exercises" className="h-12 bg-accent/30 border-none rounded-xl font-bold" />
               </div>
               <div className="space-y-2">
-                <Label>Subject</Label>
+                <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Subject</Label>
                 <Select value={newAssignment.subjectId} onValueChange={(v) => setNewAssignment({...newAssignment, subjectId: v})}>
-                  <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl">
+                  <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold">
                     <SelectValue placeholder="Select Subject" />
                   </SelectTrigger>
                   <SelectContent>
@@ -451,33 +454,196 @@ export default function AssignmentsPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Target Class</Label>
+                <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Target Class</Label>
                 <Select value={newAssignment.targetClass} onValueChange={(v) => setNewAssignment({...newAssignment, targetClass: v})}>
-                  <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl">
+                  <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Due Date</Label>
+                <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Due Date</Label>
                 <Input type="date" value={newAssignment.dueDate} onChange={(e) => setNewAssignment({...newAssignment, dueDate: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl" />
               </div>
               <div className="space-y-2">
-                <Label>Max Marks</Label>
-                <Input type="number" value={newAssignment.maxMarks} onChange={(e) => setNewAssignment({...newAssignment, maxMarks: parseInt(e.target.value)})} className="h-12 bg-accent/30 border-none rounded-xl" />
+                <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Max Marks</Label>
+                <Input type="number" value={newAssignment.maxMarks} onChange={(e) => setNewAssignment({...newAssignment, maxMarks: parseInt(e.target.value)})} className="h-12 bg-accent/30 border-none rounded-xl font-black text-primary" />
               </div>
-              <div className="col-span-2 space-y-2">
-                <Label>Instructions</Label>
+              <div className="md:col-span-2 space-y-2">
+                <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Instructions</Label>
                 <Textarea value={newAssignment.instructions} onChange={(e) => setNewAssignment({...newAssignment, instructions: e.target.value})} placeholder="Guidelines for students..." className="min-h-[120px] bg-accent/30 border-none rounded-xl" />
               </div>
             </div>
           </div>
           <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
-            <Button onClick={handleCreateAssignment} disabled={isProcessing} className="w-full h-12 shadow-lg font-bold">
-              {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Publish Assignment"}
+            <Button onClick={handleCreateAssignment} disabled={isProcessing || !newAssignment.title} className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3">
+              {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
+              Publish Assignment
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* GRADING QUEUE DIALOG */}
+      <Dialog open={!!gradingAssignment} onOpenChange={() => setGradingAssignment(null)}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl rounded-[2.5rem]">
+          <DialogHeader className="bg-primary p-8 text-white shrink-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-2xl">
+                  <ListChecks className="w-8 h-8 text-secondary" />
+                </div>
+                <div>
+                  <DialogTitle className="text-2xl font-black">Submission Registry</DialogTitle>
+                  <DialogDescription className="text-white/60">
+                    {gradingAssignment?.title} • {gradingAssignment?.targetClass}
+                  </DialogDescription>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setGradingAssignment(null)} className="text-white/40 hover:text-white">
+                <X className="w-6 h-6" />
+              </Button>
+            </div>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto p-0">
+            <Table>
+              <TableHeader className="bg-accent/30 sticky top-0 z-10 uppercase text-[10px] font-black tracking-widest">
+                <TableRow>
+                  <TableHead className="pl-8 py-4">Student Profile</TableHead>
+                  <TableHead>Timestamp</TableHead>
+                  <TableHead className="text-center">Status</TableHead>
+                  <TableHead className="text-center">Score</TableHead>
+                  <TableHead className="text-right pr-8">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {MOCK_SUBMISSIONS.map((sub) => (
+                  <TableRow key={sub.id} className="hover:bg-accent/5 transition-colors border-b border-accent/10">
+                    <TableCell className="pl-8 py-4">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent">
+                          <AvatarImage src={sub.avatar} />
+                          <AvatarFallback className="bg-primary/5 text-primary font-bold">{sub.studentName.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-bold text-sm text-primary leading-tight">{sub.studentName}</p>
+                          <p className="text-[9px] font-mono text-muted-foreground uppercase">{sub.studentId}</p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground font-medium">
+                      {new Date(sub.submittedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Badge className={cn(
+                        "text-[9px] font-black uppercase px-3 border-none",
+                        sub.status === 'graded' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                      )}>
+                        {sub.status === 'graded' ? 'VERIFIED' : 'PENDING'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center font-black text-primary">
+                      {sub.score ? `${sub.score} / ${gradingAssignment.maxMarks}` : '---'}
+                    </TableCell>
+                    <TableCell className="text-right pr-8">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-[10px] font-black uppercase gap-2 hover:bg-primary hover:text-white"
+                        onClick={() => setReviewingSubmission({ ...sub, maxMarks: gradingAssignment.maxMarks })}
+                      >
+                        <Eye className="w-3.5 h-3.5" /> Review
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          <DialogFooter className="bg-accent/10 p-6 border-t flex justify-between items-center shrink-0">
+             <div className="flex items-center gap-2 text-muted-foreground">
+                <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                <p className="text-[10px] font-black uppercase tracking-widest italic opacity-40">High-fidelity grading audit active.</p>
+             </div>
+             <Button onClick={() => setGradingAssignment(null)} variant="outline" className="rounded-xl h-10 px-8 font-bold text-xs uppercase">Close Queue</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* REVIEW SUBMISSION DIALOG */}
+      <Dialog open={!!reviewingSubmission} onOpenChange={() => setReviewingSubmission(null)}>
+        <DialogContent className="sm:max-w-2xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="bg-primary p-8 text-white relative">
+            <div className="flex items-center gap-4">
+              <Avatar className="h-12 w-12 border-2 border-white/20">
+                <AvatarImage src={reviewingSubmission?.avatar} />
+                <AvatarFallback className="bg-white/10">{reviewingSubmission?.studentName.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div>
+                <DialogTitle className="text-2xl font-black">Review Submission</DialogTitle>
+                <DialogDescription className="text-white/60">Evaluating work for {reviewingSubmission?.studentName}</DialogDescription>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setReviewingSubmission(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+              <X className="w-6 h-6" />
+            </Button>
+          </DialogHeader>
+          <div className="p-10 space-y-8 max-h-[70vh] overflow-y-auto">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 border-b border-accent pb-2">
+                <FileText className="w-4 h-4 text-primary/40" />
+                <h3 className="text-xs font-black uppercase text-primary tracking-widest">Student Response</h3>
+              </div>
+              <div className="bg-accent/10 p-6 rounded-2xl italic text-primary/80 leading-relaxed font-medium">
+                "{reviewingSubmission?.content}"
+              </div>
+            </div>
+
+            {reviewingSubmission?.fileName && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 border-b border-accent pb-2">
+                  <Paperclip className="w-4 h-4 text-primary/40" />
+                  <h3 className="text-xs font-black uppercase text-primary tracking-widest">Attached File</h3>
+                </div>
+                <div className="flex items-center justify-between p-4 bg-white border rounded-2xl shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/5 rounded-lg text-primary">
+                      <FileText className="w-5 h-5" />
+                    </div>
+                    <span className="text-sm font-bold text-primary">{reviewingSubmission.fileName}</span>
+                  </div>
+                  <Button variant="ghost" size="sm" className="gap-2 text-[10px] font-black uppercase tracking-widest" onClick={() => toast({ title: "Download Started" })}>
+                    <Download className="w-3.5 h-3.5" /> Download
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            <div className="p-6 bg-primary/5 rounded-3xl border border-primary/10 space-y-4">
+               <h3 className="text-xs font-black uppercase text-primary tracking-widest">Assign Score</h3>
+               <div className="flex items-center gap-4">
+                  <div className="relative flex-1">
+                    <Input 
+                      type="number" 
+                      defaultValue={reviewingSubmission?.score || ""}
+                      className="h-14 bg-white border-none rounded-2xl font-black text-2xl text-primary pl-6"
+                      placeholder="0"
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 font-black text-xs opacity-40">/ {reviewingSubmission?.maxMarks}</span>
+                  </div>
+                  <Button 
+                    className="h-14 px-8 rounded-2xl shadow-lg font-black uppercase tracking-widest text-xs gap-2"
+                    onClick={() => {
+                      setReviewingSubmission(null);
+                      toast({ title: "Score Synchronized", description: "The pedagogical record has been updated." });
+                    }}
+                  >
+                    <CheckCircle2 className="w-4 h-4" /> Save Score
+                  </Button>
+               </div>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
@@ -489,7 +655,7 @@ function StudentAssignmentCard({ assignment, onViewResponse }: { assignment: any
   const isSubmitted = assignment.status === 'submitted' || assignment.status === 'graded';
   
   return (
-    <Card className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-all bg-white">
+    <Card className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-all bg-white rounded-2xl">
       <div className={cn(
         "h-1.5 w-full",
         assignment.status === 'graded' ? "bg-green-500" : isSubmitted ? "bg-amber-500" : "bg-primary"
