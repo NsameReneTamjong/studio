@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
@@ -34,7 +33,8 @@ import {
   Zap,
   Crown,
   LayoutGrid,
-  Search
+  Search,
+  Info
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -643,7 +643,7 @@ export default function DashboardPage() {
             <CardTitle className="text-primary flex items-center gap-2"><TrendingUp className="w-5 h-5"/> Activity Insight</CardTitle>
             <CardDescription>Visual summary of institutional engagement.</CardDescription>
           </CardHeader>
-          <CardContent className="h-[300px] pt-10">
+          <CardContent className="h-[350px] pt-10">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={DATA_PERIODS.monthly}>
                 <Area type="monotone" dataKey="users" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.1} />
