@@ -124,8 +124,14 @@ export default function LibraryPage() {
   });
 
   const isLibrarian = user?.role === "LIBRARIAN";
-  const isAdmin = user?.role === "SCHOOL_ADMIN";
+  const isSchoolAdmin = user?.role === "SCHOOL_ADMIN";
+  const isSubAdmin = user?.role === "SUB_ADMIN";
+  const isAdmin = isSchoolAdmin || isSubAdmin;
+  const isManagement = isLibrarian || isAdmin;
+  
   const isStudent = user?.role === "STUDENT";
+  const isTeacher = user?.role === "TEACHER";
+  const isPersonal = isStudent || isTeacher;
 
   const handleIssueBook = (req: any) => {
     // Calculate due date based on current policy
@@ -206,14 +212,14 @@ export default function LibraryPage() {
             <div className="p-2 bg-primary rounded-xl shadow-lg">
               <Library className="w-6 h-6 text-secondary" />
             </div>
-            {isAdmin || isLibrarian ? "Institutional Library Suite" : t("library")}
+            {isManagement ? "Institutional Library Suite" : t("library")}
           </h1>
           <p className="text-muted-foreground mt-1">
-            {isAdmin || isLibrarian ? "Strategic oversight of school resources, circulation, and memberships." : "Manage your collection and academic resource loans."}
+            {isManagement ? "Strategic oversight of school resources, circulation, and memberships." : "Manage your collection and academic resource loans."}
           </p>
         </div>
         
-        {(isLibrarian || isAdmin) && (
+        {isManagement && (
           <div className="flex items-center gap-2">
             <Button variant="outline" className="gap-2 rounded-xl h-11 border-primary/10" onClick={() => toast({ title: "Generating Report..." })}>
               <Printer className="w-4 h-4" /> Export Catalog
@@ -278,7 +284,7 @@ export default function LibraryPage() {
         )}
       </div>
 
-      {(isLibrarian || isAdmin) && (
+      {isManagement && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="border-none shadow-sm bg-blue-50">
             <CardContent className="pt-6">
@@ -326,25 +332,25 @@ export default function LibraryPage() {
       <Tabs defaultValue="catalog" className="w-full">
         <TabsList className={cn(
           "grid w-full bg-white shadow-sm border h-auto p-1 rounded-2xl",
-          (isLibrarian || isAdmin) ? "grid-cols-5 md:w-[1000px]" : "grid-cols-3 md:w-[600px]"
+          isManagement ? "grid-cols-5 md:w-[1000px]" : "grid-cols-3 md:w-[600px]"
         )}>
           <TabsTrigger value="catalog" className="gap-2 py-3 rounded-xl transition-all">
             <BookOpen className="w-4 h-4" /> {language === 'en' ? 'Catalog' : 'Catalogue'}
           </TabsTrigger>
-          {(isLibrarian || isAdmin) && (
+          {isManagement && (
             <TabsTrigger value="requests" className="gap-2 py-3 rounded-xl transition-all">
               <ArrowUpRight className="w-4 h-4" /> {language === 'en' ? 'Issue Queue' : 'File d\'Attente'}
             </TabsTrigger>
           )}
           <TabsTrigger value="circulation" className="gap-2 py-3 rounded-xl transition-all">
-            <Clock className="w-4 h-4" /> {isLibrarian || isAdmin ? (language === 'en' ? 'Circulation' : 'Circulation') : t("borrowed")}
+            <Clock className="w-4 h-4" /> {isManagement ? (language === 'en' ? 'Circulation' : 'Circulation') : t("borrowed")}
           </TabsTrigger>
-          {isStudent && (
+          {isPersonal && (
             <TabsTrigger value="history" className="gap-2 py-3 rounded-xl transition-all">
               <History className="w-4 h-4" /> {t("libraryHistory")}
             </TabsTrigger>
           )}
-          {(isLibrarian || isAdmin) && (
+          {isManagement && (
             <>
               <TabsTrigger value="members" className="gap-2 py-3 rounded-xl transition-all">
                 <Users className="w-4 h-4" /> Members
@@ -410,63 +416,65 @@ export default function LibraryPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="requests" className="mt-8 animate-in fade-in slide-in-from-bottom-4">
-          <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
-            <CardHeader className="bg-white border-b p-6">
-              <CardTitle className="text-lg font-black text-primary uppercase tracking-widest">Active Requests Queue</CardTitle>
-              <CardDescription>Verify borrower identity and confirm physical resource issue.</CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader className="bg-accent/30 uppercase text-[10px] font-black tracking-widest">
-                  <TableRow>
-                    <TableHead className="pl-8 py-4">Requester Profile</TableHead>
-                    <TableHead>Target Resource</TableHead>
-                    <TableHead className="text-center">Request Date</TableHead>
-                    <TableHead className="text-right pr-8">Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {requests.map((req) => (
-                    <TableRow key={req.id} className="hover:bg-accent/5 border-b border-accent/10">
-                      <TableCell className="pl-8 py-4">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
-                            <AvatarImage src={req.userAvatar} />
-                            <AvatarFallback className="bg-primary/5 text-primary text-xs">{req.userName.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex flex-col">
-                            <span className="font-bold text-sm text-primary">{req.userName}</span>
-                            <Badge variant="outline" className="text-[8px] h-4 w-fit uppercase border-none bg-blue-50 text-blue-700">{req.userRole}</Badge>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <p className="text-sm font-black text-primary uppercase leading-none">{req.bookTitle}</p>
-                          <p className="text-[10px] text-muted-foreground italic">By {req.bookAuthor}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center text-[10px] font-bold text-muted-foreground">{req.requestDate}</TableCell>
-                      <TableCell className="text-right pr-8">
-                        <Button className="h-9 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg" onClick={() => handleIssueBook(req)}>
-                          <CheckCircle2 className="w-3.5 h-3.5 mr-2" /> Confirm Issue
-                        </Button>
-                      </TableCell>
+        {isManagement && (
+          <TabsContent value="requests" className="mt-8 animate-in fade-in slide-in-from-bottom-4">
+            <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
+              <CardHeader className="bg-white border-b p-6">
+                <CardTitle className="text-lg font-black text-primary uppercase tracking-widest">Active Requests Queue</CardTitle>
+                <CardDescription>Verify borrower identity and confirm physical resource issue.</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader className="bg-accent/30 uppercase text-[10px] font-black tracking-widest">
+                    <TableRow>
+                      <TableHead className="pl-8 py-4">Requester Profile</TableHead>
+                      <TableHead>Target Resource</TableHead>
+                      <TableHead className="text-center">Request Date</TableHead>
+                      <TableHead className="text-right pr-8">Action</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                  </TableHeader>
+                  <TableBody>
+                    {requests.map((req) => (
+                      <TableRow key={req.id} className="hover:bg-accent/5 border-b border-accent/10">
+                        <TableCell className="pl-8 py-4">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
+                              <AvatarImage src={req.userAvatar} />
+                              <AvatarFallback className="bg-primary/5 text-primary text-xs">{req.userName.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex flex-col">
+                              <span className="font-bold text-sm text-primary">{req.userName}</span>
+                              <Badge variant="outline" className="text-[8px] h-4 w-fit uppercase border-none bg-blue-50 text-blue-700">{req.userRole}</Badge>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <p className="text-sm font-black text-primary uppercase leading-none">{req.bookTitle}</p>
+                            <p className="text-[10px] text-muted-foreground italic">By {req.bookAuthor}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center text-[10px] font-bold text-muted-foreground">{req.requestDate}</TableCell>
+                        <TableCell className="text-right pr-8">
+                          <Button className="h-9 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg" onClick={() => handleIssueBook(req)}>
+                            <CheckCircle2 className="w-3.5 h-3.5 mr-2" /> Confirm Issue
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
 
         <TabsContent value="circulation" className="mt-8">
           <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
             <CardHeader className="bg-white border-b flex flex-row items-center justify-between p-6">
               <div>
                 <CardTitle className="text-lg font-black text-primary uppercase tracking-widest">
-                  {isLibrarian || isAdmin ? 'Global Circulation Ledger' : 'My Active Loans'}
+                  {isManagement ? 'Global Circulation Ledger' : 'My Active Loans'}
                 </CardTitle>
                 <CardDescription>Live tracking of institutional pedagogical assets.</CardDescription>
               </div>
@@ -478,8 +486,8 @@ export default function LibraryPage() {
               <Table>
                 <TableHeader className="bg-accent/30 uppercase text-[10px] font-black tracking-widest border-b border-accent/20">
                   <TableRow>
-                    <TableHead className="pl-8 py-4">{isLibrarian || isAdmin ? 'Borrower' : 'Resource'}</TableHead>
-                    <TableHead>{isLibrarian || isAdmin ? 'Resource' : 'Reference'}</TableHead>
+                    <TableHead className="pl-8 py-4">{isManagement ? 'Borrower' : 'Resource'}</TableHead>
+                    <TableHead>{isManagement ? 'Resource' : 'Reference'}</TableHead>
                     <TableHead className="text-center">Due Date</TableHead>
                     <TableHead className="text-right pr-8">Status</TableHead>
                   </TableRow>
@@ -488,12 +496,12 @@ export default function LibraryPage() {
                   {loans.map((loan) => (
                     <TableRow key={loan.id} className="hover:bg-accent/5 transition-colors border-b border-accent/10">
                       <TableCell className="pl-8 py-4">
-                        <p className="font-bold text-sm text-primary">{isLibrarian || isAdmin ? loan.borrowerName : loan.bookTitle}</p>
-                        {isLibrarian && <p className="text-[10px] font-mono text-muted-foreground uppercase">{loan.borrowerId}</p>}
+                        <p className="font-bold text-sm text-primary">{isManagement ? loan.borrowerName : loan.bookTitle}</p>
+                        {isManagement && <p className="text-[10px] font-mono text-muted-foreground uppercase">{loan.borrowerId}</p>}
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
-                          <p className="text-xs font-bold">{isLibrarian || isAdmin ? loan.bookTitle : loan.collectionCode}</p>
+                          <p className="text-xs font-bold">{isManagement ? loan.bookTitle : loan.collectionCode}</p>
                           <p className="text-[10px] text-muted-foreground italic">By {loan.author}</p>
                         </div>
                       </TableCell>
@@ -517,72 +525,74 @@ export default function LibraryPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="history" className="mt-8">
-          <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
-            <CardHeader className="bg-primary p-8 text-white">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-white/10 rounded-2xl">
-                  <History className="w-8 h-8 text-secondary" />
+        {isPersonal && (
+          <TabsContent value="history" className="mt-8">
+            <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
+              <CardHeader className="bg-primary p-8 text-white">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/10 rounded-2xl">
+                    <History className="w-8 h-8 text-secondary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-2xl font-black">{t("libraryHistory")}</CardTitle>
+                    <CardDescription className="text-white/60">Digital logs of your past library interactions and verified returns.</CardDescription>
+                  </div>
                 </div>
-                <div>
-                  <CardTitle className="text-2xl font-black">{t("libraryHistory")}</CardTitle>
-                  <CardDescription className="text-white/60">Digital logs of your past library interactions and verified returns.</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-accent/10 uppercase text-[10px] font-black tracking-widest border-b border-accent/20">
-                    <TableHead className="pl-8 py-4">Resource Portfolio</TableHead>
-                    <TableHead className="text-center">{t("dateBorrowed")}</TableHead>
-                    <TableHead className="text-center">{t("dateReturned")}</TableHead>
-                    <TableHead className="text-center">Ref. Code</TableHead>
-                    <TableHead className="text-right pr-8">Integrity</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {MOCK_STUDENT_HISTORY.map((hist) => (
-                    <TableRow key={hist.id} className="hover:bg-accent/5 transition-colors border-b border-accent/10">
-                      <TableCell className="pl-8 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 bg-primary/5 rounded-lg border border-primary/10">
-                            <BookOpen className="w-4 h-4 text-primary" />
-                          </div>
-                          <div>
-                            <p className="font-bold text-sm text-primary">{hist.bookTitle}</p>
-                            <p className="text-[10px] text-muted-foreground uppercase font-bold">{hist.author}</p>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center font-mono text-xs font-bold text-muted-foreground">{hist.borrowDate}</TableCell>
-                      <TableCell className="text-center font-mono text-xs font-bold text-primary">{hist.returnDate}</TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="outline" className="font-mono text-[9px] uppercase border-primary/10">{hist.code}</Badge>
-                      </TableCell>
-                      <TableCell className="text-right pr-8">
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-100 font-bold text-[9px] uppercase">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> {hist.status}
-                        </div>
-                      </TableCell>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-accent/10 uppercase text-[10px] font-black tracking-widest border-b border-accent/20">
+                      <TableHead className="pl-8 py-4">Resource Portfolio</TableHead>
+                      <TableHead className="text-center">{t("dateBorrowed")}</TableHead>
+                      <TableHead className="text-center">{t("dateReturned")}</TableHead>
+                      <TableHead className="text-center">Ref. Code</TableHead>
+                      <TableHead className="text-right pr-8">Integrity</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-            <CardFooter className="bg-accent/10 p-6 border-t border-accent flex justify-between items-center">
-               <div className="flex items-center gap-2 text-muted-foreground">
-                  <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
-                  <p className="text-[10px] uppercase font-black tracking-widest italic opacity-40">All past transactions are digitally signed and archived.</p>
-               </div>
-               <Button variant="ghost" size="sm" className="gap-2 text-[10px] font-black uppercase">
-                 <Printer className="w-3.5 h-3.5" /> Print Statement
-               </Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
+                  </TableHeader>
+                  <TableBody>
+                    {MOCK_STUDENT_HISTORY.map((hist) => (
+                      <TableRow key={hist.id} className="hover:bg-accent/5 transition-colors border-b border-accent/10">
+                        <TableCell className="pl-8 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-primary/5 rounded-lg border border-primary/10">
+                              <BookOpen className="w-4 h-4 text-primary" />
+                            </div>
+                            <div>
+                              <p className="font-bold text-sm text-primary">{hist.bookTitle}</p>
+                              <p className="text-[10px] text-muted-foreground uppercase font-bold">{hist.author}</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center font-mono text-xs font-bold text-muted-foreground">{hist.borrowDate}</TableCell>
+                        <TableCell className="text-center font-mono text-xs font-bold text-primary">{hist.returnDate}</TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant="outline" className="font-mono text-[9px] uppercase border-primary/10">{hist.code}</Badge>
+                        </TableCell>
+                        <TableCell className="text-right pr-8">
+                          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-100 font-bold text-[9px] uppercase">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> {hist.status}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+              <CardFooter className="bg-accent/10 p-6 border-t border-accent flex justify-between items-center">
+                 <div className="flex items-center gap-2 text-muted-foreground">
+                    <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                    <p className="text-[10px] uppercase font-black tracking-widest italic opacity-40">All past transactions are digitally signed and archived.</p>
+                 </div>
+                 <Button variant="ghost" size="sm" className="gap-2 text-[10px] font-black uppercase">
+                   <Printer className="w-3.5 h-3.5" /> Print Statement
+                 </Button>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+        )}
 
-        {(isLibrarian || isAdmin) && (
+        {isManagement && (
           <>
             <TabsContent value="members" className="mt-8">
               <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
@@ -667,7 +677,7 @@ export default function LibraryPage() {
                             value={policyData.loanDuration}
                             onChange={(e) => setPolicyData({...policyData, loanDuration: e.target.value})}
                             className="h-12 bg-accent/30 border-none rounded-xl font-black text-primary text-lg"
-                            disabled={isAdmin}
+                            disabled={!isLibrarian}
                           />
                           <p className="text-[9px] text-muted-foreground italic">Institutional lending window before penalty.</p>
                         </div>
@@ -681,7 +691,7 @@ export default function LibraryPage() {
                             value={policyData.dailyFine}
                             onChange={(e) => setPolicyData({...policyData, dailyFine: e.target.value})}
                             className="h-12 bg-accent/30 border-none rounded-xl font-black text-primary text-lg"
-                            disabled={isAdmin}
+                            disabled={!isLibrarian}
                           />
                           <p className="text-[9px] text-muted-foreground italic">Automated charge per missed day.</p>
                         </div>
@@ -695,7 +705,7 @@ export default function LibraryPage() {
                             value={policyData.maxBooks}
                             onChange={(e) => setPolicyData({...policyData, maxBooks: e.target.value})}
                             className="h-12 bg-accent/30 border-none rounded-xl font-black text-primary text-lg"
-                            disabled={isAdmin}
+                            disabled={!isLibrarian}
                           />
                           <p className="text-[9px] text-muted-foreground italic">Borrowing ceiling per individual account.</p>
                         </div>
@@ -709,7 +719,7 @@ export default function LibraryPage() {
                             value={policyData.lostBookPenalty}
                             onChange={(e) => setPolicyData({...policyData, lostBookPenalty: e.target.value})}
                             className="h-12 bg-accent/30 border-none rounded-xl font-black text-primary text-lg"
-                            disabled={isAdmin}
+                            disabled={!isLibrarian}
                           />
                           <p className="text-[9px] text-muted-foreground italic">Replacement cost for unrecoverable items.</p>
                         </div>
@@ -719,7 +729,7 @@ export default function LibraryPage() {
                       <Button 
                         className="h-12 px-10 rounded-xl shadow-lg font-black uppercase tracking-widest text-xs gap-2 bg-primary text-white"
                         onClick={handleSavePolicy}
-                        disabled={isProcessing || isAdmin}
+                        disabled={isProcessing || !isLibrarian}
                       >
                         {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                         Commit Institutional Policy
