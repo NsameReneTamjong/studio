@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -173,7 +172,6 @@ export default function StudentsPage() {
       uid: Math.random().toString(36).substr(2, 9),
       child: "Pending Admission",
       status: "active",
-      // Assign default institutional avatar based on ID
       avatar: `https://picsum.photos/seed/${id}/200/200`
     };
     setParentList([...parentList, created]);
@@ -202,7 +200,6 @@ export default function StudentsPage() {
         email: `${studentId.toLowerCase()}@school.edu`,
         isLicensePaid: true,
         status: "active",
-        // Assign default institutional avatar based on ID
         avatar: `https://picsum.photos/seed/${studentId}/200/200`,
         guardianName: guardian?.name || "N/A",
         guardianMatricule: guardian?.id || "N/A",
@@ -922,7 +919,7 @@ export default function StudentsPage() {
                     <h3 className="text-xs font-black uppercase text-primary tracking-widest">Siblings in Institution</h3>
                   </div>
                   <div className="grid grid-cols-1 gap-3">
-                    {viewingLinkedInfo.siblings.length > 0 ? viewingLinkedInfo.siblings.map((sib: any) => (
+                    {viewingLinkedInfo?.siblings && viewingLinkedInfo.siblings.length > 0 ? viewingLinkedInfo.siblings.map((sib: any) => (
                       <div key={sib.id} className="flex items-center justify-between p-4 rounded-xl border bg-white group hover:border-primary/20 transition-all">
                         <div className="flex items-center gap-3">
                           <Avatar className="h-8 w-8 border">
@@ -946,10 +943,10 @@ export default function StudentsPage() {
               <div className="space-y-6">
                 <div className="flex items-center gap-3 border-b border-accent pb-2">
                   <GraduationCap className="w-4 h-4 text-primary/40" />
-                  <h3 className="text-xs font-black uppercase text-primary tracking-widest">Linked Students ({viewingLinkedInfo.children.length})</h3>
+                  <h3 className="text-xs font-black uppercase text-primary tracking-widest">Linked Students ({viewingLinkedInfo?.children?.length || 0})</h3>
                 </div>
                 <div className="grid grid-cols-1 gap-4">
-                  {viewingLinkedInfo.children.map((child: any) => (
+                  {viewingLinkedInfo?.children?.map((child: any) => (
                     <Card key={child.id} className="border-none shadow-sm bg-accent/10 hover:bg-accent/20 transition-all cursor-pointer overflow-hidden" onClick={() => router.push(`/dashboard/children/view?id=${child.id}`)}>
                       <CardContent className="p-4 flex items-center justify-between">
                         <div className="flex items-center gap-4">
