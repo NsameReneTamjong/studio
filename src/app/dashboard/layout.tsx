@@ -51,15 +51,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
   const [isTestimonyModalOpen, setIsTestimonyModalOpen] = useState(false);
-  const [supportStep, setSupportModalStep] = permanence('form');
   const [isProcessing, setIsProcessing] = useState(false);
   const [testimonyMessage, setTestimonyMessage] = useState("");
   const [isSubmittingTestimony, setIsSubmittingTestimony] = useState(false);
-
-  const permanence = (val: 'form' | 'thanks') => {
-    const [state, setState] = useState<'form' | 'thanks'>(val);
-    return [state, setState] as const;
-  };
 
   const [supportModalStep, setSupportModalStepState] = useState<'form' | 'thanks'>('form');
 
@@ -92,7 +86,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (!testimonyMessage.trim() || !user) return;
     setIsSubmittingTestimony(true);
     
-    // Simple prototype delay
     setTimeout(() => {
       addTestimony({
         userId: user.id,
@@ -136,7 +129,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const isLicensePaid = user.isLicensePaid;
   const isSubscriptionPage = pathname === "/dashboard/subscription";
 
-  // Enforcement logic: If license not paid, restrict access to everything except the subscription page
   if (!isLicensePaid && !isPlatformExecutive && !isSubscriptionPage) {
     return (
       <div className="flex h-screen overflow-hidden bg-background">
@@ -181,13 +173,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-64 shrink-0 h-full">
         <DashboardSidebar />
       </aside>
 
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        {/* Mobile Header */}
         <header className="md:hidden flex items-center justify-between px-4 py-3 bg-primary text-white shrink-0">
           <div className="flex items-center gap-2 overflow-hidden">
             {!isPlatformExecutive && user?.school?.logo ? (
@@ -213,14 +203,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </Sheet>
         </header>
 
-        {/* Main Content Area */}
         <main className="flex-1 overflow-y-auto">
           <div className="p-4 md:p-8 min-h-full flex flex-col">
             <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500 w-full flex-1">
               {children}
             </div>
 
-            {/* DASHBOARD FOOTER (Excluded for Executives) */}
             {!isPlatformExecutive && (
               <footer className="mt-20 border-t pt-8 pb-12 w-full max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">

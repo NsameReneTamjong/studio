@@ -425,7 +425,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const m = matricule.toUpperCase();
     const demoData = DEMO_ACCOUNTS[m] || { name: "Guest User", role: "STUDENT", schoolId: "GBHS-D", isLicensePaid: true };
     
-    // Explicitly find school from current registry or defaults
     const schoolList = schools.length > 0 ? schools : INITIAL_SCHOOLS;
     const assignedSchool = demoData.schoolId ? schoolList.find(s => s.id === demoData.schoolId) : undefined;
 
