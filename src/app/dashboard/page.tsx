@@ -3,7 +3,8 @@
 
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useState, useMemo } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   Users, 
@@ -24,152 +25,388 @@ import {
   Receipt,
   ArrowUpRight,
   History,
-  AlertCircle
+  AlertCircle,
+  Filter,
+  Calendar,
+  BarChart3,
+  PieChart,
+  ArrowRight,
+  Zap,
+  Crown,
+  LayoutGrid,
+  Search
 } from "lucide-react";
 import { 
   AreaChart, 
   Area, 
+  BarChart,
+  Bar,
   XAxis, 
   YAxis, 
   CartesianGrid, 
   Tooltip as RechartsTooltip, 
-  ResponsiveContainer 
+  ResponsiveContainer,
+  Cell,
+  Legend
 } from "recharts";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
-const MONTHLY_REVENUE = [
-  { name: 'Jan', revenue: 1200000 },
-  { name: 'Feb', revenue: 1450000 },
-  { name: 'Mar', revenue: 1100000 },
-  { name: 'Apr', revenue: 1800000 },
-  { name: 'May', revenue: 2100000 },
-  { name: 'Jun', revenue: 1950000 },
+// --- MOCK ANALYTICS DATA ---
+
+const DATA_PERIODS = {
+  weekly: [
+    { name: 'Mon', users: 120, revenue: 45000 },
+    { name: 'Tue', users: 150, revenue: 52000 },
+    { name: 'Wed', users: 180, revenue: 48000 },
+    { name: 'Thu', users: 210, revenue: 61000 },
+    { name: 'Fri', users: 250, revenue: 55000 },
+    { name: 'Sat', users: 190, revenue: 32000 },
+    { name: 'Sun', users: 110, revenue: 28000 },
+  ],
+  monthly: [
+    { name: 'Week 1', users: 1200, revenue: 245000 },
+    { name: 'Week 2', users: 1450, revenue: 280000 },
+    { name: 'Week 3', users: 1100, revenue: 210000 },
+    { name: 'Week 4', users: 1800, revenue: 350000 },
+  ],
+  yearly: [
+    { name: 'Jan', users: 4500, revenue: 1200000 },
+    { name: 'Feb', users: 5200, revenue: 1450000 },
+    { name: 'Mar', users: 4800, revenue: 1100000 },
+    { name: 'Apr', users: 6100, revenue: 1800000 },
+    { name: 'May', users: 7500, revenue: 2100000 },
+    { name: 'Jun', users: 6900, revenue: 1950000 },
+    { name: 'Jul', users: 7200, revenue: 2300000 },
+    { name: 'Aug', users: 8100, revenue: 2500000 },
+    { name: 'Sep', users: 9500, revenue: 3100000 },
+    { name: 'Oct', users: 10200, revenue: 3400000 },
+    { name: 'Nov', users: 11500, revenue: 3800000 },
+    { name: 'Dec', users: 12400, revenue: 4200000 },
+  ]
+};
+
+const USER_DISTRIBUTION = [
+  { name: 'Students', value: 18500, color: '#264D73' },
+  { name: 'Teachers', value: 2400, color: '#67D0E4' },
+  { name: 'Admins', value: 124, color: '#FCD116' },
+  { name: 'Founders', value: 5, color: '#CE1126' },
 ];
 
 export default function DashboardPage() {
-  const { user, isLoading } = useAuth();
-  const { t } = useI18n();
+  const { user, schools, isLoading } = useAuth();
+  const { t, language } = useI18n();
+
+  // Filters State
+  const [timePeriod, setTimePeriod] = useState<"weekly" | "monthly" | "yearly">("monthly");
+  const [selectedSchoolId, setSelectedSchoolId] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const activeChartData = DATA_PERIODS[timePeriod];
+
+  const summaryStats = useMemo(() => {
+    // In a real app, these would filter based on selectedSchoolId
+    return {
+      totalUsers: "22,482",
+      students: "18,540",
+      teachers: "2,418",
+      admins: "124",
+      founders: "5",
+      revenue: "4.2M",
+      activeNodes: schools.length || 0,
+      systemHealth: "Optimal"
+    };
+  }, [schools]);
 
   if (isLoading || !user) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
         <Loader2 className="w-12 h-12 animate-spin text-primary opacity-20" />
-        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Synchronizing Identity...</p>
+        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Synchronizing Platform Data...</p>
       </div>
     );
   }
 
-  const isSuperAdmin = user.role === "SUPER_ADMIN";
+  const isSuperAdmin = ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV", "DESIGNER"].includes(user.role);
   const isParent = user.role === "PARENT";
   const isBursar = user.role === "BURSAR";
 
   if (isSuperAdmin) {
     return (
       <div className="space-y-8 pb-20">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
+        {/* 1. HEADER & GLOBAL FILTERS */}
+        <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6">
+          <div className="space-y-1">
             <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
               <div className="p-2 bg-primary rounded-xl shadow-lg">
                 <Globe className="w-6 h-6 text-secondary" />
               </div>
-              Platform Review
+              Platform Intelligence
             </h1>
-            <p className="text-muted-foreground mt-1">Live data metrics from the SaaS institutional network.</p>
+            <p className="text-muted-foreground">Strategic network analysis and institutional revenue metrics.</p>
+          </div>
+
+          <div className="bg-white p-2 rounded-[1.5rem] shadow-sm border flex flex-wrap items-center gap-3 w-fit">
+            <div className="flex items-center gap-2 px-3 border-r">
+              <Calendar className="w-4 h-4 text-primary/40" />
+              <Select value={timePeriod} onValueChange={(v: any) => setTimePeriod(v)}>
+                <SelectTrigger className="w-[120px] border-none shadow-none h-9 text-xs font-bold focus:ring-0">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="weekly">This Week</SelectItem>
+                  <SelectItem value="monthly">This Month</SelectItem>
+                  <SelectItem value="yearly">This Year</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex items-center gap-2 px-3">
+              <Building2 className="w-4 h-4 text-primary/40" />
+              <Select value={selectedSchoolId} onValueChange={setSelectedSchoolId}>
+                <SelectTrigger className="w-[180px] border-none shadow-none h-9 text-xs font-bold focus:ring-0">
+                  <SelectValue placeholder="All Institutions" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Entire Network</SelectItem>
+                  {schools.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="border-none shadow-sm bg-primary text-white overflow-hidden">
+        {/* 2. SUMMARY MATRIX */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          <Card className="border-none shadow-sm bg-primary text-white overflow-hidden relative group">
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform"><Users className="w-16 h-16"/></div>
             <CardHeader className="pb-2">
               <CardTitle className="text-[10px] uppercase font-black opacity-60 tracking-widest">Global Users</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-black text-secondary">22,482</div>
-              <p className="text-[9px] font-bold mt-2 uppercase flex items-center gap-1"><Users className="w-3 h-3" /> Across all instances</p>
+              <div className="text-3xl font-black text-secondary">{summaryStats.totalUsers}</div>
+              <p className="text-[9px] font-bold mt-2 uppercase flex items-center gap-1"><ArrowUpRight className="w-3 h-3" /> +12% Growth</p>
             </CardContent>
           </Card>
 
-          <Card className="border-none shadow-sm bg-white">
+          <Card className="border-none shadow-sm bg-white overflow-hidden group">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Active Schools</CardTitle>
-              <Building2 className="w-4 h-4 text-primary" />
+              <CardTitle className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Students</CardTitle>
+              <GraduationCap className="w-4 h-4 text-primary/40 group-hover:text-primary transition-colors" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-black text-primary">124</div>
-              <p className="text-[9px] font-bold mt-2 uppercase text-muted-foreground">Provisioned Nodes</p>
+              <div className="text-2xl font-black text-primary">{summaryStats.students}</div>
+              <p className="text-[9px] font-bold mt-1 text-muted-foreground uppercase">82% Participation</p>
             </CardContent>
           </Card>
 
-          <Card className="border-none shadow-sm bg-white">
+          <Card className="border-none shadow-sm bg-white overflow-hidden group">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">System Load</CardTitle>
-              <Activity className="w-4 h-4 text-green-600" />
+              <CardTitle className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Teachers</CardTitle>
+              <Users className="w-4 h-4 text-primary/40 group-hover:text-primary transition-colors" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-black text-primary">Normal</div>
-              <p className="text-[9px] font-bold mt-2 uppercase text-green-600">High Availability Active</p>
+              <div className="text-2xl font-black text-primary">{summaryStats.teachers}</div>
+              <p className="text-[9px] font-bold mt-1 text-muted-foreground uppercase">Active Curriculums</p>
             </CardContent>
           </Card>
 
-          <Card className="border-none shadow-sm bg-white">
+          <Card className="border-none shadow-sm bg-white overflow-hidden group">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Open Tickets</CardTitle>
-              <MessageSquare className="w-4 h-4 text-secondary" />
+              <CardTitle className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Executives</CardTitle>
+              <Crown className="w-4 h-4 text-secondary group-hover:scale-110 transition-transform" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-black text-primary">12</div>
-              <p className="text-[9px] font-bold mt-2 uppercase text-muted-foreground">Admin Feedback</p>
+              <div className="text-2xl font-black text-primary">{summaryStats.founders}</div>
+              <p className="text-[9px] font-bold mt-1 text-muted-foreground uppercase">Board Directors</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-none shadow-sm bg-secondary text-primary overflow-hidden">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-[10px] uppercase font-black opacity-60 tracking-widest">Net Revenue</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-black">{summaryStats.revenue} <span className="text-xs">XAF</span></div>
+              <p className="text-[9px] font-bold mt-1 uppercase">Platform Licenses</p>
             </CardContent>
           </Card>
         </div>
 
+        {/* 3. VISUALIZATION CORE */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <Card className="lg:col-span-8 border-none shadow-sm overflow-hidden">
-            <CardHeader className="border-b bg-accent/10">
-              <CardTitle className="text-lg">Revenue Projection</CardTitle>
-              <CardDescription>SaaS service fee trends across the network.</CardDescription>
+          <Card className="lg:col-span-8 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+            <CardHeader className="border-b bg-accent/5 p-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <CardTitle className="text-lg font-black text-primary uppercase tracking-tight flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-secondary" />
+                  Revenue & User Intake Velocity
+                </CardTitle>
+                <CardDescription>Analyzing {timePeriod} trends across the network.</CardDescription>
+              </div>
+              <div className="flex gap-2">
+                <Badge variant="secondary" className="bg-primary/5 text-primary border-none uppercase text-[9px] font-black h-7 px-3">
+                  <Zap className="w-3 h-3 mr-1.5" /> High Availability Node
+                </Badge>
+              </div>
             </CardHeader>
-            <CardContent className="h-[350px] pt-10">
+            <CardContent className="h-[400px] pt-10">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={MONTHLY_REVENUE}>
+                <AreaChart data={activeChartData}>
                   <defs>
                     <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.1}/>
-                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#264D73" stopOpacity={0.15}/>
+                      <stop offset="95%" stopColor="#264D73" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#67D0E4" stopOpacity={0.15}/>
+                      <stop offset="95%" stopColor="#67D0E4" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                  <RechartsTooltip />
-                  <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={4} fill="url(#colorRev)" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
+                  <RechartsTooltip 
+                    contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  />
+                  <Legend verticalAlign="top" align="right" height={36} iconType="circle" />
+                  <Area name="Revenue (XAF)" type="monotone" dataKey="revenue" stroke="#264D73" strokeWidth={4} fill="url(#colorRev)" />
+                  <Area name="Active Users" type="monotone" dataKey="users" stroke="#67D0E4" strokeWidth={4} fill="url(#colorUsers)" />
                 </AreaChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
 
-          <Card className="lg:col-span-4 border-none shadow-sm h-fit">
-            <CardHeader className="pb-2"><CardTitle className="text-base">Recent Activity</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              {[
-                { school: "GBHS Deido", text: "New student registry initialized." },
-                { school: "Lycée de Joss", text: "Subscription renewal completed." }
-              ].map((act, i) => (
-                <div key={i} className="flex gap-3 items-start p-2 rounded-lg hover:bg-accent/30 transition-colors">
-                  <div className="w-2 h-2 mt-1.5 rounded-full bg-secondary shrink-0" />
-                  <div className="flex-1">
-                    <p className="text-xs font-bold text-primary">{act.school}</p>
-                    <p className="text-[10px] text-muted-foreground">{act.text}</p>
+          <Card className="lg:col-span-4 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white flex flex-col">
+            <CardHeader className="bg-primary p-8 text-white">
+              <CardTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-2">
+                <PieChart className="w-5 h-5 text-secondary" />
+                User Segment Distribution
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 pt-10">
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={USER_DISTRIBUTION} layout="vertical">
+                  <XAxis type="number" hide />
+                  <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} width={80} />
+                  <RechartsTooltip />
+                  <Bar dataKey="value" radius={[0, 10, 10, 0]} barSize={30}>
+                    {USER_DISTRIBUTION.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+              
+              <div className="mt-6 space-y-3">
+                {USER_DISTRIBUTION.map((segment, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-accent/20 border border-accent">
+                    <div className="flex items-center gap-3">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: segment.color }} />
+                      <span className="text-xs font-bold text-primary">{segment.name}</span>
+                    </div>
+                    <span className="text-sm font-black">{segment.value.toLocaleString()}</span>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </CardContent>
           </Card>
         </div>
+
+        {/* 4. INSTITUTIONAL DATA GRID */}
+        <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+          <CardHeader className="bg-white border-b p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="space-y-1">
+              <CardTitle className="text-xl font-black text-primary uppercase tracking-tight flex items-center gap-2">
+                <Building2 className="w-6 h-6 text-secondary" />
+                Node Performance Audit
+              </CardTitle>
+              <CardDescription>Granular review of institutional nodes and their financial integrity.</CardDescription>
+            </div>
+            <div className="relative w-full md:w-80">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search nodes..." 
+                className="pl-10 bg-accent/20 border-none rounded-xl"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </CardHeader>
+          <CardContent className="p-0 overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-accent/10 uppercase text-[10px] font-black tracking-widest border-b">
+                <TableRow>
+                  <TableHead className="pl-8 py-4">Institutional Node</TableHead>
+                  <TableHead className="text-center">Students</TableHead>
+                  <TableHead className="text-center">Teachers</TableHead>
+                  <TableHead className="text-center">Collection %</TableHead>
+                  <TableHead className="text-center">License Rev.</TableHead>
+                  <TableHead className="text-right pr-8">Integrity</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {schools
+                  .filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                  .map((school) => (
+                  <TableRow key={school.id} className="hover:bg-accent/5 transition-colors border-b last:border-0">
+                    <TableCell className="pl-8 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-white p-1 border shadow-sm flex items-center justify-center shrink-0">
+                          <img src={school.logo} alt="Logo" className="w-full h-full object-contain" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-sm text-primary uppercase">{school.name}</p>
+                          <p className="text-[9px] font-mono text-muted-foreground">{school.id}</p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center font-black text-primary">1,240</TableCell>
+                    <TableCell className="text-center font-black text-primary">85</TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="text-xs font-bold text-green-600">92%</span>
+                        <div className="w-16 h-1 bg-accent rounded-full overflow-hidden">
+                          <div className="h-full bg-green-500" style={{ width: '92%' }} />
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center font-black text-primary">850,000 XAF</TableCell>
+                    <TableCell className="text-right pr-8">
+                      <div className="flex items-center justify-end gap-2 text-green-600 font-bold text-[9px] uppercase tracking-widest">
+                        <ShieldCheck className="w-4 h-4" /> VERIFIED
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+          <CardFooter className="bg-accent/10 p-6 border-t flex justify-between items-center">
+             <div className="flex items-center gap-2 text-muted-foreground italic">
+                <Info className="w-4 h-4 text-primary/40" />
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-40">All metrics are computed in real-time across the regional clusters.</p>
+             </div>
+             <Button variant="ghost" className="gap-2 text-[10px] font-black uppercase" asChild>
+               <Link href="/dashboard/schools">Manage All Nodes <ChevronRight className="w-4 h-4"/></Link>
+             </Button>
+          </CardFooter>
+        </Card>
       </div>
     );
   }
 
+  // --- BURSAR DASHBOARD ---
   if (isBursar) {
     return (
       <div className="space-y-8 pb-20">
@@ -222,7 +459,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent className="h-[350px] pt-10">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={MONTHLY_REVENUE}>
+                <AreaChart data={DATA_PERIODS.monthly}>
                   <defs>
                     <linearGradient id="colorBursar" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.15}/>
@@ -273,6 +510,7 @@ export default function DashboardPage() {
     );
   }
 
+  // --- PARENT DASHBOARD ---
   if (isParent) {
     return (
       <div className="space-y-8">
@@ -322,8 +560,8 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent className="h-[300px] pt-10">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={MONTHLY_REVENUE}>
-                  <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.1} />
+                <AreaChart data={DATA_PERIODS.monthly}>
+                  <Area type="monotone" dataKey="users" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.1} />
                 </AreaChart>
               </ResponsiveContainer>
             </CardContent>
@@ -361,6 +599,7 @@ export default function DashboardPage() {
     );
   }
 
+  // --- GENERAL USER DASHBOARD (STUDENT/TEACHER) ---
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -404,10 +643,10 @@ export default function DashboardPage() {
             <CardTitle className="text-primary flex items-center gap-2"><TrendingUp className="w-5 h-5"/> Activity Insight</CardTitle>
             <CardDescription>Visual summary of institutional engagement.</CardDescription>
           </CardHeader>
-          <CardContent className="h-[350px] pt-10">
+          <CardContent className="h-[300px] pt-10">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={MONTHLY_REVENUE}>
-                <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.1} />
+              <AreaChart data={DATA_PERIODS.monthly}>
+                <Area type="monotone" dataKey="users" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.1} />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
