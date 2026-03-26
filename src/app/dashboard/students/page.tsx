@@ -34,7 +34,8 @@ import {
   Heart,
   Mail,
   Smartphone,
-  X
+  X,
+  Network
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -60,10 +61,10 @@ import {
 import { cn } from "@/lib/utils";
 
 const MOCK_STUDENTS = [
-  { id: "GBHS26S001", uid: "S1", name: "Alice Thompson", email: "alice.t@school.edu", class: "2nde / Form 5", isLicensePaid: true, status: "active", avatar: "https://picsum.photos/seed/s1/100/100" },
-  { id: "GBHS26S002", uid: "S2", name: "Bob Richards", email: "bob.r@school.edu", class: "Terminale / Upper Sixth", isLicensePaid: true, status: "active", avatar: "https://picsum.photos/seed/s2/100/100" },
-  { id: "GBHS26S003", uid: "S3", name: "Charlie Davis", email: "charlie.d@school.edu", class: "1ère / Lower Sixth", isLicensePaid: false, status: "active", avatar: "https://picsum.photos/seed/s3/100/100" },
-  { id: "GBHS26S004", uid: "S4", name: "Diana Prince", email: "diana.p@school.edu", class: "2nde / Form 5", isLicensePaid: true, status: "inactive", avatar: "https://picsum.photos/seed/s4/100/100" },
+  { id: "GBHS26S001", uid: "S1", name: "Alice Thompson", email: "alice.t@school.edu", class: "2nde / Form 5", section: "Anglophone Section", isLicensePaid: true, status: "active", avatar: "https://picsum.photos/seed/s1/100/100" },
+  { id: "GBHS26S002", uid: "S2", name: "Bob Richards", email: "bob.r@school.edu", class: "Terminale / Upper Sixth", section: "Anglophone Section", isLicensePaid: true, status: "active", avatar: "https://picsum.photos/seed/s2/100/100" },
+  { id: "GBHS26S003", uid: "S3", name: "Charlie Davis", email: "charlie.d@school.edu", class: "1ère / Lower Sixth", section: "Francophone Section", isLicensePaid: false, status: "active", avatar: "https://picsum.photos/seed/s3/100/100" },
+  { id: "GBHS26S004", uid: "S4", name: "Diana Prince", email: "diana.p@school.edu", class: "2nde / Form 5", section: "Technical Section", isLicensePaid: true, status: "inactive", avatar: "https://picsum.photos/seed/s4/100/100" },
 ];
 
 const MOCK_PARENTS = [
@@ -72,6 +73,7 @@ const MOCK_PARENTS = [
 ];
 
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
+const SECTIONS = ["Anglophone Section", "Francophone Section", "Technical Section"];
 
 export default function StudentsPage() {
   const { user, isLoading: isAuthLoading } = useAuth();
@@ -80,6 +82,7 @@ export default function StudentsPage() {
   
   const [searchTerm, setSearchTerm] = useState("");
   const [classFilter, setClassFilter] = useState("all");
+  const [sectionFilter, setSectionFilter] = useState("all");
   const [isAdmissionOpen, setIsAdmissionOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   
@@ -87,13 +90,14 @@ export default function StudentsPage() {
   const [parentList, setParentList] = useState(MOCK_PARENTS);
   const [editingUser, setEditingUser] = useState<any>(null);
 
-  const isAdmin = ["SCHOOL_ADMIN", "SUPER_ADMIN"].includes(user?.role || "");
+  const isAdmin = ["SCHOOL_ADMIN", "SUPER_ADMIN", "SUB_ADMIN"].includes(user?.role || "");
 
   const filteredStudents = useMemo(() => studentList.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase()) || s.id.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesClass = classFilter === "all" || s.class === classFilter;
-    return matchesSearch && matchesClass;
-  }), [studentList, searchTerm, classFilter]);
+    const matchesSection = sectionFilter === "all" || s.section === sectionFilter;
+    return matchesSearch && matchesClass && matchesSection;
+  }), [studentList, searchTerm, classFilter, sectionFilter]);
 
   const filteredParents = useMemo(() => parentList.filter(p => 
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -111,7 +115,6 @@ export default function StudentsPage() {
     
     setter(prev => prev.map(u => u.uid === uid ? { ...u, status: nextStatus } : u));
     
-    // Call toast outside of the state updater callback to avoid render-phase updates
     toast({ 
       title: `Account ${nextStatus === "active" ? "Activated" : "Suspended"}`, 
       description: `${targetUser.name} status updated.` 
@@ -167,8 +170,8 @@ export default function StudentsPage() {
 
         <Card className="border-none shadow-xl overflow-hidden rounded-[2rem] bg-white">
           <CardHeader className="bg-white border-b p-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="relative flex-1">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="relative col-span-1 md:col-span-2">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input 
                   placeholder="Find user by name or ID..." 
@@ -177,16 +180,33 @@ export default function StudentsPage() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <TabsContent value="students" className="mt-0">
-                <Select value={classFilter} onValueChange={setClassFilter}>
-                  <SelectTrigger className="w-[200px] h-12 bg-accent/20 border-none rounded-xl font-bold">
-                    <SelectValue placeholder="All Classes" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Entire School</SelectItem>
-                    {CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+              
+              <TabsContent value="students" className="mt-0 flex gap-4 col-span-1 md:col-span-2">
+                <div className="flex-1">
+                  <Select value={sectionFilter} onValueChange={setSectionFilter}>
+                    <SelectTrigger className="h-12 bg-accent/20 border-none rounded-xl font-bold">
+                      <div className="flex items-center gap-2">
+                        <Network className="w-4 h-4 text-primary/40" />
+                        <SelectValue placeholder="All Sections" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Entire Node</SelectItem>
+                      {SECTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex-1">
+                  <Select value={classFilter} onValueChange={setClassFilter}>
+                    <SelectTrigger className="h-12 bg-accent/20 border-none rounded-xl font-bold">
+                      <SelectValue placeholder="All Classes" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Classes</SelectItem>
+                      {CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
               </TabsContent>
             </div>
           </CardHeader>
@@ -213,8 +233,8 @@ export default function StudentsPage() {
                           <AvatarFallback className="bg-primary/5 text-primary font-bold">{s.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-bold text-sm text-primary">{s.name}</p>
-                          <p className="text-[10px] text-muted-foreground">{s.email}</p>
+                          <p className="font-bold text-sm text-primary leading-tight">{s.name}</p>
+                          <p className="text-[9px] font-black uppercase text-muted-foreground mt-0.5">{s.section}</p>
                         </div>
                       </div>
                     </TableCell>
@@ -318,12 +338,21 @@ export default function StudentsPage() {
               <Input value={editingUser?.name || ""} onChange={(e) => setEditingUser({...editingUser, name: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl font-bold" />
             </div>
             {editingUser?.class ? (
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Class Level</Label>
-                <Select value={editingUser.class} onValueChange={(v) => setEditingUser({...editingUser, class: v})}>
-                  <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
-                  <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Class Level</Label>
+                  <Select value={editingUser.class} onValueChange={(v) => setEditingUser({...editingUser, class: v})}>
+                    <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                    <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Section</Label>
+                  <Select value={editingUser.section} onValueChange={(v) => setEditingUser({...editingUser, section: v})}>
+                    <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                    <SelectContent>{SECTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
               </div>
             ) : (
               <div className="space-y-2">

@@ -31,7 +31,9 @@ import {
   Plus,
   Info,
   Phone,
-  Signature
+  Signature,
+  Network,
+  Filter
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -40,14 +42,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 const MOCK_STUDENTS = [
-  { id: "S001", name: "Alice Thompson", class: "Form 5 / 2nde", avatar: "https://picsum.photos/seed/s1/200/200", dob: "15/05/2008", guardian: "Mr. Robert Thompson", guardianPhone: "+237 677 00 11 22", address: "Bonapriso, Douala", status: "Active" },
-  { id: "S002", name: "Bob Richards", class: "Upper Sixth / Terminale", avatar: "https://picsum.photos/seed/s2/200/200", dob: "22/11/2006", guardian: "Mrs. Sarah Richards", guardianPhone: "+237 699 33 44 55", address: "Akwa, Douala", status: "Active" },
-  { id: "S003", name: "Charlie Davis", class: "Lower Sixth / 1ère", avatar: "https://picsum.photos/seed/s3/200/200", dob: "10/03/2007", guardian: "M. Paul Davis", guardianPhone: "+237 655 66 77 88", address: "Deido, Douala", status: "Active" },
-  { id: "S004", name: "Diana Prince", class: "Form 5 / 2nde", avatar: "https://picsum.photos/seed/s4/200/200", dob: "05/01/2008", guardian: "Mrs. Prince", guardianPhone: "+237 6XX XX XX XX", address: "Logbessou, Douala", status: "Active" },
-  { id: "S005", name: "Ethan Hunt", class: "Upper Sixth / Terminale", avatar: "https://picsum.photos/seed/s5/200/200", dob: "30/09/2006", guardian: "Mr. Hunt", guardianPhone: "+237 6YY YY YY YY", address: "Bonamoussadi, Douala", status: "Active" },
+  { id: "S001", name: "Alice Thompson", class: "Form 5 / 2nde", section: "Anglophone Section", avatar: "https://picsum.photos/seed/s1/200/200", dob: "15/05/2008", guardian: "Mr. Robert Thompson", guardianPhone: "+237 677 00 11 22", address: "Bonapriso, Douala", status: "Active" },
+  { id: "S002", name: "Bob Richards", class: "Upper Sixth / Terminale", section: "Anglophone Section", avatar: "https://picsum.photos/seed/s2/200/200", dob: "22/11/2006", guardian: "Mrs. Sarah Richards", guardianPhone: "+237 699 33 44 55", address: "Akwa, Douala", status: "Active" },
+  { id: "S003", name: "Charlie Davis", class: "Lower Sixth / 1ère", section: "Francophone Section", avatar: "https://picsum.photos/seed/s3/200/200", dob: "10/03/2007", guardian: "M. Paul Davis", guardianPhone: "+237 655 66 77 88", address: "Deido, Douala", status: "Active" },
+  { id: "S004", name: "Diana Prince", class: "Form 5 / 2nde", section: "Technical Section", avatar: "https://picsum.photos/seed/s4/200/200", dob: "05/01/2008", guardian: "Mrs. Prince", guardianPhone: "+237 6XX XX XX XX", address: "Logbessou, Douala", status: "Active" },
+  { id: "S005", name: "Ethan Hunt", class: "Upper Sixth / Terminale", section: "Technical Section", avatar: "https://picsum.photos/seed/s5/200/200", dob: "30/09/2006", guardian: "Mr. Hunt", guardianPhone: "+237 6YY YY YY YY", address: "Bonamoussadi, Douala", status: "Active" },
 ];
 
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
+const SECTIONS = ["Anglophone Section", "Francophone Section", "Technical Section"];
 
 export default function IdCardsPage() {
   const { user, platformSettings } = useAuth();
@@ -56,13 +59,15 @@ export default function IdCardsPage() {
   
   const [searchTerm, setSearchTerm] = useState("");
   const [classFilter, setClassFilter] = useState("all");
+  const [sectionFilter, setSectionFilter] = useState("all");
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [isPreviewing, setIsPreviewing] = useState(false);
 
   const filtered = MOCK_STUDENTS.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase()) || s.id.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesClass = classFilter === "all" || s.class.includes(classFilter.split(' / ')[0]);
-    return matchesSearch && matchesClass;
+    const matchesSection = sectionFilter === "all" || s.section === sectionFilter;
+    return matchesSearch && matchesClass && matchesSection;
   });
 
   const toggleSelectAll = () => {
@@ -118,20 +123,35 @@ export default function IdCardsPage() {
 
       <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
         <CardHeader className="bg-white border-b p-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-4 flex-1">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input 
-                  placeholder="Find student by name or ID..." 
-                  className="pl-10 h-11 bg-accent/20 border-none rounded-xl"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="relative col-span-1 md:col-span-2">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input 
+                placeholder="Find student by name or ID..." 
+                className="pl-10 h-11 bg-accent/20 border-none rounded-xl"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className="flex gap-2 col-span-1 md:col-span-2">
+              <Select value={sectionFilter} onValueChange={setSectionFilter}>
+                <SelectTrigger className="flex-1 h-11 bg-accent/20 border-none rounded-xl">
+                  <div className="flex items-center gap-2">
+                    <Network className="w-3.5 h-3.5 text-primary/40" />
+                    <SelectValue placeholder="All Sections" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Entire Node</SelectItem>
+                  {SECTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                </SelectContent>
+              </Select>
               <Select value={classFilter} onValueChange={setClassFilter}>
-                <SelectTrigger className="w-[200px] h-11 bg-accent/20 border-none rounded-xl">
-                  <SelectValue placeholder="All Classes" />
+                <SelectTrigger className="flex-1 h-11 bg-accent/20 border-none rounded-xl">
+                  <div className="flex items-center gap-2">
+                    <Filter className="w-3.5 h-3.5 text-primary/40" />
+                    <SelectValue placeholder="All Classes" />
+                  </div>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Classes</SelectItem>
@@ -174,7 +194,10 @@ export default function IdCardsPage() {
                         <AvatarImage src={s.avatar} />
                         <AvatarFallback className="bg-primary/5 text-primary text-xs">{s.name.charAt(0)}</AvatarFallback>
                       </Avatar>
-                      <span className="font-bold text-sm text-primary">{s.name}</span>
+                      <div className="flex flex-col">
+                        <span className="font-bold text-sm text-primary">{s.name}</span>
+                        <span className="text-[8px] font-black uppercase opacity-40">{s.section}</span>
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>
