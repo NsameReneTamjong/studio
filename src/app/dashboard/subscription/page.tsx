@@ -31,11 +31,13 @@ import {
   X,
   FileText,
   Signature,
-  Info
+  Info,
+  ArrowLeft
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 const ROLE_FEES: Record<string, string> = {
   STUDENT: "5000",
@@ -50,6 +52,7 @@ export default function SubscriptionPage() {
   const { user, platformSettings, markLicensePaid } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
+  const router = useRouter();
   
   const [isProcessing, setIsProcessing] = useState(false);
   const [issuedReceipt, setIssuedReceipt] = useState<any>(null);
@@ -121,16 +124,21 @@ export default function SubscriptionPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
-            <div className="p-2 bg-primary rounded-xl shadow-lg">
-              <Wallet className="w-6 h-6 text-secondary" />
-            </div>
-            {t("subscription")}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {language === 'en' ? 'Manage your annual institutional license and dashboard access fees.' : 'Gérez votre licence institutionnelle annuelle et vos frais d\'accès au tableau de bord.'}
-          </p>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full hover:bg-white shadow-sm shrink-0">
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
+              <div className="p-2 bg-primary rounded-xl shadow-lg">
+                <Wallet className="w-6 h-6 text-secondary" />
+              </div>
+              {t("subscription")}
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              {language === 'en' ? 'Manage your annual institutional license and dashboard access fees.' : 'Gérez votre licence institutionnelle annuelle et vos frais d\'accès au tableau de bord.'}
+            </p>
+          </div>
         </div>
         <div className="flex gap-2">
           {paymentStatus === 'paid' && (
@@ -337,7 +345,7 @@ export default function SubscriptionPage() {
       {/* OFFICIAL LICENSE RECEIPT DIALOG */}
       <Dialog open={!!issuedReceipt} onOpenChange={() => setIssuedReceipt(null)}>
         <DialogContent className="sm:max-w-2xl p-0 border-none shadow-2xl rounded-[2rem] overflow-hidden">
-          <DialogHeader className="bg-primary p-8 text-white no-print">
+          <DialogHeader className="bg-primary p-8 text-white no-print relative">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-white/10 rounded-2xl">
@@ -348,14 +356,14 @@ export default function SubscriptionPage() {
                   <DialogDescription className="text-white/60">Annual pedagogical dashboard authorization record.</DialogDescription>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setIssuedReceipt(null)} className="text-white/40 hover:text-white">
+              <Button variant="ghost" size="icon" onClick={() => setIssuedReceipt(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
                 <X className="w-6 h-6" />
               </Button>
             </div>
           </DialogHeader>
 
-          <div className="bg-muted p-6 md:p-10 print:p-0 print:bg-white overflow-hidden">
-            <div id="printable-license-receipt" className="bg-white p-8 border-2 border-black/10 shadow-sm relative flex flex-col space-y-10 font-serif text-black print:border-none print:shadow-none min-w-[350px]">
+          <div className="bg-muted p-6 md:p-10 print:p-0 print:bg-white overflow-hidden overflow-y-auto max-h-[70vh]">
+            <div id="printable-license-receipt" className="bg-white p-8 md:p-12 border-2 border-black shadow-sm relative flex flex-col space-y-10 font-serif text-black print:border-none print:shadow-none min-w-[350px]">
                {/* National Header */}
                <div className="grid grid-cols-3 gap-2 items-start text-center border-b-2 border-black pb-4">
                   <div className="space-y-0.5 text-[7px] uppercase font-bold">
@@ -363,7 +371,7 @@ export default function SubscriptionPage() {
                     <p>Peace - Work - Fatherland</p>
                   </div>
                   <div className="flex flex-col items-center">
-                    <img src={issuedReceipt?.schoolLogo} alt="School" className="w-12 h-12 object-contain" />
+                    <img src={issuedReceipt?.schoolLogo || platformSettings.logo} alt="School" className="w-12 h-12 object-contain" />
                   </div>
                   <div className="space-y-0.5 text-[7px] uppercase font-bold">
                     <p>République du Cameroun</p>
@@ -372,7 +380,7 @@ export default function SubscriptionPage() {
                </div>
 
                <div className="text-center space-y-1">
-                  <h2 className="font-black text-sm md:text-base uppercase tracking-tighter text-primary leading-tight">{issuedReceipt?.schoolName}</h2>
+                  <h2 className="font-black text-sm md:text-base uppercase tracking-tighter text-primary leading-tight">{issuedReceipt?.schoolName || platformSettings.name}</h2>
                   <p className="text-[8px] md:text-[10px] font-bold uppercase opacity-60 tracking-widest underline decoration-double underline-offset-2">Dashboard License Activation Receipt</p>
                </div>
 
@@ -437,19 +445,19 @@ export default function SubscriptionPage() {
           </div>
 
           <DialogFooter className="bg-accent/10 p-6 md:p-8 border-t no-print flex flex-col sm:flex-row gap-4">
-            <Button variant="outline" className="flex-1 rounded-xl h-12 md:h-14 font-black uppercase tracking-widest text-xs" onClick={() => setIssuedReceipt(null)}>
+            <Button variant="outline" className="flex-1 rounded-2xl h-14 font-black uppercase tracking-widest text-xs" onClick={() => setIssuedReceipt(null)}>
               Dismiss
             </Button>
             <div className="flex flex-1 gap-2">
               <Button 
                 variant="secondary" 
-                className="flex-1 rounded-xl h-12 md:h-14 font-black uppercase tracking-widest text-xs gap-2"
-                onClick={() => toast({ title: "Receipt Prepared", description: "Document sent to print queue." })}
+                className="flex-1 rounded-2xl h-14 font-black uppercase tracking-widest text-xs gap-2"
+                onClick={() => toast({ title: "Receipt Prepared", description: "Document PDF is being generated for download." })}
               >
-                <Download className="w-4 h-4" /> PDF
+                <Download className="w-4 h-4" /> Download
               </Button>
               <Button 
-                className="flex-1 rounded-xl h-12 md:h-14 shadow-2xl font-black uppercase tracking-widest text-xs gap-2 bg-primary text-white" 
+                className="flex-1 rounded-2xl h-14 shadow-2xl font-black uppercase tracking-widest text-xs gap-2 bg-primary text-white" 
                 onClick={() => window.print()}
               >
                 <Printer className="w-4 h-4" /> Print Receipt
