@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo } from "react";
@@ -79,7 +78,7 @@ const MOCK_REPORT_HISTORY = [
 const MOCK_HISTORY_DETAILS = [
   { name: "Alice Thompson", mark: 16.5, status: "Pass" },
   { name: "Bob Richards", mark: 14.0, status: "Pass" },
-  { name: "Charlie Davis", mark: 08.5, status: "Fail" },
+  { name: "Charlie Davis", mark: 8.5, status: "Fail" },
   { name: "Diana Prince", mark: 12.5, status: "Pass" },
 ];
 
