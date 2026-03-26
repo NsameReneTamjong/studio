@@ -91,6 +91,7 @@ export default function StudentsPage() {
   const [editingUser, setEditingUser] = useState<any>(null);
 
   const isAdmin = ["SCHOOL_ADMIN", "SUPER_ADMIN", "SUB_ADMIN"].includes(user?.role || "");
+  const isTeacher = user?.role === "TEACHER";
 
   const filteredStudents = useMemo(() => studentList.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase()) || s.id.toLowerCase().includes(searchTerm.toLowerCase());
@@ -159,13 +160,18 @@ export default function StudentsPage() {
       </div>
 
       <Tabs defaultValue="students" className="w-full">
-        <TabsList className="grid grid-cols-2 w-full md:w-[400px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl">
+        <TabsList className={cn(
+          "grid w-full mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl",
+          isTeacher ? "grid-cols-1 md:w-[200px]" : "grid-cols-2 md:w-[400px]"
+        )}>
           <TabsTrigger value="students" className="gap-2 py-3 rounded-xl transition-all font-bold">
             <Users className="w-4 h-4" /> Students
           </TabsTrigger>
-          <TabsTrigger value="parents" className="gap-2 py-3 rounded-xl transition-all font-bold">
-            <Heart className="w-4 h-4" /> Parents
-          </TabsTrigger>
+          {!isTeacher && (
+            <TabsTrigger value="parents" className="gap-2 py-3 rounded-xl transition-all font-bold">
+              <Heart className="w-4 h-4" /> Parents
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <Card className="border-none shadow-xl overflow-hidden rounded-[2rem] bg-white">
@@ -174,7 +180,7 @@ export default function StudentsPage() {
               <div className="relative col-span-1 md:col-span-2">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input 
-                  placeholder="Find user by name or ID..." 
+                  placeholder="Find student by name or ID..." 
                   className="pl-10 h-12 bg-accent/20 border-none rounded-xl" 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -257,6 +263,7 @@ export default function StudentsPage() {
                         onToggleStatus={() => handleToggleStatus(s.uid, 'student')} 
                         onView={() => router.push(`/dashboard/children/view?id=${s.id}`)}
                         status={s.status}
+                        role={user?.role}
                       />
                     </TableCell>
                   </TableRow>
@@ -310,6 +317,7 @@ export default function StudentsPage() {
                         onEdit={() => setEditingUser(p)} 
                         onToggleStatus={() => handleToggleStatus(p.uid, 'parent')} 
                         status={p.status}
+                        role={user?.role}
                       />
                     </TableCell>
                   </TableRow>
@@ -374,7 +382,9 @@ export default function StudentsPage() {
   );
 }
 
-function UserActionMenu({ onEdit, onToggleStatus, onView, status }: any) {
+function UserActionMenu({ onEdit, onToggleStatus, onView, status, role }: any) {
+  const isTeacher = role === "TEACHER";
+  
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -387,20 +397,24 @@ function UserActionMenu({ onEdit, onToggleStatus, onView, status }: any) {
             <Eye className="w-4 h-4 text-primary/60" /> <span className="font-bold text-xs">View Dashboard</span>
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem className="gap-3 px-4 py-2.5 cursor-pointer" onClick={onEdit}>
-          <Pencil className="w-4 h-4 text-primary/60" /> <span className="font-bold text-xs">Edit Details</span>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator className="bg-accent" />
-        <DropdownMenuItem 
-          className={cn(
-            "gap-3 px-4 py-2.5 cursor-pointer",
-            status === 'active' ? "text-destructive" : "text-green-600"
-          )} 
-          onClick={onToggleStatus}
-        >
-          {status === 'active' ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
-          <span className="font-bold text-xs">{status === 'active' ? 'Deactivate' : 'Activate'}</span>
-        </DropdownMenuItem>
+        {!isTeacher && (
+          <>
+            <DropdownMenuItem className="gap-3 px-4 py-2.5 cursor-pointer" onClick={onEdit}>
+              <Pencil className="w-4 h-4 text-primary/60" /> <span className="font-bold text-xs">Edit Details</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-accent" />
+            <DropdownMenuItem 
+              className={cn(
+                "gap-3 px-4 py-2.5 cursor-pointer",
+                status === 'active' ? "text-destructive" : "text-green-600"
+              )} 
+              onClick={onToggleStatus}
+            >
+              {status === 'active' ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+              <span className="font-bold text-xs">{status === 'active' ? 'Deactivate' : 'Activate'}</span>
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

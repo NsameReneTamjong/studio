@@ -61,7 +61,7 @@ const MOCK_CHILDREN = [
     uid: "S1",
     name: "Alice Thompson",
     class: "2nde / Form 5",
-    section: "A",
+    section: "Anglophone Section",
     email: "alice@gbhsdeido.cm",
     status: "active",
     isLicensePaid: true,
@@ -75,7 +75,7 @@ const MOCK_CHILDREN = [
   }
 ];
 
-// Teacher Assignment Mapping (Same as Students Page for consistency)
+// Teacher Assignment Mapping (Demo)
 const TEACHER_ASSIGNMENTS: Record<string, string[]> = {
   "GBHS26T001": ["Physics", "Chemistry", "Advanced Physics", "General Science"],
 };
@@ -178,8 +178,9 @@ export default function StudentDetailsPage() {
   const isTeacher = currentUser?.role === "TEACHER";
   const mySubjects = useMemo(() => {
     if (!isTeacher || !currentUser?.id) return [];
-    return TEACHER_ASSIGNMENTS[currentUser.id] || [];
-  }, [isTeacher, currentUser?.id]);
+    // For demo purposes, we map the mock GBHS teacher ID to Physics/Chemistry
+    return TEACHER_ASSIGNMENTS["GBHS26T001"] || [];
+  }, [isTeacher]);
 
   // FILTERED DATA FOR TEACHERS
   const filteredGrades = useMemo(() => {
