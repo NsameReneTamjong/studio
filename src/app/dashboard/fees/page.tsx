@@ -43,9 +43,14 @@ import {
   Users,
   Banknote,
   ArrowUpRight,
-  Activity
+  Activity,
+  Plus,
+  Settings2,
+  Lock,
+  Trash2,
+  Save
 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -54,7 +59,13 @@ import { Progress } from "@/components/ui/progress";
 
 // Constants
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
-const FEE_TYPES = ["Tuition Fee", "Uniform Package", "PTA Contribution", "Examination Fee", "Library Card", "Sports Gear"];
+const INITIAL_FEE_TYPES = [
+  { id: "ft1", name: "Tuition Fee", amount: 150000, description: "Primary academic registration and instruction fee.", status: "mandatory" },
+  { id: "ft2", name: "Uniform Package", amount: 25000, description: "Official institutional attire including sport gear.", status: "mandatory" },
+  { id: "ft3", name: "PTA Contribution", amount: 10000, description: "Annual contribution for parent-teacher association.", status: "mandatory" },
+  { id: "ft4", name: "Examination Fee", amount: 5000, description: "Administrative fee for Sequence and Term exams.", status: "mandatory" },
+];
+
 const ACADEMIC_YEARS = ["2023 / 2024", "2022 / 2023", "2021 / 2022"];
 
 // Initial Mock Data
@@ -83,17 +94,21 @@ export default function FeesPage() {
   
   const [searchTerm, setSearchTerm] = useState("");
   const [classFilter, setClassFilter] = useState("all");
-  const [activeFeeFilter, setActiveFeeFilter] = useState("Tuition Fee");
+  const [feeTypes, setFeeTypes] = useState(INITIAL_FEE_TYPES);
+  const [activeFeeFilter, setActiveFeeFilter] = useState(INITIAL_FEE_TYPES[0].name);
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedStudentForPayment, setSelectedStudentForPayment] = useState<any>(null);
   const [selectedClassDetails, setSelectedClassDetails] = useState<any>(null);
   const [dossierSearch, setDossierSearch] = useState("");
   const [issuedReceipt, setIssuedReceipt] = useState<any>(null);
-  const [paymentForm, setPaymentForm] = useState({ type: "Tuition Fee", amount: "" });
+  const [paymentForm, setPaymentForm] = useState({ type: INITIAL_FEE_TYPES[0].name, amount: "" });
   
   const [reportYear, setReportYear] = useState(ACADEMIC_YEARS[0]);
   const [reportClass, setReportClass] = useState("all");
   const [reportStatus, setReportStatus] = useState("all");
+
+  const [isAddingFeeType, setIsAddingFeeType] = useState(false);
+  const [newFeeTypeData, setNewFeeTypeData] = useState({ name: "", amount: "", description: "", status: "mandatory" });
 
   const [students, setStudents] = useState(INITIAL_STUDENTS);
   const [transactions, setTransactions] = useState<any[]>([
@@ -183,6 +198,25 @@ export default function FeesPage() {
     }, 1500);
   };
 
+  const handleAddFeeType = () => {
+    if (!newFeeTypeData.name || !newFeeTypeData.amount) return;
+    setIsProcessing(true);
+    setTimeout(() => {
+      const created = {
+        id: `FT-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
+        name: newFeeTypeData.name,
+        amount: parseFloat(newFeeTypeData.amount),
+        description: newFeeTypeData.description,
+        status: newFeeTypeData.status
+      };
+      setFeeTypes([...feeTypes, created]);
+      setIsProcessing(false);
+      setIsAddingFeeType(false);
+      setNewFeeTypeData({ name: "", amount: "", description: "", status: "mandatory" });
+      toast({ title: "Fee Category Defined", description: `${created.name} added to institutional structure.` });
+    }, 1000);
+  };
+
   const handleDownloadList = () => {
     setIsProcessing(true);
     setTimeout(() => {
@@ -200,8 +234,6 @@ export default function FeesPage() {
     return paid >= total ? 'cleared' : 'partial';
   };
 
-  const visibleTabsCount = (isAdmin ? 4 : 0) + (isBursar ? 4 : 0);
-
   return (
     <div className="space-y-6 md:space-y-8 pb-20 px-1">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -210,7 +242,7 @@ export default function FeesPage() {
             <Coins className="w-6 h-6 md:w-8 md:h-8 text-secondary" />
           </div>
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline tracking-tighter">
+            <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline tracking-tighter uppercase">
               {isAdmin ? "Institutional Revenue" : "Collection Desk"}
             </h1>
             <p className="text-xs md:text-sm text-muted-foreground">
@@ -230,27 +262,34 @@ export default function FeesPage() {
       <Tabs defaultValue={isAdmin ? "oversight" : "pay"} className="w-full">
         <TabsList className={cn(
           "grid mb-6 bg-white shadow-sm border h-auto p-1 rounded-2xl",
-          isAdmin ? "grid-cols-4 lg:w-[800px]" : "grid-cols-4 lg:w-[800px]"
+          isBursar ? "grid-cols-5 lg:w-[1000px]" : "grid-cols-4 lg:w-[800px]"
         )}>
           {isAdmin && (
             <TabsTrigger value="oversight" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm">
-              <Building2 className="w-4 h-4" /> <span className="hidden sm:inline">Fee</span> Oversight
+              <Building2 className="w-4 h-4" /> Oversight
             </TabsTrigger>
           )}
           {isBursar && (
             <TabsTrigger value="pay" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm">
-              <Wallet className="w-4 h-4" /> <span className="hidden sm:inline">Collection</span> Desk
+              <Wallet className="w-4 h-4" /> Collection
             </TabsTrigger>
           )}
           <TabsTrigger value="ledger" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm">
-            <History className="w-4 h-4" /> <span className="hidden sm:inline">Transaction</span> Log
+            <History className="w-4 h-4" /> Transactions
           </TabsTrigger>
           <TabsTrigger value="tracker" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm">
-            <FileSpreadsheet className="w-4 h-4" /> <span className="hidden sm:inline">Fee</span> Tracker
+            <FileSpreadsheet className="w-4 h-4" /> Tracker
           </TabsTrigger>
-          <TabsTrigger value="overview" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm">
-            <TrendingUp className="w-4 h-4" /> <span className="hidden sm:inline">Finance</span> Metrics
-          </TabsTrigger>
+          {isBursar && (
+            <TabsTrigger value="structure" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm">
+              <Settings2 className="w-4 h-4" /> Fee Types
+            </TabsTrigger>
+          )}
+          {!isBursar && (
+            <TabsTrigger value="overview" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm">
+              <TrendingUp className="w-4 h-4" /> Finance Metrics
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {isAdmin && (
@@ -270,7 +309,7 @@ export default function FeesPage() {
                     </div>
                   </SelectTrigger>
                   <SelectContent>
-                    {FEE_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                    {feeTypes.map(t => <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -377,7 +416,7 @@ export default function FeesPage() {
                         </div>
                       </SelectTrigger>
                       <SelectContent>
-                        {FEE_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                        {feeTypes.map(t => <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
@@ -447,6 +486,96 @@ export default function FeesPage() {
                 </Table>
               </CardContent>
             </Card>
+          </TabsContent>
+        )}
+
+        {isBursar && (
+          <TabsContent value="structure" className="animate-in fade-in slide-in-from-bottom-4 mt-0 space-y-6">
+            <div className="flex justify-between items-center bg-white p-6 rounded-3xl border shadow-sm">
+              <div className="space-y-1">
+                <h2 className="text-xl font-black text-primary uppercase tracking-tighter">Institutional Fee Structure</h2>
+                <p className="text-xs text-muted-foreground">Manage and define mandated fee categories for the academic session.</p>
+              </div>
+              <Dialog open={isAddingFeeType} onOpenChange={setIsAddingFeeType}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl">
+                    <Plus className="w-5 h-5" /> Add Fee Type
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+                  <DialogHeader className="bg-primary p-8 text-white">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-white/10 rounded-2xl"><Coins className="w-8 h-8 text-secondary" /></div>
+                      <div>
+                        <DialogTitle className="text-2xl font-black">Define Fee Category</DialogTitle>
+                        <DialogDescription className="text-white/60">Initialize a new financial mandate for students.</DialogDescription>
+                      </div>
+                    </div>
+                  </DialogHeader>
+                  <div className="p-8 space-y-6">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Fee Label / Name</Label>
+                      <Input value={newFeeTypeData.name} onChange={(e) => setNewFeeTypeData({...newFeeTypeData, name: e.target.value})} placeholder="e.g. Computer Lab Fee" className="h-12 bg-accent/30 border-none rounded-xl font-bold" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Mandated Amount (XAF)</Label>
+                        <Input type="number" value={newFeeTypeData.amount} onChange={(e) => setNewFeeTypeData({...newFeeTypeData, amount: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl font-black text-primary" placeholder="0" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Mandatory Status</Label>
+                        <Select value={newFeeTypeData.status} onValueChange={(v) => setNewFeeTypeData({...newFeeTypeData, status: v})}>
+                          <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="mandatory">Mandatory</SelectItem>
+                            <SelectItem value="optional">Optional</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Description</Label>
+                      <Textarea value={newFeeTypeData.description} onChange={(e) => setNewFeeTypeData({...newFeeTypeData, description: e.target.value})} placeholder="Purpose of this fee..." className="bg-accent/30 border-none min-h-[80px] rounded-xl" />
+                    </div>
+                  </div>
+                  <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+                    <Button onClick={handleAddFeeType} className="w-full h-12 rounded-xl shadow-lg font-bold" disabled={isProcessing}>
+                      {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                      Register Fee Category
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {feeTypes.map((type) => (
+                <Card key={type.id} className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-all bg-white flex flex-col">
+                  <div className="p-6 flex-1 space-y-4">
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-1">
+                        <Badge variant="secondary" className={cn(
+                          "uppercase text-[8px] font-black tracking-widest border-none px-2 h-4",
+                          type.status === 'mandatory' ? "bg-red-50 text-red-600" : "bg-blue-50 text-blue-600"
+                        )}>
+                          {type.status}
+                        </Badge>
+                        <CardTitle className="text-lg font-black text-primary uppercase">{type.name}</CardTitle>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] font-black text-muted-foreground uppercase">Amount</p>
+                        <p className="text-xl font-black text-primary">{type.amount.toLocaleString()} <span className="text-xs">XAF</span></p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 italic">"{type.description}"</p>
+                  </div>
+                  <CardFooter className="bg-accent/10 border-t p-3 flex justify-end gap-2">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-primary/40 hover:text-primary"><Pencil className="w-4 h-4"/></Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive/40 hover:text-destructive" onClick={() => setFeeTypes(feeTypes.filter(f => f.id !== type.id))}><Trash2 className="w-4 h-4"/></Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
           </TabsContent>
         )}
 
@@ -548,7 +677,7 @@ export default function FeesPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {FEE_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                      {feeTypes.map(t => <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -626,25 +755,11 @@ export default function FeesPage() {
                           </TableRow>
                         );
                       })}
-                      {reportingList.length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={4} className="h-40 text-center text-muted-foreground italic">
-                            No records found matching your search and filter criteria.
-                          </TableCell>
-                        </TableRow>
-                      )}
                     </TableBody>
                   </Table>
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="bg-accent/10 p-6 border-t flex justify-between items-center">
-               <div className="flex items-center gap-2 text-muted-foreground">
-                  <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
-                  <p className="text-[10px] uppercase font-black tracking-widest italic opacity-40">Verified Institutional Financial Record</p>
-               </div>
-               <p className="text-[10px] font-black text-primary/60 uppercase">System Time: {new Date().toLocaleTimeString()}</p>
-            </CardFooter>
           </Card>
         </TabsContent>
 
@@ -684,145 +799,7 @@ export default function FeesPage() {
         </TabsContent>
       </Tabs>
 
-      {/* CLASS FEE DOSSIER DIALOG */}
-      <Dialog open={!!selectedClassDetails} onOpenChange={() => setSelectedClassDetails(null)}>
-        <DialogContent className="sm:max-w-5xl max-h-[95vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl rounded-3xl">
-          <DialogHeader className={cn(
-            "p-8 text-white shrink-0",
-            selectedClassDetails?.status === 'optimal' ? "bg-green-600" : selectedClassDetails?.status === 'critical' ? "bg-red-600" : "bg-primary"
-          )}>
-            <div className="flex justify-between items-center">
-              <div>
-                <DialogTitle className="text-3xl font-black">{selectedClassDetails?.name}</DialogTitle>
-                <DialogDescription className="text-white/70 font-bold flex items-center gap-2 mt-1">
-                  <Coins className="w-4 h-4" /> Category: {activeFeeFilter}
-                </DialogDescription>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="text-center bg-white/20 px-6 py-3 rounded-2xl backdrop-blur-md">
-                  <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Collected</p>
-                  <p className="text-3xl font-black">{selectedClassDetails?.percentage}%</p>
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  className="bg-white/10 border-white/20 text-white rounded-2xl h-14 w-14"
-                  onClick={() => toast({ title: "Class Report Generating..." })}
-                >
-                  <Download className="w-6 h-6" />
-                </Button>
-              </div>
-            </div>
-          </DialogHeader>
-          
-          <div className="p-6 bg-accent/30 border-b flex flex-col md:flex-row md:items-center justify-between gap-6 shrink-0">
-             <div className="grid grid-cols-2 md:grid-cols-3 gap-6 flex-1">
-                <div className="bg-white p-4 rounded-2xl border shadow-sm space-y-1">
-                   <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest leading-none">Net Intake</p>
-                   <p className="text-xl font-black text-primary">{(parseInt(selectedClassDetails?.paidCount || "0") * 150000).toLocaleString()} XAF</p>
-                </div>
-                <div className="bg-white p-4 rounded-2xl border shadow-sm space-y-1">
-                   <p className="text-[10px] font-black uppercase text-red-600 tracking-widest leading-none">Class Arrears</p>
-                   <p className="text-xl font-black text-red-700">{selectedClassDetails?.arrears} XAF</p>
-                </div>
-                <div className="bg-white p-4 rounded-2xl border shadow-sm space-y-1 hidden md:block">
-                   <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest leading-none">Clearance Status</p>
-                   <div className="flex items-center gap-2">
-                      <span className="text-xl font-black text-primary">{selectedClassDetails?.paidCount}</span>
-                      <span className="text-xs font-bold text-muted-foreground">/ {selectedClassDetails?.totalStudents} Paid</span>
-                   </div>
-                </div>
-             </div>
-             
-             <div className="relative w-full md:w-[280px]">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input 
-                  placeholder="Search students..." 
-                  className="pl-10 h-12 bg-white border-none rounded-xl font-bold"
-                  value={dossierSearch}
-                  onChange={(e) => setDossierSearch(e.target.value)}
-                />
-             </div>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-0">
-            <Table>
-              <TableHeader className="bg-accent/30 sticky top-0 z-10 uppercase text-[10px] font-black tracking-widest border-b">
-                <TableRow>
-                  <TableHead className="pl-8 py-4">Student Profile</TableHead>
-                  <TableHead>Matricule</TableHead>
-                  <TableHead className="text-center">Collection Status</TableHead>
-                  <TableHead className="text-right pr-8">Performance</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {students
-                  .filter(s => s.class === selectedClassDetails?.name)
-                  .filter(s => s.name.toLowerCase().includes(dossierSearch.toLowerCase()))
-                  .map(s => {
-                    const status = getStatusForFee(s, activeFeeFilter);
-                    const paid = (s.balances as any)[activeFeeFilter] || 0;
-                    const total = (s.totals as any)[activeFeeFilter] || 150000;
-                    
-                    return (
-                      <TableRow key={s.id} className="hover:bg-accent/5 border-b border-accent/10 transition-colors">
-                        <TableCell className="pl-8 py-4">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent">
-                              <AvatarImage src={s.avatar} />
-                              <AvatarFallback className="bg-primary/5 text-primary text-xs font-black">{s.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-bold text-sm text-primary">{s.name}</p>
-                              <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">Parent Verified</p>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-mono text-xs font-bold text-muted-foreground">{s.id}</TableCell>
-                        <TableCell className="text-center">
-                          <Badge className={cn(
-                            "text-[9px] font-black uppercase px-3 h-5 border-none",
-                            status === 'cleared' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-                          )}>
-                            {status === 'cleared' ? 'Cleared' : 'Arrears'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right pr-8">
-                          <div className="space-y-1">
-                            <div className="flex items-center justify-end gap-2">
-                               <Banknote className="w-3.5 h-3.5 text-green-600" />
-                               <span className="font-black text-primary text-sm">{paid.toLocaleString()}</span>
-                               <span className="text-[10px] font-bold opacity-40">/ {total.toLocaleString()}</span>
-                            </div>
-                            <Progress value={(paid / total) * 100} className="h-1 w-24 ml-auto" />
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                })}
-              </TableBody>
-            </Table>
-          </div>
-          
-          <DialogFooter className="bg-accent/10 p-6 border-t flex flex-col md:flex-row justify-between items-center gap-4 shrink-0">
-             <div className="flex items-center gap-3 text-muted-foreground">
-                <ShieldCheck className="w-5 h-5 text-primary opacity-40" />
-                <div className="space-y-0.5">
-                  <p className="text-[10px] font-black uppercase tracking-widest italic opacity-40 leading-none">Verified Institutional Record</p>
-                  <p className="text-[8px] font-bold text-primary/40 uppercase leading-none">Digital ID Synchronization Active</p>
-                </div>
-             </div>
-             <div className="flex gap-2">
-                <Button variant="outline" className="rounded-xl px-6 h-11 font-black uppercase text-[10px]" onClick={() => setSelectedClassDetails(null)}>Close Dossier</Button>
-                <Button className="rounded-xl px-8 h-11 font-black uppercase text-[10px] gap-2 shadow-lg">
-                  <Printer className="w-4 h-4" /> Print Registry
-                </Button>
-             </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* PAYMENT MODAL (ONLY ACCESSIBLE TO BURSARS IN PROTOTYPE) */}
+      {/* PAYMENT MODAL */}
       <Dialog open={!!selectedStudentForPayment} onOpenChange={() => setSelectedStudentForPayment(null)}>
         <DialogContent className="sm:max-w-md rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl">
           <DialogHeader className="bg-primary p-6 md:p-8 text-white">
@@ -847,7 +824,7 @@ export default function FeesPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {FEE_TYPES.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
+                    {feeTypes.map(type => <SelectItem key={type.id} value={type.name}>{type.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -865,17 +842,10 @@ export default function FeesPage() {
                 </div>
               </div>
             </div>
-            
-            <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 flex items-center gap-3">
-              <ShieldCheck className="w-5 h-5 text-primary opacity-40" />
-              <p className="text-[10px] text-muted-foreground italic leading-relaxed">
-                Transaction will be finalized and an official institutional receipt will be generated immediately.
-              </p>
-            </div>
           </div>
           <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
             <Button 
-              className="w-full h-12 md:h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3 bg-primary text-white" 
+              className="w-full h-12 md:h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3 bg-primary text-white hover:bg-primary/90" 
               onClick={handleProcessPayment}
               disabled={isProcessing || !paymentForm.amount}
             >
@@ -886,7 +856,7 @@ export default function FeesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* HIGH-FIDELITY OFFICIAL RECEIPT DIALOG */}
+      {/* OFFICIAL RECEIPT DIALOG */}
       <Dialog open={!!issuedReceipt} onOpenChange={() => setIssuedReceipt(null)}>
         <DialogContent className="sm:max-w-2xl p-0 border-none shadow-2xl rounded-[1.5rem] md:rounded-[2rem] overflow-hidden">
           <DialogHeader className="bg-primary p-6 md:p-8 text-white no-print">
@@ -908,13 +878,10 @@ export default function FeesPage() {
 
           <div className="bg-muted p-4 md:p-10 print:p-0 print:bg-white overflow-hidden">
             <div id="printable-receipt" className="bg-white p-6 md:p-10 border-2 border-black shadow-sm relative flex flex-col space-y-8 font-serif text-black print:border-none print:shadow-none min-w-[350px]">
-               {/* National Header */}
                <div className="grid grid-cols-3 gap-2 items-start text-center border-b-2 border-black pb-4">
                   <div className="space-y-0.5 text-[7px] uppercase font-bold">
                     <p>Republic of Cameroon</p>
                     <p>Peace - Work - Fatherland</p>
-                    <div className="h-px bg-black w-6 mx-auto my-0.5" />
-                    <p>Min. of Secondary Education</p>
                   </div>
                   <div className="flex flex-col items-center">
                     <img src={user?.school?.logo} alt="School" className="w-10 h-10 md:w-14 md:h-14 object-contain" />
@@ -922,8 +889,6 @@ export default function FeesPage() {
                   <div className="space-y-0.5 text-[7px] uppercase font-bold">
                     <p>République du Cameroun</p>
                     <p>Paix - Travail - Patrie</p>
-                    <div className="h-px bg-black w-6 mx-auto my-0.5" />
-                    <p>Min. des Enseignements Sec.</p>
                   </div>
                </div>
 
@@ -944,19 +909,13 @@ export default function FeesPage() {
                </div>
 
                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-2">
-                  <div className="space-y-6">
-                    <div>
-                      <p className="text-[8px] md:text-[9px] font-black uppercase text-muted-foreground tracking-widest border-b border-black/5 pb-1 mb-2">Student Identity</p>
-                      <p className="font-black text-xs md:text-base uppercase leading-tight">{issuedReceipt?.studentName}</p>
-                      <p className="text-[9px] font-10px font-mono font-bold text-primary mt-1">{issuedReceipt?.studentId} • {issuedReceipt?.class}</p>
-                    </div>
-                    <div>
-                      <p className="text-[8px] md:text-[9px] font-black uppercase text-muted-foreground tracking-widest border-b border-black/5 pb-1 mb-2">Fee Particulars</p>
-                      <Badge variant="outline" className="border-black/20 text-black font-black uppercase text-[10px] px-3">{issuedReceipt?.feeType}</Badge>
-                    </div>
+                  <div>
+                    <p className="text-[8px] md:text-[9px] font-black uppercase text-muted-foreground tracking-widest border-b border-black/5 pb-1 mb-2">Student Identity</p>
+                    <p className="font-black text-xs md:text-base uppercase leading-tight">{issuedReceipt?.studentName}</p>
+                    <p className="text-[9px] font-mono font-bold text-primary mt-1">{issuedReceipt?.studentId} • {issuedReceipt?.class}</p>
                   </div>
-                  <div className="space-y-6 text-left md:text-right flex flex-col justify-end">
-                    <div className="p-4 bg-primary text-white rounded-2xl shadow-xl transform md:rotate-1">
+                  <div className="text-left md:text-right">
+                    <div className="p-4 bg-primary text-white rounded-2xl shadow-xl">
                       <p className="text-[8px] md:text-[9px] font-black uppercase opacity-60 tracking-widest mb-1">Net Amount Received</p>
                       <p className="font-black text-xl md:text-2xl text-secondary underline underline-offset-4 decoration-double">{issuedReceipt?.amount} XAF</p>
                     </div>
@@ -965,9 +924,7 @@ export default function FeesPage() {
 
                <div className="pt-8 border-t border-black/5 flex justify-between items-end">
                   <div className="flex flex-col items-center gap-2">
-                    <div className="p-2 bg-white border border-black/10 rounded-lg shadow-inner">
-                      <QrCode className="w-14 h-14 md:w-20 md:h-20 text-primary opacity-20" />
-                    </div>
+                    <QrCode className="w-14 h-14 md:w-20 md:h-20 text-primary opacity-20" />
                     <p className="text-[7px] font-black uppercase text-muted-foreground opacity-40">Verified Registry Node</p>
                   </div>
                   <div className="text-center space-y-6 w-32">
@@ -977,37 +934,16 @@ export default function FeesPage() {
                     <p className="text-[8px] font-black uppercase text-primary tracking-widest leading-none">The Bursar</p>
                   </div>
                </div>
-
-               <div className="text-center pt-6 border-t border-black/5">
-                  <div className="flex items-center justify-center gap-3">
-                    <img src={platformSettings.logo} alt="EduIgnite" className="w-4 h-4 object-contain opacity-20" />
-                    <p className="text-[7px] md:text-[8px] font-black uppercase text-muted-foreground opacity-30 tracking-[0.4em]">
-                      Powered by {platformSettings.name} Academic SaaS • Official Digital Record
-                    </p>
-                  </div>
-               </div>
             </div>
           </div>
 
           <DialogFooter className="bg-accent/10 p-4 md:p-8 border-t no-print flex flex-col sm:flex-row gap-4">
-            <Button variant="outline" className="flex-1 rounded-xl h-12 md:h-14 font-black uppercase tracking-widest text-[10px] md:text-xs" onClick={() => setIssuedReceipt(null)}>
+            <Button variant="outline" className="flex-1 rounded-xl h-12 md:h-14 font-black uppercase tracking-widest text-xs" onClick={() => setIssuedReceipt(null)}>
               Close & Return
             </Button>
-            <div className="flex flex-1 gap-2">
-              <Button 
-                variant="secondary" 
-                className="flex-1 rounded-xl h-12 md:h-14 font-black uppercase tracking-widest text-[10px] md:text-xs gap-2"
-                onClick={() => toast({ title: "Download Initialized", description: "Receipt PDF is being prepared." })}
-              >
-                <Download className="w-4 h-4" /> Download
-              </Button>
-              <Button 
-                className="flex-1 rounded-xl h-12 md:h-14 shadow-2xl font-black uppercase tracking-widest text-[10px] md:text-xs gap-2 bg-primary text-white" 
-                onClick={() => window.print()}
-              >
-                <Printer className="w-4 h-4" /> Print Receipt
-              </Button>
-            </div>
+            <Button className="flex-1 rounded-xl h-12 md:h-14 shadow-2xl font-black uppercase tracking-widest text-xs gap-2 bg-primary text-white" onClick={() => window.print()}>
+              <Printer className="w-4 h-4" /> Print Receipt
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

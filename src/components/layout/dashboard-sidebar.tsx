@@ -60,7 +60,6 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
   const { user, logout } = useAuth();
   const { t, language, setLanguage } = useI18n();
 
-  const isAdmin = user?.role === "SCHOOL_ADMIN";
   const isSuperAdmin = EXECUTIVE_ROLES.includes(user?.role as UserRole);
   const isBursar = user?.role === "BURSAR";
 
@@ -158,7 +157,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       roles: ["SCHOOL_ADMIN", "SUB_ADMIN"],
     },
     {
-      label: isBursar ? (language === 'en' ? "Pay Fee" : "Payer les Frais") : (language === 'en' ? "Fees & Finance" : "Frais & Finance"),
+      label: isBursar ? (language === 'en' ? "Fee Portal" : "Portail Frais") : (language === 'en' ? "Fees & Finance" : "Frais & Finance"),
       icon: Coins,
       href: "/dashboard/fees",
       roles: ["BURSAR", "SCHOOL_ADMIN", "SUB_ADMIN"],
@@ -176,7 +175,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       roles: ["PARENT"],
     },
     {
-      label: isAdmin ? (language === 'en' ? "Subjects" : "Matières") : t("courses"),
+      label: t("courses"),
       icon: BookOpen,
       href: "/dashboard/courses",
       roles: ["SCHOOL_ADMIN", "SUB_ADMIN", "STUDENT", "TEACHER"],

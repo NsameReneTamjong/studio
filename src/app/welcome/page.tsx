@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
   ArrowRight, 
   Building2, 
@@ -76,7 +76,7 @@ export default function SchoolWelcomePage() {
     );
   }
 
-  const schoolDomain = (resolvedSchool.shortName || resolvedSchool.id || "node").toLowerCase();
+  const schoolDomain = (resolvedSchool.shortName || "node").toLowerCase();
 
   return (
     <div className="min-h-screen bg-[#F0F2F5] selection:bg-secondary selection:text-primary flex flex-col items-center relative overflow-x-hidden">
@@ -85,7 +85,7 @@ export default function SchoolWelcomePage() {
       
       <div className="max-w-6xl w-full px-4 md:px-8 py-12 space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
         
-        {/* 1. TOP BRANDING: LOGO - ABSOLUTE TOP */}
+        {/* 1. LOGO-FIRST BRANDING */}
         <div className="flex flex-col items-center text-center space-y-6">
           <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-[2.5rem] p-5 shadow-2xl flex items-center justify-center border-4 border-white ring-4 ring-primary/5 transition-transform hover:rotate-3">
             <img src={resolvedSchool.logo} alt="Logo" className="w-full h-full object-contain" />
@@ -106,7 +106,7 @@ export default function SchoolWelcomePage() {
           </div>
         </div>
 
-        {/* 2. HERO IMAGE: BANNER - FOLLOWS LOGO */}
+        {/* 2. RESPONSIVE HERO BANNER */}
         <div className="relative w-full aspect-[21/9] md:aspect-[3/1] rounded-[2.5rem] md:rounded-[3.5rem] overflow-hidden shadow-2xl border-4 border-white bg-slate-200 group">
           <img 
             src={resolvedSchool.banner} 
@@ -125,7 +125,7 @@ export default function SchoolWelcomePage() {
           </div>
         </div>
 
-        {/* 3. USER WELCOME & QUICK ACTION */}
+        {/* 3. WELCOME ACTION CARD */}
         <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-xl border border-white/50 flex flex-col lg:flex-row items-center justify-between gap-8">
           <div className="space-y-4 text-center lg:text-left flex-1">
             <div className="flex items-center justify-center lg:justify-start gap-2">
@@ -155,26 +155,7 @@ export default function SchoolWelcomePage() {
           </div>
         </div>
 
-        {/* 4. STATS GRID */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <Card className="border-none shadow-sm bg-white/80 backdrop-blur-md rounded-[2rem] text-center p-8 hover:shadow-md transition-all">
-            <Users className="w-8 h-8 mx-auto mb-4 text-blue-600" />
-            <p className="text-2xl font-black text-primary">2,500+</p>
-            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1">Students Enrolled</p>
-          </Card>
-          <Card className="border-none shadow-sm bg-white/80 backdrop-blur-md rounded-[2rem] text-center p-8 hover:shadow-md transition-all">
-            <BookOpen className="w-8 h-8 mx-auto mb-4 text-purple-600" />
-            <p className="text-2xl font-black text-primary">45+</p>
-            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1">Active Subjects</p>
-          </Card>
-          <Card className="border-none shadow-sm bg-white/80 backdrop-blur-md rounded-[2rem] text-center p-8 hover:shadow-md transition-all">
-            <ShieldCheck className="w-8 h-8 mx-auto mb-4 text-green-600" />
-            <p className="text-2xl font-black text-green-600 uppercase">ACTIVE</p>
-            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1">Node Integrity Status</p>
-          </Card>
-        </div>
-
-        {/* 5. INSTITUTIONAL PROFILE CONTENT */}
+        {/* 4. INTEGRATED INSTITUTIONAL PROFILE */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-8 space-y-8">
             <Card className="border-none shadow-sm overflow-hidden rounded-[2.5rem] bg-white">
@@ -189,7 +170,7 @@ export default function SchoolWelcomePage() {
                   {resolvedSchool.description}
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                  <div className="bg-accent/30 p-6 rounded-3xl space-y-2">
+                  <div className="bg-accent/30 p-6 rounded-3xl space-y-2 border border-accent">
                     <h4 className="text-xs font-black uppercase text-primary tracking-widest flex items-center gap-2">
                       <ShieldCheck className="w-4 h-4 text-secondary" /> Pedagogy Focus
                     </h4>
@@ -197,7 +178,7 @@ export default function SchoolWelcomePage() {
                       Committed to delivering world-class curriculum with a focus on discipline, technological literacy, and character excellence.
                     </p>
                   </div>
-                  <div className="bg-primary/5 p-6 rounded-3xl space-y-2">
+                  <div className="bg-primary/5 p-6 rounded-3xl space-y-2 border border-primary/10">
                     <h4 className="text-xs font-black uppercase text-primary tracking-widest flex items-center gap-2">
                       <Globe className="w-4 h-4 text-secondary" /> Global Standard
                     </h4>
@@ -255,7 +236,7 @@ export default function SchoolWelcomePage() {
                       </div>
                       <div>
                         <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">Official Domain</p>
-                        <p className="font-bold text-primary">{(resolvedSchool.shortName || "node").toLowerCase()}.edu.cm</p>
+                        <p className="font-bold text-primary">{schoolDomain}.edu.cm</p>
                       </div>
                     </div>
                   </div>
@@ -265,6 +246,7 @@ export default function SchoolWelcomePage() {
           </div>
 
           <div className="lg:col-span-4 space-y-8">
+            {/* Principal Card */}
             <Card className="border-none shadow-xl bg-primary text-white overflow-hidden rounded-[2.5rem]">
               <CardHeader className="text-center pt-10 pb-2">
                 <Avatar className="h-32 w-32 border-4 border-white/20 mx-auto shadow-2xl mb-4">
@@ -291,6 +273,7 @@ export default function SchoolWelcomePage() {
               </CardContent>
             </Card>
 
+            {/* National Identity Card */}
             <Card className="border-none shadow-sm bg-white overflow-hidden rounded-[2.5rem] p-8 text-center space-y-6 border border-white">
                <div className="flex flex-col items-center gap-4">
                   <div className="flex gap-1.5 h-4 mb-2">
