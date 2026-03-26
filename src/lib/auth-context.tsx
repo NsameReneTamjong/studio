@@ -335,6 +335,14 @@ const DEFAULT_TUTORIALS: TutorialLinks = {
   LIBRARIAN: "https://youtube.com/watch?v=eduignite-librarian",
 };
 
+const PLATFORM_DEFAULTS: PlatformSettings = {
+  name: "EduIgnite",
+  logo: "https://picsum.photos/seed/eduignite-platform/200/200",
+  paymentDeadline: "2024-10-31",
+  fees: DEFAULT_FEES,
+  tutorialLinks: DEFAULT_TUTORIALS
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [userData, setUserData] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -345,13 +353,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [supportContributions, setSupportContributions] = useState<SupportContribution[]>([]);
   const [publicEvents, setPublicEvents] = useState<PublicEvent[]>(INITIAL_EVENTS);
-  const [platformSettings, setPlatformSettings] = useState<PlatformSettings>({
-    name: "EduIgnite",
-    logo: "https://picsum.photos/seed/eduignite-platform/200/200",
-    paymentDeadline: "2024-10-31",
-    fees: DEFAULT_FEES,
-    tutorialLinks: DEFAULT_TUTORIALS
-  });
+  const [platformSettings, setPlatformSettings] = useState<PlatformSettings>(PLATFORM_DEFAULTS);
 
   const router = useRouter();
 
@@ -397,14 +399,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ] },
       { key: "schools", setter: setSchools, default: INITIAL_SCHOOLS },
       { key: "events", setter: setPublicEvents, default: INITIAL_EVENTS },
-      { key: "platform", setter: setPlatformSettings, default: { name: "EduIgnite", logo: "https://picsum.photos/seed/eduignite-platform/200/200", paymentDeadline: "2024-10-31", fees: DEFAULT_FEES, tutorialLinks: DEFAULT_TUTORIALS } }
+      { key: "platform", setter: (data: any) => setPlatformSettings({ ...PLATFORM_DEFAULTS, ...data }), default: PLATFORM_DEFAULTS }
     ];
 
     collections.forEach(c => {
       const saved = localStorage.getItem(`eduignite_${c.key}`);
       const parsed = saved ? JSON.parse(saved) : null;
       if (parsed && (Array.isArray(parsed) ? parsed.length > 0 : Object.keys(parsed).length > 0)) {
-        c.setter(parsed);
+        if (c.key === "platform") {
+          c.setter(parsed);
+        } else {
+          c.setter(parsed);
+        }
       } else {
         c.setter(c.default);
       }

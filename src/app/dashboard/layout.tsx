@@ -155,7 +155,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   const roleForLink = user.role === 'SUB_ADMIN' ? 'SCHOOL_ADMIN' : user.role;
-  const tutorialUrl = (platformSettings.tutorialLinks as any)[roleForLink] || "https://youtube.com";
+  const tutorialUrl = (platformSettings?.tutorialLinks as any)?.[roleForLink] || "https://youtube.com";
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -393,7 +393,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     <div className="flex items-center gap-6 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">
                       <span>v2.4.0 High-Availability (Prototype)</span>
                       <span>•</span>
-                      <span>Powered by {platformSettings.name}</span>
+                      <span>Powered by {platformSettings?.name || "EduIgnite"}</span>
                     </div>
                   </div>
                 </div>
