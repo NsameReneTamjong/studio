@@ -63,6 +63,12 @@ const MOCK_REPORT_HISTORY = [
   { year: "2022/2023", term: "Term 2", subject: "General Chemistry", class: "Form 4", studentCount: 38, id: "H3" },
 ];
 
+const STUDENT_RESULT_HISTORY = [
+  { year: "2023/2024", term: "Term 1", position: "3rd / 45", average: "15.40", id: "H1" },
+  { year: "2022/2023", term: "Term 3", position: "5th / 42", average: "14.85", id: "H2" },
+  { year: "2022/2023", term: "Term 2", position: "2nd / 42", average: "16.10", id: "H3" },
+];
+
 const MOCK_HISTORY_DETAILS = [
   { name: "Alice Thompson", mark: 16.5, status: "Pass" },
   { name: "Bob Richards", mark: 14.0, status: "Pass" },
@@ -224,7 +230,7 @@ export default function GradeBookPage() {
           </Card>
         </div>
 
-        <Card className="border-none shadow-xl overflow-hidden rounded-[2rem] bg-white">
+        <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
           <CardHeader className="bg-primary p-8 text-white">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
@@ -283,6 +289,64 @@ export default function GradeBookPage() {
              <div className="text-right">
                 <p className="text-[10px] uppercase font-black text-muted-foreground">Term Final Average</p>
                 <p className="text-2xl font-black text-primary underline decoration-double decoration-secondary underline-offset-4">{myStats.average} / 20</p>
+             </div>
+          </CardFooter>
+        </Card>
+
+        {/* NEW SECTION: RESULT HISTORY FOR STUDENTS */}
+        <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+          <CardHeader className="bg-white border-b p-8 flex items-center justify-between">
+            <div>
+              <CardTitle className="text-xl font-black text-primary uppercase tracking-tight flex items-center gap-2">
+                <History className="w-6 h-6 text-secondary" />
+                Academic Result Archive
+              </CardTitle>
+              <CardDescription>Official certified results from previous pedagogical cycles.</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0 overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-accent/10 uppercase text-[10px] font-black tracking-widest border-b">
+                <TableRow>
+                  <TableHead className="pl-8 py-4">Academic Year</TableHead>
+                  <TableHead className="text-center">Term</TableHead>
+                  <TableHead className="text-center">Class Position</TableHead>
+                  <TableHead className="text-center">Average / 20</TableHead>
+                  <TableHead className="text-right pr-8">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {STUDENT_RESULT_HISTORY.map((record) => (
+                  <TableRow key={record.id} className="hover:bg-accent/5 transition-colors border-b">
+                    <TableCell className="pl-8 py-4 font-bold text-sm text-primary">{record.year}</TableCell>
+                    <TableCell className="text-center font-black text-secondary">{record.term}</TableCell>
+                    <TableCell className="text-center font-bold text-primary">{record.position}</TableCell>
+                    <TableCell className="text-center">
+                      <Badge variant="secondary" className="bg-primary text-white font-black text-xs px-3">{record.average}</Badge>
+                    </TableCell>
+                    <TableCell className="text-right pr-8">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-[10px] font-black uppercase gap-2 hover:bg-primary hover:text-white"
+                        onClick={() => {
+                          setSelectedYear(record.year);
+                          setSelectedTerm(record.term);
+                          setPreviewStudent({ ...user, class: user.class || "2nde / Form 5" });
+                        }}
+                      >
+                        <Eye className="w-3.5 h-3.5" /> View Report Card
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+          <CardFooter className="bg-accent/10 p-6 border-t flex justify-center">
+             <div className="flex items-center gap-2 text-muted-foreground opacity-40">
+                <ShieldCheck className="w-4 h-4 text-primary" />
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] italic">Institutional Repository Verified</p>
              </div>
           </CardFooter>
         </Card>
