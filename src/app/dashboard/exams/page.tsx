@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -55,7 +55,11 @@ const SUBJECT_METADATA = [
   { name: "General Chemistry", teacher: "Dr. White", id: "CHM101" },
 ];
 
-const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
+const ANGLOPHONE_CLASSES = ["Form 1", "Form 2", "Form 3", "Form 4", "Form 5", "Lower Sixth", "Upper Sixth"];
+const FRANCOPHONE_CLASSES = ["6ème", "5ème", "4ème", "3ème", "2nde", "1ère", "Terminale"];
+const TECHNICAL_CLASSES = ["1ère Year", "2nd Year", "3rd Year", "4th Year", "5th Year", "6th Year", "7th Year"];
+
+const ALL_CLASSES = [...ANGLOPHONE_CLASSES, ...FRANCOPHONE_CLASSES, ...TECHNICAL_CLASSES];
 const ROOMS = ["Hall A", "Hall B", "Science Lab 1", "Room 402", "Library Wing"];
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const TIME_SLOTS = ["08:00 AM", "09:30 AM", "11:00 AM", "01:00 PM", "02:30 PM"];
@@ -103,11 +107,10 @@ const MOCK_EXAM_HISTORY = [
   { id: "H1", title: "Wave Motion Quiz", subject: "Physics", score: 18, total: 20, date: "May 12, 2024", teacher: "Dr. Tesla", status: "VERIFIED" },
   { id: "H2", title: "Algebra Sequence 1", subject: "Mathematics", score: 15, total: 20, date: "April 28, 2024", teacher: "Prof. Smith", status: "VERIFIED" },
   { id: "H3", title: "Inorganic Chemistry", subject: "Chemistry", score: 0, total: 20, date: "Yesterday", teacher: "Dr. White", status: "ABSENT" },
-  { id: "E003", title: "English Vocabulary Speedrun", subject: "English Literature", score: 0, total: 10, date: "Today", teacher: "Ms. Bennet", status: "CANCELLED" },
 ];
 
 const INITIAL_ONSITE_EXAMS = [
-  { id: 'OE1', title: 'Mathematics Paper 1', class: '2nde / Form 5', room: 'Hall A', date: '2024-06-10', time: '08:00 AM', teacher: 'Prof. Sarah Smith', status: 'Scheduled' },
+  { id: 'OE1', title: 'Mathematics Paper 1', class: 'Form 5', room: 'Hall A', date: '2024-06-10', time: '08:00 AM', teacher: 'Prof. Sarah Smith', section: "Anglophone Section", status: 'Scheduled' },
 ];
 
 export default function ExamsPage() {
@@ -120,6 +123,22 @@ export default function ExamsPage() {
   const [viewingInstructions, setViewingInstructions] = useState<any>(null);
   const [onsiteExams, setOnsiteExams] = useState(INITIAL_ONSITE_EXAMS);
   
+  const isSchoolAdmin = user?.role === "SCHOOL_ADMIN";
+  const isSubAdmin = user?.role === "SUB_ADMIN";
+  const isAdmin = isSchoolAdmin || isSubAdmin;
+  const isStudent = user?.role === "STUDENT";
+
+  // Mocking Sub-Admin section for demo purposes
+  const subAdminSection = isSubAdmin ? "Anglophone Section" : null;
+
+  const availableClasses = useMemo(() => {
+    if (isSchoolAdmin) return ALL_CLASSES;
+    if (subAdminSection === "Anglophone Section") return ANGLOPHONE_CLASSES;
+    if (subAdminSection === "Francophone Section") return FRANCOPHONE_CLASSES;
+    if (subAdminSection === "Technical Section") return TECHNICAL_CLASSES;
+    return ALL_CLASSES;
+  }, [isSchoolAdmin, subAdminSection]);
+
   const [timetableFormData, setTimetableFormData] = useState({
     class: "",
     subject: "",
@@ -139,10 +158,11 @@ export default function ExamsPage() {
     teacher: ""
   });
 
-  const isAdmin = user?.role === "SCHOOL_ADMIN";
-  const isStudent = user?.role === "STUDENT";
+  const filteredOnsiteExams = useMemo(() => {
+    if (isSchoolAdmin || isStudent) return onsiteExams;
+    return onsiteExams.filter(e => e.section === subAdminSection);
+  }, [onsiteExams, isSchoolAdmin, isStudent, subAdminSection]);
 
-  // Filter out cancelled or finished exams from the live list
   const currentTime = new Date();
   const activeExams = MOCK_ONLINE_EXAMS.filter(exam => {
     const end = new Date(exam.endTime);
@@ -167,6 +187,7 @@ export default function ExamsPage() {
     const newExam = {
       id: `OE-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
       ...onsiteFormData,
+      section: subAdminSection || "Whole Institution",
       status: 'Scheduled'
     };
     setOnsiteExams(prev => [newExam, ...prev]);
@@ -178,7 +199,6 @@ export default function ExamsPage() {
     switch (status) {
       case 'VERIFIED': return <CheckCircle2 className="w-3 h-3 mr-1" />;
       case 'ABSENT': return <XCircle className="w-3 h-3 mr-1" />;
-      case 'CANCELLED': return <AlertCircle className="w-3 h-3 mr-1" />;
       default: return null;
     }
   };
@@ -187,7 +207,6 @@ export default function ExamsPage() {
     switch (status) {
       case 'VERIFIED': return "bg-green-100 text-green-700";
       case 'ABSENT': return "bg-red-100 text-red-700";
-      case 'CANCELLED': return "bg-slate-100 text-slate-700";
       default: return "";
     }
   };
@@ -205,7 +224,7 @@ export default function ExamsPage() {
           <p className="text-muted-foreground mt-1">
             {isStudent 
               ? (language === 'en' ? 'Access your online assessments and track your exam history.' : 'Accédez à vos évaluations en ligne et suivez votre historique d\'examens.')
-              : (language === 'en' ? 'Coordinate class timetables, onsite exams, and automated teacher duty cycles.' : 'Coordonner les emplois du temps, les examens sur site et les cycles de service des enseignants.')}
+              : (language === 'en' ? `Coordinating schedules for ${isSchoolAdmin ? 'all sections' : subAdminSection}.` : `Coordination des horaires pour ${isSchoolAdmin ? 'toutes les sections' : subAdminSection}.`)}
           </p>
         </div>
 
@@ -213,14 +232,16 @@ export default function ExamsPage() {
           <div className="flex flex-wrap gap-2">
             <Dialog open={isDrawingTimetable} onOpenChange={setIsDrawingTimetable}>
               <DialogTrigger asChild>
-                <Button className="flex-1 md:flex-none gap-2 shadow-lg h-12 px-6 rounded-2xl bg-secondary text-primary hover:bg-secondary/90">
+                <Button className="flex-1 md:flex-none gap-2 shadow-lg h-12 px-6 rounded-2xl bg-secondary text-primary hover:bg-secondary/90 font-bold">
                   <LayoutGrid className="w-5 h-5" /> {language === 'en' ? 'Draw Timetable' : 'Gérer l\'Emploi du Temps'}
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
                 <DialogHeader className="bg-primary p-8 text-white">
                   <DialogTitle className="text-2xl font-black">Master Schedule Slot</DialogTitle>
-                  <DialogDescription className="text-white/60">Draw a class timetable slot. The system will automatically reflect this in the teacher's schedule.</DialogDescription>
+                  <DialogDescription className="text-white/60">
+                    {isSchoolAdmin ? "Assigning slots across the whole node." : `Assigning slots for ${subAdminSection}.`}
+                  </DialogDescription>
                 </DialogHeader>
                 <div className="p-8 space-y-6">
                   <div className="grid grid-cols-2 gap-6">
@@ -228,7 +249,7 @@ export default function ExamsPage() {
                       <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Target Class</Label>
                       <Select onValueChange={(v) => setTimetableFormData({...timetableFormData, class: v})}>
                         <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue placeholder="Select Class" /></SelectTrigger>
-                        <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                        <SelectContent>{availableClasses.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
@@ -295,7 +316,7 @@ export default function ExamsPage() {
                       <Label>Class</Label>
                       <Select onValueChange={(v) => setOnsiteFormData({...onsiteFormData, class: v})}>
                         <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue /></SelectTrigger>
-                        <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                        <SelectContent>{availableClasses.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
                   </div>
@@ -312,14 +333,16 @@ export default function ExamsPage() {
       <Tabs defaultValue="onsite" className="w-full">
         <TabsList className={cn(
           "grid w-full mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl",
-          isStudent ? "grid-cols-3 lg:w-[600px]" : "grid-cols-2 lg:grid-cols-4 lg:w-[800px]"
+          isStudent ? "grid-cols-3 lg:w-[600px]" : "grid-cols-3 lg:w-[600px]"
         )}>
           <TabsTrigger value="onsite" className="gap-2 py-3 rounded-xl transition-all text-xs lg:text-sm">
             <CalendarDays className="w-4 h-4" /> {language === 'en' ? 'Onsite' : 'Sur Site'}
           </TabsTrigger>
-          <TabsTrigger value="available" className="gap-2 py-3 rounded-xl transition-all text-xs lg:text-sm">
-            <PenTool className="w-4 h-4" /> {language === 'en' ? 'Live MCQs' : 'QCM Live'}
-          </TabsTrigger>
+          {isStudent && (
+            <TabsTrigger value="available" className="gap-2 py-3 rounded-xl transition-all text-xs lg:text-sm">
+              <PenTool className="w-4 h-4" /> {language === 'en' ? 'Live MCQs' : 'QCM Live'}
+            </TabsTrigger>
+          )}
           <TabsTrigger value="history" className="gap-2 py-3 rounded-xl transition-all text-xs lg:text-sm">
             <History className="w-4 h-4" /> {language === 'en' ? 'History' : 'Historique'}
           </TabsTrigger>
@@ -332,7 +355,7 @@ export default function ExamsPage() {
 
         <TabsContent value="onsite" className="mt-0 animate-in fade-in slide-in-from-bottom-4">
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {onsiteExams.map((exam) => (
+            {filteredOnsiteExams.map((exam) => (
               <Card key={exam.id} className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-all">
                 <div className="bg-accent/30 p-4 border-b flex justify-between items-center">
                   <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-primary/20 text-primary">{exam.class}</Badge>
@@ -418,12 +441,6 @@ export default function ExamsPage() {
                 </Card>
               );
             })}
-            {activeExams.length === 0 && (
-              <div className="col-span-full py-20 text-center border-2 border-dashed rounded-3xl opacity-40">
-                <PenTool className="w-12 h-12 mx-auto mb-4" />
-                <p>No active or upcoming online assessments scheduled.</p>
-              </div>
-            )}
           </div>
         </TabsContent>
 
@@ -431,9 +448,9 @@ export default function ExamsPage() {
           <Card className="border-none shadow-sm overflow-hidden rounded-3xl">
             <CardHeader className="bg-white border-b">
               <CardTitle className="text-sm font-black uppercase text-primary flex items-center gap-2">
-                <History className="w-4 h-4" /> MCQ Attempt History
+                <History className="w-4 h-4" /> Assessment History
               </CardTitle>
-              <CardDescription>Verified results from past, missed, or cancelled assessments.</CardDescription>
+              <CardDescription>Verified results from past evaluations.</CardDescription>
             </CardHeader>
             <CardContent className="p-0 overflow-x-auto">
               <Table className="min-w-[600px]">
@@ -452,7 +469,7 @@ export default function ExamsPage() {
                       <TableCell className="pl-8 py-4 font-bold text-sm text-primary">{hist.title}</TableCell>
                       <TableCell><Badge variant="outline" className="text-[10px]">{hist.subject}</Badge></TableCell>
                       <TableCell className="text-center font-black text-primary">
-                        {['CANCELLED', 'ABSENT'].includes(hist.status) ? '---' : `${hist.score} / ${hist.total}`}
+                        {hist.status === 'ABSENT' ? '---' : `${hist.score} / ${hist.total}`}
                       </TableCell>
                       <TableCell className="text-center text-xs text-muted-foreground">{hist.date}</TableCell>
                       <TableCell className="text-right pr-8">
@@ -478,7 +495,9 @@ export default function ExamsPage() {
               <CardHeader className="border-b bg-white flex flex-col md:flex-row items-center justify-between gap-4">
                 <div>
                   <CardTitle>Institutional Master Timetable</CardTitle>
-                  <CardDescription>Visualizing class availability and teacher duty coverage.</CardDescription>
+                  <CardDescription>
+                    {isSchoolAdmin ? "Visualizing all sections and duty coverage." : `Focused view for ${subAdminSection}.`}
+                  </CardDescription>
                 </div>
                 <Button variant="outline" size="sm" className="w-full md:w-auto gap-2"><Printer className="w-4 h-4" /> Print Current Version</Button>
               </CardHeader>
@@ -491,7 +510,7 @@ export default function ExamsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {CLASSES.map(cls => (
+                    {availableClasses.map(cls => (
                       <TableRow key={cls}>
                         <TableCell className="pl-6 font-bold text-primary text-xs">{cls}</TableCell>
                         {DAYS.map(day => (
@@ -543,10 +562,6 @@ export default function ExamsPage() {
                   "{viewingInstructions?.instructions}"
                 </p>
               </div>
-            </div>
-            <div className="flex items-center gap-3 p-4 bg-amber-50 rounded-xl border border-amber-100 text-amber-800 text-xs">
-              <AlertCircle className="w-5 h-5 shrink-0" />
-              <p className="font-medium">The exam portal will automatically open at the scheduled start time. Ensure your environment is quiet.</p>
             </div>
           </div>
           <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
