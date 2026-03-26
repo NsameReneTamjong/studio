@@ -23,7 +23,9 @@ import {
   Download,
   Printer,
   X,
-  Ban
+  Ban,
+  MapPin,
+  User
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n-context";
 import { 
@@ -46,6 +48,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function SchoolsManagementPage() {
   const { t, language } = useI18n();
@@ -148,7 +151,7 @@ export default function SchoolsManagementPage() {
                 <Input value={newSchoolData.name} onChange={(e) => setNewSchoolData({...newSchoolData, name: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl font-bold" placeholder="e.g. GBHS Deido" />
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Head of Institution</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Head of Institution (Principal)</Label>
                 <Input value={newSchoolData.principal} onChange={(e) => setNewSchoolData({...newSchoolData, principal: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl" placeholder="e.g. Principal Fonka" />
               </div>
               <div className="space-y-2">
@@ -174,7 +177,7 @@ export default function SchoolsManagementPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {filteredSchools.map((school) => (
           <Card key={school.id} className="border-none shadow-xl hover:shadow-2xl transition-all duration-300 relative overflow-hidden group bg-white rounded-[2rem]">
-            <div className="absolute top-0 right-0 p-4">
+            <div className="absolute top-0 right-0 p-4 z-10">
                <DropdownMenu>
                  <DropdownMenuTrigger asChild>
                    <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full hover:bg-accent">
@@ -201,11 +204,12 @@ export default function SchoolsManagementPage() {
             </div>
             
             <CardHeader className="flex flex-row items-center gap-4 pb-6">
-              <div className="p-4 bg-primary rounded-[1.25rem] text-white shadow-lg">
-                <Building2 className="w-6 h-6 text-secondary" />
-              </div>
-              <div>
-                <CardTitle className="text-lg font-black text-primary leading-tight uppercase tracking-tighter">{school.name}</CardTitle>
+              <Avatar className="h-16 w-16 rounded-2xl border-2 border-primary/10 shadow-lg shrink-0">
+                <AvatarImage src={school.logo} alt={school.name} className="object-contain p-2 bg-white" />
+                <AvatarFallback className="bg-primary text-white font-black text-xl">{school.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div className="overflow-hidden">
+                <CardTitle className="text-lg font-black text-primary leading-tight uppercase tracking-tighter truncate">{school.name}</CardTitle>
                 <div className="flex items-center gap-2 mt-1">
                   <Badge className={cn(
                     "text-[8px] font-black uppercase border-none px-3 h-5",
@@ -219,17 +223,32 @@ export default function SchoolsManagementPage() {
             </CardHeader>
             
             <CardContent className="py-6 border-y border-accent/50 space-y-4 bg-accent/5">
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-muted-foreground font-black uppercase tracking-widest opacity-60">Principal</span>
-                <span className="font-bold text-primary">{school.principal}</span>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/5 rounded-lg">
+                  <User className="w-4 h-4 text-primary/60" />
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest leading-none">Principal</p>
+                  <p className="text-sm font-bold text-primary">{school.principal}</p>
+                </div>
               </div>
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-muted-foreground font-black uppercase tracking-widest opacity-60">Location</span>
-                <span className="font-bold text-primary">{school.location}</span>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/5 rounded-lg">
+                  <MapPin className="w-4 h-4 text-primary/60" />
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest leading-none">Location</p>
+                  <p className="text-sm font-bold text-primary">{school.location}</p>
+                </div>
               </div>
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-muted-foreground font-black uppercase tracking-widest opacity-60">Digital Link</span>
-                <span className="font-bold text-secondary italic">{school.domain || "node.eduignite.cm"}</span>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/5 rounded-lg">
+                  <Globe className="w-4 h-4 text-primary/60" />
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest leading-none">Digital Link</p>
+                  <p className="text-sm font-bold text-secondary italic truncate max-w-[200px]">{school.domain || "node.eduignite.cm"}</p>
+                </div>
               </div>
             </CardContent>
             
@@ -247,9 +266,10 @@ export default function SchoolsManagementPage() {
         <DialogContent className="sm:max-w-xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
           <DialogHeader className={cn("p-10 text-white relative", managedSchool?.status === 'Active' ? "bg-primary" : "bg-destructive/80")}>
             <div className="flex items-center gap-6">
-              <div className="p-4 bg-white/10 rounded-[1.5rem] shadow-xl">
-                <Building2 className="w-10 h-10 text-secondary" />
-              </div>
+              <Avatar className="h-20 w-20 rounded-[1.5rem] border-4 border-white/20 shadow-xl shrink-0">
+                <AvatarImage src={managedSchool?.logo} className="object-contain p-2 bg-white" />
+                <AvatarFallback className="bg-white text-primary font-black text-2xl">{managedSchool?.name.charAt(0)}</AvatarFallback>
+              </Avatar>
               <div>
                 <DialogTitle className="text-3xl font-black uppercase tracking-tighter">{managedSchool?.name}</DialogTitle>
                 <p className="opacity-70 font-mono text-sm uppercase tracking-widest mt-1">Verified Node: {managedSchool?.id}</p>
@@ -326,8 +346,14 @@ export default function SchoolsManagementPage() {
 
                   <div className="p-8 bg-accent/10 border-2 border-dashed border-black/20 rounded-[2.5rem] relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-4 opacity-5"><Globe className="w-24 h-24" /></div>
-                    <h2 className="text-4xl font-black text-primary uppercase leading-none mb-4">{onboardingSuccess?.name}</h2>
-                    <div className="flex flex-col items-center gap-2">
+                    <div className="flex flex-col items-center gap-4">
+                      <Avatar className="h-20 w-20 rounded-2xl border-2 border-black/10 shadow-lg">
+                        <AvatarImage src={onboardingSuccess?.logo} className="object-contain p-2 bg-white" />
+                        <AvatarFallback className="text-2xl font-black">{onboardingSuccess?.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <h2 className="text-3xl font-black text-primary uppercase leading-none">{onboardingSuccess?.name}</h2>
+                    </div>
+                    <div className="flex flex-col items-center gap-2 mt-6">
                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-1">Provisioned Institutional ID (Matricule)</p>
                        <div className="bg-primary text-secondary px-8 py-4 rounded-2xl shadow-xl">
                           <p className="text-4xl font-mono font-black tracking-tighter leading-none">{onboardingSuccess?.id}</p>
