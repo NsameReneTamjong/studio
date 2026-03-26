@@ -36,7 +36,8 @@ import {
   ArrowLeft,
   Loader2,
   Save,
-  Check
+  Check,
+  X as CloseIcon
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -56,6 +57,13 @@ const MOCK_CLASSES_ATTENDANCE = [
   { id: "C5", name: "2nde / Form 5", percentage: 91, totalStudents: 42, presentToday: 38, trends: "Stable", teacher: "Dr. Tesla", status: "medium" },
   { id: "C6", name: "1ère / Lower Sixth", percentage: 78, totalStudents: 35, presentToday: 27, trends: "-8%", teacher: "Prof. Smith", status: "low" },
   { id: "C7", name: "Terminale / Upper Sixth", percentage: 98, totalStudents: 30, presentToday: 30, trends: "+1%", teacher: "Mme. Ngono", status: "high" },
+];
+
+const MOCK_SUBJECT_ATTENDANCE = [
+  { id: "S1", name: "Mathematics", instructor: "Prof. Sarah Smith", percentage: 92, sessions: 24 },
+  { id: "S2", name: "Advanced Physics", instructor: "Dr. Aris Tesla", percentage: 88, sessions: 20 },
+  { id: "S3", name: "General Chemistry", instructor: "Dr. White", percentage: 95, sessions: 22 },
+  { id: "S4", name: "English Literature", instructor: "Ms. Bennet", percentage: 90, sessions: 18 },
 ];
 
 const MOCK_STUDENTS = [
@@ -446,7 +454,7 @@ export default function AttendancePage() {
                     <div>
                       <CardTitle className="text-xl font-black text-primary">{cls.name}</CardTitle>
                       <CardDescription className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 mt-1">
-                        <User className="w-3 h-3" /> {cls.teacher}
+                        <User className="w-3.5 h-3.5" /> {cls.teacher}
                       </CardDescription>
                     </div>
                     <div className={cn(
@@ -714,7 +722,7 @@ export default function AttendancePage() {
               </div>
             </div>
             <Button variant="ghost" size="icon" onClick={() => setSelectedClassDetails(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
-              <XCircle className="w-6 h-6" />
+              <CloseIcon className="w-6 h-6" />
             </Button>
           </DialogHeader>
           
@@ -865,7 +873,7 @@ export default function AttendancePage() {
               </Button>
             </div>
             <Button variant="ghost" size="icon" onClick={() => setViewingSubjectLogs(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
-              <XCircle className="w-6 h-6" />
+              <CloseIcon className="w-6 h-6" />
             </Button>
           </DialogHeader>
           
