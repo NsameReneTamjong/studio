@@ -33,7 +33,8 @@ import {
   DialogHeader, 
   DialogTitle, 
   DialogDescription, 
-  DialogFooter
+  DialogFooter,
+  DialogTrigger
 } from "@/components/ui/dialog";
 import { 
   Select, 
@@ -123,7 +124,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       setSupportData({ amount: "1000", method: "MTN MoMo", phone: "", message: "" });
       toast({
         title: "Contribution Received",
-        description: "Thank you for supporting our institutional movement!",
+        description: "Thank you for supporting our institutional vision!",
       });
     }, 1500);
   };
