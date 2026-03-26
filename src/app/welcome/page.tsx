@@ -55,7 +55,6 @@ export default function SchoolWelcomePage() {
   }
 
   // Robust Lookup: Find the user's school or fallback to first available school node
-  // This ensures that in a prototype with no backend, users always see a high-fidelity portal.
   const school = user?.school || (user?.schoolId ? schools.find(s => s.id === user?.schoolId) : schools[0]);
 
   if (!user || !school) {

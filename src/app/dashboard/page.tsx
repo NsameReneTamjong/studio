@@ -29,7 +29,9 @@ import {
   ArrowRight,
   Award,
   Heart,
-  Wallet
+  Wallet,
+  CheckCircle2,
+  Clock
 } from "lucide-react";
 import { 
   AreaChart, 
