@@ -206,6 +206,7 @@ export default function DashboardPage() {
               <div className="text-2xl font-black text-primary">{summaryStats.students}</div>
               <p className="text-[9px] font-bold mt-1 text-muted-foreground uppercase">82% Participation</p>
             </CardContent>
+          </Card>
 
           <Card className="border-none shadow-sm bg-white overflow-hidden group">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -216,6 +217,7 @@ export default function DashboardPage() {
               <div className="text-2xl font-black text-primary">{summaryStats.teachers}</div>
               <p className="text-[9px] font-bold mt-1 text-muted-foreground uppercase">Active Curriculums</p>
             </CardContent>
+          </Card>
 
           <Card className="border-none shadow-sm bg-white overflow-hidden group">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -226,6 +228,7 @@ export default function DashboardPage() {
               <div className="text-2xl font-black text-primary">{summaryStats.founders}</div>
               <p className="text-[9px] font-bold mt-1 text-muted-foreground uppercase">Executive Board</p>
             </CardContent>
+          </Card>
 
           <Card className="border-none shadow-sm bg-secondary text-primary overflow-hidden">
             <CardHeader className="pb-2">
