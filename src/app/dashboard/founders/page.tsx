@@ -70,7 +70,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
-const ROLES = ["CEO", "CTO", "COO", "CFO", "INV", "Investor", "Board Member", "Adviser"];
+const ROLES = ["CEO", "CTO", "COO", "CFO", "INV", "DESIGNER", "Investor", "Board Member", "Adviser"];
 
 const MOCK_FOUNDERS = [
   { id: "EduI24CEO001", name: "EduIgnite Founder", email: "ceo@eduignite.io", role: "CEO", status: "Active", isPrimary: true, avatar: "https://picsum.photos/seed/ceo/150/150", permissions: { manageSchools: true, manageTeam: true, viewAnalytics: true, manageSupport: true } },
