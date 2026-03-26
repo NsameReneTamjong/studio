@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -33,7 +32,8 @@ import {
   BookOpen,
   Video,
   Image as ImageIcon,
-  GraduationCap
+  GraduationCap,
+  Link as LinkIcon
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -45,7 +45,6 @@ export default function PlatformSettingsPage() {
   const { toast } = useToast();
   
   const logoInputRef = useRef<HTMLInputElement>(null);
-  const eventImageRef = useRef<HTMLInputElement>(null);
   
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -71,7 +70,7 @@ export default function PlatformSettingsPage() {
     });
   }, [platformSettings]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, target: 'logo' | 'event') => {
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 2 * 1024 * 1024) {
@@ -81,12 +80,8 @@ export default function PlatformSettingsPage() {
 
       const reader = new FileReader();
       reader.onloadend = () => {
-        if (target === 'logo') {
-          setFormData(prev => ({ ...prev, platformLogo: reader.result as string }));
-        } else {
-          setNewEvent(prev => ({ ...prev, url: reader.result as string }));
-        }
-        toast({ title: "Image Processed", description: "Identity preview updated locally." });
+        setFormData(prev => ({ ...prev, platformLogo: reader.result as string }));
+        toast({ title: "Logo Processed", description: "Identity preview updated locally." });
       };
       reader.readAsDataURL(file);
     }
@@ -121,13 +116,13 @@ export default function PlatformSettingsPage() {
 
   const handlePublishEvent = () => {
     if (!newEvent.title || !newEvent.url) {
-      toast({ variant: "destructive", title: "Missing Information", description: "Title and content URL are required." });
+      toast({ variant: "destructive", title: "Missing Information", description: "Title and media URL are required." });
       return;
     }
     
     addPublicEvent(newEvent);
     setNewEvent({ title: "", description: "", url: "", type: "video" });
-    toast({ title: "Portfolio Updated", description: "New event published to community portal." });
+    toast({ title: "Portfolio Updated", description: "New content added to community portal." });
   };
 
   const FeeInput = ({ id, label, value, onChange, icon: Icon, colorClass }: any) => (
@@ -209,7 +204,7 @@ export default function PlatformSettingsPage() {
                       ref={logoInputRef} 
                       className="hidden" 
                       accept="image/*" 
-                      onChange={(e) => handleFileChange(e, 'logo')} 
+                      onChange={handleLogoChange} 
                     />
                     {formData.platformLogo ? (
                       <img src={formData.platformLogo} alt="Logo" className="w-full h-full object-contain p-6" />
@@ -309,16 +304,16 @@ export default function PlatformSettingsPage() {
                 </div>
                 <div>
                   <CardTitle className="text-2xl font-black uppercase tracking-tighter">Public Portfolio Management</CardTitle>
-                  <CardDescription className="text-white/60">Upload images and videos to the community testimony highlights.</CardDescription>
+                  <CardDescription className="text-white/60">Add institutional content via external URLs to the community highlights.</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="p-10 space-y-10">
-              {/* NEW MEDIA FORM */}
+              {/* NEW MEDIA FORM (URL ONLY) */}
               <div className="p-8 bg-accent/30 rounded-[2rem] border border-accent space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-                  <div className="md:col-span-4 flex flex-col items-center gap-4">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Content Type</Label>
+                  <div className="md:col-span-4 space-y-4 flex flex-col">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Content Type</Label>
                     <div className="flex gap-2 w-full">
                       <Button 
                         variant={newEvent.type === 'video' ? 'default' : 'outline'}
@@ -336,43 +331,64 @@ export default function PlatformSettingsPage() {
                       </Button>
                     </div>
                     
-                    {newEvent.type === 'image' && (
-                      <div 
-                        className="w-full aspect-video bg-white rounded-2xl border-2 border-dashed border-primary/20 flex flex-col items-center justify-center cursor-pointer overflow-hidden group hover:border-primary transition-all"
-                        onClick={() => eventImageRef.current?.click()}
-                      >
-                        <input type="file" ref={eventImageRef} className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, 'event')} />
-                        {newEvent.url ? (
-                          <img src={newEvent.url} alt="Preview" className="w-full h-full object-cover" />
+                    {/* PREVIEW BOX */}
+                    <div className="w-full aspect-video bg-white rounded-2xl border-2 border-dashed border-primary/10 flex items-center justify-center overflow-hidden shadow-inner mt-2">
+                      {newEvent.url ? (
+                        newEvent.type === 'video' ? (
+                          <div className="w-full h-full flex flex-col items-center justify-center bg-slate-900 text-white gap-2">
+                            <Video className="w-8 h-8 opacity-20" />
+                            <span className="text-[8px] font-black uppercase opacity-40">External Video URL</span>
+                          </div>
                         ) : (
-                          <>
-                            <Upload className="w-6 h-6 text-primary/40 group-hover:scale-110 transition-transform mb-2" />
-                            <span className="text-[10px] font-black uppercase text-primary/40">Upload Media</span>
-                          </>
-                        )}
-                      </div>
-                    )}
+                          <img src={newEvent.url} alt="Preview" className="w-full h-full object-cover" />
+                        )
+                      ) : (
+                        <div className="text-center space-y-2">
+                          <LinkIcon className="w-6 h-6 text-primary/20 mx-auto" />
+                          <span className="text-[9px] font-black uppercase text-primary/20 block">Media Preview</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="md:col-span-8 space-y-6">
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest">Headline Title</Label>
-                      <Input value={newEvent.title} onChange={(e) => setNewEvent({...newEvent, title: e.target.value})} placeholder="e.g. Annual Pedagogical Summit" className="h-12 border-none bg-white rounded-xl px-4 font-bold" />
+                      <Label className="text-[10px] font-black uppercase tracking-widest ml-1">Headline Title</Label>
+                      <Input 
+                        value={newEvent.title} 
+                        onChange={(e) => setNewEvent({...newEvent, title: e.target.value})} 
+                        placeholder="e.g. Annual Pedagogical Summit" 
+                        className="h-12 border-none bg-white rounded-xl px-4 font-bold" 
+                      />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest">Short Summary</Label>
-                      <Input value={newEvent.description} onChange={(e) => setNewEvent({...newEvent, description: e.target.value})} placeholder="Capturing the moments..." className="h-12 border-none bg-white rounded-xl px-4" />
+                      <Label className="text-[10px] font-black uppercase tracking-widest ml-1">Short Summary</Label>
+                      <Input 
+                        value={newEvent.description} 
+                        onChange={(e) => setNewEvent({...newEvent, description: e.target.value})} 
+                        placeholder="Capturing the moments..." 
+                        className="h-12 border-none bg-white rounded-xl px-4" 
+                      />
                     </div>
-                    {newEvent.type === 'video' && (
-                      <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase tracking-widest">YouTube Embed URL</Label>
-                        <Input value={newEvent.url} onChange={(e) => setNewEvent({...newEvent, url: e.target.value})} placeholder="https://www.youtube.com/embed/..." className="h-12 border-none bg-white rounded-xl px-4" />
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest ml-1">
+                        {newEvent.type === 'video' ? 'YouTube / Video Embed URL' : 'Direct Image URL'}
+                      </Label>
+                      <div className="relative">
+                        <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
+                        <Input 
+                          value={newEvent.url} 
+                          onChange={(e) => setNewEvent({...newEvent, url: e.target.value})} 
+                          placeholder="https://..." 
+                          className="h-12 border-none bg-white rounded-xl pl-10 pr-4" 
+                        />
                       </div>
-                    )}
+                      <p className="text-[9px] text-muted-foreground italic px-1">Note: Please provide a direct link or embed URL.</p>
+                    </div>
                   </div>
                 </div>
                 <Button onClick={handlePublishEvent} className="w-full h-14 bg-primary text-white font-black uppercase tracking-widest text-xs gap-3 rounded-2xl shadow-xl transition-all">
-                  <Plus className="w-5 h-5 text-secondary" /> Publish to Portfolio
+                  <Plus className="w-5 h-5 text-secondary" /> Add to Public Portfolio
                 </Button>
               </div>
 
@@ -383,11 +399,15 @@ export default function PlatformSettingsPage() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {publicEvents.map((event) => (
-                    <Card key={event.id} className="border-none shadow-sm overflow-hidden bg-accent/10 flex flex-col">
+                    <Card key={event.id} className="border-none shadow-sm overflow-hidden bg-accent/10 flex flex-col group">
                       <div className="aspect-video relative bg-slate-900 overflow-hidden">
                         {event.type === 'video' ? (
                           <div className="w-full h-full flex items-center justify-center">
-                            <Video className="w-12 h-12 text-white/20" />
+                            <iframe 
+                              src={event.url} 
+                              className="w-full h-full pointer-events-none"
+                              title={event.title}
+                            />
                             <div className="absolute inset-0 bg-black/40 flex items-center justify-center font-bold text-white uppercase text-[10px]">VIDEO CONTENT</div>
                           </div>
                         ) : (
@@ -403,7 +423,10 @@ export default function PlatformSettingsPage() {
                         </Button>
                       </div>
                       <CardHeader className="p-4">
-                        <CardTitle className="text-base font-black truncate">{event.title}</CardTitle>
+                        <div className="flex items-center justify-between gap-4">
+                          <CardTitle className="text-base font-black truncate">{event.title}</CardTitle>
+                          <Badge variant="outline" className="text-[8px] font-black uppercase border-primary/10">{event.type}</Badge>
+                        </div>
                         <CardDescription className="text-xs line-clamp-1">{event.description}</CardDescription>
                       </CardHeader>
                       <CardFooter className="p-4 pt-0 justify-end">
@@ -420,5 +443,24 @@ export default function PlatformSettingsPage() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+function GraduationCapIcon({ className }: { className?: string }) {
+  return (
+    <svg 
+      xmlns="http://www.w3.org/2000/svg" 
+      width="24" 
+      height="24" 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+      className={className}
+    >
+      <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
+    </svg>
   );
 }
