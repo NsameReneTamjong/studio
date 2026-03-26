@@ -75,10 +75,10 @@ import {
 import { cn } from "@/lib/utils";
 
 const MOCK_STUDENTS = [
-  { id: "GBHS26S001", uid: "S1", name: "Alice Thompson", email: "alice.t@school.edu", class: "2nde / Form 5", section: "Anglophone Section", isLicensePaid: true, status: "active", avatar: "https://picsum.photos/seed/s1/100/100", guardianId: "GBHS26P001" },
-  { id: "GBHS26S002", uid: "S2", name: "Bob Richards", email: "bob.r@school.edu", class: "Terminale / Upper Sixth", section: "Anglophone Section", isLicensePaid: true, status: "active", avatar: "https://picsum.photos/seed/s2/100/100", guardianId: "GBHS26P002" },
-  { id: "GBHS26S003", uid: "S3", name: "Charlie Davis", email: "charlie.d@school.edu", class: "1ère / Lower Sixth", section: "Francophone Section", isLicensePaid: false, status: "active", avatar: "https://picsum.photos/seed/s3/100/100", guardianId: "GBHS26P001" },
-  { id: "GBHS26S004", uid: "S4", name: "Diana Prince", email: "diana.p@school.edu", class: "2nde / Form 5", section: "Technical Section", isLicensePaid: true, status: "inactive", avatar: "https://picsum.photos/seed/s4/100/100", guardianId: "GBHS26P002" },
+  { id: "GBHS26S001", uid: "S1", name: "Alice Thompson", email: "alice.t@school.edu", phone: "+237 600 11 22 33", class: "2nde / Form 5", section: "Anglophone Section", isLicensePaid: true, status: "active", avatar: "https://picsum.photos/seed/s1/100/100", guardianId: "GBHS26P001" },
+  { id: "GBHS26S002", uid: "S2", name: "Bob Richards", email: "bob.r@school.edu", phone: "+237 600 44 55 66", class: "Terminale / Upper Sixth", section: "Anglophone Section", isLicensePaid: true, status: "active", avatar: "https://picsum.photos/seed/s2/100/100", guardianId: "GBHS26P002" },
+  { id: "GBHS26S003", uid: "S3", name: "Charlie Davis", email: "charlie.d@school.edu", phone: "+237 600 77 88 99", class: "1ère / Lower Sixth", section: "Francophone Section", isLicensePaid: false, status: "active", avatar: "https://picsum.photos/seed/s3/100/100", guardianId: "GBHS26P001" },
+  { id: "GBHS26S004", uid: "S4", name: "Diana Prince", email: "diana.p@school.edu", phone: "+237 600 00 11 22", class: "2nde / Form 5", section: "Technical Section", isLicensePaid: true, status: "inactive", avatar: "https://picsum.photos/seed/s4/100/100", guardianId: "GBHS26P002" },
 ];
 
 const MOCK_PARENTS = [
@@ -112,6 +112,8 @@ export default function StudentsPage() {
 
   const [newStudent, setNewStudent] = useState({
     name: "",
+    email: "",
+    phone: "",
     dob: "",
     gender: "Male",
     region: "Littoral",
@@ -197,13 +199,14 @@ export default function StudentsPage() {
         ...newStudent,
         id: studentId,
         uid: Math.random().toString(36).substr(2, 9),
-        email: `${studentId.toLowerCase()}@school.edu`,
         isLicensePaid: true,
         status: "active",
         avatar: `https://picsum.photos/seed/${studentId}/200/200`,
         guardianName: guardian?.name || "N/A",
         guardianMatricule: guardian?.id || "N/A",
-        guardianType: guardian?.type || "Guardian"
+        guardianType: guardian?.type || "Guardian",
+        guardianPhone: guardian?.phone || "N/A",
+        guardianEmail: guardian?.email || "N/A"
       };
 
       setStudentList([created, ...studentList]);
@@ -212,6 +215,8 @@ export default function StudentsPage() {
       setIsAdmissionOpen(false);
       setNewStudent({
         name: "",
+        email: "",
+        phone: "",
         dob: "",
         gender: "Male",
         region: "Littoral",
@@ -463,7 +468,7 @@ export default function StudentsPage() {
               </div>
               <div>
                 <DialogTitle className="text-2xl font-black uppercase tracking-tighter">Institutional Admission</DialogTitle>
-                <DialogDescription className="text-white/60">Phase 1: Biometric & Origin Registry</DialogDescription>
+                <DialogDescription className="text-white/60">Phase 1: Biometric & Contact Registry</DialogDescription>
               </div>
             </div>
             <Button variant="ghost" size="icon" onClick={() => setIsAdmissionOpen(false)} className="absolute top-4 right-4 text-white/40 hover:text-white">
@@ -521,6 +526,30 @@ export default function StudentsPage() {
                     <Button size="icon" className="h-12 w-12 rounded-xl bg-secondary text-primary hover:bg-secondary/90 shadow-lg" onClick={() => setIsAddGuardianOpen(true)}>
                       <Plus className="w-5 h-5" />
                     </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Student Contact Data */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 border-b border-accent pb-2">
+                <Smartphone className="w-4 h-4 text-primary/40" />
+                <h3 className="text-xs font-black uppercase text-primary tracking-widest">Student Contact</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Institutional Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
+                    <Input value={newStudent.email} onChange={(e) => setNewStudent({...newStudent, email: e.target.value})} placeholder="alice@school.edu" className="h-12 bg-accent/30 border-none rounded-xl pl-10" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">WhatsApp / Contact</Label>
+                  <div className="relative">
+                    <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
+                    <Input value={newStudent.phone} onChange={(e) => setNewStudent({...newStudent, phone: e.target.value})} placeholder="+237 6XX XX XX XX" className="h-12 bg-accent/30 border-none rounded-xl pl-10" />
                   </div>
                 </div>
               </div>
@@ -636,7 +665,10 @@ export default function StudentsPage() {
             </div>
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Email Address</Label>
-              <Input type="email" value={newGuardian.email} onChange={(e) => setNewGuardian({...newGuardian, email: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl" />
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
+                <Input type="email" value={newGuardian.email} onChange={(e) => setNewGuardian({...newGuardian, email: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl pl-10" />
+              </div>
             </div>
           </div>
           <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
@@ -715,12 +747,14 @@ export default function StudentsPage() {
                              </div>
                           </div>
                           <div className="space-y-1">
-                             <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Class Level</p>
-                             <p className="font-bold">{admissionSuccess?.class}</p>
+                             <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Student Contact</p>
+                             <p className="font-bold text-xs">{admissionSuccess?.email}</p>
+                             <p className="font-bold text-xs">{admissionSuccess?.phone}</p>
                           </div>
                           <div className="space-y-1">
-                             <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Assigned Section</p>
-                             <p className="font-bold">{admissionSuccess?.section}</p>
+                             <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Academic Target</p>
+                             <p className="font-bold text-xs">{admissionSuccess?.class}</p>
+                             <p className="font-bold text-xs">{admissionSuccess?.section}</p>
                           </div>
                        </div>
                     </div>
@@ -746,8 +780,8 @@ export default function StudentsPage() {
                     <div className="space-y-2 text-xs">
                        <p><span className="font-bold opacity-60">Relationship:</span> {admissionSuccess?.guardianType}</p>
                        <p><span className="font-bold opacity-60">Guardian Name:</span> {admissionSuccess?.guardianName}</p>
+                       <p><span className="font-bold opacity-60">Guardian Contact:</span> {admissionSuccess?.guardianPhone}</p>
                        <p><span className="font-bold opacity-60">Guardian Matricule:</span> <span className="font-mono">{admissionSuccess?.guardianMatricule}</span></p>
-                       <p className="italic text-muted-foreground mt-2">"Primary account linked for pedagogical tracking."</p>
                     </div>
                   </div>
                </div>
@@ -943,10 +977,10 @@ export default function StudentsPage() {
               <div className="space-y-6">
                 <div className="flex items-center gap-3 border-b border-accent pb-2">
                   <GraduationCap className="w-4 h-4 text-primary/40" />
-                  <h3 className="text-xs font-black uppercase text-primary tracking-widest">Linked Students ({viewingLinkedInfo?.children?.length || 0})</h3>
+                  <h3 className="text-xs font-black uppercase text-primary tracking-widest">Linked Students ({viewingLinkedInfo?.user ? studentList.filter(s => s.guardianId === viewingLinkedInfo.user.id).length : 0})</h3>
                 </div>
                 <div className="grid grid-cols-1 gap-4">
-                  {viewingLinkedInfo?.children?.map((child: any) => (
+                  {viewingLinkedInfo?.user && studentList.filter(s => s.guardianId === viewingLinkedInfo.user.id).map((child: any) => (
                     <Card key={child.id} className="border-none shadow-sm bg-accent/10 hover:bg-accent/20 transition-all cursor-pointer overflow-hidden" onClick={() => router.push(`/dashboard/children/view?id=${child.id}`)}>
                       <CardContent className="p-4 flex items-center justify-between">
                         <div className="flex items-center gap-4">
