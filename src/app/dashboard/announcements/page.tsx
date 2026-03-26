@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
-import { Megaphone, Send, Globe, Building2, Clock, Trash2, User, Users, GraduationCap, ShieldCheck, Loader2, Crown } from "lucide-react";
+import { Megaphone, Send, Globe, Building2, Clock, Trash2, User, Users, GraduationCap, ShieldCheck, Loader2, Crown, Briefcase, Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -61,6 +61,8 @@ export default function AnnouncementsPage() {
   const getTargetIcon = (target: string) => {
     if (target === "all_schools") return <Globe className="w-3 h-3"/>;
     if (target === "saas_admins") return <Crown className="w-3 h-3"/>;
+    if (target === "board_directors") return <Briefcase className="w-3 h-3"/>;
+    if (target === "investors") return <Heart className="w-3 h-3"/>;
     if (target === "teachers") return <Users className="w-3 h-3"/>;
     if (target === "students") return <GraduationCap className="w-3 h-3"/>;
     if (target === "administration") return <ShieldCheck className="w-3 h-3"/>;
@@ -143,8 +145,10 @@ export default function AnnouncementsPage() {
                     {isPlatformExecutive ? (
                       <SelectGroup>
                         <SelectLabel>Platform Authority</SelectLabel>
-                        {isCEO && <SelectItem value="all_schools">All Registered Schools</SelectItem>}
-                        <SelectItem value="saas_admins">Executive Board Only</SelectItem>
+                        {isCEO && <SelectItem value="all_schools">All Registered Schools (CEO Only)</SelectItem>}
+                        <SelectItem value="saas_admins">Full Board of Directors</SelectItem>
+                        <SelectItem value="board_directors">Strategic Operations (Directorship)</SelectItem>
+                        <SelectItem value="investors">Investor Relations</SelectItem>
                       </SelectGroup>
                     ) : (
                       <SelectGroup>
@@ -207,10 +211,15 @@ export default function AnnouncementsPage() {
           {announcements && announcements.length > 0 ? (
             announcements
               .filter(ann => {
+                const userRole = user?.role || "";
                 // Visibility Logic
                 if (ann.target === "all_schools") return true;
                 if (ann.target === "saas_admins") return isPlatformExecutive;
+                if (ann.target === "board_directors") return ["CEO", "CTO", "COO", "SUPER_ADMIN", "DESIGNER"].includes(userRole);
+                if (ann.target === "investors") return ["CEO", "INV", "SUPER_ADMIN"].includes(userRole);
+                
                 // If it's a school target, only show to people who belong to a school (prototype simulation)
+                // executives should only see school announcements if they are the sender
                 return !isPlatformExecutive || ann.senderUid === user?.id;
               })
               .map((ann) => (
