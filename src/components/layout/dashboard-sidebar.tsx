@@ -77,7 +77,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: t("founders"),
       icon: Crown,
       href: "/dashboard/founders",
-      roles: ["SUPER_ADMIN", "CEO", "CTO", "COO"], 
+      roles: EXECUTIVE_ROLES, 
     },
     {
       label: t("schools"),
