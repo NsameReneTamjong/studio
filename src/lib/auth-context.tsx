@@ -9,6 +9,8 @@ export type UserRole = "SUPER_ADMIN" | "SCHOOL_ADMIN" | "SUB_ADMIN" | "TEACHER" 
 export interface SchoolInfo {
   id: string;
   name: string;
+  shortName: string;
+  principal: string;
   motto: string;
   logo: string;
   banner: string;
@@ -153,8 +155,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const INITIAL_SCHOOLS: SchoolInfo[] = [
   {
-    id: "GBHS",
+    id: "GBHS-D",
     name: "GBHS Deido",
+    shortName: "GBHSD",
+    principal: "Dr. Jean-Pierre Fonka",
     motto: "Discipline - Work - Success",
     logo: "https://picsum.photos/seed/school-logo-1/200/200",
     banner: "https://picsum.photos/seed/school-banner/1200/400",
@@ -170,8 +174,10 @@ const INITIAL_SCHOOLS: SchoolInfo[] = [
     status: "Active"
   },
   {
-    id: "JOSS",
+    id: "JOSS-L",
     name: "Lycée de Joss",
+    shortName: "JOSSL",
+    principal: "Mme. Marie Ngono",
     motto: "Knowledge is Power",
     logo: "https://picsum.photos/seed/school-logo-2/200/200",
     banner: "https://picsum.photos/seed/school-banner-2/1200/400",
@@ -190,69 +196,133 @@ const INITIAL_SCHOOLS: SchoolInfo[] = [
 
 const INITIAL_ORDERS: Order[] = [
   {
-    id: "ORD-7291",
-    fullName: "Principal Fonka",
-    occupation: "Institutional Head",
-    schoolName: "GBHS Deido",
-    whatsappNumber: "+237 670 00 11 22",
-    email: "fonka@gbhsdeido.cm",
+    id: "ORD-1001",
+    fullName: "Dr. Jean-Pierre Biya",
+    occupation: "School Principal",
+    schoolName: "GBHS Douala",
+    whatsappNumber: "+237 677 88 99 00",
+    email: "principal@gbhsdouala.cm",
     region: "Littoral",
     division: "Wouri",
     subDivision: "Douala 1er",
     status: "pending",
-    createdAt: new Date("2024-05-24T10:00:00Z")
+    createdAt: new Date()
   },
   {
-    id: "ORD-8821",
-    fullName: "Mme. Celine Njoh",
+    id: "ORD-1002",
+    fullName: "Mme. Elise Ngo",
     occupation: "Bursar",
-    schoolName: "Lycée de Joss",
-    whatsappNumber: "+237 699 00 22 33",
-    email: "njoh@joss.cm",
+    schoolName: "Lycée de Bonamoussadi",
+    whatsappNumber: "+237 699 11 22 33",
+    email: "bursar@lyceebona.cm",
     region: "Littoral",
     division: "Wouri",
-    subDivision: "Douala 1er",
+    subDivision: "Douala 5ème",
     status: "processed",
-    createdAt: new Date("2024-05-23T14:30:00Z")
+    createdAt: new Date(Date.now() - 86400000)
+  },
+  {
+    id: "ORD-1003",
+    fullName: "Prof. Luc Abena",
+    occupation: "Principal",
+    schoolName: "Lycée de Mballa II",
+    whatsappNumber: "+237 655 44 55 66",
+    email: "abena.luc@mballa2.cm",
+    region: "Center",
+    division: "Mfoundi",
+    subDivision: "Yaoundé 1er",
+    status: "pending",
+    createdAt: new Date(Date.now() - 172800000)
   }
 ];
 
 const INITIAL_SUPPORT: SupportContribution[] = [
   {
-    id: "SUP-1029",
+    id: "SUP-2001",
+    userName: "Alice Thompson",
+    userRole: "STUDENT",
+    userAvatar: "https://picsum.photos/seed/s1/100/100",
+    amount: 5000,
+    method: "MTN MoMo",
+    phone: "677001122",
+    message: "I love the new MCQ exams! Keep up the good work.",
+    status: "Verified",
+    createdAt: new Date()
+  },
+  {
+    id: "SUP-2002",
     userName: "Mr. Robert Thompson",
     userRole: "PARENT",
     userAvatar: "https://picsum.photos/seed/p1/100/100",
     amount: 15000,
-    method: "MTN MoMo",
-    phone: "677001122",
-    message: "The digital report cards saved me 3 hours of queueing. Thank you!",
-    status: "Verified",
-    createdAt: new Date("2024-05-24T09:15:00Z")
+    method: "Orange Money",
+    phone: "699334455",
+    message: "Great platform. It makes tracking my daughter's progress so easy.",
+    status: "New",
+    createdAt: new Date()
   },
   {
-    id: "SUP-2931",
+    id: "SUP-2003",
     userName: "Dr. Aris Tesla",
     userRole: "TEACHER",
     userAvatar: "https://picsum.photos/seed/t1/100/100",
-    amount: 5000,
-    method: "Orange Money",
-    phone: "699334455",
-    message: "Supporting the pedagogical innovation.",
-    status: "New",
-    createdAt: new Date("2024-05-24T11:45:00Z")
+    amount: 10000,
+    method: "MTN MoMo",
+    phone: "670112233",
+    message: "Supporting the digital transformation of education in Cameroon.",
+    status: "Verified",
+    createdAt: new Date(Date.now() - 432000000)
+  }
+];
+
+const INITIAL_ANNOUNCEMENTS: Announcement[] = [
+  {
+    id: "ann-1",
+    title: "Global Platform Update v2.4.0",
+    content: "We have successfully rolled out high-availability nodes across the region. Performance is now 40% faster.",
+    target: "all_schools",
+    senderName: "Platform CEO",
+    senderRole: "CEO",
+    senderAvatar: "https://picsum.photos/seed/ceo/100/100",
+    senderUid: "mock_EDUI26CEO001",
+    createdAt: new Date()
+  }
+];
+
+const INITIAL_TESTIMONIALS: Testimony[] = [
+  {
+    id: "test-1",
+    userId: "S1",
+    name: "Alice Thompson",
+    role: "STUDENT",
+    schoolName: "GBHS Deido",
+    profileImage: "https://picsum.photos/seed/s1/150/150",
+    message: "EduIgnite has completely changed how I study. The MCQ timers are great for preparation!",
+    status: "approved",
+    createdAt: new Date()
+  },
+  {
+    id: "test-2",
+    userId: "P1",
+    name: "Mr. Robert Thompson",
+    role: "PARENT",
+    schoolName: "GBHS Deido",
+    profileImage: "https://picsum.photos/seed/p1/150/150",
+    message: "Transparency is the key. I can check my child's attendance and grades from anywhere.",
+    status: "approved",
+    createdAt: new Date(Date.now() - 86400000)
   }
 ];
 
 const DEMO_ACCOUNTS: Record<string, any> = {
   "EDUI26CEO001": { name: "Platform CEO", role: "CEO", schoolId: null, isLicensePaid: true },
-  "GBHS26": { name: "Principal Fonka", role: "SCHOOL_ADMIN", schoolId: "GBHS", isLicensePaid: true },
-  "GBHS26A001": { name: "Vice Principal Academics", role: "SUB_ADMIN", schoolId: "GBHS", isLicensePaid: true },
-  "GBHS26T001": { name: "Dr. Aris Tesla", role: "TEACHER", schoolId: "GBHS", isLicensePaid: true },
-  "GBHS26S001": { name: "Alice Thompson", role: "STUDENT", schoolId: "GBHS", isLicensePaid: true },
-  "GBHS26B001": { name: "Mme. Ngono Celine", role: "BURSAR", schoolId: "GBHS", isLicensePaid: true },
-  "GBHS26L001": { name: "Mr. Ebong", role: "LIBRARIAN", schoolId: "GBHS", isLicensePaid: true },
-  "GBHS26P001": { name: "Mr. Robert Thompson", role: "PARENT", schoolId: "GBHS", isLicensePaid: true }
+  "GBHS26": { name: "Principal Fonka", role: "SCHOOL_ADMIN", schoolId: "GBHS-D", isLicensePaid: true },
+  "GBHS26A001": { name: "Vice Principal Academics", role: "SUB_ADMIN", schoolId: "GBHS-D", isLicensePaid: true },
+  "GBHS26T001": { name: "Dr. Aris Tesla", role: "TEACHER", schoolId: "GBHS-D", isLicensePaid: true },
+  "GBHS26S001": { name: "Alice Thompson", role: "STUDENT", schoolId: "GBHS-D", isLicensePaid: true },
+  "GBHS26B001": { name: "Mme. Ngono Celine", role: "BURSAR", schoolId: "GBHS-D", isLicensePaid: true },
+  "GBHS26L001": { name: "Mr. Ebong", role: "LIBRARIAN", schoolId: "GBHS-D", isLicensePaid: true },
+  "GBHS26P001": { name: "Mr. Robert Thompson", role: "PARENT", schoolId: "GBHS-D", isLicensePaid: true }
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -284,10 +354,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Load collections from local storage for persistence
     const collections = [
-      { key: "testimonials", setter: setTestimonials },
-      { key: "feedbacks", setter: setFeedbacks },
+      { key: "testimonials", setter: setTestimonials, default: INITIAL_TESTIMONIALS },
+      { key: "feedbacks", setter: setFeedbacks, default: [] },
       { key: "orders", setter: setOrders, default: INITIAL_ORDERS },
-      { key: "announcements", setter: setAnnouncements },
+      { key: "announcements", setter: setAnnouncements, default: INITIAL_ANNOUNCEMENTS },
       { key: "support", setter: setSupportContributions, default: INITIAL_SUPPORT },
       { key: "schools", setter: setSchools, default: INITIAL_SCHOOLS },
       { key: "platform", setter: setPlatformSettings, default: { name: "EduIgnite", logo: "https://picsum.photos/seed/eduignite-platform/200/200" } }
@@ -295,8 +365,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     collections.forEach(c => {
       const saved = localStorage.getItem(`eduignite_${c.key}`);
-      if (saved) {
-        c.setter(JSON.parse(saved));
+      const parsed = saved ? JSON.parse(saved) : null;
+      
+      if (parsed && Array.isArray(parsed) && parsed.length > 0) {
+        c.setter(parsed);
+      } else if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && Object.keys(parsed).length > 0) {
+        c.setter(parsed);
       } else if (c.default) {
         c.setter(c.default);
       }
@@ -321,7 +395,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (matricule: string) => {
     setIsLoading(true);
     const m = matricule.toUpperCase();
-    const demoData = DEMO_ACCOUNTS[m] || { name: "Guest User", role: "STUDENT", schoolId: "GBHS", isLicensePaid: true };
+    const demoData = DEMO_ACCOUNTS[m] || { name: "Guest User", role: "STUDENT", schoolId: "GBHS-D", isLicensePaid: true };
     
     const mockUser: User = {
       id: m,
