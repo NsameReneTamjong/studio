@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
@@ -21,7 +22,9 @@ import {
   Quote,
   Clock,
   Heart,
-  FileText
+  FileText,
+  CheckCircle2,
+  Info
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -43,7 +46,7 @@ export default function SchoolWelcomePage() {
     if (isAuthenticated && user) {
       const timer = setTimeout(() => {
         setIsConnecting(false);
-      }, 3000);
+      }, 2500);
       return () => clearTimeout(timer);
     }
   }, [isAuthenticated, isAuthLoading, user, router]);
@@ -52,7 +55,6 @@ export default function SchoolWelcomePage() {
     return <LoadingScreen />;
   }
 
-  // Smart resolution for prototype nodes
   const resolvedSchool = user?.school || 
     (user?.schoolId ? schools.find(s => s.id === user?.schoolId) : null) || 
     schools[0];
@@ -74,97 +76,110 @@ export default function SchoolWelcomePage() {
     );
   }
 
+  const schoolCode = (resolvedSchool?.shortName || resolvedSchool?.id || "node").toLowerCase();
+
   return (
-    <div className="min-h-screen bg-[#F0F2F5] selection:bg-secondary selection:text-primary flex flex-col items-center p-4 md:p-8 relative overflow-x-hidden">
-      <div className="absolute top-0 inset-x-0 h-1/2 bg-primary/5 -z-10" />
+    <div className="min-h-screen bg-[#F0F2F5] selection:bg-secondary selection:text-primary flex flex-col items-center relative overflow-x-hidden">
+      {/* Background Decorative Element */}
+      <div className="absolute top-0 inset-x-0 h-[500px] bg-primary/5 -z-10" />
       
-      <div className="max-w-7xl w-full space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-1000 py-12">
-        {/* HERO SECTION */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-7 space-y-8">
-            <div className="relative aspect-video rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white bg-slate-200 group">
-              <img 
-                src={resolvedSchool.banner} 
-                alt={resolvedSchool.name} 
-                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-primary/95 via-primary/40 to-transparent" />
-
-              <div className="absolute bottom-10 left-10 right-10 text-white space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-white rounded-2xl p-3 shadow-xl flex items-center justify-center border-2 border-accent transition-transform hover:rotate-3">
-                    <img src={resolvedSchool.logo} alt="Logo" className="w-full h-full object-contain" />
-                  </div>
-                  <div>
-                    <Badge className="bg-secondary text-primary border-none font-black uppercase text-[9px] px-3 h-6 mb-1">
-                      Node: {resolvedSchool.id}
-                    </Badge>
-                    <h1 className="text-4xl md:text-5xl font-black leading-none tracking-tighter uppercase">
-                      {resolvedSchool.name}
-                    </h1>
-                  </div>
-                </div>
-                <p className="text-xl md:text-2xl italic opacity-90 font-serif leading-tight">
-                  "{resolvedSchool.motto}"
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-6">
-              <div className="bg-white/80 backdrop-blur-sm p-6 rounded-[2rem] text-center border border-white shadow-sm hover:shadow-md transition-all">
-                <Users className="w-6 h-6 mx-auto mb-3 text-blue-600" />
-                <p className="text-xs font-black text-primary uppercase tracking-widest">2,500+ Students</p>
-              </div>
-              <div className="bg-white/80 backdrop-blur-sm p-6 rounded-[2rem] text-center border border-white shadow-sm hover:shadow-md transition-all">
-                <BookOpen className="w-6 h-6 mx-auto mb-3 text-purple-600" />
-                <p className="text-xs font-black text-primary uppercase tracking-widest">45+ Subjects</p>
-              </div>
-              <div className="bg-white/80 backdrop-blur-sm p-6 rounded-[2rem] text-center border border-white shadow-sm hover:shadow-md transition-all">
-                <ShieldCheck className="w-6 h-6 mx-auto mb-3 text-green-600" />
-                <p className="text-xs font-black text-green-600 uppercase tracking-widest">Active Campus</p>
-              </div>
-            </div>
+      <div className="max-w-6xl w-full px-4 md:px-8 py-12 space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+        
+        {/* 1. TOP BRANDING: LOGO */}
+        <div className="flex flex-col items-center text-center space-y-6">
+          <div className="w-24 h-24 md:w-32 md:h-32 bg-white rounded-[2.5rem] p-5 shadow-2xl flex items-center justify-center border-4 border-white ring-4 ring-primary/5 transition-transform hover:rotate-3">
+            <img src={resolvedSchool.logo} alt="Logo" className="w-full h-full object-contain" />
           </div>
-
-          <div className="lg:col-span-5 space-y-10">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-secondary" />
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/40">Portal Initialized</span>
-              </div>
-              <h2 className="text-5xl font-black text-primary tracking-tighter leading-[0.9]">
-                {language === 'en' ? `Welcome, ${user.name}` : `Bienvenue, ${user.name}`}
-              </h2>
-              <Badge className="bg-primary/5 text-primary border-primary/10 h-7 px-4 font-black uppercase text-[10px] tracking-widest">
-                {user.role.replace('_', ' ')}
+          <div className="space-y-2">
+            <div className="flex items-center justify-center gap-2">
+              <Badge className="bg-secondary text-primary border-none font-black uppercase text-[10px] px-4 h-6">
+                Node ID: {resolvedSchool.id}
               </Badge>
-              <p className="text-lg text-muted-foreground font-medium leading-relaxed">
-                Run your entire academic life in one place. Your high-availability dashboard is ready for action.
-              </p>
+              <Badge variant="outline" className="border-primary/20 text-primary font-bold text-[10px] uppercase h-6">Verified Institution</Badge>
             </div>
-
-            <Card className="bg-primary text-white rounded-[2.5rem] shadow-2xl border-none overflow-hidden relative group">
-              <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform"><Zap className="w-20 h-20 text-secondary" /></div>
-              <CardContent className="p-10 space-y-6 relative z-10">
-                <p className="text-base font-medium opacity-80 leading-relaxed">
-                  Institutional nodes are synchronized and secured. Enter the dashboard to manage your sequence.
-                </p>
-                <Button asChild size="lg" className="w-full bg-secondary text-primary hover:bg-secondary/90 font-black uppercase tracking-widest text-xs h-16 rounded-2xl shadow-xl transition-all active:scale-95 gap-3">
-                  <Link href="/dashboard">
-                    Enter Secure Dashboard <ArrowRight className="w-5 h-5" />
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
+            <h1 className="text-4xl md:text-6xl font-black text-primary tracking-tighter leading-none uppercase">
+              {resolvedSchool.name}
+            </h1>
+            <p className="text-lg md:text-2xl italic text-muted-foreground font-serif">
+              "{resolvedSchool.motto}"
+            </p>
           </div>
         </div>
 
-        {/* DETAILED INSTITUTIONAL CONTENT */}
+        {/* 2. HERO IMAGE: BANNER */}
+        <div className="relative w-full aspect-[21/9] md:aspect-[3/1] rounded-[2.5rem] md:rounded-[3.5rem] overflow-hidden shadow-2xl border-4 border-white bg-slate-200 group">
+          <img 
+            src={resolvedSchool.banner} 
+            alt={resolvedSchool.name} 
+            className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-primary/60 via-transparent to-transparent" />
+          
+          <div className="absolute bottom-6 left-6 md:bottom-10 md:left-10 text-white hidden sm:block">
+             <div className="flex items-center gap-3">
+                <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 flex items-center gap-2">
+                   <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                   <span className="text-[10px] font-black uppercase tracking-widest">Campus Node Active</span>
+                </div>
+             </div>
+          </div>
+        </div>
+
+        {/* 3. USER WELCOME & QUICK ACTION */}
+        <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-xl border border-white/50 flex flex-col lg:flex-row items-center justify-between gap-8">
+          <div className="space-y-4 text-center lg:text-left flex-1">
+            <div className="flex items-center justify-center lg:justify-start gap-2">
+              <Sparkles className="w-5 h-5 text-secondary" />
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/40">Access Initialized</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-black text-primary tracking-tighter leading-[0.9]">
+              {language === 'en' ? `Welcome, ${user.name}` : `Bienvenue, ${user.name}`}
+            </h2>
+            <Badge className="bg-primary/5 text-primary border-primary/10 h-7 px-4 font-black uppercase text-[10px] tracking-widest">
+              Authenticated as: {user.role.replace('_', ' ')}
+            </Badge>
+            <p className="text-lg text-muted-foreground font-medium leading-relaxed max-w-xl">
+              Your institutional gateway is synchronized. Step into your high-availability dashboard to manage your academic and administrative sequence.
+            </p>
+          </div>
+          
+          <div className="w-full lg:w-auto shrink-0">
+            <Button asChild size="lg" className="w-full lg:w-[300px] h-20 bg-primary text-white hover:bg-primary/90 font-black uppercase tracking-widest text-sm rounded-2xl shadow-2xl transition-all active:scale-95 gap-4 group">
+              <Link href="/dashboard">
+                Enter Dashboard 
+                <div className="bg-secondary p-2 rounded-lg group-hover:translate-x-1 transition-transform">
+                  <ArrowRight className="w-5 h-5 text-primary" />
+                </div>
+              </Link>
+            </Button>
+          </div>
+        </div>
+
+        {/* 4. STATS GRID */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <Card className="border-none shadow-sm bg-white/80 backdrop-blur-md rounded-[2rem] text-center p-8 hover:shadow-md transition-all">
+            <Users className="w-8 h-8 mx-auto mb-4 text-blue-600" />
+            <p className="text-2xl font-black text-primary">2,500+</p>
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1">Students Enrolled</p>
+          </Card>
+          <Card className="border-none shadow-sm bg-white/80 backdrop-blur-md rounded-[2rem] text-center p-8 hover:shadow-md transition-all">
+            <BookOpen className="w-8 h-8 mx-auto mb-4 text-purple-600" />
+            <p className="text-2xl font-black text-primary">45+</p>
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1">Active Subjects</p>
+          </Card>
+          <Card className="border-none shadow-sm bg-white/80 backdrop-blur-md rounded-[2rem] text-center p-8 hover:shadow-md transition-all">
+            <ShieldCheck className="w-8 h-8 mx-auto mb-4 text-green-600" />
+            <p className="text-2xl font-black text-green-600 uppercase">ACTIVE</p>
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1">Node Integrity Status</p>
+          </Card>
+        </div>
+
+        {/* 5. INSTITUTIONAL DEPTH: MISSION & PRINCIPAL */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-8 space-y-8">
             <Card className="border-none shadow-sm overflow-hidden rounded-[2.5rem] bg-white">
               <CardHeader className="bg-primary/5 border-b p-8">
-                <CardTitle className="flex items-center gap-3 text-primary text-xl">
+                <CardTitle className="flex items-center gap-3 text-primary text-xl font-black uppercase tracking-tight">
                   <BookOpen className="w-6 h-6 text-secondary" />
                   {t("aboutSchool")}
                 </CardTitle>
@@ -187,7 +202,7 @@ export default function SchoolWelcomePage() {
                       <Globe className="w-4 h-4 text-secondary" /> Global Standard
                     </h4>
                     <p className="text-sm text-primary/70 leading-relaxed font-bold">
-                      Operating as an official digital node within the ecosystem for enhanced integrity.
+                      Operating as an official digital node within the EduIgnite ecosystem for enhanced data integrity.
                     </p>
                   </div>
                 </div>
@@ -196,7 +211,7 @@ export default function SchoolWelcomePage() {
 
             <Card className="border-none shadow-sm overflow-hidden rounded-[2.5rem] bg-white">
               <CardHeader className="bg-primary/5 border-b p-8">
-                <CardTitle className="flex items-center gap-3 text-primary text-xl">
+                <CardTitle className="flex items-center gap-3 text-primary text-xl font-black uppercase tracking-tight">
                   <MapPin className="w-6 h-6 text-secondary" />
                   {t("contactInfo")}
                 </CardTitle>
@@ -240,7 +255,7 @@ export default function SchoolWelcomePage() {
                       </div>
                       <div>
                         <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">Official Domain</p>
-                        <p className="font-bold text-primary">{(resolvedSchool?.shortName || resolvedSchool?.id || "node").toLowerCase()}.eduignite.cm</p>
+                        <p className="font-bold text-primary">{schoolCode}.eduignite.cm</p>
                       </div>
                     </div>
                   </div>
@@ -303,12 +318,12 @@ export default function SchoolWelcomePage() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between opacity-40">
+        <div className="flex flex-col md:flex-row items-center justify-between opacity-40 py-8 border-t">
            <div className="flex items-center gap-2">
               <Globe className="w-4 h-4 text-primary" />
               <span className="text-[8px] font-black uppercase tracking-widest">Regional Cluster Littoral</span>
            </div>
-           <p className="text-[8px] font-black uppercase tracking-widest">Powered by EduIgnite SaaS Node v2.4.0</p>
+           <p className="text-[8px] font-black uppercase tracking-widest">Powered by EduIgnite SaaS Node v2.4.0 • Secure Infrastructure</p>
         </div>
       </div>
     </div>
