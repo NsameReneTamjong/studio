@@ -110,7 +110,7 @@ export default function DashboardPage() {
   const [selectedSchoolId, setSelectedSchoolId] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const activeChartData = DATA_PERIODS[timePeriod];
+  const activeChartData = DATA_PERIODS[timePeriod] || DATA_PERIODS.monthly;
 
   const summaryStats = useMemo(() => {
     return {
@@ -120,7 +120,7 @@ export default function DashboardPage() {
       admins: "124",
       founders: "5",
       revenue: "4.2M",
-      activeNodes: schools.length || 0,
+      activeNodes: (schools || []).length,
       systemHealth: "Optimal"
     };
   }, [schools]);
@@ -140,7 +140,7 @@ export default function DashboardPage() {
 
   if (isPlatformExecutive) {
     return (
-      <div className="space-y-8 pb-20">
+      <div className="space-y-8 pb-20 animate-in fade-in duration-500">
         <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6">
           <div className="space-y-1">
             <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
@@ -175,7 +175,7 @@ export default function DashboardPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Entire Network</SelectItem>
-                  {schools.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                  {(schools || []).map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -347,7 +347,7 @@ export default function DashboardPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {schools
+                {(schools || [])
                   .filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
                   .map((school) => (
                   <TableRow key={school.id} className="hover:bg-accent/5 transition-colors border-b last:border-0">
@@ -399,7 +399,7 @@ export default function DashboardPage() {
 
   if (isBursar) {
     return (
-      <div className="space-y-8 pb-20">
+      <div className="space-y-8 pb-20 animate-in fade-in duration-500">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-primary rounded-2xl shadow-xl border-2 border-white">
@@ -488,11 +488,11 @@ export default function DashboardPage() {
 
   if (isParent) {
     return (
-      <div className="space-y-8">
+      <div className="space-y-8 animate-in fade-in duration-500">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             {user.school?.logo && (
-              <div className="w-16 h-16 rounded-2xl bg-white p-2 shadow-xl border-2 border-accent hidden sm:flex items-center justify-center">
+              <div className="w-16 h-16 rounded-2xl bg-white p-2 shadow-xl border-2 border-accent hidden sm:flex items-center justify-center overflow-hidden">
                 <img src={user.school.logo} alt="Logo" className="w-full h-full object-contain" />
               </div>
             )}
@@ -565,11 +565,11 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           {user.school?.logo && (
-            <div className="w-16 h-16 rounded-2xl bg-white p-2 shadow-xl border-2 border-accent hidden sm:flex items-center justify-center">
+            <div className="w-16 h-16 rounded-2xl bg-white p-2 shadow-xl border-2 border-accent hidden sm:flex items-center justify-center overflow-hidden">
               <img src={user.school.logo} alt="Logo" className="w-full h-full object-contain" />
             </div>
           )}

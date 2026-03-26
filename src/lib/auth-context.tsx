@@ -361,13 +361,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUserData(JSON.parse(savedUser));
     }
     
-    // Unified Loading with robust error handling and defaults
     const loadRegistry = (key: string, defaultValue: any) => {
       const saved = localStorage.getItem(`eduignite_${key}`);
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) ? parsed.length > 0 : Object.keys(parsed).length > 0) {
+          if (Array.isArray(parsed) ? parsed.length >= 0 : Object.keys(parsed).length >= 0) {
+            // Merge defaults for objects like platformSettings to avoid missing keys
+            if (!Array.isArray(parsed) && typeof defaultValue === 'object') {
+              return { ...defaultValue, ...parsed };
+            }
             return parsed;
           }
         } catch (e) {

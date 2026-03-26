@@ -223,13 +223,22 @@ export default function AnnouncementsPage() {
             announcements
               .filter(ann => {
                 const userRole = user?.role || "";
-                // Visibility Logic
+                // Executive Visibility: Board members see all board-level targets
+                if (isPlatformExecutive) {
+                  if (["all_schools", "saas_admins", "board_directors", "investors"].includes(ann.target)) return true;
+                }
+                
+                // Normal Filtering
                 if (ann.target === "all_schools") return true;
                 if (ann.target === "saas_admins") return isPlatformExecutive;
                 if (ann.target === "board_directors") return ["CEO", "CTO", "COO", "SUPER_ADMIN", "DESIGNER"].includes(userRole);
                 if (ann.target === "investors") return ["CEO", "INV", "SUPER_ADMIN"].includes(userRole);
                 
-                return !isPlatformExecutive || ann.senderUid === user?.id;
+                // My own messages
+                if (ann.senderUid === user?.id) return true;
+
+                // School-level visibility
+                return !isPlatformExecutive;
               })
               .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
               .map((ann) => (
