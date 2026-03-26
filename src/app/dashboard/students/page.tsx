@@ -334,21 +334,70 @@ export default function StudentsPage() {
         </Card>
       </Tabs>
 
+      {/* NEW ADMISSION DIALOG */}
+      <Dialog open={isAdmissionOpen} onOpenChange={setIsAdmissionOpen}>
+        <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="bg-primary p-8 text-white relative">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/10 rounded-2xl">
+                <UserPlus className="w-8 h-8 text-secondary" />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-black">Institutional Admission</DialogTitle>
+                <DialogDescription className="text-white/60">Initialize a new student node in the registry.</DialogDescription>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setIsAdmissionOpen(false)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+              <X className="w-6 h-6" />
+            </Button>
+          </DialogHeader>
+          <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Full Student Name</Label>
+                <Input placeholder="e.g. Alice Thompson" className="h-12 bg-accent/30 border-none rounded-xl font-bold" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Class Level</Label>
+                  <Select>
+                    <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue placeholder="Select..." /></SelectTrigger>
+                    <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Section</Label>
+                  <Select>
+                    <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue placeholder="Select..." /></SelectTrigger>
+                    <SelectContent>{SECTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+            <Button className="w-full h-12 rounded-xl shadow-lg font-bold" onClick={() => { setIsAdmissionOpen(false); toast({ title: "Admission Record Created" }); }}>
+              Finalize Admission
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* EDIT USER DIALOG */}
       <Dialog open={!!editingUser} onOpenChange={() => setEditingUser(null)}>
         <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-          <DialogHeader className="bg-primary p-8 text-white">
+          <DialogHeader className="bg-primary p-8 text-white relative">
             <div className="flex justify-between items-center">
               <div>
                 <DialogTitle className="text-2xl font-black">Edit User Dossier</DialogTitle>
                 <DialogDescription className="text-white/60">Update institutional records for {editingUser?.name}.</DialogDescription>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setEditingUser(null)} className="text-white/40 hover:text-white">
-                <X className="w-6 h-6" />
-              </Button>
             </div>
+            <Button variant="ghost" size="icon" onClick={() => setEditingUser(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+              <X className="w-6 h-6" />
+            </Button>
           </DialogHeader>
-          <div className="p-8 space-y-6 max-h-[60vh] overflow-y-auto">
+          <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Full Name</Label>
               <Input value={editingUser?.name || ""} onChange={(e) => setEditingUser({...editingUser, name: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl font-bold" />

@@ -277,7 +277,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             </Button>
                           </DialogTrigger>
                           <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-                            <DialogHeader className="bg-primary p-8 text-white">
+                            <DialogHeader className="bg-primary p-8 text-white relative">
                               <div className="flex items-center gap-4">
                                 <div className="p-3 bg-white/10 rounded-2xl">
                                   <Quote className="w-8 h-8 text-secondary" />
@@ -287,6 +287,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                   <DialogDescription className="text-white/60">Help showcase the excellence of our institution.</DialogDescription>
                                 </div>
                               </div>
+                              <Button variant="ghost" size="icon" onClick={() => setIsTestimonyModalOpen(false)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+                                <X className="w-6 h-6" />
+                              </Button>
                             </DialogHeader>
                             <div className="p-8 space-y-6">
                               <div className="space-y-2">
@@ -326,7 +329,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             </Button>
                           </DialogTrigger>
                           <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-                            <DialogHeader className="bg-primary p-8 text-white">
+                            <DialogHeader className="bg-primary p-8 text-white relative">
                               <div className="flex items-center gap-4">
                                 <div className="p-3 bg-white/10 rounded-2xl">
                                   <Heart className="w-8 h-8 text-secondary fill-secondary/20" />
@@ -336,6 +339,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                   <DialogDescription className="text-white/60">Contribute to the school's digital evolution.</DialogDescription>
                                 </div>
                               </div>
+                              <Button variant="ghost" size="icon" onClick={() => setIsSupportModalOpen(false)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+                                <X className="w-6 h-6" />
+                              </Button>
                             </DialogHeader>
                             <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
                               <div className="space-y-4">

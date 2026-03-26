@@ -220,7 +220,7 @@ export default function FeesPage() {
       };
       setFeeTypes([...feeTypes, created]);
       setIsProcessing(false);
-      setIsAddingFeeType(false);
+      setIsAddingBook(false);
       setNewFeeTypeData({ name: "", amount: "", description: "", status: "mandatory" });
       toast({ title: "Fee Category Defined", description: `${created.name} added to institutional structure.` });
     }, 1000);
@@ -535,7 +535,7 @@ export default function FeesPage() {
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-                  <DialogHeader className="bg-primary p-8 text-white">
+                  <DialogHeader className="bg-primary p-8 text-white relative">
                     <div className="flex items-center gap-4">
                       <div className="p-3 bg-white/10 rounded-2xl"><Coins className="w-8 h-8 text-secondary" /></div>
                       <div>
@@ -543,6 +543,9 @@ export default function FeesPage() {
                         <DialogDescription className="text-white/60">Initialize a new financial mandate for students.</DialogDescription>
                       </div>
                     </div>
+                    <Button variant="ghost" size="icon" onClick={() => setIsAddingFeeType(false)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+                      <X className="w-6 h-6" />
+                    </Button>
                   </DialogHeader>
                   <div className="p-8 space-y-6 max-h-[60vh] overflow-y-auto">
                     <div className="space-y-2">
@@ -834,7 +837,7 @@ export default function FeesPage() {
       {/* PAYMENT MODAL */}
       <Dialog open={!!selectedStudentForPayment} onOpenChange={() => setSelectedStudentForPayment(null)}>
         <DialogContent className="sm:max-w-md rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl">
-          <DialogHeader className="bg-primary p-6 md:p-8 text-white">
+          <DialogHeader className="bg-primary p-6 md:p-8 text-white relative">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/10 rounded-2xl">
                 <Wallet className="w-6 h-6 md:w-8 md:h-8 text-secondary" />
@@ -846,8 +849,11 @@ export default function FeesPage() {
                 </DialogDescription>
               </div>
             </div>
+            <Button variant="ghost" size="icon" onClick={() => setSelectedStudentForPayment(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+              <X className="w-6 h-6" />
+            </Button>
           </DialogHeader>
-          <div className="p-6 md:p-8 space-y-6">
+          <div className="p-6 md:p-8 space-y-6 max-h-[70vh] overflow-y-auto">
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Charge Category</Label>
@@ -891,7 +897,7 @@ export default function FeesPage() {
       {/* OFFICIAL RECEIPT DIALOG */}
       <Dialog open={!!issuedReceipt} onOpenChange={() => setIssuedReceipt(null)}>
         <DialogContent className="sm:max-w-2xl p-0 border-none shadow-2xl rounded-[1.5rem] md:rounded-[2rem] overflow-hidden">
-          <DialogHeader className="bg-primary p-6 md:p-8 text-white no-print">
+          <DialogHeader className="bg-primary p-6 md:p-8 text-white no-print relative">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="p-2 md:p-3 bg-white/10 rounded-2xl">
@@ -902,13 +908,13 @@ export default function FeesPage() {
                   <DialogDescription className="text-white/60 text-xs">Institutional financial transaction successfully recorded.</DialogDescription>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setIssuedReceipt(null)} className="text-white/40 hover:text-white">
-                <X className="w-6 h-6" />
-              </Button>
             </div>
+            <Button variant="ghost" size="icon" onClick={() => setIssuedReceipt(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+              <X className="w-6 h-6" />
+            </Button>
           </DialogHeader>
 
-          <div className="bg-muted p-4 md:p-10 print:p-0 print:bg-white overflow-hidden">
+          <div className="bg-muted p-4 md:p-10 print:p-0 print:bg-white overflow-y-auto max-h-[70vh]">
             <div id="printable-receipt" className="bg-white p-6 md:p-10 border-2 border-black shadow-sm relative flex flex-col space-y-8 font-serif text-black print:border-none print:shadow-none min-w-[350px]">
                <div className="grid grid-cols-3 gap-2 items-start text-center border-b-2 border-black pb-4">
                   <div className="space-y-0.5 text-[7px] uppercase font-bold">

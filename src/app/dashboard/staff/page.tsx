@@ -176,11 +176,18 @@ export default function StaffManagementPage() {
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-            <DialogHeader className="bg-primary p-8 text-white">
-              <DialogTitle className="text-2xl font-black">Register New Staff</DialogTitle>
-              <DialogDescription className="text-white/60">Complete the profile to generate appointment records.</DialogDescription>
+            <DialogHeader className="bg-primary p-8 text-white relative">
+              <div className="flex justify-between items-center">
+                <div>
+                  <DialogTitle className="text-2xl font-black">Register New Staff</DialogTitle>
+                  <DialogDescription className="text-white/60">Complete the profile to generate appointment records.</DialogDescription>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setIsAddModalOpen(false)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+                <X className="w-6 h-6" />
+              </Button>
             </DialogHeader>
-            <div className="p-8 space-y-6">
+            <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Full Name</Label>
                 <Input 
@@ -342,7 +349,7 @@ export default function StaffManagementPage() {
               <X className="w-6 h-6" />
             </Button>
           </DialogHeader>
-          <div className="p-10 space-y-8">
+          <div className="p-10 space-y-8 max-h-[70vh] overflow-y-auto">
             <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10 space-y-4">
               <h3 className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-secondary" /> Operational Authority
@@ -376,13 +383,16 @@ export default function StaffManagementPage() {
       {/* EDIT DETAILS DIALOG */}
       <Dialog open={!!editingStaff} onOpenChange={() => setEditingStaff(null)}>
         <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-          <DialogHeader className="bg-primary p-8 text-white">
+          <DialogHeader className="bg-primary p-8 text-white relative">
             <DialogTitle className="text-2xl font-black">Edit Staff Profile</DialogTitle>
             <DialogDescription className="text-white/60">Update institutional records for {editingStaff?.name}.</DialogDescription>
+            <Button variant="ghost" size="icon" onClick={() => setEditingStaff(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+              <X className="w-6 h-6" />
+            </Button>
           </DialogHeader>
-          <div className="p-8 space-y-6">
+          <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Update Full Name</Label>
+              <Label className="text-[10px] font-black uppercase tracking-widest ml-1">Update Full Name</Label>
               <Input 
                 value={editingStaff?.name} 
                 onChange={(e) => setEditingStaff({...editingStaff, name: e.target.value})} 
@@ -391,7 +401,7 @@ export default function StaffManagementPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Strategic Role</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest ml-1">Strategic Role</Label>
                 <Select value={editingStaff?.role} onValueChange={(v) => setEditingStaff({...editingStaff, role: v})}>
                   <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -402,7 +412,7 @@ export default function StaffManagementPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Institutional Section</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest ml-1">Institutional Section</Label>
                 <Select value={editingStaff?.section} onValueChange={(v) => setEditingStaff({...editingStaff, section: v})}>
                   <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -423,8 +433,11 @@ export default function StaffManagementPage() {
       {/* APPOINTMENT RECEIPT */}
       <Dialog open={!!onboardingSuccess} onOpenChange={() => setOnboardingSuccess(null)}>
         <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl text-center">
-          <DialogHeader className="bg-green-600 p-8 text-white">
+          <DialogHeader className="bg-green-600 p-8 text-white relative">
             <DialogTitle className="text-2xl font-black">Staff Appointed</DialogTitle>
+            <Button variant="ghost" size="icon" onClick={() => setOnboardingSuccess(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+              <X className="w-6 h-6" />
+            </Button>
           </DialogHeader>
           <div className="p-8 space-y-6">
             <div className="p-6 bg-primary/5 rounded-2xl border-2 border-primary/10">

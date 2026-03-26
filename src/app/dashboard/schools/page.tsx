@@ -139,7 +139,7 @@ export default function SchoolsManagementPage() {
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
-            <DialogHeader className="bg-primary p-8 text-white">
+            <DialogHeader className="bg-primary p-8 text-white relative">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-white/10 rounded-2xl">
                   <Building2 className="w-8 h-8 text-secondary" />
@@ -149,8 +149,11 @@ export default function SchoolsManagementPage() {
                   <DialogDescription className="text-white/60">Initialize a new secure pedagogical node.</DialogDescription>
                 </div>
               </div>
+              <Button variant="ghost" size="icon" onClick={() => setIsAddModalOpen(false)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+                <X className="w-6 h-6" />
+              </Button>
             </DialogHeader>
-            <div className="p-8 space-y-6">
+            <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Full School Name</Label>
                 <Input 
@@ -314,7 +317,7 @@ export default function SchoolsManagementPage() {
               <X className="w-6 h-6" />
             </Button>
           </DialogHeader>
-          <div className="p-10 space-y-8">
+          <div className="p-10 space-y-8 max-h-[70vh] overflow-y-auto">
             <div className="bg-primary/5 p-6 rounded-[2rem] border border-primary/10 space-y-6">
                <h3 className="font-black text-primary uppercase text-xs tracking-[0.2em] border-b pb-2 opacity-40">Administrative Interventions</h3>
                <div className="grid grid-cols-1 gap-4">
@@ -338,7 +341,7 @@ export default function SchoolsManagementPage() {
       {/* NODE ACTIVATION RECEIPT (EDUIGNITE OFFICIAL) */}
       <Dialog open={!!onboardingSuccess} onOpenChange={() => setOnboardingSuccess(null)}>
         <DialogContent className="sm:max-w-2xl p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden">
-          <DialogHeader className="bg-primary p-8 text-white no-print">
+          <DialogHeader className="bg-primary p-8 text-white no-print relative">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-white/10 rounded-2xl text-secondary">
@@ -349,13 +352,13 @@ export default function SchoolsManagementPage() {
                   <DialogDescription className="text-white/60">New institutional node has been activated on the network.</DialogDescription>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setOnboardingSuccess(null)} className="text-white/40 hover:text-white">
-                <X className="w-6 h-6" />
-              </Button>
             </div>
+            <Button variant="ghost" size="icon" onClick={() => setOnboardingSuccess(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+              <X className="w-6 h-6" />
+            </Button>
           </DialogHeader>
 
-          <div className="bg-muted p-6 md:p-10 print:p-0 print:bg-white overflow-hidden">
+          <div className="bg-muted p-6 md:p-10 print:p-0 print:bg-white overflow-y-auto max-h-[70vh]">
             <div id="activation-receipt" className="bg-white p-8 md:p-12 border-2 border-black shadow-sm relative flex flex-col space-y-10 font-serif text-black print:border-none print:shadow-none">
                
                {/* EduIgnite Platform Header */}
@@ -432,10 +435,6 @@ export default function SchoolsManagementPage() {
                     </div>
                     <p className="text-[9px] font-black uppercase text-primary border-t border-black/20 pt-1">Platform Registrar</p>
                   </div>
-               </div>
-
-               <div className="text-center pt-6 opacity-30">
-                  <p className="text-[8px] font-black uppercase tracking-[0.5em]">Secure • Transparent • Global</p>
                </div>
             </div>
           </div>
