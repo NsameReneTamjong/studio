@@ -27,9 +27,21 @@ export interface SchoolInfo {
   status: string;
 }
 
+export interface PlatformFees {
+  STUDENT: string;
+  PARENT: string;
+  TEACHER: string;
+  BURSAR: string;
+  LIBRARIAN: string;
+  SCHOOL_ADMIN: string;
+  SUB_ADMIN: string;
+}
+
 interface PlatformSettings {
   name: string;
   logo: string;
+  paymentDeadline: string;
+  fees: PlatformFees;
 }
 
 export interface User {
@@ -325,6 +337,16 @@ const DEMO_ACCOUNTS: Record<string, any> = {
   "GBHS26P001": { name: "Mr. Robert Thompson", role: "PARENT", schoolId: "GBHS-D", isLicensePaid: true }
 };
 
+const DEFAULT_FEES: PlatformFees = {
+  STUDENT: "5000",
+  PARENT: "2500",
+  TEACHER: "10000",
+  BURSAR: "10000",
+  LIBRARIAN: "10000",
+  SCHOOL_ADMIN: "25000",
+  SUB_ADMIN: "15000"
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [userData, setUserData] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -336,7 +358,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [supportContributions, setSupportContributions] = useState<SupportContribution[]>(INITIAL_SUPPORT);
   const [platformSettings, setPlatformSettings] = useState<PlatformSettings>({
     name: "EduIgnite",
-    logo: "https://picsum.photos/seed/eduignite-platform/200/200"
+    logo: "https://picsum.photos/seed/eduignite-platform/200/200",
+    paymentDeadline: "2024-10-31",
+    fees: DEFAULT_FEES
   });
 
   const [featuredVideos] = useState([
@@ -360,7 +384,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       { key: "announcements", setter: setAnnouncements, default: INITIAL_ANNOUNCEMENTS },
       { key: "support", setter: setSupportContributions, default: INITIAL_SUPPORT },
       { key: "schools", setter: setSchools, default: INITIAL_SCHOOLS },
-      { key: "platform", setter: setPlatformSettings, default: { name: "EduIgnite", logo: "https://picsum.photos/seed/eduignite-platform/200/200" } }
+      { key: "platform", setter: setPlatformSettings, default: { name: "EduIgnite", logo: "https://picsum.photos/seed/eduignite-platform/200/200", paymentDeadline: "2024-10-31", fees: DEFAULT_FEES } }
     ];
 
     collections.forEach(c => {
