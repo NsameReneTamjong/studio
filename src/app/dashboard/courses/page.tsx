@@ -107,13 +107,11 @@ export default function CoursesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [subjects, setSubjects] = useState<any[]>([]);
   
-  // Materials View State
   const [viewingMaterialsFor, setViewingMaterialsFor] = useState<any>(null);
   const [materials, setMaterials] = useState(INITIAL_MATERIALS);
   const [isAddingMaterial, setIsAddingMaterial] = useState(false);
   const [newMaterialData, setNewMaterialData] = useState({ title: "", description: "", type: "pdf", url: "" });
 
-  // Preview State
   const [previewMaterial, setPreviewMaterial] = useState<any>(null);
 
   const [myOptionalSubjects, setMyOptionalSubjects] = useState<string[]>([]);
@@ -221,7 +219,6 @@ export default function CoursesPage() {
     toast({ title: "Download Started", description: `Preparing ${material.title} for offline access.` });
   };
 
-  // Materials View Render
   if (viewingMaterialsFor) {
     const subjectMaterials = materials.filter(m => m.subjectId === viewingMaterialsFor.id);
     
@@ -313,10 +310,8 @@ export default function CoursesPage() {
           )}
         </div>
 
-        {/* TOP SECTION: TEACHER PROFILE & STATS (Visible to Admin) */}
         {(isAdmin || isTeacher) && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* Teacher Profile Card */}
             <Card className="lg:col-span-4 border-none shadow-sm overflow-hidden bg-white">
               <CardHeader className="bg-primary p-6 text-white text-center pb-8 relative">
                 <Avatar className="h-20 w-20 border-4 border-white/20 mx-auto shadow-2xl mb-4">
@@ -337,7 +332,6 @@ export default function CoursesPage() {
               </CardContent>
             </Card>
 
-            {/* Subject Specific Stats */}
             <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Card className="border-none shadow-sm bg-blue-50/50 group hover:shadow-md transition-all">
                 <CardContent className="pt-6">
@@ -449,7 +443,6 @@ export default function CoursesPage() {
           </div>
         </div>
 
-        {/* MEDIA PREVIEW MODAL */}
         <Dialog open={!!previewMaterial} onOpenChange={() => setPreviewMaterial(null)}>
           <DialogContent className="sm:max-w-4xl rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl bg-black">
             <DialogHeader className="p-6 bg-white/5 text-white absolute top-0 left-0 right-0 z-10 backdrop-blur-md border-b border-white/10">
@@ -635,7 +628,6 @@ export default function CoursesPage() {
         <div className="flex justify-center p-20"><Loader2 className="w-12 h-12 animate-spin text-primary opacity-20" /></div>
       ) : subjects.length > 0 ? (
         <div className="space-y-12">
-          {/* Mandatory Subjects Section */}
           <section className="space-y-6">
             <div className="flex items-center gap-3">
               <div className="h-px flex-1 bg-primary/10" />
@@ -649,7 +641,6 @@ export default function CoursesPage() {
             </div>
           </section>
 
-          {/* Optional Subjects Section */}
           {(isAdmin || isTeacher || enrolledOptional.length > 0) && (
             <section className="space-y-6">
               <div className="flex items-center gap-3">
@@ -707,13 +698,21 @@ function CourseCard({ course, isAdmin, onDelete, onViewMaterials }: { course: an
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1"><User className="w-3 h-3" /> Instructor</p>
-            <p className="text-xs font-bold truncate">{course.instructorName}</p>
+          <div className="space-y-2">
+            <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Instructor</p>
+            <div className="flex items-center gap-2">
+              <Avatar className="h-8 w-8 border-2 border-white shadow-sm ring-1 ring-accent shrink-0">
+                <AvatarImage src={course.instructorAvatar} alt={course.instructorName} />
+                <AvatarFallback className="bg-primary/5 text-primary text-[10px] font-bold">
+                  {course.instructorName?.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <p className="text-xs font-bold truncate text-primary/80">{course.instructorName}</p>
+            </div>
           </div>
-          <div className="space-y-1">
-            <p className="text-[10px] uppercase font-bold text-muted-foreground">Class Level</p>
-            <p className="text-xs font-bold truncate">{course.targetClass}</p>
+          <div className="space-y-2">
+            <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Level</p>
+            <p className="text-xs font-black text-primary/80 pt-1.5">{course.targetClass}</p>
           </div>
         </div>
       </CardContent>
