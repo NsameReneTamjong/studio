@@ -44,7 +44,8 @@ import {
   QrCode,
   ArrowLeft,
   Search,
-  Users
+  Users,
+  PenTool
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -526,21 +527,21 @@ export default function GradeBookPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {MOCK_REPORT_HISTORY.filter(h => isTeacher ? h.subject.includes(selectedSubject) : true).map((hist) => (
-                    <TableRow key={hist.id} className="hover:bg-accent/5 transition-colors border-b last:border-0">
-                      <TableCell className="pl-8 py-4 font-bold text-sm">{hist.year}</TableCell>
-                      <TableCell className="font-black text-primary">{hist.term}</TableCell>
+                  {MOCK_REPORT_HISTORY.filter(h => isTeacher ? h.subject.includes(selectedSubject) : true).map((h) => (
+                    <TableRow key={h.id} className="hover:bg-accent/5 transition-colors border-b last:border-0">
+                      <TableCell className="pl-8 py-4 font-bold text-sm">{h.year}</TableCell>
+                      <TableCell className="font-black text-primary">{h.term}</TableCell>
                       <TableCell>
-                        <Badge variant="outline" className="text-[10px] border-primary/10 font-bold">{hist.subject}</Badge>
+                        <Badge variant="outline" className="text-[10px] border-primary/10 font-bold">{h.subject}</Badge>
                       </TableCell>
-                      <TableCell className="text-xs font-bold text-muted-foreground italic">{hist.class}</TableCell>
+                      <TableCell className="text-xs font-bold text-muted-foreground italic">{h.class}</TableCell>
                       <TableCell className="text-center">
                         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100 font-bold text-xs">
-                          <Users className="w-3 h-3" /> {hist.studentCount}
+                          <Users className="w-3 h-3" /> {h.studentCount}
                         </div>
                       </TableCell>
                       <TableCell className="text-right pr-8">
-                        <Button variant="ghost" className="text-[10px] font-black uppercase tracking-widest gap-2 hover:bg-primary hover:text-white" onClick={() => setViewingHistoryRecord(hist)}>
+                        <Button variant="ghost" className="text-[10px] font-black uppercase tracking-widest gap-2 hover:bg-primary hover:text-white" onClick={() => setViewingHistoryRecord(h)}>
                           <Eye className="w-3.5 h-3.5" /> View Results
                         </Button>
                       </TableCell>
