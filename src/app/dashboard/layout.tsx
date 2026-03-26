@@ -35,6 +35,13 @@ import {
   DialogDescription, 
   DialogFooter
 } from "@/components/ui/dialog";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -267,12 +274,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       <div className="flex flex-wrap gap-3 md:justify-end">
                         {/* TESTIMONY MODAL */}
                         <Dialog open={isTestimonyModalOpen} onOpenChange={setIsTestimonyModalOpen}>
-                          <Button asChild variant="outline" className="rounded-xl border-primary/20 text-primary h-11 px-6 font-bold gap-2 bg-white hover:bg-primary/5">
-                            <button>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" className="rounded-xl border-primary/20 text-primary h-11 px-6 font-bold gap-2 bg-white hover:bg-primary/5">
                               <Quote className="w-4 h-4" />
                               Give Testimony
-                            </button>
-                          </Button>
+                            </Button>
+                          </DialogTrigger>
                           <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
                             <DialogHeader className="bg-primary p-8 text-white">
                               <div className="flex items-center gap-4">
@@ -316,12 +323,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
                         {/* SUPPORT US MODAL */}
                         <Dialog open={isSupportModalOpen} onOpenChange={setIsSupportModalOpen}>
-                          <Button asChild className="rounded-xl bg-primary text-white h-11 px-8 font-black uppercase tracking-widest text-[10px] gap-2 shadow-lg hover:bg-primary/90">
-                            <button>
+                          <DialogTrigger asChild>
+                            <Button className="rounded-xl bg-primary text-white h-11 px-8 font-black uppercase tracking-widest text-[10px] gap-2 shadow-lg hover:bg-primary/90">
                               <Coins className="w-4 h-4 text-secondary" />
                               Support our Vision
-                            </button>
-                          </Button>
+                            </Button>
+                          </DialogTrigger>
                           <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
                             <DialogHeader className="bg-primary p-8 text-white">
                               <div className="flex items-center gap-4">
@@ -339,7 +346,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 <div className="space-y-2">
                                   <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Contribution Amount (XAF)</Label>
                                   <Select value={supportData.amount} onValueChange={(v) => setSupportData({...supportData, amount: v})}>
-                                    <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-black text-primary"><SelectValue /></SelectTrigger>
+                                    <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-black text-primary">
+                                      <SelectValue />
+                                    </SelectTrigger>
                                     <SelectContent>
                                       <SelectItem value="500">500 XAF</SelectItem>
                                       <SelectItem value="1000">1,000 XAF</SelectItem>
