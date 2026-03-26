@@ -12,7 +12,9 @@ import {
   Send,
   Loader2,
   School,
-  Star
+  Star,
+  Video,
+  ImageIcon
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,48 +25,6 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/hooks/use-toast";
-
-// --- DATA STRUCTURES ---
-
-interface EventItem {
-  id: string;
-  type: "video" | "image";
-  title: string;
-  description: string;
-  url: string;
-  thumbnail?: string;
-}
-
-const EVENTS: EventItem[] = [
-  {
-    id: "e1",
-    type: "video",
-    title: "Annual Pedagogical Conference 2024",
-    description: "Witness the digital transformation journey of 120+ schools across the region.",
-    url: "https://www.youtube.com/embed/dQw4w9WgXcQ", 
-  },
-  {
-    id: "e2",
-    type: "image",
-    title: "New STEM Laboratory Launch",
-    description: "Inaugurating state-of-the-art facilities at GBHS Deido to empower future engineers.",
-    url: "https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=1986&auto=format&fit=crop",
-  },
-  {
-    id: "e3",
-    type: "video",
-    title: "Student Leadership Summit",
-    description: "Highlights from our quarterly summit where student leaders discuss the future of education.",
-    url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-  },
-  {
-    id: "e4",
-    type: "image",
-    title: "Community Outreach Program",
-    description: "Bridging the gap between technology and traditional learning in rural communities.",
-    url: "https://images.unsplash.com/photo-1524178232363-1fb28f74b671?q=80&w=2070&auto=format&fit=crop",
-  }
-];
 
 const ALL_VOICES = [
   {
@@ -156,7 +116,7 @@ const Row3 = ALL_VOICES.slice(6, 9);
 
 export default function CommunityTestimonyPage() {
   const [mounted, setMounted] = useState(false);
-  const { testimonials, addOrder } = useAuth();
+  const { testimonials, addOrder, publicEvents } = useAuth();
   const { toast } = useToast();
   
   const [isSubmitting, setIsProcessing] = useState(false);
@@ -251,7 +211,7 @@ export default function CommunityTestimonyPage() {
           </div>
         </section>
 
-        {/* 2. EVENT SECTION */}
+        {/* 2. EVENT SECTION (DYNAMIC) */}
         <section id="events" className="space-y-12">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="space-y-2">
@@ -264,7 +224,7 @@ export default function CommunityTestimonyPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-            {EVENTS.map((event, idx) => (
+            {publicEvents.map((event, idx) => (
               <Card key={event.id} className={cn(
                 "border-none shadow-xl rounded-[2.5rem] overflow-hidden group hover:shadow-2xl transition-all duration-500 bg-white/50 backdrop-blur-sm",
                 "animate-in fade-in slide-in-from-bottom-10"
@@ -280,6 +240,11 @@ export default function CommunityTestimonyPage() {
                   ) : (
                     <img src={event.url} alt={event.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
                   )}
+                  <div className="absolute top-4 left-4">
+                    <Badge className="bg-black/40 backdrop-blur-md text-white border-none uppercase text-[8px] font-black px-3">
+                      {event.type === 'video' ? <><Video className="w-3 h-3 mr-1.5" /> VIDEO</> : <><ImageIcon className="w-3 h-3 mr-1.5" /> PHOTO</>}
+                    </Badge>
+                  </div>
                 </div>
                 <CardHeader className="p-8">
                   <CardTitle className="text-2xl font-black text-primary leading-tight group-hover:text-secondary transition-colors">

@@ -4,7 +4,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-export type UserRole = "SUPER_ADMIN" | "SCHOOL_ADMIN" | "SUB_ADMIN" | "TEACHER" | "STUDENT" | "PARENT" | "BURSAR" | "LIBRARIAN" | "CEO" | "CTO" | "COO" | "INV";
+export type UserRole = "SUPER_ADMIN" | "SCHOOL_ADMIN" | "SUB_ADMIN" | "TEACHER" | "STUDENT" | "PARENT" | "BURSAR" | "LIBRARIAN" | "CEO" | "CTO" | "COO" | "INV" | "DESIGNER";
 
 export interface SchoolInfo {
   id: string;
@@ -122,6 +122,14 @@ export interface SupportContribution {
   createdAt: Date;
 }
 
+export interface PublicEvent {
+  id: string;
+  type: "video" | "image";
+  title: string;
+  description: string;
+  url: string;
+}
+
 interface AuthContextType {
   user: User | null;
   platformSettings: PlatformSettings;
@@ -131,7 +139,7 @@ interface AuthContextType {
   announcements: Announcement[];
   supportContributions: SupportContribution[];
   schools: SchoolInfo[];
-  featuredVideos: any[];
+  publicEvents: PublicEvent[];
   login: (matricule: string) => Promise<void>;
   activateAccount: (matricule: string) => Promise<void>;
   updateUser: (updates: Partial<User>) => Promise<void>;
@@ -157,6 +165,8 @@ interface AuthContextType {
   addSupport: (contribution: Omit<SupportContribution, "id" | "status" | "createdAt">) => void;
   verifySupport: (id: string) => void;
   deleteSupport: (id: string) => void;
+  addPublicEvent: (event: Omit<PublicEvent, "id">) => void;
+  deletePublicEvent: (id: string) => void;
   // Auth
   logout: () => Promise<void>;
   isAuthenticated: boolean;
@@ -164,6 +174,37 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const INITIAL_EVENTS: PublicEvent[] = [
+  {
+    id: "e1",
+    type: "video",
+    title: "Annual Pedagogical Conference 2024",
+    description: "Witness the digital transformation journey of 120+ schools across the region.",
+    url: "https://www.youtube.com/embed/dQw4w9WgXcQ", 
+  },
+  {
+    id: "e2",
+    type: "image",
+    title: "New STEM Laboratory Launch",
+    description: "Inaugurating state-of-the-art facilities at GBHS Deido to empower future engineers.",
+    url: "https://images.unsplash.com/photo-1562774053-701939374585?q=80&w=1986&auto=format&fit=crop",
+  },
+  {
+    id: "e3",
+    type: "video",
+    title: "Student Leadership Summit",
+    description: "Highlights from our quarterly summit where student leaders discuss the future of education.",
+    url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+  },
+  {
+    id: "e4",
+    type: "image",
+    title: "Community Outreach Program",
+    description: "Bridging the gap between technology and traditional learning in rural communities.",
+    url: "https://images.unsplash.com/photo-1524178232363-1fb28f74b671?q=80&w=2070&auto=format&fit=crop",
+  }
+];
 
 const INITIAL_SCHOOLS: SchoolInfo[] = [
   {
@@ -232,19 +273,6 @@ const INITIAL_ORDERS: Order[] = [
     subDivision: "Douala 5ème",
     status: "processed",
     createdAt: new Date(Date.now() - 86400000)
-  },
-  {
-    id: "ORD-1003",
-    fullName: "Prof. Luc Abena",
-    occupation: "Principal",
-    schoolName: "Lycée de Mballa II",
-    whatsappNumber: "+237 655 44 55 66",
-    email: "abena.luc@mballa2.cm",
-    region: "Center",
-    division: "Mfoundi",
-    subDivision: "Yaoundé 1er",
-    status: "pending",
-    createdAt: new Date(Date.now() - 172800000)
   }
 ];
 
@@ -260,30 +288,6 @@ const INITIAL_SUPPORT: SupportContribution[] = [
     message: "I love the new MCQ exams! Keep up the good work.",
     status: "Verified",
     createdAt: new Date()
-  },
-  {
-    id: "SUP-2002",
-    userName: "Mr. Robert Thompson",
-    userRole: "PARENT",
-    userAvatar: "https://picsum.photos/seed/p1/100/100",
-    amount: 15000,
-    method: "Orange Money",
-    phone: "699334455",
-    message: "Great platform. It makes tracking my daughter's progress so easy.",
-    status: "New",
-    createdAt: new Date()
-  },
-  {
-    id: "SUP-2003",
-    userName: "Dr. Aris Tesla",
-    userRole: "TEACHER",
-    userAvatar: "https://picsum.photos/seed/t1/100/100",
-    amount: 10000,
-    method: "MTN MoMo",
-    phone: "670112233",
-    message: "Supporting the digital transformation of education in Cameroon.",
-    status: "Verified",
-    createdAt: new Date(Date.now() - 432000000)
   }
 ];
 
@@ -312,24 +316,14 @@ const INITIAL_TESTIMONIALS: Testimony[] = [
     message: "EduIgnite has completely changed how I study. The MCQ timers are great for preparation!",
     status: "approved",
     createdAt: new Date()
-  },
-  {
-    id: "test-2",
-    userId: "P1",
-    name: "Mr. Robert Thompson",
-    role: "PARENT",
-    schoolName: "GBHS Deido",
-    profileImage: "https://picsum.photos/seed/p1/150/150",
-    message: "Transparency is the key. I can check my child's attendance and grades from anywhere.",
-    status: "approved",
-    createdAt: new Date(Date.now() - 86400000)
   }
 ];
 
 const DEMO_ACCOUNTS: Record<string, any> = {
   "EDUI26CEO001": { name: "Platform CEO", role: "CEO", schoolId: null, isLicensePaid: true },
+  "EDUI26DES001": { name: "Creative Lead", role: "DESIGNER", schoolId: null, isLicensePaid: true },
   "GBHS26": { name: "Principal Fonka", role: "SCHOOL_ADMIN", schoolId: "GBHS-D", isLicensePaid: true },
-  "GBHS26A001": { name: "Vice Principal Academics", role: "SUB_ADMIN", schoolId: "GBHS-D", isLicensePaid: true },
+  "GBHS26A001": { name: "VP Academics", role: "SUB_ADMIN", schoolId: "GBHS-D", isLicensePaid: true },
   "GBHS26T001": { name: "Dr. Aris Tesla", role: "TEACHER", schoolId: "GBHS-D", isLicensePaid: true },
   "GBHS26S001": { name: "Alice Thompson", role: "STUDENT", schoolId: "GBHS-D", isLicensePaid: true },
   "GBHS26B001": { name: "Mme. Ngono Celine", role: "BURSAR", schoolId: "GBHS-D", isLicensePaid: true },
@@ -356,6 +350,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [supportContributions, setSupportContributions] = useState<SupportContribution[]>(INITIAL_SUPPORT);
+  const [publicEvents, setPublicEvents] = useState<PublicEvent[]>(INITIAL_EVENTS);
   const [platformSettings, setPlatformSettings] = useState<PlatformSettings>({
     name: "EduIgnite",
     logo: "https://picsum.photos/seed/eduignite-platform/200/200",
@@ -363,11 +358,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     fees: DEFAULT_FEES
   });
 
-  const [featuredVideos] = useState([
-    { id: 1, title: "Platform Introduction", description: "Learn how EduIgnite is revolutionizing school management.", thumbnail: "https://picsum.photos/seed/v1/800/450", category: "Platform" },
-    { id: 2, title: "Teacher's Guide", description: "A quick walk-through of the pedagogical dashboard.", thumbnail: "https://picsum.photos/seed/v2/800/450", category: "Training" },
-  ]);
-  
   const router = useRouter();
 
   useEffect(() => {
@@ -376,7 +366,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUserData(JSON.parse(savedUser));
     }
     
-    // Load collections from local storage for persistence
+    // Load collections from local storage
     const collections = [
       { key: "testimonials", setter: setTestimonials, default: INITIAL_TESTIMONIALS },
       { key: "feedbacks", setter: setFeedbacks, default: [] },
@@ -384,16 +374,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       { key: "announcements", setter: setAnnouncements, default: INITIAL_ANNOUNCEMENTS },
       { key: "support", setter: setSupportContributions, default: INITIAL_SUPPORT },
       { key: "schools", setter: setSchools, default: INITIAL_SCHOOLS },
+      { key: "events", setter: setPublicEvents, default: INITIAL_EVENTS },
       { key: "platform", setter: setPlatformSettings, default: { name: "EduIgnite", logo: "https://picsum.photos/seed/eduignite-platform/200/200", paymentDeadline: "2024-10-31", fees: DEFAULT_FEES } }
     ];
 
     collections.forEach(c => {
       const saved = localStorage.getItem(`eduignite_${c.key}`);
       const parsed = saved ? JSON.parse(saved) : null;
-      
-      if (parsed && Array.isArray(parsed) && parsed.length > 0) {
-        c.setter(parsed);
-      } else if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && Object.keys(parsed).length > 0) {
+      if (parsed && (Array.isArray(parsed) ? parsed.length > 0 : Object.keys(parsed).length > 0)) {
         c.setter(parsed);
       } else if (c.default) {
         c.setter(c.default);
@@ -412,9 +400,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem("eduignite_announcements", JSON.stringify(announcements));
       localStorage.setItem("eduignite_support", JSON.stringify(supportContributions));
       localStorage.setItem("eduignite_schools", JSON.stringify(schools));
+      localStorage.setItem("eduignite_events", JSON.stringify(publicEvents));
       localStorage.setItem("eduignite_platform", JSON.stringify(platformSettings));
     }
-  }, [testimonials, feedbacks, orders, announcements, supportContributions, schools, platformSettings, isLoading]);
+  }, [testimonials, feedbacks, orders, announcements, supportContributions, schools, platformSettings, publicEvents, isLoading]);
 
   const login = async (matricule: string) => {
     setIsLoading(true);
@@ -436,7 +425,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUserData(mockUser);
     localStorage.setItem("eduignite_prototype_session", JSON.stringify(mockUser));
     
-    if (["CEO", "CTO", "INV", "SUPER_ADMIN"].includes(mockUser.role)) {
+    if (["CEO", "CTO", "COO", "INV", "SUPER_ADMIN", "DESIGNER"].includes(mockUser.role)) {
       router.push("/dashboard");
     } else {
       router.push("/welcome");
@@ -474,8 +463,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!userData) return;
     await updateUser({ aiRequestCount: (userData.aiRequestCount || 0) + 1 });
   };
-
-  // --- Collection Handlers ---
 
   const addTestimony = (t: Omit<Testimony, "id" | "status" | "createdAt">) => {
     setTestimonials(prev => [{ ...t, id: Math.random().toString(36).substr(2, 9), status: "pending", createdAt: new Date() }, ...prev]);
@@ -534,6 +521,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSupportContributions(prev => prev.filter(c => c.id !== id));
   };
 
+  const addPublicEvent = (e: Omit<PublicEvent, "id">) => {
+    setPublicEvents(prev => [{ ...e, id: `EVT-${Math.random().toString(36).substr(2, 5).toUpperCase()}` }, ...prev]);
+  };
+  const deletePublicEvent = (id: string) => {
+    setPublicEvents(prev => prev.filter(e => e.id !== id));
+  };
+
   const logout = async () => {
     setUserData(null);
     localStorage.removeItem("eduignite_prototype_session");
@@ -550,7 +544,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       announcements,
       supportContributions,
       schools,
-      featuredVideos,
+      publicEvents,
       login, 
       activateAccount,
       updateUser, 
@@ -575,6 +569,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       addSupport,
       verifySupport,
       deleteSupport,
+      addPublicEvent,
+      deletePublicEvent,
       logout, 
       isAuthenticated: !!userData,
       isLoading

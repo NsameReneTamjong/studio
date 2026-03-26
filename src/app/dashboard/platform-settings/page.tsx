@@ -30,17 +30,21 @@ import {
   Wallet,
   Smartphone,
   Heart,
-  BookOpen
+  BookOpen,
+  Video,
+  Image as ImageIcon
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function PlatformSettingsPage() {
-  const { platformSettings, updatePlatformSettings } = useAuth();
+  const { platformSettings, updatePlatformSettings, publicEvents, addPublicEvent, deletePublicEvent } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const eventImageRef = useRef<HTMLInputElement>(null);
   
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -50,11 +54,11 @@ export default function PlatformSettingsPage() {
     fees: { ...platformSettings.fees }
   });
 
-  const [newVideo, setNewVideo] = useState({
+  const [newEvent, setNewEvent] = useState({
     title: "",
     description: "",
-    youtubeUrl: "",
-    category: "Platform"
+    url: "",
+    type: "video" as "video" | "image"
   });
 
   useEffect(() => {
@@ -66,7 +70,7 @@ export default function PlatformSettingsPage() {
     });
   }, [platformSettings]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, target: 'logo' | 'event') => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 2 * 1024 * 1024) {
@@ -76,8 +80,12 @@ export default function PlatformSettingsPage() {
 
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, platformLogo: reader.result as string }));
-        toast({ title: "Logo Uploaded", description: "Identity preview updated locally." });
+        if (target === 'logo') {
+          setFormData(prev => ({ ...prev, platformLogo: reader.result as string }));
+        } else {
+          setNewEvent(prev => ({ ...prev, url: reader.result as string }));
+        }
+        toast({ title: "Image Processed", description: "Identity preview updated locally." });
       };
       reader.readAsDataURL(file);
     }
@@ -85,7 +93,6 @@ export default function PlatformSettingsPage() {
 
   const handleUpdateSettings = async () => {
     setLoading(true);
-    // Prototype Delay
     setTimeout(() => {
       updatePlatformSettings({
         name: formData.platformName,
@@ -98,7 +105,7 @@ export default function PlatformSettingsPage() {
         title: "Platform Policy Updated",
         description: "All branding and financial parameters have been synchronized across the network.",
       });
-    }, 1500);
+    }, 1000);
   };
 
   const handleFeeChange = (role: keyof PlatformFees, value: string) => {
@@ -111,9 +118,15 @@ export default function PlatformSettingsPage() {
     }));
   };
 
-  const handleAddVideo = () => {
-    toast({ title: "Media Added", description: "The video has been added to public gallery." });
-    setNewVideo({ title: "", description: "", youtubeUrl: "", category: "Platform" });
+  const handlePublishEvent = () => {
+    if (!newEvent.title || !newEvent.url) {
+      toast({ variant: "destructive", title: "Missing Information", description: "Title and content URL are required." });
+      return;
+    }
+    
+    addPublicEvent(newEvent);
+    setNewEvent({ title: "", description: "", url: "", type: "video" });
+    toast({ title: "Portfolio Updated", description: "New event published to community portal." });
   };
 
   const FeeInput = ({ id, label, value, onChange, icon: Icon, colorClass }: any) => (
@@ -188,14 +201,14 @@ export default function PlatformSettingsPage() {
                   <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground block">Platform Logo</Label>
                   <div 
                     className="group relative w-48 h-48 mx-auto bg-accent/20 rounded-[2.5rem] border-2 border-dashed border-accent flex items-center justify-center cursor-pointer overflow-hidden transition-all hover:border-primary shadow-inner"
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => logoInputRef.current?.click()}
                   >
                     <input 
                       type="file" 
-                      ref={fileInputRef} 
+                      ref={logoInputRef} 
                       className="hidden" 
                       accept="image/*" 
-                      onChange={handleFileChange} 
+                      onChange={(e) => handleFileChange(e, 'logo')} 
                     />
                     {formData.platformLogo ? (
                       <img src={formData.platformLogo} alt="Logo" className="w-full h-full object-contain p-6" />
@@ -207,7 +220,6 @@ export default function PlatformSettingsPage() {
                       <span className="text-[10px] font-black uppercase tracking-widest">Change Device Logo</span>
                     </div>
                   </div>
-                  <p className="text-[9px] text-muted-foreground italic">Recommended: PNG or SVG with transparent background.</p>
                 </div>
 
                 <div className="md:col-span-8 space-y-8">
@@ -219,7 +231,6 @@ export default function PlatformSettingsPage() {
                       placeholder="e.g. EduIgnite"
                       className="h-14 bg-accent/30 border-none rounded-2xl font-black text-2xl text-primary focus-visible:ring-primary px-6"
                     />
-                    <p className="text-[10px] text-muted-foreground ml-1">This name appears on login pages and official platform receipts.</p>
                   </div>
 
                   <div className="p-6 rounded-[2rem] bg-primary/5 border border-primary/10 flex items-center gap-4">
@@ -229,7 +240,7 @@ export default function PlatformSettingsPage() {
                     <div className="space-y-1">
                       <p className="text-sm font-black text-primary uppercase tracking-tight leading-none">Global Sync Enabled</p>
                       <p className="text-xs text-muted-foreground leading-relaxed">
-                        Identity changes are cached and distributed to all 124 institutional nodes within 15 minutes.
+                        Identity changes are cached and distributed to all institutional nodes.
                       </p>
                     </div>
                   </div>
@@ -241,7 +252,6 @@ export default function PlatformSettingsPage() {
 
         <TabsContent value="revenue" className="space-y-8 animate-in fade-in slide-in-from-bottom-2">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* FEE CONFIGURATION */}
             <div className="lg:col-span-8 space-y-8">
               <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem]">
                 <CardHeader className="bg-primary/5 border-b p-10">
@@ -265,7 +275,6 @@ export default function PlatformSettingsPage() {
               </Card>
             </div>
 
-            {/* DEADLINE CONFIGURATION */}
             <div className="lg:col-span-4 space-y-8">
               <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-primary text-white">
                 <CardHeader className="bg-white/10 p-8 border-b border-white/5">
@@ -284,72 +293,125 @@ export default function PlatformSettingsPage() {
                       className="h-14 bg-white/10 border-white/20 text-white font-black text-xl rounded-2xl px-6 focus-visible:ring-secondary"
                     />
                   </div>
-                  <div className="p-4 rounded-xl bg-white/5 border border-white/10 flex gap-3">
-                    <AlertCircle className="w-5 h-5 text-secondary shrink-0" />
-                    <p className="text-[10px] font-medium leading-relaxed opacity-80 italic">
-                      After this date, institutional nodes with outstanding balances will be automatically locked by the system kernel.
-                    </p>
-                  </div>
                 </CardContent>
               </Card>
-
-              <div className="p-8 rounded-[2.5rem] bg-white border shadow-sm text-center space-y-6">
-                 <div className="flex justify-center">
-                    <div className="p-4 bg-accent rounded-full">
-                       <Lock className="w-10 h-10 text-primary" />
-                    </div>
-                 </div>
-                 <div className="space-y-2">
-                    <h4 className="font-black text-primary uppercase tracking-tighter">Governance Integrity</h4>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      Revenue parameters are protected by multi-founder authorization. Updates are digitally signed by the current CEO session.
-                    </p>
-                 </div>
-              </div>
             </div>
           </div>
         </TabsContent>
 
         <TabsContent value="marketing" className="space-y-8 animate-in fade-in slide-in-from-bottom-2">
           <Card className="border-none shadow-xl rounded-[2.5rem] overflow-hidden">
-            <CardHeader className="bg-red-600 text-white p-10">
+            <CardHeader className="bg-primary p-10 text-white">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-white/10 rounded-2xl">
-                  <Star className="w-8 h-8 text-white" />
+                  <Star className="w-8 h-8 text-secondary" />
                 </div>
                 <div>
-                  <CardTitle className="text-2xl font-black uppercase tracking-tighter">Public Media Gallery</CardTitle>
-                  <CardDescription className="text-white/80">Manage featured institutional videos displayed on the community portal.</CardDescription>
+                  <CardTitle className="text-2xl font-black uppercase tracking-tighter">Public Portfolio Management</CardTitle>
+                  <CardDescription className="text-white/60">Upload images and videos to the community testimony highlights.</CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="p-10">
-              <div className="space-y-8">
-                <div className="p-8 bg-accent/30 rounded-[2rem] border border-accent">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="col-span-2 space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Video Title</Label>
-                      <Input value={newVideo.title} onChange={(e) => setNewVideo({...newVideo, title: e.target.value})} placeholder="e.g. Platform Introduction" className="h-12 border-none bg-white shadow-sm rounded-xl px-4 font-bold" />
+            <CardContent className="p-10 space-y-10">
+              {/* NEW MEDIA FORM */}
+              <div className="p-8 bg-accent/30 rounded-[2rem] border border-accent space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+                  <div className="md:col-span-4 flex flex-col items-center gap-4">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Content Type</Label>
+                    <div className="flex gap-2 w-full">
+                      <Button 
+                        variant={newEvent.type === 'video' ? 'default' : 'outline'}
+                        className="flex-1 rounded-xl h-12 font-bold gap-2"
+                        onClick={() => setNewEvent({...newEvent, type: 'video', url: ''})}
+                      >
+                        <Video className="w-4 h-4" /> Video
+                      </Button>
+                      <Button 
+                        variant={newEvent.type === 'image' ? 'default' : 'outline'}
+                        className="flex-1 rounded-xl h-12 font-bold gap-2"
+                        onClick={() => setNewEvent({...newEvent, type: 'image', url: ''})}
+                      >
+                        <ImageIcon className="w-4 h-4" /> Image
+                      </Button>
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">YouTube / Media URL</Label>
-                      <Input value={newVideo.youtubeUrl} onChange={(e) => setNewVideo({...newVideo, youtubeUrl: e.target.value})} placeholder="https://youtube.com/..." className="h-12 border-none bg-white shadow-sm rounded-xl px-4" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Category</Label>
-                      <Select value={newVideo.category} onValueChange={(v) => setNewVideo({...newVideo, category: v})}>
-                        <SelectTrigger className="h-12 border-none bg-white shadow-sm rounded-xl font-bold"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Platform">Platform Intro</SelectItem>
-                          <SelectItem value="Event">Event Recap</SelectItem>
-                          <SelectItem value="Training">Training Guide</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    
+                    {newEvent.type === 'image' && (
+                      <div 
+                        className="w-full aspect-video bg-white rounded-2xl border-2 border-dashed border-primary/20 flex flex-col items-center justify-center cursor-pointer overflow-hidden group hover:border-primary transition-all"
+                        onClick={() => eventImageRef.current?.click()}
+                      >
+                        <input type="file" ref={eventImageRef} className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, 'event')} />
+                        {newEvent.url ? (
+                          <img src={newEvent.url} alt="Preview" className="w-full h-full object-cover" />
+                        ) : (
+                          <>
+                            <Upload className="w-6 h-6 text-primary/40 group-hover:scale-110 transition-transform mb-2" />
+                            <span className="text-[10px] font-black uppercase text-primary/40">Upload Media</span>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <Button onClick={handleAddVideo} className="w-full h-14 bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-xs gap-3 rounded-2xl mt-8 shadow-xl transition-all active:scale-95">
-                    <Plus className="w-5 h-5" /> Publish to Public Gallery
-                  </Button>
+
+                  <div className="md:col-span-8 space-y-6">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest">Headline Title</Label>
+                      <Input value={newEvent.title} onChange={(e) => setNewEvent({...newEvent, title: e.target.value})} placeholder="e.g. Annual Pedagogical Summit" className="h-12 border-none bg-white rounded-xl px-4 font-bold" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest">Short Summary</Label>
+                      <Input value={newEvent.description} onChange={(e) => setNewEvent({...newEvent, description: e.target.value})} placeholder="Capturing the moments..." className="h-12 border-none bg-white rounded-xl px-4" />
+                    </div>
+                    {newEvent.type === 'video' && (
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest">YouTube Embed URL</Label>
+                        <Input value={newEvent.url} onChange={(e) => setNewEvent({...newEvent, url: e.target.value})} placeholder="https://www.youtube.com/embed/..." className="h-12 border-none bg-white rounded-xl px-4" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <Button onClick={handlePublishEvent} className="w-full h-14 bg-primary text-white font-black uppercase tracking-widest text-xs gap-3 rounded-2xl shadow-xl transition-all">
+                  <Plus className="w-5 h-5 text-secondary" /> Publish to Portfolio
+                </Button>
+              </div>
+
+              {/* ACTIVE PORTFOLIO LIST */}
+              <div className="space-y-6">
+                <h3 className="text-sm font-black uppercase text-primary tracking-[0.3em] border-b pb-2 flex items-center gap-2">
+                  <Layout className="w-4 h-4" /> Active Gallery Contents
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {publicEvents.map((event) => (
+                    <Card key={event.id} className="border-none shadow-sm overflow-hidden bg-accent/10 flex flex-col">
+                      <div className="aspect-video relative bg-slate-900 overflow-hidden">
+                        {event.type === 'video' ? (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Video className="w-12 h-12 text-white/20" />
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center font-bold text-white uppercase text-[10px]">VIDEO CONTENT</div>
+                          </div>
+                        ) : (
+                          <img src={event.url} alt={event.title} className="w-full h-full object-cover" />
+                        )}
+                        <Button 
+                          variant="destructive" 
+                          size="icon" 
+                          className="absolute top-2 right-2 rounded-full h-8 w-8 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => deletePublicEvent(event.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <CardHeader className="p-4">
+                        <CardTitle className="text-base font-black truncate">{event.title}</CardTitle>
+                        <CardDescription className="text-xs line-clamp-1">{event.description}</CardDescription>
+                      </CardHeader>
+                      <CardFooter className="p-4 pt-0 justify-end">
+                        <Button variant="ghost" size="sm" className="text-destructive gap-2 text-[10px] font-black uppercase" onClick={() => deletePublicEvent(event.id)}>
+                          <Trash2 className="w-3.5 h-3.5" /> Remove
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
                 </div>
               </div>
             </CardContent>

@@ -53,7 +53,7 @@ interface SidebarProps {
   onClose?: () => void;
 }
 
-const EXECUTIVE_ROLES: UserRole[] = ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV"];
+const EXECUTIVE_ROLES: UserRole[] = ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV", "DESIGNER"];
 
 export function DashboardSidebar({ onClose }: SidebarProps) {
   const pathname = usePathname();
