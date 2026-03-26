@@ -61,6 +61,12 @@ const MOCK_STUDENTS = [
   { uid: "S4", id: "GBHS26S004", name: "Diana Prince", isLicensePaid: true, section: "Anglophone Section", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s4/100/100", dob: "05/01/2008" },
 ];
 
+const MOCK_REPORT_HISTORY = [
+  { year: "2022/2023", term: "Term 3", average: "16.45", position: "2nd / 45", status: "PROMOTED" },
+  { year: "2022/2023", term: "Term 2", average: "15.80", position: "4th / 45", status: "PASSED" },
+  { year: "2022/2023", term: "Term 1", average: "14.20", position: "8th / 45", status: "PASSED" },
+];
+
 const FULL_SUBJECT_LIST = [
   { subject: "Mathematics", seq1: 18.0, seq2: 17.5, teacher: "Prof. Smith", status: "Passed", coeff: 5 },
   { subject: "English Language", seq1: 14.5, seq2: 16.0, teacher: "Dr. Tesla", status: "Passed", coeff: 4 },
@@ -119,7 +125,7 @@ export default function GradeBookPage() {
     if (studentClass.includes("Upper Sixth") || studentClass.includes("Terminale")) {
       return FULL_SUBJECT_LIST.slice(0, 4);
     }
-    return FULL_SUBJECT_LIST.slice(0, 10);
+    return FULL_SUBJECT_LIST.slice(0, 11);
   };
 
   const getStudentStats = (grades: any[]) => {
@@ -194,8 +200,7 @@ export default function GradeBookPage() {
                 <Scale className="w-5 h-5 text-secondary" /> EXCELLENT
               </div>
             </CardContent>
-          </Card>
-        </div>
+          </div>
 
         <Card className="border-none shadow-xl overflow-hidden rounded-[2rem] bg-white">
           <CardHeader className="bg-primary p-8 text-white">
@@ -205,8 +210,8 @@ export default function GradeBookPage() {
                   <TrendingUp className="w-8 h-8 text-secondary" />
                 </div>
                 <div>
-                  <CardTitle className="text-2xl font-black">Subject Performance Ledger</CardTitle>
-                  <CardDescription className="text-white/60">Verified pedagogical records for {selectedTerm}.</CardDescription>
+                  <CardTitle className="text-2xl font-black">Current Term Performance</CardTitle>
+                  <CardDescription className="text-white/60">Real-time ledger for {selectedTerm}.</CardDescription>
                 </div>
               </div>
               <Badge variant="outline" className="bg-white/10 text-white border-none h-8 px-4 font-black uppercase text-[10px] tracking-widest">
@@ -251,16 +256,59 @@ export default function GradeBookPage() {
           <CardFooter className="bg-accent/10 p-6 border-t flex justify-between items-center">
              <div className="flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-green-600" />
-                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest italic">All records are digitally signed by the institutional registrar.</p>
+                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest italic">All current term marks are digitally signed by the registrar.</p>
              </div>
              <div className="text-right">
-                <p className="text-[10px] uppercase font-black text-muted-foreground">Cumulative Average</p>
+                <p className="text-[10px] uppercase font-black text-muted-foreground">Term Final Average</p>
                 <p className="text-2xl font-black text-primary underline decoration-double decoration-secondary underline-offset-4">{myStats.average} / 20</p>
              </div>
           </CardFooter>
         </Card>
 
-        {/* REUSE THE PRINTABLE DIALOG FROM THE ADMIN VIEW */}
+        <Card className="border-none shadow-sm overflow-hidden rounded-[2rem] bg-white">
+          <CardHeader className="border-b bg-accent/5 p-6">
+            <div className="flex items-center gap-3">
+              <History className="w-5 h-5 text-primary" />
+              <div>
+                <CardTitle className="text-lg font-black uppercase tracking-tight text-primary">Past Academic Records</CardTitle>
+                <CardDescription className="text-xs">History of term averages and rank progression.</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader className="bg-accent/10">
+                <TableRow className="uppercase text-[10px] font-black tracking-widest border-b">
+                  <TableHead className="pl-8 py-4">Academic Year</TableHead>
+                  <TableHead>Term</TableHead>
+                  <TableHead className="text-center">Final Average</TableHead>
+                  <TableHead className="text-center">Rank</TableHead>
+                  <TableHead className="text-center">Status</TableHead>
+                  <TableHead className="text-right pr-8">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {MOCK_REPORT_HISTORY.map((hist, i) => (
+                  <TableRow key={i} className="hover:bg-accent/5 border-b last:border-0">
+                    <TableCell className="pl-8 py-4 font-bold text-sm">{hist.year}</TableCell>
+                    <TableCell className="font-bold text-primary">{hist.term}</TableCell>
+                    <TableCell className="text-center font-black text-lg text-primary">{hist.average} / 20</TableCell>
+                    <TableCell className="text-center font-bold italic">{hist.position}</TableCell>
+                    <TableCell className="text-center">
+                      <Badge className="bg-green-100 text-green-700 border-none text-[9px] font-black">{hist.status}</Badge>
+                    </TableCell>
+                    <TableCell className="text-right pr-8">
+                      <Button variant="ghost" size="icon" className="rounded-full hover:bg-primary/5 text-primary" onClick={() => setPreviewStudent({ ...user, class: user.class || "2nde / Form 5" })}>
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
         <ReportCardDialog previewStudent={previewStudent} setPreviewStudent={setPreviewStudent} selectedYear={selectedYear} selectedTerm={selectedTerm} getStudentGrades={getStudentGrades} getStudentStats={getStudentStats} />
       </div>
     );
@@ -465,7 +513,6 @@ function ReportCardDialog({ previewStudent, setPreviewStudent, selectedYear, sel
 
         <div className="bg-muted p-2 md:p-6 print:p-0 print:bg-white overflow-x-auto">
           <div id="printable-bulletin" className="bg-white p-6 md:p-8 shadow-sm border border-border min-w-[850px] flex flex-col space-y-4 font-serif text-black relative print:shadow-none print:border-none print:p-4">
-             {/* COMPACT NATIONAL HEADER */}
              <div className="grid grid-cols-3 gap-2 items-start text-center border-b-2 border-black pb-4">
                 <div className="space-y-0.5 text-[8px] uppercase font-black">
                   <p>Republic of Cameroon</p>
@@ -496,7 +543,6 @@ function ReportCardDialog({ previewStudent, setPreviewStudent, selectedYear, sel
                 <p className="font-bold text-[10px] italic">Academic Session: {selectedYear} • {selectedTerm}</p>
              </div>
 
-             {/* COMPACT STUDENT METADATA */}
              <div className="grid grid-cols-12 gap-4 bg-accent/5 p-4 border border-black/10 rounded-xl items-center shadow-inner">
                 <div className="col-span-2">
                    <Avatar className="w-20 h-20 border-2 border-white rounded-lg bg-white overflow-hidden shadow-md">
@@ -514,7 +560,6 @@ function ReportCardDialog({ previewStudent, setPreviewStudent, selectedYear, sel
                 </div>
              </div>
 
-             {/* COMPACT MARKS TABLE */}
              <Table className="border-collapse border-2 border-black">
                 <TableHeader className="bg-black/5">
                   <TableRow className="border-b-2 border-black">
@@ -547,7 +592,6 @@ function ReportCardDialog({ previewStudent, setPreviewStudent, selectedYear, sel
                 </TableBody>
              </Table>
 
-             {/* COMPACT SUMMARY FOOTER */}
              <div className="grid grid-cols-12 gap-4 pt-2">
                 <div className="col-span-7 border-2 border-black p-4 rounded-xl space-y-4 shadow-sm">
                    <div className="grid grid-cols-2 gap-4">
