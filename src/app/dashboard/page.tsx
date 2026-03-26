@@ -206,7 +206,6 @@ export default function DashboardPage() {
               <div className="text-2xl font-black text-primary">{summaryStats.students}</div>
               <p className="text-[9px] font-bold mt-1 text-muted-foreground uppercase">82% Participation</p>
             </CardContent>
-          </Card>
 
           <Card className="border-none shadow-sm bg-white overflow-hidden group">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -217,7 +216,6 @@ export default function DashboardPage() {
               <div className="text-2xl font-black text-primary">{summaryStats.teachers}</div>
               <p className="text-[9px] font-bold mt-1 text-muted-foreground uppercase">Active Curriculums</p>
             </CardContent>
-          </Card>
 
           <Card className="border-none shadow-sm bg-white overflow-hidden group">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -228,7 +226,6 @@ export default function DashboardPage() {
               <div className="text-2xl font-black text-primary">{summaryStats.founders}</div>
               <p className="text-[9px] font-bold mt-1 text-muted-foreground uppercase">Executive Board</p>
             </CardContent>
-          </Card>
 
           <Card className="border-none shadow-sm bg-secondary text-primary overflow-hidden">
             <CardHeader className="pb-2">
@@ -665,17 +662,19 @@ export default function DashboardPage() {
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          {user.school?.logo && (
-            <div className="w-16 h-16 rounded-2xl bg-white p-2 shadow-xl border-2 border-accent hidden sm:flex items-center justify-center overflow-hidden">
+          <div className="w-16 h-16 rounded-2xl bg-white p-2 shadow-xl border-2 border-accent hidden sm:flex items-center justify-center overflow-hidden shrink-0">
+            {user.school?.logo ? (
               <img src={user.school.logo} alt="Logo" className="w-full h-full object-contain" />
-            </div>
-          )}
+            ) : (
+              <Building2 className="w-8 h-8 text-primary/40" />
+            )}
+          </div>
           <div>
-            <h1 className="text-3xl font-bold text-primary font-headline">Welcome, {user.name}</h1>
+            <h1 className="text-3xl font-bold text-primary font-headline tracking-tighter">Welcome, {user.name}</h1>
             <p className="text-muted-foreground mt-1">Institutional Dashboard: {user.school?.name || "EduIgnite Node"}</p>
           </div>
         </div>
-        <div className="bg-green-50 px-4 py-2 rounded-xl border border-green-100 flex items-center gap-3">
+        <div className="bg-green-50 px-4 py-2 rounded-xl border border-green-100 flex items-center gap-3 shrink-0">
           <ShieldCheck className="w-5 h-5 text-green-600" />
           <p className="text-xs font-bold text-green-700">Official Node Active</p>
         </div>
@@ -693,7 +692,7 @@ export default function DashboardPage() {
               <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{stat.label}</CardTitle>
               <stat.icon className={cn("w-4 h-4 transition-transform group-hover:scale-110", stat.color)} />
             </CardHeader>
-            <CardContent><div className="text-2xl font-bold text-primary">{stat.value}</div></CardContent>
+            <CardContent><div className="text-2xl font-black text-primary">{stat.value}</div></CardContent>
           </Card>
         ))}
       </div>
@@ -701,30 +700,50 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <Card className="lg:col-span-2 border-none shadow-xl overflow-hidden rounded-[2rem]">
           <CardHeader className="bg-primary/5 p-8 border-b">
-            <CardTitle className="text-primary flex items-center gap-2"><TrendingUp className="w-5 h-5"/> Academic Pulse</CardTitle>
-            <CardDescription>Visual summary of institutional engagement.</CardDescription>
+            <CardTitle className="text-primary flex items-center gap-2 font-black uppercase tracking-tighter">
+              <TrendingUp className="w-5 h-5 text-secondary"/> Pedagogical Pulse
+            </CardTitle>
+            <CardDescription>Visual summary of institutional engagement and activity.</CardDescription>
           </CardHeader>
           <CardContent className="h-[300px] pt-10">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={DATA_PERIODS.monthly}>
-                <Area type="monotone" dataKey="users" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.1} />
+                <defs>
+                  <linearGradient id="colorPulse" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.15}/>
+                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <Area type="monotone" dataKey="users" stroke="hsl(var(--primary))" strokeWidth={4} fill="url(#colorPulse)" />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-sm rounded-[2rem] bg-secondary/10 flex flex-col items-center justify-center text-center p-8 space-y-4">
-          <div className="p-4 bg-white rounded-2xl shadow-xl">
-            <ShieldCheck className="w-12 h-12 text-primary" />
-          </div>
-          <div>
-            <h3 className="text-xl font-black text-primary uppercase tracking-tighter leading-none">Verified Identity</h3>
-            <p className="text-xs text-muted-foreground mt-2 leading-relaxed">Your account is secured with a unique institutional matricule. All actions are logged for integrity.</p>
-          </div>
-          <Button asChild variant="outline" className="w-full rounded-xl font-bold border-primary/20">
-            <Link href="/dashboard/profile">View Secure Profile</Link>
-          </Button>
-        </Card>
+        <div className="space-y-6">
+          <Card className="border-none shadow-sm rounded-[2rem] bg-secondary/10 flex flex-col items-center justify-center text-center p-8 space-y-4">
+            <div className="p-4 bg-white rounded-2xl shadow-xl">
+              <ShieldCheck className="w-12 h-12 text-primary" />
+            </div>
+            <div>
+              <h3 className="text-xl font-black text-primary uppercase tracking-tighter leading-none">Verified Identity</h3>
+              <p className="text-xs text-muted-foreground mt-2 leading-relaxed">Your account is secured with a unique institutional matricule. All actions are logged for integrity.</p>
+            </div>
+            <Button asChild variant="outline" className="w-full rounded-xl font-bold border-primary/20 bg-white">
+              <Link href="/dashboard/profile">View Secure Profile</Link>
+            </Button>
+          </Card>
+          
+          <Card className="border-none shadow-sm bg-primary text-white p-6 rounded-3xl">
+             <div className="flex items-center gap-3 mb-4">
+                <Info className="w-5 h-5 text-secondary" />
+                <h4 className="text-[10px] font-black uppercase tracking-widest opacity-60">System Notice</h4>
+             </div>
+             <p className="text-xs font-medium leading-relaxed italic">
+               "Dashboard synchronization is currently operating at optimal capacity across the network."
+             </p>
+          </Card>
+        </div>
       </div>
     </div>
   );

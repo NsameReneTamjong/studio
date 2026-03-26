@@ -22,7 +22,9 @@ import {
   Heart,
   Sparkles,
   ExternalLink,
-  ShieldCheck
+  ShieldCheck,
+  Zap,
+  Monitor
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -36,8 +38,15 @@ import Link from "next/link";
 
 type AuthMode = "login" | "activate";
 
-const QUICK_DEMO_ACCOUNTS = [
+const BOARD_DEMOS = [
   { label: "CEO", matricule: "EDUI26CEO001", icon: Crown, color: "bg-primary text-secondary" },
+  { label: "CTO", matricule: "EDUI26CTO001", icon: Zap, color: "bg-indigo-600 text-white" },
+  { label: "COO", matricule: "EDUI26COO001", icon: Monitor, color: "bg-blue-600 text-white" },
+  { label: "Investor", matricule: "EDUI26INV001", icon: Heart, color: "bg-rose-600 text-white" },
+  { label: "Designer", matricule: "EDUI26DES001", icon: Sparkles, color: "bg-cyan-600 text-white" },
+];
+
+const SCHOOL_DEMOS = [
   { label: "Admin", matricule: "GBHS26", icon: Building2, color: "bg-blue-600 text-white" },
   { label: "Sub-Admin", matricule: "GBHS26A001", icon: ShieldCheck, color: "bg-cyan-600 text-white" },
   { label: "Teacher", matricule: "GBHS26T001", icon: Users, color: "bg-purple-600 text-white" },
@@ -78,7 +87,7 @@ export default function LoginPage() {
     try {
       await login(authData.matricule);
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Authentication Failed", description: error.message });
+      toast({ variant: "destructive", title: "Authentication Failed", description: "Invalid matricule for this prototype node." });
     } finally {
       setIsProcessing(false);
     }
@@ -86,11 +95,9 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4 sm:p-8 relative overflow-hidden">
-      {/* Background Decor */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-secondary/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl" />
 
-      {/* Language Switcher */}
       <div className="absolute top-8 right-8">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -106,8 +113,7 @@ export default function LoginPage() {
         </DropdownMenu>
       </div>
 
-      <div className="w-full max-w-md flex flex-col items-center gap-8 relative z-10">
-        {/* Branding Stack */}
+      <div className="w-full max-w-lg flex flex-col items-center gap-8 relative z-10">
         <div className="flex flex-col items-center text-center space-y-4">
           <div className="bg-primary p-3 rounded-2xl shadow-xl w-24 h-24 flex items-center justify-center overflow-hidden border-4 border-white transition-transform hover:scale-105">
             <Building2 className="w-12 h-12 text-white" />
@@ -120,7 +126,6 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Auth Card */}
         <Card className="w-full border-none shadow-2xl overflow-hidden rounded-[2.5rem] bg-white/80 backdrop-blur-xl border border-white">
           <CardHeader className="pb-8 text-center space-y-1">
             <CardTitle className="text-3xl font-black text-primary">
@@ -177,32 +182,56 @@ export default function LoginPage() {
           </CardFooter>
         </Card>
 
-        {/* Quick Demo Access */}
-        <div className="w-full space-y-4">
-          <div className="flex items-center gap-4">
-            <div className="h-px flex-1 bg-primary/10" />
-            <h3 className="text-[10px] font-black uppercase text-primary/40 tracking-[0.3em]">Quick Prototype Entry</h3>
-            <div className="h-px flex-1 bg-primary/10" />
+        <div className="w-full space-y-6">
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="h-px flex-1 bg-primary/10" />
+              <h3 className="text-[10px] font-black uppercase text-primary/40 tracking-[0.3em]">Platform Board</h3>
+              <div className="h-px flex-1 bg-primary/10" />
+            </div>
+            <div className="grid grid-cols-5 gap-2">
+              {BOARD_DEMOS.map((account) => (
+                <Button
+                  key={account.matricule}
+                  variant="outline"
+                  className="h-auto py-3 px-1 flex-col gap-1.5 rounded-xl border-primary/5 bg-white/50 hover:bg-white hover:border-primary/20 transition-all group"
+                  onClick={() => handleQuickLogin(account.matricule)}
+                  disabled={isProcessing}
+                >
+                  <div className={cn("p-1.5 rounded-lg group-hover:scale-110 transition-transform shadow-sm", account.color)}>
+                    <account.icon className="w-4 h-4" />
+                  </div>
+                  <span className="text-[8px] font-black uppercase tracking-tight text-primary/60">{account.label}</span>
+                </Button>
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
-            {QUICK_DEMO_ACCOUNTS.map((account) => (
-              <Button
-                key={account.matricule}
-                variant="outline"
-                className="h-auto py-3 px-1 flex-col gap-1.5 rounded-xl border-primary/5 bg-white/50 hover:bg-white hover:border-primary/20 transition-all group"
-                onClick={() => handleQuickLogin(account.matricule)}
-                disabled={isProcessing}
-              >
-                <div className={cn("p-1.5 rounded-lg group-hover:scale-110 transition-transform shadow-sm", account.color)}>
-                  <account.icon className="w-4 h-4" />
-                </div>
-                <span className="text-[8px] font-black uppercase tracking-tight text-primary/60">{account.label}</span>
-              </Button>
-            ))}
+
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="h-px flex-1 bg-primary/10" />
+              <h3 className="text-[10px] font-black uppercase text-primary/40 tracking-[0.3em]">School Registry</h3>
+              <div className="h-px flex-1 bg-primary/10" />
+            </div>
+            <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
+              {SCHOOL_DEMOS.map((account) => (
+                <Button
+                  key={account.matricule}
+                  variant="outline"
+                  className="h-auto py-3 px-1 flex-col gap-1.5 rounded-xl border-primary/5 bg-white/50 hover:bg-white hover:border-primary/20 transition-all group"
+                  onClick={() => handleQuickLogin(account.matricule)}
+                  disabled={isProcessing}
+                >
+                  <div className={cn("p-1.5 rounded-lg group-hover:scale-110 transition-transform shadow-sm", account.color)}>
+                    <account.icon className="w-4 h-4" />
+                  </div>
+                  <span className="text-[8px] font-black uppercase tracking-tight text-primary/60">{account.label}</span>
+                </Button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* SOCIAL PROOF FOOTER */}
         <div className="mt-4 flex flex-col items-center gap-4">
           <Button asChild variant="ghost" className="text-xs font-bold text-primary/60 hover:text-primary gap-2 h-10 px-6 rounded-full bg-primary/5 border border-primary/10">
             <Link href="/community">

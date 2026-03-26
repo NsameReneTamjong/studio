@@ -229,12 +229,12 @@ const INITIAL_SCHOOLS: SchoolInfo[] = [
     logo: "https://picsum.photos/seed/school-logo-2/200/200",
     banner: "https://picsum.photos/seed/school-banner-2/1200/400",
     description: "A prestigious institution known for its high academic standards and vibrant student life.",
-    location: "Douala, Littoral",
+    location: "Bonanjo, Douala",
     region: "Littoral",
     division: "Wouri",
     subDivision: "Douala 1er",
     cityVillage: "Douala",
-    address: "Bonanjo, Douala",
+    address: "Rue du Gouverneur, Bonanjo",
     phone: "+237 671 11 11 11",
     email: "admin@lyceejoss.cm",
     status: "Active"
@@ -285,32 +285,21 @@ const INITIAL_ANNOUNCEMENTS: Announcement[] = [
     senderAvatar: "https://picsum.photos/seed/designer/100/100",
     senderUid: "mock_EDUI26DES001",
     createdAt: new Date(Date.now() - 14400000)
-  },
-  {
-    id: "ann-5",
-    title: "Operations: New Node Provisioning",
-    content: "Four new institutional nodes in the Center region are ready for activation. COOs should ensure that regional training sessions are scheduled.",
-    target: "board_directors",
-    senderName: "Operations Lead",
-    senderRole: "COO",
-    senderAvatar: "https://picsum.photos/seed/coo/100/100",
-    senderUid: "mock_EDUI26COO001",
-    createdAt: new Date(Date.now() - 18000000)
   }
 ];
 
 const DEMO_ACCOUNTS: Record<string, any> = {
   "EDUI26CEO001": { name: "Platform CEO", role: "CEO", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/ceo/150/150" },
   "EDUI26CTO001": { name: "Tech Director", role: "CTO", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/cto/150/150" },
-  "EDUI26INV001": { name: "Lead Investor", role: "INV", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/inv/150/150" },
   "EDUI26COO001": { name: "Operations Lead", role: "COO", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/coo/150/150" },
+  "EDUI26INV001": { name: "Lead Investor", role: "INV", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/inv/150/150" },
   "EDUI26DES001": { name: "Creative Lead", role: "DESIGNER", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/designer/150/150" },
   "GBHS26": { name: "Principal Fonka", role: "SCHOOL_ADMIN", schoolId: "GBHS-D", isLicensePaid: true },
   "GBHS26A001": { name: "VP Academics", role: "SUB_ADMIN", schoolId: "GBHS-D", isLicensePaid: true },
   "GBHS26T001": { name: "Dr. Aris Tesla", role: "TEACHER", schoolId: "GBHS-D", isLicensePaid: true },
-  "GBHS26S001": { name: "Alice Thompson", role: "STUDENT", schoolId: "GBHS-D", isLicensePaid: true },
   "GBHS26B001": { name: "Mme. Ngono Celine", role: "BURSAR", schoolId: "GBHS-D", isLicensePaid: true },
   "GBHS26L001": { name: "Mr. Ebong", role: "LIBRARIAN", schoolId: "GBHS-D", isLicensePaid: true },
+  "GBHS26S001": { name: "Alice Thompson", role: "STUDENT", schoolId: "GBHS-D", isLicensePaid: true },
   "GBHS26P001": { name: "Mr. Robert Thompson", role: "PARENT", schoolId: "GBHS-D", isLicensePaid: true }
 };
 
@@ -344,13 +333,13 @@ const PLATFORM_DEFAULTS: PlatformSettings = {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [userData, setUserData] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [schools, setSchools] = useState<SchoolInfo[]>([]);
+  const [schools, setSchools] = useState<SchoolInfo[]>(INITIAL_SCHOOLS);
   const [testimonials, setTestimonials] = useState<Testimony[]>([]);
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>(INITIAL_ANNOUNCEMENTS);
   const [supportContributions, setSupportContributions] = useState<SupportContribution[]>([]);
-  const [publicEvents, setPublicEvents] = useState<PublicEvent[]>([]);
+  const [publicEvents, setPublicEvents] = useState<PublicEvent[]>(INITIAL_EVENTS);
   const [platformSettings, setPlatformSettings] = useState<PlatformSettings>(PLATFORM_DEFAULTS);
 
   const router = useRouter();
@@ -367,7 +356,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed) ? parsed.length >= 0 : Object.keys(parsed).length >= 0) {
-            // Merge defaults for objects like platformSettings to avoid missing keys
             if (!Array.isArray(parsed) && typeof defaultValue === 'object') {
               return { ...defaultValue, ...parsed };
             }
@@ -437,6 +425,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const m = matricule.toUpperCase();
     const demoData = DEMO_ACCOUNTS[m] || { name: "Guest User", role: "STUDENT", schoolId: "GBHS-D", isLicensePaid: true };
     
+    // Explicitly find school from current registry or defaults
+    const schoolList = schools.length > 0 ? schools : INITIAL_SCHOOLS;
+    const assignedSchool = demoData.schoolId ? schoolList.find(s => s.id === demoData.schoolId) : undefined;
+
     const mockUser: User = {
       id: m,
       uid: `mock_${m}`,
@@ -446,7 +438,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       schoolId: demoData.schoolId,
       isLicensePaid: demoData.isLicensePaid,
       avatar: demoData.avatar || `https://picsum.photos/seed/${m}/150/150`,
-      school: demoData.schoolId ? schools.find(s => s.id === demoData.schoolId) : undefined
+      school: assignedSchool
     };
 
     setUserData(mockUser);

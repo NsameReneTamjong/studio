@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
@@ -17,41 +18,71 @@ import {
   Phone,
   Mail,
   Heart,
-  Clock
+  Clock,
+  Loader2,
+  RefreshCw
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function SchoolWelcomePage() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isLoading: isAuthLoading, schools } = useAuth();
   const { t, language } = useI18n();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    if (!isAuthenticated) {
+    if (!isAuthLoading && !isAuthenticated) {
       router.push("/login");
     }
-    // CEO should not be here, redirect back to dashboard
-    if (user?.role === "SUPER_ADMIN") {
+    
+    // Board members and CEO go straight to dashboard
+    const executiveRoles = ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV", "DESIGNER"];
+    if (user && executiveRoles.includes(user.role)) {
       router.push("/dashboard");
     }
-  }, [isAuthenticated, user, router]);
+  }, [isAuthenticated, isAuthLoading, user, router]);
 
-  if (!mounted || !user?.school) return null;
+  if (!mounted || isAuthLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background gap-4">
+        <Loader2 className="w-12 h-12 animate-spin text-primary opacity-20" />
+        <p className="text-primary/40 font-black uppercase text-[10px] tracking-[0.3em] animate-pulse">Syncing Portal Access</p>
+      </div>
+    );
+  }
 
-  const school = user.school;
+  // Handle case where school data isn't linked to user yet but exists in registry
+  const school = user?.school || schools.find(s => s.id === user?.schoolId);
+
+  if (!user || !school) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background p-8 text-center space-y-6">
+        <div className="p-6 bg-primary/5 rounded-full border-2 border-dashed border-primary/20">
+          <Building2 className="w-16 h-16 text-primary/20" />
+        </div>
+        <div className="space-y-2">
+          <h1 className="text-2xl font-black text-primary uppercase tracking-tighter">Linking Institutional Node</h1>
+          <p className="text-muted-foreground max-w-md mx-auto">
+            Your account is being synchronized with the institutional pedagogical node. Please wait a moment.
+          </p>
+        </div>
+        <Button variant="outline" className="rounded-xl gap-2 font-bold" onClick={() => window.location.reload()}>
+          <RefreshCw className="w-4 h-4" /> Retry Synchronization
+        </Button>
+      </div>
+    );
+  }
+
   const isParent = user.role === "PARENT";
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 md:p-8">
-      {/* Header Decoration */}
       <div className="absolute top-0 inset-x-0 h-1/2 bg-primary/5 -z-10" />
       
       <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center">
-        {/* Visual Section */}
         <div className="lg:col-span-7 space-y-8 animate-in fade-in slide-in-from-left-8 duration-700">
           <div className="relative aspect-video rounded-[2.5rem] overflow-hidden shadow-2xl group border-4 border-white bg-slate-200">
             <img 
@@ -119,7 +150,6 @@ export default function SchoolWelcomePage() {
           </div>
         </div>
 
-        {/* Content Section */}
         <div className="lg:col-span-5 space-y-8 animate-in fade-in slide-in-from-right-8 duration-700">
           <div className="space-y-6">
             <div className="w-28 h-28 bg-white rounded-[2rem] shadow-2xl p-5 flex items-center justify-center border-4 border-accent mb-2 transition-transform hover:rotate-3">
