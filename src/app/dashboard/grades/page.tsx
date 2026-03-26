@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -29,7 +30,9 @@ import {
   Info, 
   ArrowLeft, 
   Users, 
-  PenTool
+  PenTool,
+  Filter,
+  Signature
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -153,6 +156,17 @@ export default function GradeBookPage() {
       setIsProcessing(false);
       toast({ title: "Results Published", description: "Official marks have been released." });
     }, 2000);
+  };
+
+  const handleBatchGenerate = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      setIsProcessing(false);
+      toast({ 
+        title: "Batch Generation Success", 
+        description: `Preparing bulletins for ${selectedClass} - ${selectedTerm}. PDF batch download started.` 
+      });
+    }, 2500);
   };
 
   if (isStudent) {
@@ -302,7 +316,7 @@ export default function GradeBookPage() {
         
         {isAdmin && (
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" className="h-12 px-6 rounded-2xl border-primary/20 gap-2 font-bold w-full sm:w-auto" onClick={() => toast({ title: "Bulk Reports Generated" })} disabled={isProcessing}>
+            <Button variant="outline" className="h-12 px-6 rounded-2xl border-primary/20 gap-2 font-bold w-full sm:w-auto" onClick={handleBatchGenerate} disabled={isProcessing}>
               {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
               Generate Batch Reports
             </Button>
@@ -327,7 +341,7 @@ export default function GradeBookPage() {
         <TabsContent value="current" className="space-y-8 mt-0 animate-in fade-in slide-in-from-bottom-2">
           <Card className="border-none shadow-sm rounded-3xl bg-white overflow-hidden">
             <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
+              <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-6 items-end">
                 {isTeacher ? (
                   <>
                     <div className="space-y-2">
@@ -351,21 +365,30 @@ export default function GradeBookPage() {
                   </>
                 ) : (
                   <>
+                    {isSchoolAdmin && (
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Sub-School</Label>
+                        <Select value={selectedSection} onValueChange={setSelectedSection}>
+                          <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Entire Institution</SelectItem>
+                            {SECTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Class Level</Label>
+                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Target Class</Label>
                       <Select value={selectedClass} onValueChange={setSelectedClass}>
                         <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
                         <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Institutional Section</Label>
-                      <Select value={selectedSection} onValueChange={setSelectedSection}>
+                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Academic Term</Label>
+                      <Select value={selectedTerm} onValueChange={setSelectedTerm}>
                         <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">Whole Institution</SelectItem>
-                          {SECTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                        </SelectContent>
+                        <SelectContent>{TERMS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
                   </>
@@ -417,7 +440,7 @@ export default function GradeBookPage() {
                 </TableHeader>
                 <TableBody>
                   {filteredStudents.map((s) => {
-                    const grades = getStudentGrades(s.class).find(g => g.subject.includes(selectedSubject)) || FULL_SUBJECT_LIST[0];
+                    const grades = getStudentGrades(s.class).find(g => g.subject.includes(isTeacher ? selectedSubject : "Mathematics")) || FULL_SUBJECT_LIST[0];
                     const avg = (grades.seq1 + grades.seq2) / 2;
                     
                     return (
