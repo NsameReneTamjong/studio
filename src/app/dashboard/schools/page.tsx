@@ -55,7 +55,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 export default function SchoolsManagementPage() {
   const { t, language } = useI18n();
   const { toast } = useToast();
-  const { schools, addSchool, toggleSchoolStatus, deleteSchool, platformSettings } = useAuth();
+  const { user, schools, addSchool, toggleSchoolStatus, deleteSchool, platformSettings } = useAuth();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -74,12 +74,15 @@ export default function SchoolsManagementPage() {
     banner: "https://picsum.photos/seed/school-banner/1200/400"
   });
 
+  const isCEO = user?.role === "CEO" || user?.role === "SUPER_ADMIN";
+
   const filteredSchools = schools?.filter(s => 
     s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     s.id.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
   const handleSaveSchool = async () => {
+    if (!isCEO) return;
     if (!newSchoolData.name || !newSchoolData.principal || !newSchoolData.shortName || !newSchoolData.email) {
       toast({ variant: "destructive", title: "Missing Information", description: "Please complete all required fields." });
       return;
@@ -132,79 +135,81 @@ export default function SchoolsManagementPage() {
           <p className="text-muted-foreground mt-1">Manage and monitor institutional dashboard instances across the SaaS network.</p>
         </div>
         
-        <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2 shadow-xl h-14 px-8 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-xs">
-              <Plus className="w-5 h-5" /> Provision New Node
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
-            <DialogHeader className="bg-primary p-8 text-white relative">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-white/10 rounded-2xl">
-                  <Building2 className="w-8 h-8 text-secondary" />
-                </div>
-                <div>
-                  <DialogTitle className="text-2xl font-black uppercase tracking-tighter">Onboard Institution</DialogTitle>
-                  <DialogDescription className="text-white/60">Initialize a new secure pedagogical node.</DialogDescription>
-                </div>
-              </div>
-              <Button variant="ghost" size="icon" onClick={() => setIsAddModalOpen(false)} className="absolute top-4 right-4 text-white/40 hover:text-white">
-                <X className="w-6 h-6" />
+        {isCEO && (
+          <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2 shadow-xl h-14 px-8 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-xs">
+                <Plus className="w-5 h-5" /> Provision New Node
               </Button>
-            </DialogHeader>
-            <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Full School Name</Label>
-                <Input 
-                  value={newSchoolData.name} 
-                  onChange={(e) => setNewSchoolData({...newSchoolData, name: e.target.value})} 
-                  className="h-12 bg-accent/30 border-none rounded-xl font-bold" 
-                  placeholder="e.g. Government Bilingual High School Deido" 
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Short Name (Code)</Label>
-                  <Input 
-                    value={newSchoolData.shortName} 
-                    onChange={(e) => setNewSchoolData({...newSchoolData, shortName: e.target.value})} 
-                    className="h-12 bg-accent/30 border-none rounded-xl font-black uppercase" 
-                    placeholder="e.g. GBHS" 
-                    maxLength={6}
-                  />
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
+              <DialogHeader className="bg-primary p-8 text-white relative">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/10 rounded-2xl">
+                    <Building2 className="w-8 h-8 text-secondary" />
+                  </div>
+                  <div>
+                    <DialogTitle className="text-2xl font-black uppercase tracking-tighter">Onboard Institution</DialogTitle>
+                    <DialogDescription className="text-white/60">Initialize a new secure pedagogical node.</DialogDescription>
+                  </div>
                 </div>
+                <Button variant="ghost" size="icon" onClick={() => setIsAddModalOpen(false)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+                  <X className="w-6 h-6" />
+                </Button>
+              </DialogHeader>
+              <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Principal Name</Label>
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Full School Name</Label>
                   <Input 
-                    value={newSchoolData.principal} 
-                    onChange={(e) => setNewSchoolData({...newSchoolData, principal: e.target.value})} 
+                    value={newSchoolData.name} 
+                    onChange={(e) => setNewSchoolData({...newSchoolData, name: e.target.value})} 
                     className="h-12 bg-accent/30 border-none rounded-xl font-bold" 
-                    placeholder="e.g. Dr. Jean Dupont" 
+                    placeholder="e.g. Government Bilingual High School Deido" 
                   />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Official Email Address</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
-                  <Input 
-                    value={newSchoolData.email} 
-                    onChange={(e) => setNewSchoolData({...newSchoolData, email: e.target.value})} 
-                    className="h-12 bg-accent/30 border-none rounded-xl pl-10" 
-                    placeholder="admin@school.edu.cm" 
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Short Name (Code)</Label>
+                    <Input 
+                      value={newSchoolData.shortName} 
+                      onChange={(e) => setNewSchoolData({...newSchoolData, shortName: e.target.value})} 
+                      className="h-12 bg-accent/30 border-none rounded-xl font-black uppercase" 
+                      placeholder="e.g. GBHS" 
+                      maxLength={6}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Principal Name</Label>
+                    <Input 
+                      value={newSchoolData.principal} 
+                      onChange={(e) => setNewSchoolData({...newSchoolData, principal: e.target.value})} 
+                      className="h-12 bg-accent/30 border-none rounded-xl font-bold" 
+                      placeholder="e.g. Dr. Jean Dupont" 
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Official Email Address</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
+                    <Input 
+                      value={newSchoolData.email} 
+                      onChange={(e) => setNewSchoolData({...newSchoolData, email: e.target.value})} 
+                      className="h-12 bg-accent/30 border-none rounded-xl pl-10" 
+                      placeholder="admin@school.edu.cm" 
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-            <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
-              <Button onClick={handleSaveSchool} className="w-full h-14 rounded-2xl shadow-lg font-black uppercase tracking-widest text-xs gap-3 bg-primary text-white hover:bg-primary/90" disabled={isProcessing}>
-                {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <ShieldCheck className="w-5 h-5 text-secondary" />}
-                Provision Node & Generate ID
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+                <Button onClick={handleSaveSchool} className="w-full h-14 rounded-2xl shadow-lg font-black uppercase tracking-widest text-xs gap-3 bg-primary text-white hover:bg-primary/90" disabled={isProcessing}>
+                  {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <ShieldCheck className="w-5 h-5 text-secondary" />}
+                  Provision Node & Generate ID
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <div className="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border">
@@ -228,15 +233,19 @@ export default function SchoolsManagementPage() {
                      <Settings2 className="w-4 h-4 text-primary/60" /> 
                      <span className="font-bold text-xs">Configuration Suite</span>
                    </DropdownMenuItem>
-                   <DropdownMenuItem className="gap-3 rounded-xl cursor-pointer" onClick={() => toggleSchoolStatus(school.id)}>
-                     {school.status === 'Active' ? <Ban className="w-4 h-4 text-red-500" /> : <CheckCircle2 className="w-4 h-4 text-green-500" />}
-                     <span className="font-bold text-xs">{school.status === 'Active' ? 'Suspend Node' : 'Activate Node'}</span>
-                   </DropdownMenuItem>
-                   <DropdownMenuSeparator />
-                   <DropdownMenuItem className="text-destructive gap-3 rounded-xl cursor-pointer" onClick={() => deleteSchool(school.id)}>
-                     <Trash2 className="w-4 h-4" /> 
-                     <span className="font-bold text-xs">Decommission Node</span>
-                   </DropdownMenuItem>
+                   {isCEO && (
+                     <>
+                       <DropdownMenuItem className="gap-3 rounded-xl cursor-pointer" onClick={() => toggleSchoolStatus(school.id)}>
+                         {school.status === 'Active' ? <Ban className="w-4 h-4 text-red-500" /> : <CheckCircle2 className="w-4 h-4 text-green-500" />}
+                         <span className="font-bold text-xs">{school.status === 'Active' ? 'Suspend Node' : 'Activate Node'}</span>
+                       </DropdownMenuItem>
+                       <DropdownMenuSeparator />
+                       <DropdownMenuItem className="text-destructive gap-3 rounded-xl cursor-pointer" onClick={() => deleteSchool(school.id)}>
+                         <Trash2 className="w-4 h-4" /> 
+                         <span className="font-bold text-xs">Decommission Node</span>
+                       </DropdownMenuItem>
+                     </>
+                   )}
                  </DropdownMenuContent>
                </DropdownMenu>
             </div>
@@ -321,12 +330,21 @@ export default function SchoolsManagementPage() {
             <div className="bg-primary/5 p-6 rounded-[2rem] border border-primary/10 space-y-6">
                <h3 className="font-black text-primary uppercase text-xs tracking-[0.2em] border-b pb-2 opacity-40">Administrative Interventions</h3>
                <div className="grid grid-cols-1 gap-4">
-                  <Button variant="outline" className="w-full justify-between h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] bg-white border-primary/10 hover:bg-primary/5 transition-all" onClick={() => { toggleSchoolStatus(managedSchool.id); setManagedSchool(null); }}>
-                    License Authorization {managedSchool?.status === 'Active' ? <Ban className="w-5 h-5 text-red-500" /> : <CheckCircle2 className="w-5 h-5 text-green-500" />}
-                  </Button>
-                  <Button variant="destructive" className="w-full justify-between h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg opacity-80 hover:opacity-100 transition-all" onClick={() => { deleteSchool(managedSchool.id); setManagedSchool(null); }}>
-                    Permanently Decommission <Trash2 className="w-5 h-5" />
-                  </Button>
+                  {isCEO ? (
+                    <>
+                      <Button variant="outline" className="w-full justify-between h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] bg-white border-primary/10 hover:bg-primary/5 transition-all" onClick={() => { toggleSchoolStatus(managedSchool.id); setManagedSchool(null); }}>
+                        License Authorization {managedSchool?.status === 'Active' ? <Ban className="w-5 h-5 text-red-500" /> : <CheckCircle2 className="w-5 h-5 text-green-500" />}
+                      </Button>
+                      <Button variant="destructive" className="w-full justify-between h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg opacity-80 hover:opacity-100 transition-all" onClick={() => { deleteSchool(managedSchool.id); setManagedSchool(null); }}>
+                        Permanently Decommission <Trash2 className="w-5 h-5" />
+                      </Button>
+                    </>
+                  ) : (
+                    <div className="p-4 bg-white rounded-xl border border-primary/10 flex items-center gap-3">
+                      <Lock className="w-4 h-4 text-primary/40" />
+                      <p className="text-[10px] font-black uppercase text-muted-foreground">Action restricted to the CEO office.</p>
+                    </div>
+                  )}
                </div>
             </div>
             
@@ -431,7 +449,7 @@ export default function SchoolsManagementPage() {
                   </div>
                   <div className="text-center space-y-4 w-40">
                     <div className="h-12 w-full mx-auto relative flex items-center justify-center">
-                       <Signature className="w-full h-full text-primary/20" />
+                       <Signature className="w-full h-full text-primary/20 p-2" />
                     </div>
                     <p className="text-[9px] font-black uppercase text-primary border-t border-black/20 pt-1">Platform Registrar</p>
                   </div>
