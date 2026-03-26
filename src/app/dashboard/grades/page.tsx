@@ -200,7 +200,8 @@ export default function GradeBookPage() {
                 <Scale className="w-5 h-5 text-secondary" /> EXCELLENT
               </div>
             </CardContent>
-          </div>
+          </Card>
+        </div>
 
         <Card className="border-none shadow-xl overflow-hidden rounded-[2rem] bg-white">
           <CardHeader className="bg-primary p-8 text-white">
