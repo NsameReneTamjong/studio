@@ -35,7 +35,9 @@ import {
   Crown,
   LayoutGrid,
   Search,
-  Info
+  Info,
+  BookOpen,
+  Monitor
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -135,6 +137,7 @@ export default function DashboardPage() {
   }
 
   const isPlatformExecutive = ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV", "DESIGNER"].includes(user.role);
+  const isInstitutionalAdmin = ["SCHOOL_ADMIN", "SUB_ADMIN"].includes(user.role);
   const isParent = user.role === "PARENT";
   const isBursar = user.role === "BURSAR";
 
@@ -397,6 +400,100 @@ export default function DashboardPage() {
     );
   }
 
+  if (isInstitutionalAdmin) {
+    return (
+      <div className="space-y-8 pb-20 animate-in fade-in duration-500">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-primary rounded-2xl shadow-xl border-2 border-white">
+              <Building2 className="w-8 h-8 text-secondary" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-primary font-headline">Institutional Command</h1>
+              <p className="text-muted-foreground mt-1">{user.school?.name || "EduIgnite Node"} • Head Oversight</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button asChild variant="outline" className="rounded-xl h-11 border-primary/20 font-bold">
+              <Link href="/dashboard/students">Manage Registry</Link>
+            </Button>
+            <Button asChild className="rounded-xl h-11 px-8 shadow-lg font-bold gap-2 bg-primary text-white">
+              <Link href="/dashboard/announcements">
+                <Zap className="w-4 h-4" /> Broadcast
+              </Link>
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { label: "Total Students", value: "1,284", icon: GraduationCap, color: "text-blue-600", desc: "Active Node" },
+            { label: "Total Staff", value: "85", icon: Users, color: "text-purple-600", desc: "Professionals" },
+            { label: "Fee Intake", value: "92%", icon: Coins, color: "text-green-600", desc: "Target: 100%" },
+            { label: "Pending Tasks", value: "12", icon: ClipboardCheck, color: "text-amber-600", desc: "Action Required" },
+          ].map((stat, i) => (
+            <Card key={i} className="border-none shadow-sm group hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{stat.label}</CardTitle>
+                <stat.icon className={cn("w-4 h-4 transition-transform group-hover:scale-110", stat.color)} />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-black text-primary">{stat.value}</div>
+                <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase">{stat.desc}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <Card className="lg:col-span-8 border-none shadow-xl overflow-hidden rounded-[2.5rem]">
+            <CardHeader className="bg-primary/5 p-8 border-b">
+              <CardTitle className="text-primary flex items-center gap-2 font-black uppercase tracking-tighter">
+                <Activity className="w-5 h-5 text-secondary"/> Node Operational Pulse
+              </CardTitle>
+              <CardDescription>Institutional activity trends for the current academic session.</CardDescription>
+            </CardHeader>
+            <CardContent className="h-[350px] pt-10">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={DATA_PERIODS.monthly}>
+                  <defs>
+                    <linearGradient id="colorNode" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.15}/>
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                  <YAxis axisLine={false} tickLine={false} />
+                  <RechartsTooltip />
+                  <Area type="monotone" dataKey="users" stroke="hsl(var(--primary))" strokeWidth={4} fill="url(#colorNode)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <div className="lg:col-span-4 space-y-6">
+            <Card className="border-none shadow-sm rounded-[2rem] bg-secondary/10 p-8 flex flex-col items-center text-center space-y-4">
+              <div className="p-4 bg-white rounded-[1.5rem] shadow-xl">
+                <ShieldCheck className="w-10 h-10 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-xl font-black text-primary uppercase tracking-tighter leading-none">Registry Audit</h3>
+                <p className="text-xs text-muted-foreground mt-2 leading-relaxed">Ensure all student and staff records are synchronized with the national delegration standards.</p>
+              </div>
+              <Button asChild className="w-full gap-2 rounded-xl h-11 font-bold bg-primary text-white shadow-lg">
+                <Link href="/dashboard/staff">
+                  Staff Registry
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </Button>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (isBursar) {
     return (
       <div className="space-y-8 pb-20 animate-in fade-in duration-500">
@@ -604,10 +701,10 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <Card className="lg:col-span-2 border-none shadow-xl overflow-hidden rounded-[2rem]">
           <CardHeader className="bg-primary/5 p-8 border-b">
-            <CardTitle className="text-primary flex items-center gap-2"><TrendingUp className="w-5 h-5"/> Activity Insight</CardTitle>
+            <CardTitle className="text-primary flex items-center gap-2"><TrendingUp className="w-5 h-5"/> Academic Pulse</CardTitle>
             <CardDescription>Visual summary of institutional engagement.</CardDescription>
           </CardHeader>
-          <CardContent className="h-[350px] pt-10">
+          <CardContent className="h-[300px] pt-10">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={DATA_PERIODS.monthly}>
                 <Area type="monotone" dataKey="users" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.1} />
@@ -624,6 +721,9 @@ export default function DashboardPage() {
             <h3 className="text-xl font-black text-primary uppercase tracking-tighter leading-none">Verified Identity</h3>
             <p className="text-xs text-muted-foreground mt-2 leading-relaxed">Your account is secured with a unique institutional matricule. All actions are logged for integrity.</p>
           </div>
+          <Button asChild variant="outline" className="w-full rounded-xl font-bold border-primary/20">
+            <Link href="/dashboard/profile">View Secure Profile</Link>
+          </Button>
         </Card>
       </div>
     </div>

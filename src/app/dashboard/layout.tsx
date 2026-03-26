@@ -5,7 +5,22 @@ import { useAuth, type UserRole } from "@/lib/auth-context";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { DashboardSidebar } from "@/components/layout/dashboard-sidebar";
-import { Menu, Building2, Heart, Youtube, MessageSquare, Send, CheckCircle2, Loader2, Info, ExternalLink, Lock, Wallet, Quote } from "lucide-react";
+import { 
+  Menu, 
+  Building2, 
+  Heart, 
+  Youtube, 
+  MessageSquare, 
+  Send, 
+  CheckCircle2, 
+  Loader2, 
+  Info, 
+  ExternalLink, 
+  Lock, 
+  Wallet, 
+  Quote,
+  ChevronRight 
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { 
@@ -36,10 +51,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
   const [isTestimonyModalOpen, setIsTestimonyModalOpen] = useState(false);
-  const [supportStep, setSupportModalStep] = useState<'form' | 'thanks'>('form');
+  const [supportStep, setSupportModalStep] = permanence('form');
   const [isProcessing, setIsProcessing] = useState(false);
   const [testimonyMessage, setTestimonyMessage] = useState("");
   const [isSubmittingTestimony, setIsSubmittingTestimony] = useState(false);
+
+  const permanence = (val: 'form' | 'thanks') => {
+    const [state, setState] = useState<'form' | 'thanks'>(val);
+    return [state, setState] as const;
+  };
+
+  const [supportModalStep, setSupportModalStepState] = useState<'form' | 'thanks'>('form');
 
   const [supportData, setSupportData] = useState({
     method: "mtn",
@@ -62,7 +84,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     setIsProcessing(true);
     setTimeout(() => {
       setIsProcessing(false);
-      setSupportModalStep('thanks');
+      setSupportModalStepState('thanks');
     }, 1500);
   };
 
@@ -94,7 +116,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const resetSupport = () => {
     setIsSupportModalOpen(false);
     setTimeout(() => {
-      setSupportModalStep('form');
+      setSupportModalStepState('form');
       setSupportData({ method: "mtn", number: "", amount: "", message: "" });
     }, 300);
   };
@@ -298,7 +320,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             </Button>
                           </DialogTrigger>
                           <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-                            {supportStep === 'form' ? (
+                            {supportModalStep === 'form' ? (
                               <>
                                 <DialogHeader className="bg-primary p-8 text-white">
                                   <div className="flex items-center gap-4">
