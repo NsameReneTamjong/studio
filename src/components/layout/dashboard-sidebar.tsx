@@ -77,31 +77,31 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: t("founders"),
       icon: Crown,
       href: "/dashboard/founders",
-      roles: ["SUPER_ADMIN", "CEO", "CTO", "COO"], // Hidden from Designer and Investor
+      roles: ["SUPER_ADMIN", "CEO", "CTO", "COO"], 
     },
     {
       label: t("schools"),
       icon: Globe,
       href: "/dashboard/schools",
-      roles: ["SUPER_ADMIN", "CEO", "CTO", "COO"], // Hidden from Designer and Investor
+      roles: ["SUPER_ADMIN", "CEO", "CTO", "COO"], 
     },
     {
       label: t("supportRegistry"),
       icon: Heart,
       href: "/dashboard/support",
-      roles: ["SUPER_ADMIN", "CEO", "CTO", "COO"], // Hidden from Designer and Investor
+      roles: ["SUPER_ADMIN", "CEO", "CTO", "COO"], 
     },
     {
       label: language === 'en' ? 'Testimonials' : 'Témoignages',
       icon: Quote,
       href: "/dashboard/testimonials",
-      roles: ["SUPER_ADMIN", "CEO", "CTO"], // Hidden from Designer and Investor
+      roles: ["SUPER_ADMIN", "CEO", "CTO", "COO"], 
     },
     {
       label: language === 'en' ? 'Portfolio & Policy' : 'Portfolio & Politique',
       icon: isDesigner ? Star : Settings2,
       href: "/dashboard/platform-settings",
-      roles: ["SUPER_ADMIN", "CEO", "DESIGNER"], // Designer sees this, Investor does not
+      roles: ["SUPER_ADMIN", "CEO", "DESIGNER", "CTO", "COO"], 
     },
     // SCHOOL ADMIN SPECIFIC MANAGEMENT
     {
@@ -133,7 +133,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: t("feedback"),
       icon: MessageSquare,
       href: "/dashboard/feedback",
-      roles: ["SUPER_ADMIN", "CEO", "CTO", "COO", "SCHOOL_ADMIN", "SUB_ADMIN"], // Hidden from INV and Designer
+      roles: ["SUPER_ADMIN", "CEO", "CTO", "COO", "SCHOOL_ADMIN", "SUB_ADMIN"], 
     },
     {
       label: t("overview"),

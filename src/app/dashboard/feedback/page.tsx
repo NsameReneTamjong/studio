@@ -55,7 +55,7 @@ export default function FeedbackPage() {
   const [isSending, setIsSending] = useState(false);
   const [newFeedback, setNewFeedback] = useState({ subject: "", message: "" });
 
-  const isSuperAdmin = user?.role === "SUPER_ADMIN" || user?.role === "CEO";
+  const isSuperAdmin = ["SUPER_ADMIN", "CEO", "CTO", "COO"].includes(user?.role || "");
 
   const handleSendFeedback = async () => {
     if (!newFeedback.message || !newFeedback.subject || !user) return;
@@ -136,7 +136,9 @@ export default function FeedbackPage() {
                         </p>
                       </div>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => deleteFeedback(fb.id)} className="text-destructive/20 hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                    {(user?.role === "SUPER_ADMIN" || user?.role === "CEO") && (
+                      <Button variant="ghost" size="icon" onClick={() => deleteFeedback(fb.id)} className="text-destructive/20 hover:text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                    )}
                   </div>
 
                   <div className="space-y-4 flex-1">
@@ -154,9 +156,11 @@ export default function FeedbackPage() {
                        <span className="text-[10px] font-black text-muted-foreground tracking-widest italic">Node Verified</span>
                     </div>
                     <div className="flex gap-2 w-full sm:w-auto">
-                      <Button className="gap-2 shadow-lg" onClick={() => resolveFeedback(fb.id)} disabled={fb.status === 'Resolved'}>
-                        <CheckCircle2 className="w-4 h-4" /> {fb.status === 'Resolved' ? 'Resolved' : 'Resolve Ticket'}
-                      </Button>
+                      {(user?.role === "SUPER_ADMIN" || user?.role === "CEO") && (
+                        <Button className="gap-2 shadow-lg" onClick={() => resolveFeedback(fb.id)} disabled={fb.status === 'Resolved'}>
+                          <CheckCircle2 className="w-4 h-4" /> {fb.status === 'Resolved' ? 'Resolved' : 'Resolve Ticket'}
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>

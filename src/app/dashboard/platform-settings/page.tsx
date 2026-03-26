@@ -59,6 +59,7 @@ export default function PlatformSettingsPage() {
   });
 
   const isDesigner = user?.role === "DESIGNER";
+  const isSuperUser = user?.role === "SUPER_ADMIN" || user?.role === "CEO";
 
   const [newEvent, setNewEvent] = useState({
     title: "",
@@ -95,7 +96,7 @@ export default function PlatformSettingsPage() {
   };
 
   const handleUpdateSettings = async () => {
-    if (isDesigner) return;
+    if (!isSuperUser) return;
     setLoading(true);
     setTimeout(() => {
       updatePlatformSettings({
@@ -160,7 +161,7 @@ export default function PlatformSettingsPage() {
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className="bg-white border-none h-12 pl-12 rounded-xl focus-visible:ring-primary font-black text-lg shadow-sm text-primary"
-          disabled={isDesigner}
+          disabled={!isSuperUser}
         />
         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-black text-xs">XAF</div>
       </div>
@@ -181,7 +182,7 @@ export default function PlatformSettingsPage() {
           onChange={(e) => onChange(e.target.value)}
           placeholder="https://youtube.com/..."
           className="bg-white border-none h-11 pl-10 rounded-xl focus-visible:ring-primary text-xs font-bold"
-          disabled={isDesigner}
+          disabled={!isSuperUser}
         />
       </div>
     </div>
@@ -203,7 +204,7 @@ export default function PlatformSettingsPage() {
               : "Govern global SaaS identity, revenue models, and educational content."}
           </p>
         </div>
-        {!isDesigner && (
+        {isSuperUser && (
           <Button onClick={handleUpdateSettings} disabled={loading} className="h-14 px-10 shadow-2xl font-black uppercase tracking-widest text-xs gap-3 rounded-2xl bg-primary text-white hover:bg-primary/90 transition-all">
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
             Commit Global Policy
@@ -254,8 +255,11 @@ export default function PlatformSettingsPage() {
                     <div className="md:col-span-4 space-y-4 text-center">
                       <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground block">Platform Logo</Label>
                       <div 
-                        className="group relative w-48 h-48 mx-auto bg-accent/20 rounded-[2.5rem] border-2 border-dashed border-accent flex items-center justify-center cursor-pointer overflow-hidden transition-all hover:border-primary shadow-inner"
-                        onClick={() => logoInputRef.current?.click()}
+                        className={cn(
+                          "group relative w-48 h-48 mx-auto bg-accent/20 rounded-[2.5rem] border-2 border-dashed border-accent flex items-center justify-center overflow-hidden transition-all shadow-inner",
+                          isSuperUser ? "cursor-pointer hover:border-primary" : "cursor-default"
+                        )}
+                        onClick={() => isSuperUser && logoInputRef.current?.click()}
                       >
                         <input 
                           type="file" 
@@ -269,10 +273,12 @@ export default function PlatformSettingsPage() {
                         ) : (
                           <Upload className="w-10 h-10 text-primary/20" />
                         )}
-                        <div className="absolute inset-0 bg-primary/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white gap-2 backdrop-blur-sm">
-                          <Upload className="w-8 h-8" />
-                          <span className="text-[10px] font-black uppercase tracking-widest">Change Device Logo</span>
-                        </div>
+                        {isSuperUser && (
+                          <div className="absolute inset-0 bg-primary/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white gap-2 backdrop-blur-sm">
+                            <Upload className="w-8 h-8" />
+                            <span className="text-[10px] font-black uppercase tracking-widest">Change Device Logo</span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -284,6 +290,7 @@ export default function PlatformSettingsPage() {
                           onChange={(e) => setFormData({...formData, platformName: e.target.value})}
                           placeholder="e.g. EduIgnite"
                           className="h-14 bg-accent/30 border-none rounded-2xl font-black text-2xl text-primary focus-visible:ring-primary px-6"
+                          disabled={!isSuperUser}
                         />
                       </div>
 
@@ -339,12 +346,13 @@ export default function PlatformSettingsPage() {
                     </CardHeader>
                     <CardContent className="p-8 space-y-6">
                       <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase tracking-widest text-white/60">Final Payment Date</Label>
+                        <Label className="text-[10px] font-black uppercase text-white/60 tracking-widest">Final Payment Date</Label>
                         <Input 
                           type="date"
                           value={formData.paymentDeadline}
                           onChange={(e) => setFormData({...formData, paymentDeadline: e.target.value})}
                           className="h-14 bg-white/10 border-white/20 text-white font-black text-xl rounded-2xl px-6 focus-visible:ring-secondary"
+                          disabled={!isSuperUser}
                         />
                       </div>
                     </CardContent>
@@ -399,85 +407,87 @@ export default function PlatformSettingsPage() {
               </div>
             </CardHeader>
             <CardContent className="p-10 space-y-10">
-              <div className="p-8 bg-accent/30 rounded-[2rem] border border-accent space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-                  <div className="md:col-span-4 space-y-4 flex flex-col">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Content Type</Label>
-                    <div className="flex gap-2 w-full">
-                      <Button 
-                        variant={newEvent.type === 'video' ? 'default' : 'outline'}
-                        className="flex-1 rounded-xl h-12 font-bold gap-2"
-                        onClick={() => setNewEvent({...newEvent, type: 'video', url: ''})}
-                      >
-                        <Video className="w-4 h-4" /> Video
-                      </Button>
-                      <Button 
-                        variant={newEvent.type === 'image' ? 'default' : 'outline'}
-                        className="flex-1 rounded-xl h-12 font-bold gap-2"
-                        onClick={() => setNewEvent({...newEvent, type: 'image', url: ''})}
-                      >
-                        <ImageIcon className="w-4 h-4" /> Image
-                      </Button>
-                    </div>
-                    
-                    <div className="w-full aspect-video bg-white rounded-2xl border-2 border-dashed border-primary/10 flex items-center justify-center overflow-hidden shadow-inner mt-2">
-                      {newEvent.url ? (
-                        newEvent.type === 'video' ? (
-                          <div className="w-full h-full flex flex-col items-center justify-center bg-slate-900 text-white gap-2">
-                            <Video className="w-8 h-8 opacity-20" />
-                            <span className="text-[8px] font-black uppercase opacity-40">External Video URL</span>
-                          </div>
+              {(isSuperUser || isDesigner) && (
+                <div className="p-8 bg-accent/30 rounded-[2rem] border border-accent space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+                    <div className="md:col-span-4 space-y-4 flex flex-col">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Content Type</Label>
+                      <div className="flex gap-2 w-full">
+                        <Button 
+                          variant={newEvent.type === 'video' ? 'default' : 'outline'}
+                          className="flex-1 rounded-xl h-12 font-bold gap-2"
+                          onClick={() => setNewEvent({...newEvent, type: 'video', url: ''})}
+                        >
+                          <Video className="w-4 h-4" /> Video
+                        </Button>
+                        <Button 
+                          variant={newEvent.type === 'image' ? 'default' : 'outline'}
+                          className="flex-1 rounded-xl h-12 font-bold gap-2"
+                          onClick={() => setNewEvent({...newEvent, type: 'image', url: ''})}
+                        >
+                          <ImageIcon className="w-4 h-4" /> Image
+                        </Button>
+                      </div>
+                      
+                      <div className="w-full aspect-video bg-white rounded-2xl border-2 border-dashed border-primary/10 flex items-center justify-center overflow-hidden shadow-inner mt-2">
+                        {newEvent.url ? (
+                          newEvent.type === 'video' ? (
+                            <div className="w-full h-full flex flex-col items-center justify-center bg-slate-900 text-white gap-2">
+                              <Video className="w-8 h-8 opacity-20" />
+                              <span className="text-[8px] font-black uppercase opacity-40">External Video URL</span>
+                            </div>
+                          ) : (
+                            <img src={newEvent.url} alt="Preview" className="w-full h-full object-cover" />
+                          )
                         ) : (
-                          <img src={newEvent.url} alt="Preview" className="w-full h-full object-cover" />
-                        )
-                      ) : (
-                        <div className="text-center space-y-2">
-                          <LinkIcon className="w-6 h-6 text-primary/20 mx-auto" />
-                          <span className="text-[9px] font-black uppercase text-primary/20 block">Media Preview</span>
-                        </div>
-                      )}
+                          <div className="text-center space-y-2">
+                            <LinkIcon className="w-6 h-6 text-primary/20 mx-auto" />
+                            <span className="text-[9px] font-black uppercase text-primary/20 block">Media Preview</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="md:col-span-8 space-y-6">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest ml-1">Headline Title</Label>
-                      <Input 
-                        value={newEvent.title} 
-                        onChange={(e) => setNewEvent({...newEvent, title: e.target.value})} 
-                        placeholder="e.g. Annual Pedagogical Summit" 
-                        className="h-12 border-none bg-white rounded-xl px-4 font-bold" 
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest ml-1">Short Summary</Label>
-                      <Input 
-                        value={newEvent.description} 
-                        onChange={(e) => setNewEvent({...newEvent, description: e.target.value})} 
-                        placeholder="Capturing the moments..." 
-                        className="h-12 border-none bg-white rounded-xl px-4" 
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest ml-1">
-                        {newEvent.type === 'video' ? 'YouTube / Video Embed URL' : 'Direct Image URL'}
-                      </Label>
-                      <div className="relative">
-                        <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
+                    <div className="md:col-span-8 space-y-6">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest ml-1">Headline Title</Label>
                         <Input 
-                          value={newEvent.url} 
-                          onChange={(e) => setNewEvent({...newEvent, url: e.target.value})} 
-                          placeholder="https://..." 
-                          className="h-12 border-none bg-white rounded-xl pl-10 pr-4" 
+                          value={newEvent.title} 
+                          onChange={(e) => setNewEvent({...newEvent, title: e.target.value})} 
+                          placeholder="e.g. Annual Pedagogical Summit" 
+                          className="h-12 border-none bg-white rounded-xl px-4 font-bold" 
                         />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest ml-1">Short Summary</Label>
+                        <Input 
+                          value={newEvent.description} 
+                          onChange={(e) => setNewEvent({...newEvent, description: e.target.value})} 
+                          placeholder="Capturing the moments..." 
+                          className="h-12 border-none bg-white rounded-xl px-4" 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest ml-1">
+                          {newEvent.type === 'video' ? 'YouTube / Video Embed URL' : 'Direct Image URL'}
+                        </Label>
+                        <div className="relative">
+                          <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
+                          <Input 
+                            value={newEvent.url} 
+                            onChange={(e) => setNewEvent({...newEvent, url: e.target.value})} 
+                            placeholder="https://..." 
+                            className="h-12 border-none bg-white rounded-xl pl-10 pr-4" 
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
+                  <Button onClick={handlePublishEvent} className="w-full h-14 bg-primary text-white font-black uppercase tracking-widest text-xs gap-3 rounded-2xl shadow-xl transition-all">
+                    <Plus className="w-5 h-5 text-secondary" /> Add to Public Portfolio
+                  </Button>
                 </div>
-                <Button onClick={handlePublishEvent} className="w-full h-14 bg-primary text-white font-black uppercase tracking-widest text-xs gap-3 rounded-2xl shadow-xl transition-all">
-                  <Plus className="w-5 h-5 text-secondary" /> Add to Public Portfolio
-                </Button>
-              </div>
+              )}
 
               <div className="space-y-6">
                 <h3 className="text-sm font-black uppercase text-primary tracking-[0.3em] border-b pb-2 flex items-center gap-2">
@@ -499,14 +509,16 @@ export default function PlatformSettingsPage() {
                         ) : (
                           <img src={event.url} alt={event.title} className="w-full h-full object-cover" />
                         )}
-                        <Button 
-                          variant="destructive" 
-                          size="icon" 
-                          className="absolute top-2 right-2 rounded-full h-8 w-8 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => deletePublicEvent(event.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        {(isSuperUser || isDesigner) && (
+                          <Button 
+                            variant="destructive" 
+                            size="icon" 
+                            className="absolute top-2 right-2 rounded-full h-8 w-8 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => deletePublicEvent(event.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
                       </div>
                       <CardHeader className="p-4">
                         <div className="flex items-center justify-between gap-4">
@@ -515,11 +527,13 @@ export default function PlatformSettingsPage() {
                         </div>
                         <CardDescription className="text-xs line-clamp-1">{event.description}</CardDescription>
                       </CardHeader>
-                      <CardFooter className="p-4 pt-0 justify-end">
-                        <Button variant="ghost" size="sm" className="text-destructive gap-2 text-[10px] font-black uppercase" onClick={() => deletePublicEvent(event.id)}>
-                          <Trash2 className="w-3.5 h-3.5" /> Remove
-                        </Button>
-                      </CardFooter>
+                      {(isSuperUser || isDesigner) && (
+                        <CardFooter className="p-4 pt-0 justify-end">
+                          <Button variant="ghost" size="sm" className="text-destructive gap-2 text-[10px] font-black uppercase" onClick={() => deletePublicEvent(event.id)}>
+                            <Trash2 className="w-3.5 h-3.5" /> Remove
+                          </Button>
+                        </CardFooter>
+                      )}
                     </Card>
                   ))}
                 </div>
