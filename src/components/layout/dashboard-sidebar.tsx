@@ -55,7 +55,6 @@ interface SidebarProps {
 }
 
 const EXECUTIVE_ROLES: UserRole[] = ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV", "DESIGNER"];
-const BOARD_CHAT_ROLES: UserRole[] = ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV", "DESIGNER"];
 
 export function DashboardSidebar({ onClose }: SidebarProps) {
   const pathname = usePathname();
@@ -64,6 +63,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
 
   const isSuperAdmin = EXECUTIVE_ROLES.includes(user?.role as UserRole);
   const isDesigner = user?.role === "DESIGNER";
+  const isInvestor = user?.role === "INV";
   const isBursar = user?.role === "BURSAR";
 
   const routes = [
@@ -77,31 +77,31 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: t("founders"),
       icon: Crown,
       href: "/dashboard/founders",
-      roles: ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV"], // Hidden from Designer per requirements
+      roles: ["SUPER_ADMIN", "CEO", "CTO", "COO"], // Hidden from Designer and Investor
     },
     {
       label: t("schools"),
       icon: Globe,
       href: "/dashboard/schools",
-      roles: ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV"], // View only for others, but Designer follows view-only rule
+      roles: ["SUPER_ADMIN", "CEO", "CTO", "COO"], // Hidden from Designer and Investor
     },
     {
       label: t("supportRegistry"),
       icon: Heart,
       href: "/dashboard/support",
-      roles: ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV"],
+      roles: ["SUPER_ADMIN", "CEO", "CTO", "COO"], // Hidden from Designer and Investor
     },
     {
       label: language === 'en' ? 'Testimonials' : 'Témoignages',
       icon: Quote,
       href: "/dashboard/testimonials",
-      roles: ["SUPER_ADMIN", "CEO", "CTO", "INV"],
+      roles: ["SUPER_ADMIN", "CEO", "CTO"], // Hidden from Designer and Investor
     },
     {
       label: language === 'en' ? 'Portfolio & Policy' : 'Portfolio & Politique',
       icon: isDesigner ? Star : Settings2,
       href: "/dashboard/platform-settings",
-      roles: ["SUPER_ADMIN", "CEO", "DESIGNER"], // Designer sees this for posting events
+      roles: ["SUPER_ADMIN", "CEO", "DESIGNER"], // Designer sees this, Investor does not
     },
     // SCHOOL ADMIN SPECIFIC MANAGEMENT
     {
@@ -121,7 +121,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: t("chat"),
       icon: MessageCircle,
       href: "/dashboard/chat",
-      roles: ["SCHOOL_ADMIN", "SUB_ADMIN", "TEACHER", "STUDENT", "PARENT", "BURSAR", "LIBRARIAN", "DESIGNER"],
+      roles: ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV", "DESIGNER", "SCHOOL_ADMIN", "SUB_ADMIN", "TEACHER", "STUDENT", "PARENT", "BURSAR", "LIBRARIAN"],
     },
     {
       label: t("announcements"),
@@ -133,7 +133,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: t("feedback"),
       icon: MessageSquare,
       href: "/dashboard/feedback",
-      roles: ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV", "SCHOOL_ADMIN", "SUB_ADMIN"],
+      roles: ["SUPER_ADMIN", "CEO", "CTO", "COO", "SCHOOL_ADMIN", "SUB_ADMIN"], // Hidden from INV and Designer
     },
     {
       label: t("overview"),
