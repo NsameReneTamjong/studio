@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -35,7 +35,8 @@ import {
   CalendarDays,
   ArrowLeft,
   Loader2,
-  Save
+  Save,
+  Check
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -58,19 +59,11 @@ const MOCK_CLASSES_ATTENDANCE = [
 ];
 
 const MOCK_STUDENTS = [
-  { id: "S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", status: "present", presentCount: 22, absentCount: 2 },
-  { id: "S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", status: "present", presentCount: 18, absentCount: 6 },
-  { id: "S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", status: "absent", presentCount: 15, absentCount: 9 },
-  { id: "S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100", status: "present", presentCount: 24, absentCount: 0 },
-  { id: "S005", name: "Ethan Hunt", avatar: "https://picsum.photos/seed/s5/100/100", status: "present", presentCount: 20, absentCount: 4 },
-];
-
-const MOCK_SUBJECT_ATTENDANCE = [
-  { id: "SUB1", name: "Mathematics", percentage: 95, sessions: 24, instructor: "Prof. Sarah Smith" },
-  { id: "SUB2", name: "Physics", percentage: 88, sessions: 20, instructor: "Dr. Aris Tesla" },
-  { id: "SUB3", name: "English Literature", percentage: 92, sessions: 18, instructor: "Ms. Bennet" },
-  { id: "SUB4", name: "History", percentage: 76, sessions: 15, instructor: "Mr. Tabi" },
-  { id: "SUB5", name: "Chemistry", percentage: 90, sessions: 22, instructor: "Dr. White" },
+  { id: "S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", presentCount: 22, absentCount: 2 },
+  { id: "S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", presentCount: 18, absentCount: 6 },
+  { id: "S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", presentCount: 15, absentCount: 9 },
+  { id: "S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100", presentCount: 24, absentCount: 0 },
+  { id: "S005", name: "Ethan Hunt", avatar: "https://picsum.photos/seed/s5/100/100", presentCount: 20, absentCount: 4 },
 ];
 
 const MOCK_STUDENT_TODAY = [
@@ -126,11 +119,22 @@ export default function AttendancePage() {
   const [viewingSubjectLogs, setViewingSubjectLogs] = useState<any>(null);
   const [viewingHistoryDetails, setViewingHistoryDetails] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Registry State for Teachers
+  // Initialize all students as 'present' by default
+  const [registryState, setRegistryState] = useState<Record<string, 'present' | 'absent'>>(
+    MOCK_STUDENTS.reduce((acc, s) => ({ ...acc, [s.id]: 'present' }), {})
+  );
   
-  const isTeacher = user?.role === "TEACHER";
-  const isAdmin = user?.role === "SCHOOL_ADMIN";
+  const isAdmin = user?.role === "SCHOOL_ADMIN" || user?.role === "SUB_ADMIN";
   const isParent = user?.role === "PARENT";
   const isStudent = user?.role === "STUDENT";
+
+  const headCount = useMemo(() => {
+    const present = Object.values(registryState).filter(v => v === 'present').length;
+    const absent = Object.values(registryState).filter(v => v === 'absent').length;
+    return { present, absent, total: MOCK_STUDENTS.length };
+  }, [registryState]);
 
   const handleDownloadReport = (scope: string) => {
     toast({
@@ -139,13 +143,17 @@ export default function AttendancePage() {
     });
   };
 
+  const setStatus = (studentId: string, status: 'present' | 'absent') => {
+    setRegistryState(prev => ({ ...prev, [studentId]: status }));
+  };
+
   const handleSubmitRegistry = () => {
     setIsProcessing(true);
     setTimeout(() => {
       setIsProcessing(false);
       toast({
         title: "Registry Synchronized",
-        description: "Pedagogical presence data has been committed to the node.",
+        description: `Pedagogical presence for ${headCount.present}/${headCount.total} students has been committed.`,
       });
     }, 1500);
   };
@@ -514,14 +522,26 @@ export default function AttendancePage() {
           <TabsContent value="register" className="animate-in fade-in slide-in-from-bottom-4 mt-0">
             <Card className="border-none shadow-xl rounded-3xl overflow-hidden bg-white">
               <CardHeader className="bg-primary text-white p-8">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div>
                     <CardTitle className="text-2xl font-black">Session Register: Form 5A</CardTitle>
                     <CardDescription className="text-white/60">Mark presence for students in this academic session.</CardDescription>
                   </div>
-                  <Badge variant="outline" className="bg-white/10 text-white border-none h-8 px-4 font-black uppercase text-[10px] tracking-widest flex items-center gap-2">
-                    <Clock className="w-3.5 h-3.5" /> 08:45 AM
-                  </Badge>
+                  
+                  <div className="flex items-center gap-4 bg-white/10 p-4 rounded-2xl backdrop-blur-md">
+                    <div className="text-center border-r border-white/20 pr-4">
+                      <p className="text-[9px] font-black uppercase opacity-60">Present</p>
+                      <p className="text-xl font-black text-secondary">{headCount.present}</p>
+                    </div>
+                    <div className="text-center border-r border-white/20 pr-4">
+                      <p className="text-[9px] font-black uppercase opacity-60">Absent</p>
+                      <p className="text-xl font-black text-red-400">{headCount.absent}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-[9px] font-black uppercase opacity-60">Total</p>
+                      <p className="text-xl font-black">{headCount.total}</p>
+                    </div>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="p-0 overflow-x-auto">
@@ -535,7 +555,10 @@ export default function AttendancePage() {
                   </TableHeader>
                   <TableBody>
                     {MOCK_STUDENTS.map(s => (
-                      <TableRow key={s.id} className="group hover:bg-accent/5 transition-colors">
+                      <TableRow key={s.id} className={cn(
+                        "group transition-colors",
+                        registryState[s.id] === 'absent' ? "bg-red-50/50" : "hover:bg-accent/5"
+                      )}>
                         <TableCell className="pl-8 py-4">
                           <div className="flex items-center gap-3">
                             <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent shrink-0">
@@ -546,12 +569,37 @@ export default function AttendancePage() {
                           </div>
                         </TableCell>
                         <TableCell className="text-center">
-                          <Badge className="bg-green-100 text-green-700 border-none text-[9px] font-black uppercase px-3 h-5">Verified</Badge>
+                          <Badge className={cn(
+                            "text-[9px] font-black uppercase px-3 h-5 border-none",
+                            registryState[s.id] === 'present' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                          )}>
+                            {registryState[s.id] === 'present' ? 'PRESENT' : 'ABSENT'}
+                          </Badge>
                         </TableCell>
                         <TableCell className="text-right pr-8">
                           <div className="flex justify-end gap-2">
-                            <Button size="sm" variant="outline" className="text-[10px] uppercase font-black px-4 h-8 hover:bg-green-600 hover:text-white transition-colors border-green-200 text-green-700">Present</Button>
-                            <Button size="sm" variant="outline" className="text-[10px] uppercase font-black px-4 h-8 hover:bg-red-600 hover:text-white transition-colors border-red-200 text-red-700">Absent</Button>
+                            <Button 
+                              size="sm" 
+                              variant={registryState[s.id] === 'present' ? 'default' : 'outline'}
+                              className={cn(
+                                "text-[10px] uppercase font-black px-4 h-8 transition-all",
+                                registryState[s.id] === 'present' ? "bg-green-600 hover:bg-green-700" : "border-green-200 text-green-700 hover:bg-green-50"
+                              )}
+                              onClick={() => setStatus(s.id, 'present')}
+                            >
+                              <Check className="w-3 h-3 mr-1" /> Present
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant={registryState[s.id] === 'absent' ? 'destructive' : 'outline'}
+                              className={cn(
+                                "text-[10px] uppercase font-black px-4 h-8 transition-all",
+                                registryState[s.id] === 'absent' ? "bg-red-600 hover:bg-red-700 shadow-lg" : "border-red-200 text-red-700 hover:bg-red-50"
+                              )}
+                              onClick={() => setStatus(s.id, 'absent')}
+                            >
+                              <XCircle className="w-3 h-3 mr-1" /> Absent
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -562,7 +610,7 @@ export default function AttendancePage() {
               <CardFooter className="bg-accent/10 border-t p-6 flex flex-col sm:flex-row gap-6 justify-between items-center">
                 <div className="flex items-center gap-3 text-muted-foreground italic">
                   <ShieldCheck className="w-5 h-5 text-primary opacity-40" />
-                  <p className="text-[10px] font-black uppercase tracking-widest">Automated attendance lock in 15 minutes.</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest">Headcount: {headCount.present} Present / {headCount.absent} Absent</p>
                 </div>
                 <div className="flex gap-3 w-full sm:w-auto">
                   <Button variant="outline" className="h-12 px-8 rounded-xl font-bold gap-2 flex-1 sm:flex-none bg-white">
