@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
@@ -62,8 +63,6 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
-// --- MOCK ANALYTICS DATA ---
-
 const DATA_PERIODS = {
   weekly: [
     { name: 'Mon', users: 120, revenue: 45000 },
@@ -107,7 +106,6 @@ export default function DashboardPage() {
   const { user, schools, isLoading } = useAuth();
   const { t, language } = useI18n();
 
-  // Filters State
   const [timePeriod, setTimePeriod] = useState<"weekly" | "monthly" | "yearly">("monthly");
   const [selectedSchoolId, setSelectedSchoolId] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -115,7 +113,6 @@ export default function DashboardPage() {
   const activeChartData = DATA_PERIODS[timePeriod];
 
   const summaryStats = useMemo(() => {
-    // In a real app, these would filter based on selectedSchoolId
     return {
       totalUsers: "22,482",
       students: "18,540",
@@ -137,14 +134,13 @@ export default function DashboardPage() {
     );
   }
 
-  const isSuperAdmin = ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV", "DESIGNER"].includes(user.role);
+  const isPlatformExecutive = ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV", "DESIGNER"].includes(user.role);
   const isParent = user.role === "PARENT";
   const isBursar = user.role === "BURSAR";
 
-  if (isSuperAdmin) {
+  if (isPlatformExecutive) {
     return (
       <div className="space-y-8 pb-20">
-        {/* 1. HEADER & GLOBAL FILTERS */}
         <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6">
           <div className="space-y-1">
             <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
@@ -186,7 +182,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* 2. SUMMARY MATRIX */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           <Card className="border-none shadow-sm bg-primary text-white overflow-hidden relative group">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform"><Users className="w-16 h-16"/></div>
@@ -223,12 +218,12 @@ export default function DashboardPage() {
 
           <Card className="border-none shadow-sm bg-white overflow-hidden group">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Executives</CardTitle>
+              <CardTitle className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Founders</CardTitle>
               <Crown className="w-4 h-4 text-secondary group-hover:scale-110 transition-transform" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-black text-primary">{summaryStats.founders}</div>
-              <p className="text-[9px] font-bold mt-1 text-muted-foreground uppercase">Board Directors</p>
+              <p className="text-[9px] font-bold mt-1 text-muted-foreground uppercase">Executive Board</p>
             </CardContent>
           </Card>
 
@@ -243,7 +238,6 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        {/* 3. VISUALIZATION CORE */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <Card className="lg:col-span-8 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
             <CardHeader className="border-b bg-accent/5 p-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -254,11 +248,9 @@ export default function DashboardPage() {
                 </CardTitle>
                 <CardDescription>Analyzing {timePeriod} trends across the network.</CardDescription>
               </div>
-              <div className="flex gap-2">
-                <Badge variant="secondary" className="bg-primary/5 text-primary border-none uppercase text-[9px] font-black h-7 px-3">
-                  <Zap className="w-3 h-3 mr-1.5" /> High Availability Node
-                </Badge>
-              </div>
+              <Badge variant="secondary" className="bg-primary/5 text-primary border-none uppercase text-[9px] font-black h-7 px-3">
+                <Zap className="w-3 h-3 mr-1.5" /> High Availability Node
+              </Badge>
             </CardHeader>
             <CardContent className="h-[400px] pt-10">
               <ResponsiveContainer width="100%" height="100%">
@@ -323,7 +315,6 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        {/* 4. INSTITUTIONAL DATA GRID */}
         <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
           <CardHeader className="bg-white border-b p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-1">
@@ -406,7 +397,6 @@ export default function DashboardPage() {
     );
   }
 
-  // --- BURSAR DASHBOARD ---
   if (isBursar) {
     return (
       <div className="space-y-8 pb-20">
@@ -420,13 +410,11 @@ export default function DashboardPage() {
               <p className="text-muted-foreground mt-1">{user.school?.name || "EduIgnite Node"} • Financial Oversight</p>
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button asChild className="rounded-xl h-11 px-8 shadow-lg font-bold gap-2 bg-primary text-white">
-              <Link href="/dashboard/fees">
-                <Receipt className="w-4 h-4" /> Collect Payment
-              </Link>
-            </Button>
-          </div>
+          <Button asChild className="rounded-xl h-11 px-8 shadow-lg font-bold gap-2 bg-primary text-white">
+            <Link href="/dashboard/fees">
+              <Receipt className="w-4 h-4" /> Collect Payment
+            </Link>
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -492,25 +480,12 @@ export default function DashboardPage() {
                 </Link>
               </Button>
             </Card>
-
-            <Card className="border-none shadow-sm rounded-[2rem] bg-accent/30 p-6">
-               <div className="flex items-start gap-3">
-                  <div className="p-2 bg-white rounded-lg shadow-sm">
-                    <ShieldCheck className="w-4 h-4 text-green-600" />
-                  </div>
-                  <div className="space-y-1">
-                     <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest leading-none">Node Integrity</p>
-                     <p className="text-xs font-bold text-primary">All financial records are encrypted and synchronized with the platform core.</p>
-                  </div>
-               </div>
-            </Card>
           </div>
         </div>
       </div>
     );
   }
 
-  // --- PARENT DASHBOARD ---
   if (isParent) {
     return (
       <div className="space-y-8">
@@ -583,23 +558,12 @@ export default function DashboardPage() {
                 </Link>
               </Button>
             </Card>
-
-            <Card className="border-none shadow-sm rounded-[2rem] bg-accent/30 p-6">
-               <div className="flex items-start gap-3">
-                  <div className="p-2 bg-white rounded-lg"><Activity className="w-4 h-4 text-primary" /></div>
-                  <div className="space-y-1">
-                     <p className="text-[10px] font-black uppercase text-muted-foreground">Recent Notice</p>
-                     <p className="text-xs font-bold text-primary">Sequence 2 evaluations are now live.</p>
-                  </div>
-               </div>
-            </Card>
           </div>
         </div>
       </div>
     );
   }
 
-  // --- GENERAL USER DASHBOARD (STUDENT/TEACHER) ---
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

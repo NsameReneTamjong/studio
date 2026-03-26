@@ -157,7 +157,6 @@ interface AuthContextType {
   updatePlatformSettings: (updates: Partial<PlatformSettings>) => Promise<void>;
   markLicensePaid: () => Promise<void>;
   incrementAiRequest: () => Promise<void>;
-  // Data Handlers
   addTestimony: (testimony: Omit<Testimony, "id" | "status" | "createdAt">) => void;
   approveTestimony: (id: string) => void;
   deleteTestimony: (id: string) => void;
@@ -177,7 +176,6 @@ interface AuthContextType {
   deleteSupport: (id: string) => void;
   addPublicEvent: (event: Omit<PublicEvent, "id">) => void;
   deletePublicEvent: (id: string) => void;
-  // Auth
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -346,13 +344,13 @@ const PLATFORM_DEFAULTS: PlatformSettings = {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [userData, setUserData] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [schools, setSchools] = useState<SchoolInfo[]>(INITIAL_SCHOOLS);
+  const [schools, setSchools] = useState<SchoolInfo[]>([]);
   const [testimonials, setTestimonials] = useState<Testimony[]>([]);
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [supportContributions, setSupportContributions] = useState<SupportContribution[]>([]);
-  const [publicEvents, setPublicEvents] = useState<PublicEvent[]>(INITIAL_EVENTS);
+  const [publicEvents, setPublicEvents] = useState<PublicEvent[]>([]);
   const [platformSettings, setPlatformSettings] = useState<PlatformSettings>(PLATFORM_DEFAULTS);
 
   const router = useRouter();
@@ -363,63 +361,61 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUserData(JSON.parse(savedUser));
     }
     
-    // Load collections from local storage with explicit empty checks
-    const collections = [
-      { key: "testimonials", setter: setTestimonials, default: [] },
-      { key: "feedbacks", setter: setFeedbacks, default: [] },
-      { key: "orders", setter: (data: any) => setOrders(data), default: [
-        {
-          id: "ORD-1001",
-          fullName: "Dr. Jean-Pierre Biya",
-          occupation: "School Principal",
-          schoolName: "GBHS Douala",
-          whatsappNumber: "+237 677 88 99 00",
-          email: "principal@gbhsdouala.cm",
-          region: "Littoral",
-          division: "Wouri",
-          subDivision: "Douala 1er",
-          status: "pending",
-          createdAt: new Date()
+    // Unified Loading with robust error handling and defaults
+    const loadRegistry = (key: string, defaultValue: any) => {
+      const saved = localStorage.getItem(`eduignite_${key}`);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) ? parsed.length > 0 : Object.keys(parsed).length > 0) {
+            return parsed;
+          }
+        } catch (e) {
+          console.error(`Error loading registry ${key}`, e);
         }
-      ] },
-      { key: "announcements", setter: setAnnouncements, default: INITIAL_ANNOUNCEMENTS },
-      { key: "support", setter: setSupportContributions, default: [
-        {
-          id: "SUP-2001",
-          userName: "Alice Thompson",
-          userRole: "STUDENT",
-          userAvatar: "https://picsum.photos/seed/s1/100/100",
-          amount: 5000,
-          method: "MTN MoMo",
-          phone: "677001122",
-          message: "I love the new MCQ exams! Keep up the good work.",
-          status: "Verified",
-          createdAt: new Date()
-        }
-      ] },
-      { key: "schools", setter: setSchools, default: INITIAL_SCHOOLS },
-      { key: "events", setter: setPublicEvents, default: INITIAL_EVENTS },
-      { key: "platform", setter: (data: any) => setPlatformSettings({ ...PLATFORM_DEFAULTS, ...data }), default: PLATFORM_DEFAULTS }
-    ];
-
-    collections.forEach(c => {
-      const saved = localStorage.getItem(`eduignite_${c.key}`);
-      const parsed = saved ? JSON.parse(saved) : null;
-      if (parsed && (Array.isArray(parsed) ? parsed.length > 0 : Object.keys(parsed).length > 0)) {
-        if (c.key === "platform") {
-          c.setter(parsed);
-        } else {
-          c.setter(parsed);
-        }
-      } else {
-        c.setter(c.default);
       }
-    });
+      return defaultValue;
+    };
+
+    setTestimonials(loadRegistry("testimonials", []));
+    setFeedbacks(loadRegistry("feedbacks", []));
+    setOrders(loadRegistry("orders", [
+      {
+        id: "ORD-1001",
+        fullName: "Dr. Jean-Pierre Biya",
+        occupation: "School Principal",
+        schoolName: "GBHS Douala",
+        whatsappNumber: "+237 677 88 99 00",
+        email: "principal@gbhsdouala.cm",
+        region: "Littoral",
+        division: "Wouri",
+        subDivision: "Douala 1er",
+        status: "pending",
+        createdAt: new Date()
+      }
+    ]));
+    setAnnouncements(loadRegistry("announcements", INITIAL_ANNOUNCEMENTS));
+    setSupportContributions(loadRegistry("support", [
+      {
+        id: "SUP-2001",
+        userName: "Alice Thompson",
+        userRole: "STUDENT",
+        userAvatar: "https://picsum.photos/seed/s1/100/100",
+        amount: 5000,
+        method: "MTN MoMo",
+        phone: "677001122",
+        message: "I love the new MCQ exams! Keep up the good work.",
+        status: "Verified",
+        createdAt: new Date()
+      }
+    ]));
+    setSchools(loadRegistry("schools", INITIAL_SCHOOLS));
+    setPublicEvents(loadRegistry("events", INITIAL_EVENTS));
+    setPlatformSettings(loadRegistry("platform", PLATFORM_DEFAULTS));
 
     setIsLoading(false);
   }, []);
 
-  // Persistence Sync
   useEffect(() => {
     if (!isLoading) {
       localStorage.setItem("eduignite_testimonials", JSON.stringify(testimonials));

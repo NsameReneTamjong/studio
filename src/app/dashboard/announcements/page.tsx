@@ -23,13 +23,11 @@ export default function AnnouncementsPage() {
   
   const [isSending, setIsSending] = useState(false);
   
-  // Executive Roles Check
   const isPlatformExecutive = ["CEO", "CTO", "COO", "INV", "DESIGNER", "SUPER_ADMIN"].includes(user?.role || "");
   const isCEO = user?.role === "CEO" || user?.role === "SUPER_ADMIN";
   const isSchoolAdmin = user?.role === "SCHOOL_ADMIN";
   const isTeacher = user?.role === "TEACHER";
 
-  // Initial target based on role authority
   const initialTarget = isCEO ? "all_schools" : (isPlatformExecutive ? "saas_admins" : "everyone");
   const [formData, setFormData] = useState({ title: "", content: "", target: initialTarget });
 
@@ -39,7 +37,6 @@ export default function AnnouncementsPage() {
     if (!formData.title || !formData.content || !user) return;
     setIsSending(true);
     
-    // Prototype Delay
     setTimeout(() => {
       addAnnouncement({
         ...formData,
@@ -232,8 +229,6 @@ export default function AnnouncementsPage() {
                 if (ann.target === "board_directors") return ["CEO", "CTO", "COO", "SUPER_ADMIN", "DESIGNER"].includes(userRole);
                 if (ann.target === "investors") return ["CEO", "INV", "SUPER_ADMIN"].includes(userRole);
                 
-                // If it's a school target, only show to people who belong to a school
-                // executives only see school announcements if they are the sender
                 return !isPlatformExecutive || ann.senderUid === user?.id;
               })
               .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
