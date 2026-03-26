@@ -10,34 +10,22 @@ import {
   Users, 
   Building2, 
   Activity, 
-  MessageSquare, 
   Globe, 
   Loader2,
   ShieldCheck,
-  Wallet,
   GraduationCap,
   TrendingUp,
-  Heart,
-  Award,
   ChevronRight,
   ClipboardCheck,
   Coins,
-  Receipt,
   ArrowUpRight,
-  History,
-  AlertCircle,
-  Filter,
   Calendar,
-  BarChart3,
   PieChart,
-  ArrowRight,
   Zap,
   Crown,
-  LayoutGrid,
   Search,
   Info,
-  BookOpen,
-  Monitor
+  Lock
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -509,7 +497,7 @@ export default function DashboardPage() {
           </div>
           <Button asChild className="rounded-xl h-11 px-8 shadow-lg font-bold gap-2 bg-primary text-white">
             <Link href="/dashboard/fees">
-              <Receipt className="w-4 h-4" /> Collect Payment
+              <ShieldCheck className="w-4 h-4" /> Collect Payment
             </Link>
           </Button>
         </div>
@@ -518,7 +506,7 @@ export default function DashboardPage() {
           {[
             { label: "Intake Target", value: "24.5M", icon: TrendingUp, color: "text-green-600", desc: "84% Achieved" },
             { label: "Daily Collection", value: "450k", icon: ArrowUpRight, color: "text-blue-600", desc: "12 Transactions" },
-            { label: "Total Arrears", value: "4.6M", icon: AlertCircle, color: "text-red-600", desc: "Urgent Follow-up" },
+            { label: "Total Arrears", value: "4.6M", icon: Info, color: "text-red-600", desc: "Urgent Follow-up" },
             { label: "Fee Categories", value: "4", icon: Wallet, color: "text-amber-600", desc: "Active Structures" },
           ].map((stat, i) => (
             <Card key={i} className="border-none shadow-sm group hover:shadow-md transition-shadow">
@@ -535,7 +523,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <Card className="lg:col-span-8 border-none shadow-xl overflow-hidden rounded-[2rem]">
+          <Card className="lg:col-span-8 border-none shadow-xl overflow-hidden rounded-[2.5rem]">
             <CardHeader className="bg-primary/5 p-8 border-b">
               <CardTitle className="text-primary flex items-center gap-2 font-black uppercase tracking-tighter">
                 <TrendingUp className="w-5 h-5 text-secondary"/> Revenue Intake Velocity
@@ -661,7 +649,6 @@ export default function DashboardPage() {
     );
   }
 
-  // DEFAULT BRANCH: TEACHERS, STUDENTS, LIBRARIANS
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

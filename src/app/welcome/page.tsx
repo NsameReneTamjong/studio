@@ -179,9 +179,6 @@ export default function SchoolWelcomePage() {
           </div>
 
           <Card className="border-none shadow-2xl bg-primary text-white overflow-hidden relative rounded-[2.5rem]">
-            <div className="absolute top-0 right-0 p-6 opacity-10">
-              <Sparkles className="w-24 h-24 rotate-12" />
-            </div>
             <CardContent className="p-8 space-y-6 relative z-10">
               <div className="space-y-1">
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Verified Node Registry</p>
