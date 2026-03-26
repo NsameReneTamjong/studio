@@ -127,6 +127,12 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       roles: [...EXECUTIVE_ROLES, "SCHOOL_ADMIN", "SUB_ADMIN", "TEACHER", "STUDENT", "PARENT", "BURSAR", "LIBRARIAN"],
     },
     {
+      label: t("feedback"),
+      icon: MessageSquare,
+      href: "/dashboard/feedback",
+      roles: [...EXECUTIVE_ROLES, "SCHOOL_ADMIN", "SUB_ADMIN"],
+    },
+    {
       label: t("overview"),
       icon: LayoutDashboard,
       href: "/dashboard",
