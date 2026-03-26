@@ -173,7 +173,8 @@ export default function StudentsPage() {
       uid: Math.random().toString(36).substr(2, 9),
       child: "Pending Admission",
       status: "active",
-      avatar: `https://picsum.photos/seed/${id}/100/100`
+      // Assign default institutional avatar based on ID
+      avatar: `https://picsum.photos/seed/${id}/200/200`
     };
     setParentList([...parentList, created]);
     setNewStudent({ ...newStudent, guardianId: id });
@@ -201,7 +202,8 @@ export default function StudentsPage() {
         email: `${studentId.toLowerCase()}@school.edu`,
         isLicensePaid: true,
         status: "active",
-        avatar: `https://picsum.photos/seed/${studentId}/100/100`,
+        // Assign default institutional avatar based on ID
+        avatar: `https://picsum.photos/seed/${studentId}/200/200`,
         guardianName: guardian?.name || "N/A",
         guardianMatricule: guardian?.id || "N/A",
         guardianType: guardian?.type || "Guardian"

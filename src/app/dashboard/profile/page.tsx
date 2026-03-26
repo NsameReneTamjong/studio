@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { User, Camera, Lock, Save, Loader2, Mail } from "lucide-react";
+import { User, Camera, Lock, Save, Loader2, Mail, RefreshCw } from "lucide-react";
 
 export default function ProfilePage() {
   const { user, updateUser } = useAuth();
@@ -79,10 +79,19 @@ export default function ProfilePage() {
   };
 
   const handleChangePhoto = () => {
-    toast({
-      title: language === 'en' ? "Coming Soon" : "Bientôt disponible",
-      description: language === 'en' ? "Image upload will be available in the next update." : "Le téléchargement d'images sera disponible dans la prochaine mise à jour.",
-    });
+    setLoading(true);
+    // Simulate updating avatar with a new random seed
+    const newSeed = Math.random().toString(36).substring(7);
+    const newAvatar = `https://picsum.photos/seed/${newSeed}/200/200`;
+    
+    setTimeout(() => {
+      updateUser({ avatar: newAvatar });
+      setLoading(false);
+      toast({
+        title: language === 'en' ? "Identity Updated" : "Identité Mise à Jour",
+        description: language === 'en' ? "Your profile photo has been refreshed." : "Votre photo de profil a été actualisée.",
+      });
+    }, 800);
   };
 
   return (
@@ -93,126 +102,129 @@ export default function ProfilePage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <Card className="md:col-span-1 border-none shadow-sm h-fit">
+        <Card className="md:col-span-1 border-none shadow-sm h-fit bg-white">
           <CardHeader className="text-center">
-            <CardTitle className="text-lg">{language === 'en' ? "Photo" : "Photo de profil"}</CardTitle>
+            <CardTitle className="text-lg">{language === 'en' ? "Identity Preview" : "Aperçu d'Identité"}</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col items-center space-y-4">
+          <CardContent className="flex flex-col items-center space-y-6">
             <div className="relative group">
-              <Avatar className="h-32 w-32 border-4 border-white shadow-xl">
+              <Avatar className="h-40 w-40 border-4 border-white shadow-2xl ring-1 ring-primary/5">
                 <AvatarImage src={user?.avatar} />
-                <AvatarFallback className="bg-primary/5 text-primary text-4xl">
+                <AvatarFallback className="bg-primary/5 text-primary text-4xl font-black">
                   {user?.name?.charAt(0)}
                 </AvatarFallback>
               </Avatar>
               <Button 
                 size="icon" 
-                variant="secondary" 
-                className="absolute bottom-0 right-0 rounded-full shadow-lg border-2 border-white opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute bottom-2 right-2 rounded-2xl shadow-xl border-2 border-white bg-primary text-white hover:bg-primary/90"
                 onClick={handleChangePhoto}
+                disabled={loading}
               >
-                <Camera className="w-4 h-4" />
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
               </Button>
             </div>
-            <div className="text-center">
-              <p className="font-bold text-lg">{user?.name}</p>
-              <p className="text-xs text-muted-foreground uppercase font-black tracking-tighter opacity-50">{user?.role}</p>
-              <p className="text-xs text-muted-foreground mt-1">{user?.email}</p>
+            <div className="text-center space-y-1">
+              <p className="font-black text-xl text-primary uppercase tracking-tight leading-none">{user?.name}</p>
+              <Badge variant="secondary" className="bg-secondary/20 text-primary border-none text-[10px] font-black uppercase tracking-widest">{user?.role}</Badge>
+              <p className="text-xs text-muted-foreground mt-2 font-mono">{user?.id}</p>
             </div>
-            <Button variant="outline" size="sm" className="w-full gap-2" onClick={handleChangePhoto}>
-              <Camera className="w-3.5 h-3.5" />
-              {language === 'en' ? "Change Photo" : "Changer la Photo"}
-            </Button>
+            <div className="w-full pt-4 border-t space-y-3">
+              <p className="text-[10px] text-center font-black uppercase text-muted-foreground tracking-widest">Profile Actions</p>
+              <Button variant="outline" className="w-full gap-2 rounded-xl h-11 font-bold border-primary/10" onClick={handleChangePhoto} disabled={loading}>
+                <Camera className="w-4 h-4 text-primary" />
+                {language === 'en' ? "Refresh Photo" : "Changer la Photo"}
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
         <div className="md:col-span-2 space-y-6">
-          <Card className="border-none shadow-sm">
+          <Card className="border-none shadow-sm bg-white">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl">
-                <User className="w-5 h-5 text-primary" />
+              <CardTitle className="flex items-center gap-2 text-xl font-black text-primary uppercase tracking-tight">
+                <User className="w-5 h-5 text-secondary" />
                 {t("personalInfo")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">{t("fullName")}</Label>
+                <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">{t("fullName")}</Label>
                 <Input 
                   id="name" 
                   value={name} 
                   onChange={(e) => setName(e.target.value)}
-                  className="bg-accent/30 border-none focus-visible:ring-primary"
+                  className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary font-bold"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email" className="flex items-center gap-2">
-                  <Mail className="w-3 h-3" /> {t("email")}
+                <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
+                  <Mail className="w-3.5 h-3.5" /> {t("email")}
                 </Label>
                 <Input 
                   id="email" 
                   type="email"
                   value={email} 
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-accent/30 border-none focus-visible:ring-primary"
+                  className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary"
                 />
               </div>
             </CardContent>
             <CardFooter className="border-t bg-accent/5 pt-6">
-              <Button onClick={handleUpdateProfile} disabled={loading} className="gap-2 ml-auto">
+              <Button onClick={handleUpdateProfile} disabled={loading} className="gap-2 ml-auto h-12 px-8 rounded-xl shadow-lg font-bold">
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 {t("updateProfile")}
               </Button>
             </CardFooter>
           </Card>
 
-          <Card className="border-none shadow-sm">
+          <Card className="border-none shadow-sm bg-white">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl">
-                <Lock className="w-5 h-5 text-primary" />
+              <CardTitle className="flex items-center gap-2 text-xl font-black text-primary uppercase tracking-tight">
+                <Lock className="w-5 h-5 text-secondary" />
                 {t("changePassword")}
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs font-medium">
                 {language === 'en' ? "Ensure your account is using a long, random password to stay secure." : "Assurez-vous que votre compte utilise un mot de passe long et aléatoire pour rester en sécurité."}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="current-password">{t("currentPassword")}</Label>
+                <Label htmlFor="current-password" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">{t("currentPassword")}</Label>
                 <Input 
                   id="current-password" 
                   type="password" 
                   value={passwords.current}
                   onChange={(e) => setPasswords({...passwords, current: e.target.value})}
-                  className="bg-accent/30 border-none focus-visible:ring-primary"
+                  className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary"
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="new-password">{t("newPassword")}</Label>
+                  <Label htmlFor="new-password" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">{t("newPassword")}</Label>
                   <Input 
                     id="new-password" 
                     type="password" 
                     value={passwords.new}
                     onChange={(e) => setPasswords({...passwords, new: e.target.value})}
-                    className="bg-accent/30 border-none focus-visible:ring-primary"
+                    className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="confirm-password">{t("confirmNewPassword")}</Label>
+                  <Label htmlFor="confirm-password" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">{t("confirmNewPassword")}</Label>
                   <Input 
                     id="confirm-password" 
                     type="password" 
                     value={passwords.confirm}
                     onChange={(e) => setPasswords({...passwords, confirm: e.target.value})}
-                    className="bg-accent/30 border-none focus-visible:ring-primary"
+                    className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary"
                   />
                 </div>
               </div>
             </CardContent>
             <CardFooter className="border-t bg-accent/5 pt-6">
-              <Button onClick={handleUpdatePassword} disabled={loading || !passwords.new} className="gap-2 ml-auto">
+              <Button onClick={handleUpdatePassword} disabled={loading || !passwords.new} className="gap-2 ml-auto h-12 px-8 rounded-xl shadow-lg font-bold">
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
-                {t("changePassword")}
+                {t("updatePassword")}
               </Button>
             </CardFooter>
           </Card>
