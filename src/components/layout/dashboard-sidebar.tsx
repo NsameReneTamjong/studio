@@ -39,7 +39,8 @@ import {
   Video,
   Info,
   Quote,
-  Network
+  Network,
+  Star
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -54,6 +55,7 @@ interface SidebarProps {
 }
 
 const EXECUTIVE_ROLES: UserRole[] = ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV", "DESIGNER"];
+const BOARD_CHAT_ROLES: UserRole[] = ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV", "DESIGNER"];
 
 export function DashboardSidebar({ onClose }: SidebarProps) {
   const pathname = usePathname();
@@ -61,6 +63,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
   const { t, language, setLanguage } = useI18n();
 
   const isSuperAdmin = EXECUTIVE_ROLES.includes(user?.role as UserRole);
+  const isDesigner = user?.role === "DESIGNER";
   const isBursar = user?.role === "BURSAR";
 
   const routes = [
@@ -74,31 +77,31 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: t("founders"),
       icon: Crown,
       href: "/dashboard/founders",
-      roles: EXECUTIVE_ROLES,
+      roles: ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV"], // Hidden from Designer per requirements
     },
     {
       label: t("schools"),
       icon: Globe,
       href: "/dashboard/schools",
-      roles: EXECUTIVE_ROLES,
+      roles: ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV"], // View only for others, but Designer follows view-only rule
     },
     {
       label: t("supportRegistry"),
       icon: Heart,
       href: "/dashboard/support",
-      roles: EXECUTIVE_ROLES,
+      roles: ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV"],
     },
     {
       label: language === 'en' ? 'Testimonials' : 'Témoignages',
       icon: Quote,
       href: "/dashboard/testimonials",
-      roles: EXECUTIVE_ROLES,
+      roles: ["SUPER_ADMIN", "CEO", "CTO", "INV"],
     },
     {
-      label: language === 'en' ? 'Platform Policy' : 'Politique Platforme',
-      icon: Settings2,
+      label: language === 'en' ? 'Portfolio & Policy' : 'Portfolio & Politique',
+      icon: isDesigner ? Star : Settings2,
       href: "/dashboard/platform-settings",
-      roles: EXECUTIVE_ROLES,
+      roles: ["SUPER_ADMIN", "CEO", "DESIGNER"], // Designer sees this for posting events
     },
     // SCHOOL ADMIN SPECIFIC MANAGEMENT
     {
@@ -118,7 +121,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: t("chat"),
       icon: MessageCircle,
       href: "/dashboard/chat",
-      roles: ["SCHOOL_ADMIN", "SUB_ADMIN", "TEACHER", "STUDENT", "PARENT", "BURSAR", "LIBRARIAN"],
+      roles: ["SCHOOL_ADMIN", "SUB_ADMIN", "TEACHER", "STUDENT", "PARENT", "BURSAR", "LIBRARIAN", "DESIGNER"],
     },
     {
       label: t("announcements"),
@@ -130,7 +133,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: t("feedback"),
       icon: MessageSquare,
       href: "/dashboard/feedback",
-      roles: [...EXECUTIVE_ROLES, "SCHOOL_ADMIN", "SUB_ADMIN"],
+      roles: ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV", "SCHOOL_ADMIN", "SUB_ADMIN"],
     },
     {
       label: t("overview"),
