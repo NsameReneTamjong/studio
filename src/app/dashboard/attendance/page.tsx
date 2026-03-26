@@ -155,6 +155,17 @@ export default function AttendancePage() {
     setRegistryState(prev => ({ ...prev, [studentId]: status }));
   };
 
+  const handleSaveDraft = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      setIsProcessing(false);
+      toast({
+        title: "Draft Synchronized",
+        description: "Your local register progress has been cached.",
+      });
+    }, 800);
+  };
+
   const handleSubmitRegistry = () => {
     setIsProcessing(true);
     setTimeout(() => {
@@ -602,7 +613,7 @@ export default function AttendancePage() {
                               variant={registryState[s.id] === 'absent' ? 'destructive' : 'outline'}
                               className={cn(
                                 "text-[10px] uppercase font-black px-4 h-8 transition-all",
-                                registryState[s.id] === 'absent' ? "bg-red-600 hover:bg-red-700 shadow-lg" : "border-red-200 text-red-700 hover:bg-red-50"
+                                registryState[s.id] === 'absent' ? "bg-red-600 hover:bg-red-700 shadow-lg" : "border-red-200 text-red-700 hover:bg-green-50"
                               )}
                               onClick={() => setStatus(s.id, 'absent')}
                             >
@@ -621,7 +632,7 @@ export default function AttendancePage() {
                   <p className="text-[10px] font-black uppercase tracking-widest">Headcount: {headCount.present} Present / {headCount.absent} Absent</p>
                 </div>
                 <div className="flex gap-3 w-full sm:w-auto">
-                  <Button variant="outline" className="h-12 px-8 rounded-xl font-bold gap-2 flex-1 sm:flex-none bg-white">
+                  <Button variant="outline" className="h-12 px-8 rounded-xl font-bold gap-2 flex-1 sm:flex-none bg-white" onClick={handleSaveDraft} disabled={isProcessing}>
                     <Save className="w-4 h-4" /> Save Draft
                   </Button>
                   <Button className="font-black uppercase tracking-widest text-xs px-10 h-12 rounded-xl shadow-xl bg-primary text-white hover:bg-primary/90 flex-1 sm:flex-none" onClick={handleSubmitRegistry} disabled={isProcessing}>

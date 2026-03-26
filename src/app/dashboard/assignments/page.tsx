@@ -33,7 +33,8 @@ import {
   GraduationCap,
   ArrowRight,
   ListChecks,
-  ArrowLeft
+  ArrowLeft,
+  Save
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -136,6 +137,24 @@ export default function AssignmentsPage() {
     }, 800);
   };
 
+  const handleSaveDraft = () => {
+    if (!newAssignment.title) return;
+    setIsProcessing(true);
+    setTimeout(() => {
+      const newTask = {
+        id: Math.random().toString(),
+        ...newAssignment,
+        courseName: "Physics",
+        status: 'draft',
+        type: "both"
+      };
+      setAssignments([newTask, ...assignments]);
+      setIsCreating(false);
+      setIsProcessing(false);
+      toast({ title: "Draft Saved", description: "The assignment has been stored in your local registry." });
+    }, 800);
+  };
+
   const handleDeleteAssignment = (id: string) => {
     setAssignments(prev => prev.filter(a => a.id !== id));
     toast({ variant: "destructive", title: "Assignment Deleted", description: "The task has been removed from the registry." });
@@ -148,6 +167,7 @@ export default function AssignmentsPage() {
       case 'graded': return <Badge className="bg-green-100 text-green-700 border-none uppercase text-[9px] font-black">Graded</Badge>;
       case 'missed': return <Badge className="bg-red-100 text-red-700 border-none uppercase text-[9px] font-black">Missed</Badge>;
       case 'cancelled': return <Badge className="bg-slate-100 text-slate-700 border-none uppercase text-[9px] font-black">Cancelled</Badge>;
+      case 'draft': return <Badge className="bg-slate-100 text-slate-700 border-none uppercase text-[9px] font-black">Draft</Badge>;
       default: return null;
     }
   };
@@ -386,7 +406,7 @@ export default function AssignmentsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {assignments.map((task) => (
           <Card key={task.id} className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-all bg-white rounded-2xl">
-            <div className="h-1.5 w-full bg-primary" />
+            <div className={cn("h-1.5 w-full", task.status === 'draft' ? "bg-slate-400" : "bg-primary")} />
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div>
@@ -413,11 +433,15 @@ export default function AssignmentsPage() {
                   <p className="text-xs font-bold">{task.maxMarks}</p>
                 </div>
               </div>
+              <div className="flex justify-end">
+                {getStatusBadge(task.status)}
+              </div>
             </CardContent>
             <CardFooter className="pt-0 flex gap-2">
               <Button 
                 className="flex-1 h-10 bg-primary shadow-sm gap-2 text-xs font-bold"
                 onClick={() => setGradingAssignment(task)}
+                disabled={task.status === 'draft'}
               >
                 <FileEdit className="w-3.5 h-3.5" /> Grade
               </Button>
@@ -437,7 +461,7 @@ export default function AssignmentsPage() {
       {/* CREATE DIALOG - RESPONSIVE */}
       <Dialog open={isCreating} onOpenChange={setIsCreating}>
         <DialogContent className="sm:max-w-2xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
-          <DialogHeader className="bg-primary p-8 text-white">
+          <DialogHeader className="bg-primary p-8 text-white relative">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/10 rounded-2xl">
                 <Plus className="w-8 h-8 text-secondary" />
@@ -447,6 +471,9 @@ export default function AssignmentsPage() {
                 <DialogDescription className="text-white/60">Configure an academic assignment for your class.</DialogDescription>
               </div>
             </div>
+            <Button variant="ghost" size="icon" onClick={() => setIsCreating(false)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+              <X className="w-6 h-6" />
+            </Button>
           </DialogHeader>
           <div className="p-8 space-y-6 max-h-[60vh] overflow-y-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -489,8 +516,11 @@ export default function AssignmentsPage() {
               </div>
             </div>
           </div>
-          <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
-            <Button onClick={handleCreateAssignment} disabled={isProcessing || !newAssignment.title} className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3">
+          <DialogFooter className="bg-accent/20 p-6 border-t border-accent flex flex-col sm:flex-row gap-3">
+            <Button variant="outline" onClick={handleSaveDraft} disabled={isProcessing || !newAssignment.title} className="flex-1 h-14 rounded-2xl font-bold gap-2 bg-white">
+              <Save className="w-4 h-4" /> Save Draft
+            </Button>
+            <Button onClick={handleCreateAssignment} disabled={isProcessing || !newAssignment.title} className="flex-1 h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3 bg-primary text-white hover:bg-primary/90">
               {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
               Publish Assignment
             </Button>
@@ -501,7 +531,7 @@ export default function AssignmentsPage() {
       {/* GRADING QUEUE DIALOG */}
       <Dialog open={!!gradingAssignment} onOpenChange={() => setGradingAssignment(null)}>
         <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl rounded-[2.5rem]">
-          <DialogHeader className="bg-primary p-8 text-white shrink-0">
+          <DialogHeader className="bg-primary p-8 text-white shrink-0 relative">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-white/10 rounded-2xl">
