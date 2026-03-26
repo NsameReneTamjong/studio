@@ -47,7 +47,10 @@ import {
   QrCode,
   ChevronRight,
   UserRound,
-  Fingerprint
+  Fingerprint,
+  UsersRound,
+  History,
+  AlertCircle
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -73,10 +76,10 @@ import {
 import { cn } from "@/lib/utils";
 
 const MOCK_STUDENTS = [
-  { id: "GBHS26S001", uid: "S1", name: "Alice Thompson", email: "alice.t@school.edu", class: "2nde / Form 5", section: "Anglophone Section", isLicensePaid: true, status: "active", avatar: "https://picsum.photos/seed/s1/100/100" },
-  { id: "GBHS26S002", uid: "S2", name: "Bob Richards", email: "bob.r@school.edu", class: "Terminale / Upper Sixth", section: "Anglophone Section", isLicensePaid: true, status: "active", avatar: "https://picsum.photos/seed/s2/100/100" },
-  { id: "GBHS26S003", uid: "S3", name: "Charlie Davis", email: "charlie.d@school.edu", class: "1ère / Lower Sixth", section: "Francophone Section", isLicensePaid: false, status: "active", avatar: "https://picsum.photos/seed/s3/100/100" },
-  { id: "GBHS26S004", uid: "S4", name: "Diana Prince", email: "diana.p@school.edu", class: "2nde / Form 5", section: "Technical Section", isLicensePaid: true, status: "inactive", avatar: "https://picsum.photos/seed/s4/100/100" },
+  { id: "GBHS26S001", uid: "S1", name: "Alice Thompson", email: "alice.t@school.edu", class: "2nde / Form 5", section: "Anglophone Section", isLicensePaid: true, status: "active", avatar: "https://picsum.photos/seed/s1/100/100", guardianId: "GBHS26P001" },
+  { id: "GBHS26S002", uid: "S2", name: "Bob Richards", email: "bob.r@school.edu", class: "Terminale / Upper Sixth", section: "Anglophone Section", isLicensePaid: true, status: "active", avatar: "https://picsum.photos/seed/s2/100/100", guardianId: "GBHS26P002" },
+  { id: "GBHS26S003", uid: "S3", name: "Charlie Davis", email: "charlie.d@school.edu", class: "1ère / Lower Sixth", section: "Francophone Section", isLicensePaid: false, status: "active", avatar: "https://picsum.photos/seed/s3/100/100", guardianId: "GBHS26P001" },
+  { id: "GBHS26S004", uid: "S4", name: "Diana Prince", email: "diana.p@school.edu", class: "2nde / Form 5", section: "Technical Section", isLicensePaid: true, status: "inactive", avatar: "https://picsum.photos/seed/s4/100/100", guardianId: "GBHS26P002" },
 ];
 
 const MOCK_PARENTS = [
@@ -106,6 +109,7 @@ export default function StudentsPage() {
   const [parentList, setParentList] = useState(MOCK_PARENTS);
   const [editingUser, setEditingUser] = useState<any>(null);
   const [admissionSuccess, setAdmissionSuccess] = useState<any>(null);
+  const [viewingLinkedInfo, setViewingLinkedInfo] = useState<any>(null);
 
   const [newStudent, setNewStudent] = useState({
     name: "",
@@ -238,6 +242,17 @@ export default function StudentsPage() {
     }, 800);
   };
 
+  const handleViewLinked = (user: any, type: 'student' | 'parent') => {
+    if (type === 'student') {
+      const guardian = parentList.find(p => p.id === user.guardianId);
+      const siblings = studentList.filter(s => s.guardianId === user.guardianId && s.id !== user.id);
+      setViewingLinkedInfo({ type: 'student', user, guardian, siblings });
+    } else {
+      const children = studentList.filter(s => s.guardianId === user.id);
+      setViewingLinkedInfo({ type: 'parent', user, children });
+    }
+  };
+
   if (isAuthLoading) return null;
 
   return (
@@ -367,8 +382,10 @@ export default function StudentsPage() {
                         onEdit={() => setEditingUser(s)} 
                         onToggleStatus={() => handleToggleStatus(s.uid, 'student')} 
                         onView={() => router.push(`/dashboard/children/view?id=${s.id}`)}
+                        onViewLinked={() => handleViewLinked(s, 'student')}
                         status={s.status}
                         role={user?.role}
+                        type="student"
                       />
                     </TableCell>
                   </TableRow>
@@ -422,8 +439,10 @@ export default function StudentsPage() {
                         <UserActionMenu 
                           onEdit={() => setEditingUser(p)} 
                           onToggleStatus={() => handleToggleStatus(p.uid, 'parent')} 
+                          onViewLinked={() => handleViewLinked(p, 'parent')}
                           status={p.status}
                           role={user?.role}
+                          type="parent"
                         />
                       </TableCell>
                     </TableRow>
@@ -629,7 +648,7 @@ export default function StudentsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* ADMISSION SUCCESS & DOSSIER DIALOG - RESPONSIVE OVERHAUL */}
+      {/* ADMISSION SUCCESS & DOSSIER DIALOG */}
       <Dialog open={!!admissionSuccess} onOpenChange={() => setAdmissionSuccess(null)}>
         <DialogContent className="sm:max-w-5xl max-h-[95vh] p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col">
           <DialogHeader className="bg-primary p-6 md:p-8 text-white no-print relative shrink-0">
@@ -649,10 +668,8 @@ export default function StudentsPage() {
             </div>
           </DialogHeader>
 
-          {/* HORIZONTAL SCROLL WRAPPER FOR MOBILE */}
           <div className="bg-muted flex-1 overflow-y-auto overflow-x-auto p-4 md:p-10 print:p-0 print:bg-white no-scrollbar">
             <div id="printable-admission-dossier" className="bg-white p-8 md:p-16 border-2 border-black/10 shadow-sm relative flex flex-col space-y-12 font-serif text-black print:border-none print:shadow-none min-w-[800px] mx-auto">
-               {/* National Header */}
                <div className="grid grid-cols-3 gap-2 items-start text-center border-b-2 border-black pb-6">
                   <div className="space-y-0.5 text-[8px] uppercase font-bold">
                     <p>Republic of Cameroon</p>
@@ -844,11 +861,128 @@ export default function StudentsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* VIEW LINKED FAMILY INFO DIALOG */}
+      <Dialog open={!!viewingLinkedInfo} onOpenChange={() => setViewingLinkedInfo(null)}>
+        <DialogContent className="sm:max-w-2xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="bg-primary p-8 text-white relative">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/10 rounded-2xl">
+                <UsersRound className="w-8 h-8 text-secondary" />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-black uppercase tracking-tighter">Linked Family Registry</DialogTitle>
+                <DialogDescription className="text-white/60">Institutional family tree & emergency context.</DialogDescription>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setViewingLinkedInfo(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+              <X className="w-6 h-6" />
+            </Button>
+          </DialogHeader>
+          <div className="p-10 space-y-10 max-h-[70vh] overflow-y-auto">
+            {viewingLinkedInfo?.type === 'student' ? (
+              <>
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3 border-b border-accent pb-2">
+                    <UserRound className="w-4 h-4 text-primary/40" />
+                    <h3 className="text-xs font-black uppercase text-primary tracking-widest">Primary Guardian</h3>
+                  </div>
+                  {viewingLinkedInfo.guardian ? (
+                    <Card className="border-none shadow-sm bg-accent/20 rounded-2xl overflow-hidden">
+                      <CardContent className="p-6 flex items-center gap-6">
+                        <Avatar className="h-16 w-16 border-2 border-white shadow-md">
+                          <AvatarImage src={viewingLinkedInfo.guardian.avatar} />
+                          <AvatarFallback className="bg-primary text-white font-bold">{viewingLinkedInfo.guardian.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-black text-primary uppercase text-sm leading-none">{viewingLinkedInfo.guardian.name}</p>
+                            <Badge variant="secondary" className="bg-secondary/20 text-primary border-none text-[8px] font-black h-4 px-1.5">{viewingLinkedInfo.guardian.type}</Badge>
+                          </div>
+                          <p className="text-[10px] font-mono text-muted-foreground uppercase">{viewingLinkedInfo.guardian.id}</p>
+                          <div className="flex items-center gap-4 pt-2">
+                            <span className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground"><Phone className="w-3 h-3" /> {viewingLinkedInfo.guardian.phone}</span>
+                            <span className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground"><Mail className="w-3 h-3" /> {viewingLinkedInfo.guardian.email}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <div className="p-6 text-center border-2 border-dashed rounded-2xl bg-red-50 text-red-600 font-bold text-xs">
+                      No linked guardian found in registry.
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3 border-b border-accent pb-2">
+                    <Users className="w-4 h-4 text-primary/40" />
+                    <h3 className="text-xs font-black uppercase text-primary tracking-widest">Siblings in Institution</h3>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3">
+                    {viewingLinkedInfo.siblings.length > 0 ? viewingLinkedInfo.siblings.map((sib: any) => (
+                      <div key={sib.id} className="flex items-center justify-between p-4 rounded-xl border bg-white group hover:border-primary/20 transition-all">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-8 w-8 border">
+                            <AvatarImage src={sib.avatar} />
+                            <AvatarFallback>{sib.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="text-xs font-bold text-primary">{sib.name}</p>
+                            <p className="text-[9px] font-mono text-muted-foreground uppercase">{sib.id} • {sib.class}</p>
+                          </div>
+                        </div>
+                        <Badge className="bg-primary/5 text-primary border-none text-[8px] font-black h-4">{sib.status}</Badge>
+                      </div>
+                    )) : (
+                      <p className="text-[10px] text-muted-foreground italic text-center py-4">No siblings currently registered.</p>
+                    )}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="space-y-6">
+                <div className="flex items-center gap-3 border-b border-accent pb-2">
+                  <GraduationCap className="w-4 h-4 text-primary/40" />
+                  <h3 className="text-xs font-black uppercase text-primary tracking-widest">Linked Students ({viewingLinkedInfo.children.length})</h3>
+                </div>
+                <div className="grid grid-cols-1 gap-4">
+                  {viewingLinkedInfo.children.map((child: any) => (
+                    <Card key={child.id} className="border-none shadow-sm bg-accent/10 hover:bg-accent/20 transition-all cursor-pointer overflow-hidden" onClick={() => router.push(`/dashboard/children/view?id=${child.id}`)}>
+                      <CardContent className="p-4 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <Avatar className="h-12 w-12 border-2 border-white shadow-sm">
+                            <AvatarImage src={child.avatar} />
+                            <AvatarFallback className="bg-primary/5 text-primary font-bold">{child.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div className="space-y-0.5">
+                            <p className="font-black text-primary uppercase text-xs">{child.name}</p>
+                            <p className="text-[9px] font-mono font-bold text-muted-foreground uppercase">{child.id} • {child.class}</p>
+                            <Badge variant="outline" className="text-[7px] h-3.5 border-primary/10 text-primary/60 font-black tracking-tighter uppercase">{child.section}</Badge>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-primary/40" />
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter className="bg-accent/10 p-6 border-t border-accent flex justify-end">
+             <div className="flex items-center gap-2 text-muted-foreground italic mr-auto">
+                <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Verified Institutional Linkage</p>
+             </div>
+             <Button onClick={() => setViewingLinkedInfo(null)} className="rounded-xl px-8 h-11 font-black uppercase text-[10px]">Close Registry</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
-function UserActionMenu({ onEdit, onToggleStatus, onView, status, role }: any) {
+function UserActionMenu({ onEdit, onToggleStatus, onView, onViewLinked, status, role, type }: any) {
   const isTeacher = role === "TEACHER";
   
   return (
@@ -856,28 +990,39 @@ function UserActionMenu({ onEdit, onToggleStatus, onView, status, role }: any) {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="rounded-full"><MoreVertical className="w-4 h-4"/></Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-xl border-none">
-        <DropdownMenuLabel className="text-[10px] uppercase font-black opacity-40 px-4 py-2">Account Actions</DropdownMenuLabel>
+      <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl border-none">
+        <DropdownMenuLabel className="text-[10px] uppercase font-black opacity-40 px-4 py-2">Registry Context</DropdownMenuLabel>
+        
         {onView && (
           <DropdownMenuItem className="gap-3 px-4 py-2.5 cursor-pointer" onClick={onView}>
             <Eye className="w-4 h-4 text-primary/60" /> <span className="font-bold text-xs">View Dashboard</span>
           </DropdownMenuItem>
         )}
+
+        {onViewLinked && (
+          <DropdownMenuItem className="gap-3 px-4 py-2.5 cursor-pointer" onClick={onViewLinked}>
+            <UsersRound className="w-4 h-4 text-primary/60" /> 
+            <span className="font-bold text-xs">
+              {type === 'student' ? 'View Parent/Siblings' : 'View Linked Children'}
+            </span>
+          </DropdownMenuItem>
+        )}
+
         {!isTeacher && (
           <>
             <DropdownMenuItem className="gap-3 px-4 py-2.5 cursor-pointer" onClick={onEdit}>
-              <Pencil className="w-4 h-4 text-primary/60" /> <span className="font-bold text-xs">Edit Details</span>
+              <Pencil className="w-4 h-4 text-primary/60" /> <span className="font-bold text-xs">Edit Dossier Details</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-accent" />
             <DropdownMenuItem 
               className={cn(
                 "gap-3 px-4 py-2.5 cursor-pointer",
-                status === 'active' ? "text-destructive" : "text-green-600"
+                status === 'active' ? "text-destructive hover:bg-red-50" : "text-green-600 hover:bg-green-50"
               )} 
               onClick={onToggleStatus}
             >
               {status === 'active' ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
-              <span className="font-bold text-xs">{status === 'active' ? 'Deactivate' : 'Activate'}</span>
+              <span className="font-bold text-xs">{status === 'active' ? 'Suspend Access' : 'Reactivate Node'}</span>
             </DropdownMenuItem>
           </>
         )}
