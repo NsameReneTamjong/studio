@@ -32,7 +32,8 @@ import {
   FileDown,
   Eye,
   ListChecks,
-  CalendarDays
+  CalendarDays,
+  ArrowLeft
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -41,6 +42,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { useRouter } from "next/navigation";
 
 // Mock Data for Admin Class Overview
 const MOCK_CLASSES_ATTENDANCE = [
@@ -115,6 +117,7 @@ export default function AttendancePage() {
   const { user } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
+  const router = useRouter();
   
   const [date, setDate] = useState<Date>(new Date());
   const [selectedClassDetails, setSelectedClassDetails] = useState<any>(null);
@@ -148,14 +151,19 @@ export default function AttendancePage() {
     return (
       <div className="space-y-8 pb-20">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
-              <div className="p-2 bg-primary rounded-xl shadow-lg">
-                <CheckCircle2 className="w-6 h-6 text-secondary" />
-              </div>
-              {t("attendance")}
-            </h1>
-            <p className="text-muted-foreground mt-1">Official registry of your pedagogical presence and engagement.</p>
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full hover:bg-white shadow-sm shrink-0">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
+                <div className="p-2 bg-primary rounded-xl shadow-lg">
+                  <CheckCircle2 className="w-6 h-6 text-secondary" />
+                </div>
+                {t("attendance")}
+              </h1>
+              <p className="text-muted-foreground mt-1">Official registry of your pedagogical presence and engagement.</p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" className="gap-2 bg-white rounded-xl h-11 border-primary/10">
@@ -185,7 +193,7 @@ export default function AttendancePage() {
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent className="p-0">
+              <CardContent className="p-0 overflow-x-auto">
                 <Table>
                   <TableHeader className="bg-accent/10">
                     <TableRow className="uppercase text-[10px] font-black tracking-widest border-b border-accent/20">
@@ -226,11 +234,11 @@ export default function AttendancePage() {
 
           {/* Attendance History Summary */}
           <div className="lg:col-span-12 space-y-6">
-            <h2 className="text-xl font-bold text-primary flex items-center gap-2">
+            <h2 className="text-xl font-bold text-primary flex items-center gap-2 px-1">
               <History className="w-5 h-5" /> {language === 'en' ? 'Attendance History' : 'Historique de Présence'}
             </h2>
             <Card className="border-none shadow-sm overflow-hidden rounded-3xl">
-              <CardContent className="p-0">
+              <CardContent className="p-0 overflow-x-auto">
                 <Table>
                   <TableHeader className="bg-accent/30">
                     <TableRow className="uppercase text-[10px] font-black tracking-widest">
@@ -285,7 +293,7 @@ export default function AttendancePage() {
                     </DialogDescription>
                   </div>
                 </div>
-                <div className="text-right bg-white/10 px-4 py-2 rounded-xl backdrop-blur-md">
+                <div className="text-right bg-white/10 px-4 py-2 rounded-xl backdrop-blur-md hidden sm:block">
                    <p className="text-[10px] font-black uppercase opacity-60">Accuracy</p>
                    <p className="text-xl font-black text-secondary">VERIFIED</p>
                 </div>
@@ -336,21 +344,26 @@ export default function AttendancePage() {
   return (
     <div className="space-y-8">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
-            <div className="p-2 bg-primary rounded-xl shadow-lg">
-              <CheckCircle2 className="w-6 h-6 text-secondary" />
-            </div>
-            {isAdmin ? "Institutional Presence" : "Class Register"}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {isAdmin 
-              ? "Supervisory overview of institutional attendance trends across all class levels." 
-              : "Manage and record daily session presence for your students."}
-          </p>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full hover:bg-white shadow-sm shrink-0">
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
+              <div className="p-2 bg-primary rounded-xl shadow-lg">
+                <CheckCircle2 className="w-6 h-6 text-secondary" />
+              </div>
+              {isAdmin ? "Institutional Presence" : "Class Register"}
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              {isAdmin 
+                ? "Supervisory overview of institutional attendance trends across all class levels." 
+                : "Manage and record daily session presence for your students."}
+            </p>
+          </div>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Button variant="outline" className="gap-2 bg-white rounded-xl h-11 border-primary/10">
             <CalendarIcon className="w-4 h-4 text-primary" /> 
             {format(date, "PPP")}
@@ -490,7 +503,7 @@ export default function AttendancePage() {
                 <CardTitle>Session Register: Form 5A</CardTitle>
                 <CardDescription className="text-white/60">Mark presence for students in this academic session.</CardDescription>
               </CardHeader>
-              <CardContent className="p-0">
+              <CardContent className="p-0 overflow-x-auto">
                 <Table>
                   <TableHeader className="bg-accent/30 font-black uppercase text-[10px] tracking-widest">
                     <TableRow>
@@ -525,16 +538,16 @@ export default function AttendancePage() {
                   </TableBody>
                 </Table>
               </CardContent>
-              <CardFooter className="bg-accent/10 border-t p-6 flex justify-between items-center">
+              <CardFooter className="bg-accent/10 border-t p-6 flex flex-col sm:flex-row gap-4 justify-between items-center">
                 <p className="text-[10px] font-black uppercase text-muted-foreground italic">Submit within 15 minutes of session start.</p>
-                <Button className="font-black uppercase tracking-widest text-xs px-8 h-11 rounded-xl shadow-lg">Submit Registry</Button>
+                <Button className="font-black uppercase tracking-widest text-xs px-8 h-11 rounded-xl shadow-lg w-full sm:w-auto">Submit Registry</Button>
               </CardFooter>
             </Card>
           </TabsContent>
 
           <TabsContent value="records" className="animate-in fade-in slide-in-from-bottom-4 mt-0">
             <Card className="border-none shadow-sm overflow-hidden rounded-3xl">
-              <CardHeader className="bg-white border-b flex items-center justify-between">
+              <CardHeader className="bg-white border-b flex flex-col md:flex-row items-center justify-between gap-4">
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <History className="w-5 h-5 text-primary" />
@@ -542,11 +555,11 @@ export default function AttendancePage() {
                   </CardTitle>
                   <CardDescription>Comprehensive term presence records for your subject.</CardDescription>
                 </div>
-                <Button variant="outline" size="sm" className="gap-2" onClick={() => handleDownloadReport("Subject-Specific")}>
+                <Button variant="outline" size="sm" className="gap-2 w-full md:w-auto" onClick={() => handleDownloadReport("Subject-Specific")}>
                   <Download className="w-4 h-4" /> Download Records
                 </Button>
               </CardHeader>
-              <CardContent className="p-0">
+              <CardContent className="p-0 overflow-x-auto">
                 <Table>
                   <TableHeader className="bg-muted/50 uppercase text-[10px] font-black tracking-widest">
                     <TableRow>
@@ -582,7 +595,7 @@ export default function AttendancePage() {
             "p-8 text-white",
             selectedClassDetails?.status === 'high' ? "bg-green-600" : selectedClassDetails?.status === 'medium' ? "bg-blue-600" : "bg-red-600"
           )}>
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
               <div>
                 <DialogTitle className="text-3xl font-black">{selectedClassDetails?.name}</DialogTitle>
                 <DialogDescription className="text-white/70 font-bold flex items-center gap-2 mt-1">
@@ -728,7 +741,7 @@ export default function AttendancePage() {
       <Dialog open={!!viewingSubjectLogs} onOpenChange={() => setViewingSubjectLogs(null)}>
         <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0 rounded-3xl border-none shadow-2xl">
           <DialogHeader className="p-8 bg-primary text-white shrink-0">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-white/10 rounded-2xl text-secondary">
                   <BookOpen className="w-8 h-8" />
@@ -744,7 +757,7 @@ export default function AttendancePage() {
               </div>
               <Button 
                 variant="secondary" 
-                className="h-12 w-12 rounded-2xl shadow-xl"
+                className="h-12 w-12 rounded-2xl shadow-xl shrink-0"
                 onClick={() => handleDownloadReport(`${viewingSubjectLogs?.name} - ${selectedClassDetails?.name}`)}
               >
                 <FileDown className="w-6 h-6" />
@@ -754,11 +767,11 @@ export default function AttendancePage() {
           
           <div className="flex-1 overflow-hidden flex flex-col">
             <Tabs defaultValue="students" className="flex-1 flex flex-col">
-              <TabsList className="px-8 border-b bg-accent/10 h-14 justify-start gap-8 rounded-none shrink-0">
-                <TabsTrigger value="students" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full bg-transparent shadow-none px-0 gap-2 font-bold uppercase text-[10px] tracking-widest">
+              <TabsList className="px-8 border-b bg-accent/10 h-14 justify-start gap-8 rounded-none shrink-0 overflow-x-auto no-scrollbar">
+                <TabsTrigger value="students" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full bg-transparent shadow-none px-0 gap-2 font-bold uppercase text-[10px] tracking-widest whitespace-nowrap">
                   <Users className="w-4 h-4" /> Student Registry
                 </TabsTrigger>
-                <TabsTrigger value="sessions" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full bg-transparent shadow-none px-0 gap-2 font-bold uppercase text-[10px] tracking-widest">
+                <TabsTrigger value="sessions" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full bg-transparent shadow-none px-0 gap-2 font-bold uppercase text-[10px] tracking-widest whitespace-nowrap">
                   <History className="w-4 h-4" /> Session History
                 </TabsTrigger>
               </TabsList>
@@ -847,12 +860,12 @@ export default function AttendancePage() {
             </Tabs>
           </div>
           
-          <DialogFooter className="p-6 bg-accent/10 border-t flex justify-between items-center shrink-0">
+          <DialogFooter className="p-6 bg-accent/10 border-t flex flex-col sm:flex-row gap-4 justify-between items-center shrink-0">
             <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest italic flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-primary" />
               Automated institutional reporting active.
             </p>
-            <Button variant="outline" className="rounded-xl h-10 px-8" onClick={() => setViewingSubjectLogs(null)}>
+            <Button variant="outline" className="rounded-xl h-10 px-8 w-full sm:w-auto" onClick={() => setViewingSubjectLogs(null)}>
               Close Subject Logs
             </Button>
           </DialogFooter>

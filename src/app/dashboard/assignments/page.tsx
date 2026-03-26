@@ -32,7 +32,8 @@ import {
   User,
   GraduationCap,
   ArrowRight,
-  ListChecks
+  ListChecks,
+  ArrowLeft
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -44,6 +45,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
 
@@ -92,6 +94,7 @@ export default function AssignmentsPage() {
   const { user } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
+  const router = useRouter();
   
   const [isCreating, setIsCreating] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -153,14 +156,19 @@ export default function AssignmentsPage() {
     return (
       <div className="space-y-8 pb-20">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
-              <div className="p-2 bg-primary rounded-xl shadow-lg">
-                <FileEdit className="w-6 h-6 text-secondary" />
-              </div>
-              {t("assignments")}
-            </h1>
-            <p className="text-muted-foreground mt-1">Official portal for academic submissions and pedagogical tasks.</p>
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full hover:bg-white shadow-sm shrink-0">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
+                <div className="p-2 bg-primary rounded-xl shadow-lg">
+                  <FileEdit className="w-6 h-6 text-secondary" />
+                </div>
+                {t("assignments")}
+              </h1>
+              <p className="text-muted-foreground mt-1">Official portal for academic submissions and pedagogical tasks.</p>
+            </div>
           </div>
         </div>
 
@@ -356,21 +364,26 @@ export default function AssignmentsPage() {
   return (
     <div className="space-y-8 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
-            <div className="p-2 bg-primary rounded-xl shadow-lg">
-              <FileEdit className="w-6 h-6 text-secondary" />
-            </div>
-            Academic Tasks
-          </h1>
-          <p className="text-muted-foreground mt-1">Manage institutional tasks and grading workflows.</p>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full hover:bg-white shadow-sm shrink-0">
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
+              <div className="p-2 bg-primary rounded-xl shadow-lg">
+                <FileEdit className="w-6 h-6 text-secondary" />
+              </div>
+              Academic Tasks
+            </h1>
+            <p className="text-muted-foreground mt-1">Manage institutional tasks and grading workflows.</p>
+          </div>
         </div>
         <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl" onClick={() => setIsCreating(true)}>
           <Plus className="w-5 h-5" /> Create Assignment
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {assignments.map((task) => (
           <Card key={task.id} className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-all bg-white rounded-2xl">
             <div className="h-1.5 w-full bg-primary" />
@@ -622,8 +635,8 @@ export default function AssignmentsPage() {
 
             <div className="p-6 bg-primary/5 rounded-3xl border border-primary/10 space-y-4">
                <h3 className="text-xs font-black uppercase text-primary tracking-widest">Assign Score</h3>
-               <div className="flex items-center gap-4">
-                  <div className="relative flex-1">
+               <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <div className="relative flex-1 w-full">
                     <Input 
                       type="number" 
                       defaultValue={reviewingSubmission?.score || ""}
@@ -633,7 +646,7 @@ export default function AssignmentsPage() {
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 font-black text-xs opacity-40">/ {reviewingSubmission?.maxMarks}</span>
                   </div>
                   <Button 
-                    className="h-14 px-8 rounded-2xl shadow-lg font-black uppercase tracking-widest text-xs gap-2"
+                    className="h-14 w-full sm:w-auto px-8 rounded-2xl shadow-lg font-black uppercase tracking-widest text-xs gap-2"
                     onClick={() => {
                       setReviewingSubmission(null);
                       toast({ title: "Score Synchronized", description: "The pedagogical record has been updated." });

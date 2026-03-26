@@ -44,7 +44,8 @@ import {
   QrCode,
   Printer,
   Loader2,
-  Signature
+  Signature,
+  ArrowLeft
 } from "lucide-react";
 import { 
   Dialog, 
@@ -59,6 +60,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useRouter } from "next/navigation";
 
 // Mock Data
 const INITIAL_BOOKS = [
@@ -91,6 +93,7 @@ export default function LibraryPage() {
   const { user, platformSettings } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
+  const router = useRouter();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [books, setBooks] = useState(INITIAL_BOOKS);
@@ -197,27 +200,32 @@ export default function LibraryPage() {
   return (
     <div className="space-y-8 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
-            <div className="p-2 bg-primary rounded-xl shadow-lg">
-              <Library className="w-6 h-6 text-secondary" />
-            </div>
-            {isManagement ? "Institutional Library Suite" : t("library")}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {isManagement ? "Strategic oversight of school resources, circulation, and memberships." : "Manage your collection and academic resource loans."}
-          </p>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full hover:bg-white shadow-sm shrink-0">
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
+              <div className="p-2 bg-primary rounded-xl shadow-lg">
+                <Library className="w-6 h-6 text-secondary" />
+              </div>
+              {isManagement ? "Institutional Library Suite" : t("library")}
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              {isManagement ? "Strategic oversight of school resources, circulation, and memberships." : "Manage your collection and academic resource loans."}
+            </p>
+          </div>
         </div>
         
         {isManagement && (
-          <div className="flex items-center gap-2">
-            <Button variant="outline" className="gap-2 rounded-xl h-11 border-primary/10" onClick={() => toast({ title: "Generating Report..." })}>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button variant="outline" className="gap-2 rounded-xl h-11 border-primary/10 w-full sm:w-auto" onClick={() => toast({ title: "Generating Report..." })}>
               <Printer className="w-4 h-4" /> Export Catalog
             </Button>
             {isLibrarian && (
               <Dialog open={isAddingBook} onOpenChange={setIsAddingBook}>
                 <DialogTrigger asChild>
-                  <Button className="gap-2 shadow-lg h-11 rounded-xl bg-primary text-white">
+                  <Button className="gap-2 shadow-lg h-11 rounded-xl bg-primary text-white w-full sm:w-auto">
                     <Plus className="w-4 h-4" /> Add Volume
                   </Button>
                 </DialogTrigger>
@@ -226,9 +234,9 @@ export default function LibraryPage() {
                     <DialogTitle className="text-2xl font-black">Catalog Entry</DialogTitle>
                     <DialogDescription className="text-white/60">Initialize a new resource into the institutional collection.</DialogDescription>
                   </DialogHeader>
-                  <div className="p-8 space-y-6">
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="col-span-2 space-y-2">
+                  <div className="p-8 space-y-6 max-h-[60vh] overflow-y-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="col-span-1 md:col-span-2 space-y-2">
                         <Label>Book Title</Label>
                         <Input value={newBookData.title} onChange={(e) => setNewBookData({...newBookData, title: e.target.value})} className="h-11 bg-accent/30 border-none rounded-xl" />
                       </div>
@@ -256,7 +264,7 @@ export default function LibraryPage() {
                         <Label>Total Volumes</Label>
                         <Input type="number" value={newBookData.total} onChange={(e) => setNewBookData({...newBookData, total: parseInt(e.target.value)})} className="h-11 bg-accent/30 border-none rounded-xl" />
                       </div>
-                      <div className="col-span-2 space-y-2">
+                      <div className="col-span-1 md:col-span-2 space-y-2">
                         <Label>Pedagogical Description</Label>
                         <Textarea value={newBookData.description} onChange={(e) => setNewBookData({...newBookData, description: e.target.value})} className="bg-accent/30 border-none rounded-xl min-h-[100px]" />
                       </div>
@@ -321,31 +329,31 @@ export default function LibraryPage() {
 
       <Tabs defaultValue="catalog" className="w-full">
         <TabsList className={cn(
-          "grid w-full bg-white shadow-sm border h-auto p-1 rounded-2xl",
+          "grid w-full bg-white shadow-sm border h-auto p-1 rounded-2xl overflow-x-auto no-scrollbar",
           isManagement ? "grid-cols-5 md:w-[1000px]" : "grid-cols-3 md:w-[600px]"
         )}>
-          <TabsTrigger value="catalog" className="gap-2 py-3 rounded-xl transition-all">
+          <TabsTrigger value="catalog" className="gap-2 py-3 rounded-xl transition-all whitespace-nowrap">
             <BookOpen className="w-4 h-4" /> {language === 'en' ? 'Catalog' : 'Catalogue'}
           </TabsTrigger>
           {isManagement && (
-            <TabsTrigger value="requests" className="gap-2 py-3 rounded-xl transition-all">
+            <TabsTrigger value="requests" className="gap-2 py-3 rounded-xl transition-all whitespace-nowrap">
               <ArrowUpRight className="w-4 h-4" /> {language === 'en' ? 'Issue Queue' : 'File d\'Attente'}
             </TabsTrigger>
           )}
-          <TabsTrigger value="circulation" className="gap-2 py-3 rounded-xl transition-all">
+          <TabsTrigger value="circulation" className="gap-2 py-3 rounded-xl transition-all whitespace-nowrap">
             <Clock className="w-4 h-4" /> {isManagement ? (language === 'en' ? 'Circulation' : 'Circulation') : t("borrowed")}
           </TabsTrigger>
           {isPersonal && (
-            <TabsTrigger value="history" className="gap-2 py-3 rounded-xl transition-all">
+            <TabsTrigger value="history" className="gap-2 py-3 rounded-xl transition-all whitespace-nowrap">
               <History className="w-4 h-4" /> {t("libraryHistory")}
             </TabsTrigger>
           )}
           {isManagement && (
             <>
-              <TabsTrigger value="members" className="gap-2 py-3 rounded-xl transition-all">
+              <TabsTrigger value="members" className="gap-2 py-3 rounded-xl transition-all whitespace-nowrap">
                 <Users className="w-4 h-4" /> Members
               </TabsTrigger>
-              <TabsTrigger value="settings" className="gap-2 py-3 rounded-xl transition-all">
+              <TabsTrigger value="settings" className="gap-2 py-3 rounded-xl transition-all whitespace-nowrap">
                 <Settings2 className="w-4 h-4" /> Policy
               </TabsTrigger>
             </>
@@ -413,7 +421,7 @@ export default function LibraryPage() {
                 <CardTitle className="text-lg font-black text-primary uppercase tracking-widest">Active Requests Queue</CardTitle>
                 <CardDescription>Verify borrower identity and confirm physical resource issue.</CardDescription>
               </CardHeader>
-              <CardContent className="p-0">
+              <CardContent className="p-0 overflow-x-auto">
                 <Table>
                   <TableHeader className="bg-accent/30 uppercase text-[10px] font-black tracking-widest">
                     <TableRow>
@@ -461,18 +469,18 @@ export default function LibraryPage() {
 
         <TabsContent value="circulation" className="mt-8">
           <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
-            <CardHeader className="bg-white border-b flex flex-row items-center justify-between p-6">
+            <CardHeader className="bg-white border-b flex flex-col md:flex-row items-center justify-between gap-6 p-6">
               <div>
                 <CardTitle className="text-lg font-black text-primary uppercase tracking-widest">
                   {isManagement ? 'Global Circulation Ledger' : 'My Active Loans'}
                 </CardTitle>
                 <CardDescription>Live tracking of institutional pedagogical assets.</CardDescription>
               </div>
-              <Button variant="outline" size="sm" className="rounded-xl h-9 text-[10px] font-black uppercase tracking-widest border-primary/10">
+              <Button variant="outline" size="sm" className="rounded-xl h-9 text-[10px] font-black uppercase tracking-widest border-primary/10 w-full sm:w-auto">
                 <FileDown className="w-3.5 h-3.5 mr-2" /> Download Ledger
               </Button>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="p-0 overflow-x-auto">
               <Table>
                 <TableHeader className="bg-accent/30 uppercase text-[10px] font-black tracking-widest border-b border-accent/20">
                   <TableRow>
@@ -529,7 +537,7 @@ export default function LibraryPage() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-0">
+              <CardContent className="p-0 overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-accent/10 uppercase text-[10px] font-black tracking-widest border-b border-accent/20">
@@ -569,12 +577,12 @@ export default function LibraryPage() {
                   </TableBody>
                 </Table>
               </CardContent>
-              <CardFooter className="bg-accent/10 p-6 border-t border-accent flex justify-between items-center">
+              <CardFooter className="bg-accent/10 p-6 border-t border-accent flex flex-col sm:flex-row gap-4 justify-between items-center">
                  <div className="flex items-center gap-2 text-muted-foreground">
                     <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
                     <p className="text-[10px] uppercase font-black tracking-widest italic opacity-40">All past transactions are digitally signed and archived.</p>
                  </div>
-                 <Button variant="ghost" size="sm" className="gap-2 text-[10px] font-black uppercase">
+                 <Button variant="ghost" size="sm" className="gap-2 text-[10px] font-black uppercase w-full sm:w-auto">
                    <Printer className="w-3.5 h-3.5" /> Print Statement
                  </Button>
               </CardFooter>
@@ -586,17 +594,17 @@ export default function LibraryPage() {
           <>
             <TabsContent value="members" className="mt-8">
               <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
-                <CardHeader className="bg-white border-b p-6 flex flex-row items-center justify-between">
+                <CardHeader className="bg-white border-b p-6 flex flex-col md:flex-row items-center justify-between gap-6">
                   <div>
                     <CardTitle className="text-lg font-black text-primary uppercase tracking-widest">Institutional Member Audit</CardTitle>
                     <CardDescription>Track borrowing behavior and policy compliance.</CardDescription>
                   </div>
-                  <div className="relative w-64">
+                  <div className="relative w-full md:w-64">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                     <Input placeholder="Find member..." className="pl-9 h-9 bg-accent/20 border-none rounded-lg text-xs" />
                   </div>
                 </CardHeader>
-                <CardContent className="p-0">
+                <CardContent className="p-0 overflow-x-auto">
                   <Table>
                     <TableHeader className="bg-accent/30 uppercase text-[10px] font-black tracking-widest">
                       <TableRow>
@@ -717,7 +725,7 @@ export default function LibraryPage() {
                     </CardContent>
                     <CardFooter className="bg-accent/20 p-6 border-t border-accent flex justify-end">
                       <Button 
-                        className="h-12 px-10 rounded-xl shadow-lg font-black uppercase tracking-widest text-xs gap-2 bg-primary text-white"
+                        className="h-12 px-10 rounded-xl shadow-lg font-black uppercase tracking-widest text-xs gap-2 bg-primary text-white w-full sm:w-auto"
                         onClick={handleSavePolicy}
                         disabled={isProcessing || !isLibrarian}
                       >
@@ -850,7 +858,7 @@ export default function LibraryPage() {
             </div>
           </div>
 
-          <DialogFooter className="bg-accent/10 p-6 border-t no-print flex sm:flex-row gap-3">
+          <DialogFooter className="bg-accent/10 p-6 border-t no-print flex flex-col sm:flex-row gap-3">
             <Button variant="outline" className="flex-1 rounded-xl h-12 font-black uppercase tracking-widest text-xs" onClick={() => setIssuedReceipt(null)}>
               Dismiss
             </Button>

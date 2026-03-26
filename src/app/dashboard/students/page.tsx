@@ -35,7 +35,8 @@ import {
   Mail,
   Smartphone,
   X,
-  Network
+  Network,
+  ArrowLeft
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -143,17 +144,22 @@ export default function StudentsPage() {
   return (
     <div className="space-y-8 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
-            <div className="p-2 bg-primary rounded-xl shadow-lg">
-              <GraduationCap className="w-6 h-6 text-secondary" />
-            </div>
-            Registry Governance
-          </h1>
-          <p className="text-muted-foreground mt-1">Manage institutional student records and parent accounts.</p>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full hover:bg-white shadow-sm shrink-0">
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
+              <div className="p-2 bg-primary rounded-xl shadow-lg">
+                <GraduationCap className="w-6 h-6 text-secondary" />
+              </div>
+              Registry Governance
+            </h1>
+            <p className="text-muted-foreground mt-1">Manage institutional student records and parent accounts.</p>
+          </div>
         </div>
         {isAdmin && (
-          <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl" onClick={() => setIsAdmissionOpen(true)}>
+          <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl w-full md:w-auto" onClick={() => setIsAdmissionOpen(true)}>
             <UserPlus className="w-5 h-5" /> New Admission
           </Button>
         )}
@@ -187,8 +193,8 @@ export default function StudentsPage() {
                 />
               </div>
               
-              <div className="flex gap-4 col-span-1 md:col-span-2">
-                <div className="flex-1">
+              <div className="flex gap-4 col-span-1 md:col-span-2 flex-wrap sm:flex-nowrap">
+                <div className="flex-1 min-w-[140px]">
                   <Select value={sectionFilter} onValueChange={setSectionFilter}>
                     <SelectTrigger className="h-12 bg-accent/20 border-none rounded-xl font-bold">
                       <div className="flex items-center gap-2">
@@ -202,7 +208,7 @@ export default function StudentsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-[140px]">
                   <Select value={classFilter} onValueChange={setClassFilter}>
                     <SelectTrigger className="h-12 bg-accent/20 border-none rounded-xl font-bold">
                       <SelectValue placeholder="All Classes" />
@@ -217,7 +223,7 @@ export default function StudentsPage() {
             </div>
           </CardHeader>
 
-          <TabsContent value="students" className="m-0">
+          <TabsContent value="students" className="m-0 overflow-x-auto">
             <Table>
               <TableHeader className="bg-accent/10">
                 <TableRow className="uppercase text-[10px] font-black tracking-widest border-b">
@@ -247,7 +253,7 @@ export default function StudentsPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="text-[10px] border-primary/10 text-primary font-bold">{s.class}</Badge>
+                      <Badge variant="outline" className="text-[10px] border-primary/10 text-primary font-bold whitespace-nowrap">{s.class}</Badge>
                     </TableCell>
                     <TableCell className="text-center">
                       <Badge className={cn(
@@ -272,7 +278,7 @@ export default function StudentsPage() {
             </Table>
           </TabsContent>
 
-          <TabsContent value="parents" className="m-0">
+          <TabsContent value="parents" className="m-0 overflow-x-auto">
             <Table>
               <TableHeader className="bg-accent/10">
                 <TableRow className="uppercase text-[10px] font-black tracking-widest border-b">
@@ -295,12 +301,12 @@ export default function StudentsPage() {
                         </Avatar>
                         <div>
                           <p className="font-bold text-sm text-primary">{p.name}</p>
-                          <p className="text-[10px] text-muted-foreground">{p.email}</p>
+                          <p className="text-[10px] text-muted-foreground truncate max-w-[150px]">{p.email}</p>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary" className="bg-primary/5 text-primary border-none text-[10px] font-bold">
+                      <Badge variant="secondary" className="bg-primary/5 text-primary border-none text-[10px] font-bold whitespace-nowrap">
                         {p.child}
                       </Badge>
                     </TableCell>
@@ -342,13 +348,13 @@ export default function StudentsPage() {
               </Button>
             </div>
           </DialogHeader>
-          <div className="p-8 space-y-6">
+          <div className="p-8 space-y-6 max-h-[60vh] overflow-y-auto">
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Full Name</Label>
               <Input value={editingUser?.name || ""} onChange={(e) => setEditingUser({...editingUser, name: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl font-bold" />
             </div>
             {editingUser?.class ? (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Class Level</Label>
                   <Select value={editingUser.class} onValueChange={(v) => setEditingUser({...editingUser, class: v})}>

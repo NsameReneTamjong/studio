@@ -50,7 +50,8 @@ import {
   Trash2,
   Save,
   Pencil,
-  Network
+  Network,
+  ArrowLeft
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -59,6 +60,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
+import { useRouter } from "next/navigation";
 
 // Constants
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
@@ -95,6 +97,7 @@ export default function FeesPage() {
   const { user, platformSettings } = useAuth();
   const { language } = useI18n();
   const { toast } = useToast();
+  const router = useRouter();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [classFilter, setClassFilter] = useState("all");
@@ -244,16 +247,21 @@ export default function FeesPage() {
     <div className="space-y-6 md:space-y-8 pb-20 px-1">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-primary rounded-2xl shadow-xl border-2 border-white shrink-0">
-            <Coins className="w-6 h-6 md:w-8 md:h-8 text-secondary" />
-          </div>
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline tracking-tighter uppercase">
-              {isAdmin ? "Institutional Revenue" : "Collection Desk"}
-            </h1>
-            <p className="text-xs md:text-sm text-muted-foreground">
-              {isAdmin ? "Oversight of institutional intake and collection velocity." : "Manage intake, record payments, and issue receipts."}
-            </p>
+          <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full hover:bg-white shadow-sm shrink-0">
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-primary rounded-2xl shadow-xl border-2 border-white shrink-0">
+              <Coins className="w-6 h-6 md:w-8 md:h-8 text-secondary" />
+            </div>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline tracking-tighter uppercase">
+                {isAdmin ? "Institutional Revenue" : "Collection Desk"}
+              </h1>
+              <p className="text-xs md:text-sm text-muted-foreground">
+                {isAdmin ? "Oversight of institutional intake and collection velocity." : "Manage intake, record payments, and issue receipts."}
+              </p>
+            </div>
           </div>
         </div>
         
@@ -267,32 +275,32 @@ export default function FeesPage() {
 
       <Tabs defaultValue={isAdmin ? "oversight" : "pay"} className="w-full">
         <TabsList className={cn(
-          "grid mb-6 bg-white shadow-sm border h-auto p-1 rounded-2xl",
-          isBursar ? "grid-cols-5 lg:w-[1000px]" : "grid-cols-4 lg:w-[800px]"
+          "grid mb-6 bg-white shadow-sm border h-auto p-1 rounded-2xl overflow-x-auto no-scrollbar",
+          isBursar ? "grid-cols-5 md:w-[1000px]" : "grid-cols-4 md:w-[800px]"
         )}>
           {isAdmin && (
-            <TabsTrigger value="oversight" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm">
+            <TabsTrigger value="oversight" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm whitespace-nowrap">
               <Building2 className="w-4 h-4" /> Oversight
             </TabsTrigger>
           )}
           {isBursar && (
-            <TabsTrigger value="pay" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm">
+            <TabsTrigger value="pay" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm whitespace-nowrap">
               <Wallet className="w-4 h-4" /> Collection
             </TabsTrigger>
           )}
-          <TabsTrigger value="ledger" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm">
+          <TabsTrigger value="ledger" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm whitespace-nowrap">
             <History className="w-4 h-4" /> Transactions
           </TabsTrigger>
-          <TabsTrigger value="tracker" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm">
+          <TabsTrigger value="tracker" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm whitespace-nowrap">
             <FileSpreadsheet className="w-4 h-4" /> Tracker
           </TabsTrigger>
           {isBursar && (
-            <TabsTrigger value="structure" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm">
+            <TabsTrigger value="structure" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm whitespace-nowrap">
               <Settings2 className="w-4 h-4" /> Fee Types
             </TabsTrigger>
           )}
           {!isBursar && (
-            <TabsTrigger value="overview" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm">
+            <TabsTrigger value="overview" className="gap-2 py-2 md:py-3 rounded-xl transition-all text-xs md:text-sm whitespace-nowrap">
               <TrendingUp className="w-4 h-4" /> Finance Metrics
             </TabsTrigger>
           )}
@@ -515,14 +523,14 @@ export default function FeesPage() {
 
         {isBursar && (
           <TabsContent value="structure" className="animate-in fade-in slide-in-from-bottom-4 mt-0 space-y-6">
-            <div className="flex justify-between items-center bg-white p-6 rounded-3xl border shadow-sm">
-              <div className="space-y-1">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-6 rounded-3xl border shadow-sm">
+              <div className="space-y-1 text-center md:text-left">
                 <h2 className="text-xl font-black text-primary uppercase tracking-tighter">Institutional Fee Structure</h2>
                 <p className="text-xs text-muted-foreground">Manage and define mandated fee categories for the academic session.</p>
               </div>
               <Dialog open={isAddingFeeType} onOpenChange={setIsAddingFeeType}>
                 <DialogTrigger asChild>
-                  <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl">
+                  <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl w-full md:w-auto">
                     <Plus className="w-5 h-5" /> Add Fee Type
                   </Button>
                 </DialogTrigger>
@@ -536,12 +544,12 @@ export default function FeesPage() {
                       </div>
                     </div>
                   </DialogHeader>
-                  <div className="p-8 space-y-6">
+                  <div className="p-8 space-y-6 max-h-[60vh] overflow-y-auto">
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Fee Label / Name</Label>
                       <Input value={newFeeTypeData.name} onChange={(e) => setNewFeeTypeData({...newFeeTypeData, name: e.target.value})} placeholder="e.g. Computer Lab Fee" className="h-12 bg-accent/30 border-none rounded-xl font-bold" />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Mandated Amount (XAF)</Label>
                         <Input type="number" value={newFeeTypeData.amount} onChange={(e) => setNewFeeTypeData({...newFeeTypeData, amount: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl font-black text-primary" placeholder="0" />
@@ -576,7 +584,7 @@ export default function FeesPage() {
               {feeTypes.map((type) => (
                 <Card key={type.id} className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-all bg-white flex flex-col">
                   <div className="p-6 flex-1 space-y-4">
-                    <div className="flex justify-between items-start">
+                    <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                       <div className="space-y-1">
                         <Badge variant="secondary" className={cn(
                           "uppercase text-[8px] font-black tracking-widest border-none px-2 h-4",
@@ -586,7 +594,7 @@ export default function FeesPage() {
                         </Badge>
                         <CardTitle className="text-lg font-black text-primary uppercase">{type.name}</CardTitle>
                       </div>
-                      <div className="text-right">
+                      <div className="text-left sm:text-right">
                         <p className="text-[10px] font-black text-muted-foreground uppercase">Amount</p>
                         <p className="text-xl font-black text-primary">{type.amount.toLocaleString()} <span className="text-xs">XAF</span></p>
                       </div>
@@ -658,16 +666,16 @@ export default function FeesPage() {
                     <CardDescription className="text-white/60">Live financial registry with performance auditing and collection status.</CardDescription>
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <Button 
                     variant="outline"
-                    className="bg-white/10 border-white/20 text-white hover:bg-white/20 h-12 px-6 rounded-xl font-black uppercase text-xs gap-2"
+                    className="bg-white/10 border-white/20 text-white hover:bg-white/20 h-12 px-6 rounded-xl font-black uppercase text-xs gap-2 flex-1 sm:flex-none"
                     onClick={() => window.print()}
                   >
                     <Printer className="w-4 h-4" /> Print Tracker
                   </Button>
                   <Button 
-                    className="bg-secondary text-primary hover:bg-secondary/90 h-12 px-8 rounded-xl font-black uppercase tracking-widest text-xs gap-2 shadow-lg"
+                    className="bg-secondary text-primary hover:bg-secondary/90 h-12 px-8 rounded-xl font-black uppercase tracking-widest text-xs gap-2 shadow-lg flex-1 sm:flex-none"
                     onClick={handleDownloadList}
                     disabled={isProcessing}
                   >
@@ -719,7 +727,7 @@ export default function FeesPage() {
               </div>
 
               <div className="pt-6 border-t">
-                <div className="rounded-2xl border border-accent overflow-hidden shadow-inner bg-white">
+                <div className="rounded-2xl border border-accent overflow-hidden shadow-inner bg-white overflow-x-auto">
                   <Table>
                     <TableHeader className="bg-accent/10">
                       <TableRow className="uppercase text-[10px] font-black tracking-widest border-b">
@@ -952,8 +960,8 @@ export default function FeesPage() {
                     <p className="text-[7px] font-black uppercase text-muted-foreground opacity-40">Verified Registry Node</p>
                   </div>
                   <div className="text-center space-y-6 w-32">
-                    <div className="h-10 md:h-12 w-full mx-auto bg-primary/5 rounded border-b-2 border-black/40 relative">
-                       <Signature className="absolute inset-0 w-full h-full text-primary/20 p-2" />
+                    <div className="h-10 md:h-12 w-full mx-auto bg-primary/5 rounded border-b-2 border-black/40 relative flex items-center justify-center">
+                       <Signature className="w-full h-full text-primary/20 p-2" />
                     </div>
                     <p className="text-[8px] font-black uppercase text-primary tracking-widest leading-none">The Bursar</p>
                   </div>

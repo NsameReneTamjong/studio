@@ -42,12 +42,14 @@ import {
   Info,
   Download,
   Signature,
-  QrCode
+  QrCode,
+  ArrowLeft
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { useRouter } from "next/navigation";
 
 const SECTIONS = ["Anglophone Section", "Francophone Section", "Technical Section"];
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
@@ -94,6 +96,7 @@ export default function GradeBookPage() {
   const { user, platformSettings } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
+  const router = useRouter();
   
   const isSchoolAdmin = user?.role === "SCHOOL_ADMIN";
   const isSubAdmin = user?.role === "SUB_ADMIN";
@@ -160,14 +163,19 @@ export default function GradeBookPage() {
     return (
       <div className="space-y-8 pb-20">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
-              <div className="p-2 bg-primary rounded-xl shadow-lg">
-                <Award className="w-6 h-6 text-secondary" />
-              </div>
-              My Performance
-            </h1>
-            <p className="text-muted-foreground mt-1">Official term records and pedagogical achievement tracking.</p>
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full hover:bg-white shadow-sm shrink-0">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
+                <div className="p-2 bg-primary rounded-xl shadow-lg">
+                  <Award className="w-6 h-6 text-secondary" />
+                </div>
+                My Performance
+              </h1>
+              <p className="text-muted-foreground mt-1">Official term records and pedagogical achievement tracking.</p>
+            </div>
           </div>
           <Button className="h-12 px-8 rounded-2xl shadow-xl gap-2 font-black uppercase tracking-widest text-xs" onClick={() => setPreviewStudent({ ...user, class: user.class || "2nde / Form 5" })}>
             <Printer className="w-4 h-4" /> {t("officialBulletin")}
@@ -254,8 +262,8 @@ export default function GradeBookPage() {
               </TableBody>
             </Table>
           </CardContent>
-          <CardFooter className="bg-accent/10 p-6 border-t flex justify-between items-center">
-             <div className="flex items-center gap-2">
+          <CardFooter className="bg-accent/10 p-6 border-t flex flex-col sm:flex-row gap-4 justify-between items-center">
+             <div className="flex items-center gap-2 text-muted-foreground">
                 <ShieldCheck className="w-4 h-4 text-green-600" />
                 <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest italic">All current term marks are digitally signed by the registrar.</p>
              </div>
@@ -276,7 +284,7 @@ export default function GradeBookPage() {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="p-0">
+          <CardContent className="p-0 overflow-x-auto">
             <Table>
               <TableHeader className="bg-accent/10">
                 <TableRow className="uppercase text-[10px] font-black tracking-widest border-b">
@@ -319,28 +327,33 @@ export default function GradeBookPage() {
   return (
     <div className="space-y-8 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
-            <div className="p-2 bg-primary rounded-xl shadow-lg">
-              <Award className="w-6 h-6 text-secondary" />
-            </div>
-            {isAdmin ? "Institutional Results Suite" : "Mark Entry Desk"}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {isAdmin 
-              ? "Govern pedagogical cycles, generate official bulletins, and publish results."
-              : "Record student evaluations for your assigned subjects."}
-          </p>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full hover:bg-white shadow-sm shrink-0">
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
+              <div className="p-2 bg-primary rounded-xl shadow-lg">
+                <Award className="w-6 h-6 text-secondary" />
+              </div>
+              {isAdmin ? "Institutional Results Suite" : "Mark Entry Desk"}
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              {isAdmin 
+                ? "Govern pedagogical cycles, generate official bulletins, and publish results."
+                : "Record student evaluations for your assigned subjects."}
+            </p>
+          </div>
         </div>
         
         {isAdmin && (
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" className="h-12 px-6 rounded-2xl border-primary/20 gap-2 font-bold" onClick={() => toast({ title: "Bulk Reports Generated" })} disabled={isProcessing}>
+            <Button variant="outline" className="h-12 px-6 rounded-2xl border-primary/20 gap-2 font-bold w-full sm:w-auto" onClick={() => toast({ title: "Bulk Reports Generated" })} disabled={isProcessing}>
               {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
               Generate Batch Reports
             </Button>
             {isSchoolAdmin && (
-              <Button className="h-12 px-8 rounded-2xl shadow-xl gap-2 font-black uppercase tracking-widest text-xs" onClick={handlePublishResults} disabled={isProcessing}>
+              <Button className="h-12 px-8 rounded-2xl shadow-xl gap-2 font-black uppercase tracking-widest text-xs w-full sm:w-auto" onClick={handlePublishResults} disabled={isProcessing}>
                 <Globe className="w-4 h-4" />
                 Publish Results
               </Button>
@@ -420,9 +433,9 @@ export default function GradeBookPage() {
                 <CardTitle className="text-xl font-black text-primary uppercase tracking-tight">Audit Registry</CardTitle>
                 <CardDescription className="text-xs">Verifying mark entry completion for the selected class.</CardDescription>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 w-full md:w-auto">
                 <Select value={selectedClass} onValueChange={setSelectedClass}>
-                  <SelectTrigger className="h-10 w-[180px] bg-accent/20 border-none rounded-lg text-xs font-bold"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-10 w-full md:w-[180px] bg-accent/20 border-none rounded-lg text-xs font-bold"><SelectValue /></SelectTrigger>
                   <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
@@ -655,16 +668,16 @@ function ReportCardDialog({ previewStudent, setPreviewStudent, selectedYear, sel
           </div>
         </div>
 
-        <DialogFooter className="p-6 bg-white border-t gap-3 sm:gap-0 no-print">
-          <div className="flex-1 flex items-center gap-2 text-muted-foreground italic text-xs">
+        <DialogFooter className="p-6 bg-white border-t gap-3 sm:gap-0 no-print flex flex-col sm:flex-row">
+          <div className="flex-1 flex items-center gap-2 text-muted-foreground italic text-xs mb-4 sm:mb-0">
              <Info className="w-4 h-4" />
              <p>Bulletin optimized for single-page A4 printing.</p>
           </div>
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={() => window.print()} className="rounded-xl h-12 px-8 font-black uppercase text-xs gap-2">
+          <div className="flex gap-3 w-full sm:w-auto">
+            <Button variant="outline" onClick={() => window.print()} className="rounded-xl h-12 px-8 font-black uppercase text-xs gap-2 flex-1 sm:flex-none">
               <Printer className="w-4 h-4" /> Print Document
             </Button>
-            <Button onClick={() => setPreviewStudent(null)} className="rounded-xl h-12 px-10 font-black uppercase text-xs">Close Preview</Button>
+            <Button onClick={() => setPreviewStudent(null)} className="rounded-xl h-12 px-10 font-black uppercase text-xs flex-1 sm:flex-none">Close Preview</Button>
           </div>
         </DialogFooter>
       </DialogContent>
