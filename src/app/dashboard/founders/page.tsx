@@ -34,7 +34,10 @@ import {
   History,
   Download,
   Printer,
-  QrCode
+  QrCode,
+  Building2,
+  Sparkles,
+  Coins
 } from "lucide-react";
 import { 
   Dialog, 
@@ -175,7 +178,6 @@ export default function FoundersManagementPage() {
 
   return (
     <div className="space-y-8 pb-20">
-      {/* 1. HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
@@ -267,7 +269,6 @@ export default function FoundersManagementPage() {
         )}
       </div>
 
-      {/* 2. STATS SECTION */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="border-none shadow-sm bg-primary text-white">
           <CardContent className="pt-6">
@@ -301,7 +302,6 @@ export default function FoundersManagementPage() {
         </Card>
       </div>
 
-      {/* 3. FOUNDERS GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {isLoading ? (
           <div className="col-span-full flex flex-col items-center justify-center py-20 gap-4">
@@ -395,7 +395,6 @@ export default function FoundersManagementPage() {
         )}
       </div>
 
-      {/* 4. GOVERNANCE LOGS SECTION */}
       <Card className="border-none shadow-sm rounded-[2rem] overflow-hidden bg-white/50 backdrop-blur-sm border">
         <CardHeader className="bg-white border-b p-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -448,7 +447,6 @@ export default function FoundersManagementPage() {
         </CardFooter>
       </Card>
 
-      {/* APPOINTMENT RECEIPT DIALOG (SHOWN UPON SUCCESSFUL ONBOARDING) */}
       <Dialog open={!!onboardingSuccess} onOpenChange={() => setOnboardingSuccess(null)}>
         <DialogContent className="sm:max-w-2xl p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden">
           <DialogHeader className="bg-primary p-8 text-white no-print relative">
@@ -470,8 +468,6 @@ export default function FoundersManagementPage() {
 
           <div className="bg-muted p-6 md:p-10 print:p-0 print:bg-white overflow-hidden">
             <div id="executive-welcome-receipt" className="bg-white p-8 md:p-12 border-2 border-black shadow-sm relative flex flex-col space-y-10 font-serif text-black print:border-none print:shadow-none">
-               
-               {/* EduIgnite Platform Header */}
                <div className="flex justify-between items-center border-b-4 border-black pb-6">
                   <div className="flex items-center gap-4">
                     <img src={platformSettings.logo} alt="EduIgnite" className="w-16 h-16 object-contain rounded-2xl bg-primary p-2" />
