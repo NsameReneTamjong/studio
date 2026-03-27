@@ -158,7 +158,6 @@ export default function LibraryPage() {
       return;
     }
 
-    // CHECK FOR DUPLICATE LOAN OF SAME BOOK
     if (loans.some(l => l.bookTitle === book.title && l.borrowerId === user?.id)) {
       toast({ 
         variant: "destructive", 
@@ -169,7 +168,6 @@ export default function LibraryPage() {
     }
 
     setBorrowingBookId(book.id);
-    // Simulate borrowing process
     setTimeout(() => {
       const dueDate = new Date();
       dueDate.setDate(dueDate.getDate() + parseInt(policyData.loanDuration));
@@ -187,11 +185,8 @@ export default function LibraryPage() {
       };
 
       setIssuedReceipt(receipt);
-      
-      // Update books count locally
       setBooks(prev => prev.map(b => b.id === book.id ? { ...b, available: b.available - 1 } : b));
       
-      // Add to loans list (simulation)
       const newLoan = {
         id: `LOAN-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
         bookTitle: book.title,
@@ -334,12 +329,23 @@ export default function LibraryPage() {
                     <Plus className="w-4 h-4" /> Add Volume
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-                  <DialogHeader className="bg-primary p-8 text-white">
-                    <DialogTitle className="text-2xl font-black">Catalog Entry</DialogTitle>
-                    <DialogDescription className="text-white/60">Initialize a new resource into the institutional collection.</DialogDescription>
+                <DialogContent className="sm:max-w-xl w-[95vw] sm:w-full rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl flex flex-col">
+                  <DialogHeader className="bg-primary p-6 md:p-8 text-white relative shrink-0">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-white/10 rounded-2xl shrink-0">
+                        <BookMarked className="w-8 h-8 text-secondary" />
+                      </div>
+                      <div>
+                        <DialogTitle className="text-xl md:text-2xl font-black uppercase tracking-tight">Catalog Entry</DialogTitle>
+                        <DialogDescription className="text-white/60 text-xs">Initialize a new resource into the institutional collection.</DialogDescription>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => setIsAddingBook(false)} className="absolute top-4 right-4 text-white/40 hover:text-white hover:bg-white/10 shrink-0">
+                      <X className="w-6 h-6" />
+                    </Button>
                   </DialogHeader>
-                  <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+                  
+                  <div className="p-6 md:p-8 space-y-8 flex-1 overflow-y-auto scrollbar-thin bg-white">
                     <div className="space-y-4">
                       <Label className="text-[10px] font-black uppercase text-muted-foreground text-center block tracking-widest">Book Cover Image</Label>
                       <div 
@@ -360,22 +366,37 @@ export default function LibraryPage() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="col-span-1 md:col-span-2 space-y-2">
-                        <Label>Book Title</Label>
-                        <Input value={newBookData.title} onChange={(e) => setNewBookData({...newBookData, title: e.target.value})} className="h-11 bg-accent/30 border-none rounded-xl" />
+                      <div className="md:col-span-2 space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest ml-1">Book Title</Label>
+                        <Input 
+                          value={newBookData.title} 
+                          onChange={(e) => setNewBookData({...newBookData, title: e.target.value})} 
+                          className="h-12 bg-accent/30 border-none rounded-xl font-bold" 
+                          placeholder="e.g. Advanced Physics for Beginners"
+                        />
                       </div>
                       <div className="space-y-2">
-                        <Label>Author</Label>
-                        <Input value={newBookData.author} onChange={(e) => setNewBookData({...newBookData, author: e.target.value})} className="h-11 bg-accent/30 border-none rounded-xl" />
+                        <Label className="text-[10px] font-black uppercase tracking-widest ml-1">Author</Label>
+                        <Input 
+                          value={newBookData.author} 
+                          onChange={(e) => setNewBookData({...newBookData, author: e.target.value})} 
+                          className="h-12 bg-accent/30 border-none rounded-xl" 
+                          placeholder="e.g. Dr. Tesla"
+                        />
                       </div>
                       <div className="space-y-2">
-                        <Label>ISBN / Ref Code</Label>
-                        <Input value={newBookData.isbn} onChange={(e) => setNewBookData({...newBookData, isbn: e.target.value})} className="h-11 bg-accent/30 border-none rounded-xl" />
+                        <Label className="text-[10px] font-black uppercase tracking-widest ml-1">ISBN / Ref Code</Label>
+                        <Input 
+                          value={newBookData.isbn} 
+                          onChange={(e) => setNewBookData({...newBookData, isbn: e.target.value})} 
+                          className="h-12 bg-accent/30 border-none rounded-xl" 
+                          placeholder="ISBN-XXXX"
+                        />
                       </div>
                       <div className="space-y-2">
-                        <Label>Category</Label>
+                        <Label className="text-[10px] font-black uppercase tracking-widest ml-1">Category</Label>
                         <Select value={newBookData.category} onValueChange={(v) => setNewBookData({...newBookData, category: v})}>
-                          <SelectTrigger className="h-11 bg-accent/30 border-none rounded-xl"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="Science">Science</SelectItem>
                             <SelectItem value="Mathematics">Mathematics</SelectItem>
@@ -385,18 +406,30 @@ export default function LibraryPage() {
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label>Total Volumes</Label>
-                        <Input type="number" value={newBookData.total} onChange={(e) => setNewBookData({...newBookData, total: parseInt(e.target.value)})} className="h-11 bg-accent/30 border-none rounded-xl" />
+                        <Label className="text-[10px] font-black uppercase tracking-widest ml-1">Total Volumes</Label>
+                        <Input 
+                          type="number" 
+                          value={newBookData.total} 
+                          onChange={(e) => setNewBookData({...newBookData, total: parseInt(e.target.value)})} 
+                          className="h-12 bg-accent/30 border-none rounded-xl font-black" 
+                        />
                       </div>
-                      <div className="col-span-1 md:col-span-2 space-y-2">
-                        <Label>Pedagogical Description</Label>
-                        <Textarea value={newBookData.description} onChange={(e) => setNewBookData({...newBookData, description: e.target.value})} className="bg-accent/30 border-none rounded-xl min-h-[100px]" />
+                      <div className="md:col-span-2 space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest ml-1">Pedagogical Description</Label>
+                        <Textarea 
+                          value={newBookData.description} 
+                          onChange={(e) => setNewBookData({...newBookData, description: e.target.value})} 
+                          className="bg-accent/30 border-none rounded-xl min-h-[100px]" 
+                          placeholder="Brief summary of the book content..."
+                        />
                       </div>
                     </div>
                   </div>
-                  <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
-                    <Button onClick={handleAddBook} disabled={isProcessing} className="w-full h-12 shadow-lg font-bold">
-                      {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify & Archive Volume"}
+                  
+                  <DialogFooter className="bg-accent/20 p-6 md:p-8 border-t border-accent shrink-0">
+                    <Button onClick={handleAddBook} disabled={isProcessing || !newBookData.title || !newBookData.author} className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3">
+                      {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <ShieldCheck className="w-5 h-5" />}
+                      Verify & Archive Volume
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -918,7 +951,6 @@ export default function LibraryPage() {
 
           <div className="bg-muted p-6 md:p-10 print:p-0 print:bg-white overflow-hidden overflow-y-auto max-h-[70vh]">
             <div id="printable-receipt" className="bg-white p-8 border-2 border-black/10 shadow-sm relative flex flex-col space-y-6 font-serif text-black print:border-none print:shadow-none min-w-full sm:min-w-[350px]">
-               {/* Receipt Header */}
                <div className="flex justify-between items-start border-b-2 border-black pb-4">
                   <div className="flex items-center gap-3">
                     <img src={user?.school?.logo || platformSettings.logo} alt="School" className="w-12 h-12 object-contain" />
@@ -933,7 +965,6 @@ export default function LibraryPage() {
                   </div>
                </div>
 
-               {/* Borrower & Book Matrix */}
                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 py-4">
                   <div className="space-y-4">
                     <div>
@@ -959,7 +990,6 @@ export default function LibraryPage() {
                   </div>
                </div>
 
-               {/* Institutional Footprint */}
                <div className="pt-6 border-t border-black/5 flex justify-between items-end">
                   <div className="flex flex-col items-center gap-2">
                     <QrCode className="w-14 h-14 md:w-20 md:h-20 text-primary opacity-20" />
@@ -971,7 +1001,6 @@ export default function LibraryPage() {
                   </div>
                </div>
 
-               {/* Notice */}
                <div className="bg-accent/30 p-3 rounded-lg text-[8px] leading-relaxed italic text-muted-foreground border border-accent">
                  "This resource is public property. Failure to return the item by the due date ({issuedReceipt?.dueDate}) will result in institutional fines of {policyData.dailyFine} XAF per day. Take care of the volume."
                </div>
@@ -1207,8 +1236,11 @@ export default function LibraryPage() {
       {/* EDIT BOOK DIALOG */}
       <Dialog open={!!editingBook} onOpenChange={() => setEditingBook(null)}>
         <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-          <DialogHeader className="bg-primary p-8 text-white">
+          <DialogHeader className="bg-primary p-8 text-white relative">
             <DialogTitle className="text-xl font-black">Edit Resource Record</DialogTitle>
+            <Button variant="ghost" size="icon" onClick={() => setEditingBook(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+              <X className="w-6 h-6" />
+            </Button>
           </DialogHeader>
           <div className="p-8 space-y-4">
             <div className="space-y-2">
