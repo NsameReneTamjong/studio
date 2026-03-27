@@ -52,7 +52,8 @@ import {
   FileBadge,
   FileDown,
   Briefcase,
-  Fingerprint
+  Fingerprint,
+  Heart
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -461,7 +462,7 @@ export default function StudentDetailsPage() {
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="flex items-center gap-4">
                   <div className="p-3 bg-white/10 rounded-2xl text-secondary">
-                    <FileBadge className="w-8 h-8" />
+                    <FileBadge className="w-8 h-8 text-secondary" />
                   </div>
                   <div>
                     <CardTitle className="text-2xl font-black uppercase tracking-tight">{t("draftTranscript")}</CardTitle>
