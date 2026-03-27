@@ -41,7 +41,9 @@ import {
   Award,
   BarChart3,
   Info,
-  FileText
+  FileText,
+  BookMarked,
+  LayoutGrid
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -64,20 +66,27 @@ const MOCK_CLASSES_ATTENDANCE = [
   { id: "C7", name: "Terminale / Upper Sixth", percentage: 98, totalStudents: 30, presentToday: 30, trends: "+1%", teacher: "Mme. Ngono", status: "high" },
 ];
 
+const MOCK_CLASS_SUBJECTS = [
+  { id: "SUB1", name: "Advanced Physics", code: "PHY402", percentage: 92, students: 42, teacher: "Dr. Aris Tesla", color: "bg-blue-500" },
+  { id: "SUB2", name: "Mathematics", code: "MAT401", percentage: 95, students: 42, teacher: "Prof. Sarah Smith", color: "bg-emerald-500" },
+  { id: "SUB3", name: "Chemistry", code: "CHM401", percentage: 88, students: 42, teacher: "Dr. White", color: "bg-purple-500" },
+  { id: "SUB4", name: "English Literature", code: "LIT405", percentage: 90, students: 42, teacher: "Ms. Bennet", color: "bg-rose-500" },
+];
+
+const MOCK_STUDENT_SUBJECT_STATS = [
+  { id: "S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", presentCount: 22, absentCount: 2, matricule: "GBHS26S001" },
+  { id: "S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", presentCount: 18, absentCount: 6, matricule: "GBHS26S002" },
+  { id: "S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", presentCount: 15, absentCount: 9, matricule: "GBHS26S003" },
+  { id: "S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100", presentCount: 24, absentCount: 0, matricule: "GBHS26S004" },
+  { id: "S005", name: "Ethan Hunt", avatar: "https://picsum.photos/seed/s5/100/100", presentCount: 20, absentCount: 4, matricule: "GBHS26S005" },
+];
+
 const MOCK_STUDENTS = [
   { id: "S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", presentCount: 22, absentCount: 2 },
   { id: "S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", presentCount: 18, absentCount: 6 },
   { id: "S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", presentCount: 15, absentCount: 9 },
   { id: "S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100", presentCount: 24, absentCount: 0 },
   { id: "S005", name: "Ethan Hunt", avatar: "https://picsum.photos/seed/s5/100/100", presentCount: 20, absentCount: 4 },
-];
-
-const MOCK_STUDENT_LOGS = [
-  { date: "May 24, 2024", subject: "Mathematics", time: "08:00 AM", status: "Present", teacher: "Prof. Sarah Smith" },
-  { date: "May 24, 2024", subject: "Advanced Physics", time: "10:30 AM", status: "Present", teacher: "Dr. Aris Tesla" },
-  { date: "May 23, 2024", subject: "History", time: "01:00 PM", status: "Absent", teacher: "Mr. Tabi" },
-  { date: "May 22, 2024", subject: "English Literature", time: "09:00 AM", status: "Present", teacher: "Ms. Bennet" },
-  { date: "May 21, 2024", subject: "Organic Chemistry", time: "11:00 AM", status: "Present", teacher: "Dr. White" },
 ];
 
 const MOCK_STUDENT_TODAY = [
@@ -103,7 +112,7 @@ export default function AttendancePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [date, setDate] = useState<Date>(new Date());
   const [selectedClassDetails, setSelectedClassDetails] = useState<any>(null);
-  const [selectedStudentLogs, setSelectedStudentLogs] = useState<any>(null);
+  const [selectedSubjectDetails, setSelectedSubjectDetails] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -112,7 +121,6 @@ export default function AttendancePage() {
   );
   
   const isAdmin = user?.role === "SCHOOL_ADMIN" || user?.role === "SUB_ADMIN";
-  const isParent = user?.role === "PARENT";
   const isStudent = user?.role === "STUDENT";
 
   useEffect(() => {
@@ -127,7 +135,7 @@ export default function AttendancePage() {
   }, [registryState]);
 
   const setStatus = (studentId: string, status: 'present' | 'absent') => {
-    if (isAdmin) return; // Prevent admins from changing status
+    if (isAdmin) return;
     setRegistryState(prev => ({ ...prev, [studentId]: status }));
   };
 
@@ -150,16 +158,9 @@ export default function AttendancePage() {
       setIsProcessing(false);
       toast({
         title: "Statistics Exported",
-        description: `Attendance data for ${selectedClassDetails?.name} has been generated.`,
+        description: "Attendance report for selected scope generated.",
       });
     }, 1000);
-  };
-
-  const handleExportStudentLogs = (student: any) => {
-    toast({
-      title: "Log Export Started",
-      description: `Generating presence statement for ${student.name}.`
-    });
   };
 
   if (isLoading) return <LoadingState message="Fetching institutional presence records..." />;
@@ -365,7 +366,7 @@ export default function AttendancePage() {
                 className="flex-1 justify-between hover:bg-white text-primary font-bold text-[10px] uppercase w-full rounded-xl"
                 onClick={() => setSelectedClassDetails(cls)}
               >
-                {isAdmin ? "Audit Records" : "Inspect Records"}
+                {isAdmin ? "Inspect Subjects" : "Mark Presence"}
                 <ArrowRight className="w-3.5 h-3.5" />
               </Button>
             </CardFooter>
@@ -373,6 +374,7 @@ export default function AttendancePage() {
         ))}
       </div>
 
+      {/* TEACHER ONLY REGISTER VIEW */}
       {!isAdmin && (
         <Card className="border-none shadow-xl rounded-[2.5rem] overflow-hidden bg-white">
           <CardHeader className="bg-primary text-white p-6 md:p-8">
@@ -456,18 +458,18 @@ export default function AttendancePage() {
         </Card>
       )}
 
-      {/* ADMIN CLASS DETAILS DIALOG */}
+      {/* ADMIN CLASS SUBJECTS DIALOG (TIER 2) */}
       <Dialog open={!!selectedClassDetails} onOpenChange={() => setSelectedClassDetails(null)}>
         <DialogContent className="sm:max-w-4xl max-h-[95vh] p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col">
           <DialogHeader className="bg-primary p-6 md:p-8 text-white relative shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-white/10 rounded-2xl">
-                  <BookOpen className="w-8 h-8 text-secondary" />
+                  <LayoutGrid className="w-8 h-8 text-secondary" />
                 </div>
                 <div>
-                  <DialogTitle className="text-xl md:text-2xl font-black uppercase tracking-tighter">{selectedClassDetails?.name} Registry</DialogTitle>
-                  <DialogDescription className="text-white/60 text-xs">Node monitoring for {selectedClassDetails?.teacher}'s session.</DialogDescription>
+                  <DialogTitle className="text-xl md:text-2xl font-black uppercase tracking-tighter">{selectedClassDetails?.name} Subjects</DialogTitle>
+                  <DialogDescription className="text-white/60 text-xs">Strategic oversight of class subject performance.</DialogDescription>
                 </div>
               </div>
               <Button variant="ghost" size="icon" onClick={() => setSelectedClassDetails(null)} className="text-white hover:bg-white/10">
@@ -476,92 +478,124 @@ export default function AttendancePage() {
             </div>
           </DialogHeader>
 
+          <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 md:grid-cols-2 gap-6 bg-accent/5">
+            {MOCK_CLASS_SUBJECTS.map((sub) => (
+              <Card key={sub.id} className="border-none shadow-sm group hover:shadow-md transition-all bg-white overflow-hidden rounded-3xl">
+                <div className={cn("h-1.5 w-full", sub.color)} />
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <Badge variant="outline" className="text-[8px] font-bold uppercase tracking-widest border-primary/10 text-primary mb-1">{sub.code}</Badge>
+                      <CardTitle className="text-lg font-black text-primary uppercase">{sub.name}</CardTitle>
+                      <p className="text-[10px] font-bold text-muted-foreground italic flex items-center gap-1 mt-1">
+                        <User className="w-3 h-3" /> {sub.teacher}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                       <p className="text-[10px] font-black uppercase opacity-40">Presence Mean</p>
+                       <p className="text-xl font-black text-primary">{sub.percentage}%</p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                   <div className="flex items-center justify-between p-3 bg-accent/20 rounded-xl">
+                      <div className="flex items-center gap-2">
+                         <Users className="w-4 h-4 text-primary/40" />
+                         <span className="text-xs font-bold text-primary">{sub.students} Enrolled</span>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="text-[10px] font-black uppercase gap-2 hover:bg-primary hover:text-white rounded-lg"
+                        onClick={() => setSelectedSubjectDetails({ ...sub, className: selectedClassDetails?.name })}
+                      >
+                        View Details <ChevronRight className="w-3.5 h-3.5" />
+                      </Button>
+                   </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <DialogFooter className="bg-accent/10 p-6 border-t border-accent flex justify-center shrink-0">
+             <div className="flex items-center gap-2 text-muted-foreground italic">
+                <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Node Registry Audit Active</p>
+             </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ADMIN SUBJECT STUDENT DOSSIER DIALOG (TIER 3) */}
+      <Dialog open={!!selectedSubjectDetails} onOpenChange={() => setSelectedSubjectDetails(null)}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col">
+          <DialogHeader className="bg-primary p-6 md:p-8 text-white relative shrink-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-2xl text-secondary">
+                  <Users className="w-8 h-8 text-secondary" />
+                </div>
+                <div>
+                  <DialogTitle className="text-xl md:text-2xl font-black uppercase tracking-tighter">{selectedSubjectDetails?.name} Dossier</DialogTitle>
+                  <DialogDescription className="text-white/60 text-xs">Presence registry for {selectedSubjectDetails?.className}</DialogDescription>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setSelectedSubjectDetails(null)} className="text-white hover:bg-white/10">
+                <X className="w-6 h-6" />
+              </Button>
+            </div>
+          </DialogHeader>
+
           <div className="bg-white border-b p-4 md:p-6 flex flex-col md:flex-row items-center justify-between gap-4 shrink-0">
             <div className="relative flex-1 w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input placeholder="Search students..." className="pl-10 h-11 bg-accent/20 border-none rounded-xl text-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <Input placeholder="Search students in dossier..." className="pl-10 h-11 bg-accent/20 border-none rounded-xl text-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
-            <div className="flex gap-2 w-full md:w-auto">
-              <Button variant="outline" className="rounded-xl gap-2 font-bold h-11 px-6 text-xs flex-1 sm:flex-none bg-white border-primary/10" onClick={() => window.print()}>
-                <Printer className="w-4 h-4" /> Print
-              </Button>
-              {isAdmin ? (
-                <Button className="rounded-xl shadow-lg h-11 px-8 font-black uppercase text-[10px] tracking-widest gap-2 flex-1 sm:flex-none" onClick={handleDownloadStats} disabled={isProcessing}>
-                  {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <BarChart3 className="w-4 h-4" />} Download Statistics
-                </Button>
-              ) : (
-                <Button className="rounded-xl shadow-lg h-11 px-8 font-black uppercase text-[10px] tracking-widest gap-2 flex-1 sm:flex-none" onClick={handleSubmitRegistry} disabled={isProcessing}>
-                  {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Commit
-                </Button>
-              )}
-            </div>
+            <Button variant="outline" className="rounded-xl gap-2 font-bold h-11 px-6 text-xs flex-1 sm:flex-none bg-white border-primary/10" onClick={handleDownloadStats}>
+              <Printer className="w-4 h-4" /> Print Dossier
+            </Button>
           </div>
 
           <div className="flex-1 overflow-y-auto scrollbar-thin">
             <Table>
               <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest sticky top-0 z-10 border-b">
                 <TableRow>
-                  <TableHead className="pl-8 py-4">Student Profile</TableHead>
-                  <TableHead className="text-center">Mean %</TableHead>
-                  <TableHead className="text-right pr-8">{isAdmin ? "Actions" : "Daily Entry"}</TableHead>
+                  <TableHead className="pl-8 py-4">Student Identity</TableHead>
+                  <TableHead>Matricule</TableHead>
+                  <TableHead className="text-center">Present</TableHead>
+                  <TableHead className="text-center">Absent</TableHead>
+                  <TableHead className="text-right pr-8">Mean Rate %</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {MOCK_STUDENTS.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase())).map(s => (
-                  <TableRow key={s.id} className="hover:bg-accent/5">
-                    <TableCell className="pl-8 py-4">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10 border-2 border-white shadow-sm shrink-0">
-                          <AvatarImage src={s.avatar} />
-                          <AvatarFallback className="bg-primary/5 text-primary text-[10px] font-bold">{s.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="space-y-0.5">
-                          <p className="font-bold text-xs md:text-sm text-primary uppercase truncate max-w-[120px] md:max-w-xs">{s.name}</p>
-                          <p className="text-[9px] font-mono text-muted-foreground uppercase">{s.id}</p>
+                {MOCK_STUDENT_SUBJECT_STATS.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase())).map(s => {
+                  const total = s.presentCount + s.absentCount;
+                  const rate = total > 0 ? Math.round((s.presentCount / total) * 100) : 0;
+                  return (
+                    <TableRow key={s.id} className="hover:bg-accent/5 transition-colors h-16 border-b border-accent/10">
+                      <TableCell className="pl-8">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10 border-2 border-white shadow-sm shrink-0">
+                            <AvatarImage src={s.avatar} />
+                            <AvatarFallback className="bg-primary/5 text-primary text-[10px] font-bold">{s.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <span className="font-bold text-xs md:text-sm text-primary uppercase truncate max-w-[150px]">{s.name}</span>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex flex-col items-center gap-1">
-                        <span className="text-[10px] font-black text-primary">{Math.round((s.presentCount / (s.presentCount + s.absentCount)) * 100)}%</span>
-                        <div className="w-12 h-1 bg-accent rounded-full overflow-hidden">
-                          <div className="h-full bg-primary" style={{ width: `${(s.presentCount / (s.presentCount + s.absentCount)) * 100}%` }} />
+                      </TableCell>
+                      <TableCell className="font-mono text-[10px] font-bold text-muted-foreground uppercase">{s.matricule}</TableCell>
+                      <TableCell className="text-center font-black text-green-600">{s.presentCount}</TableCell>
+                      <TableCell className="text-center font-black text-red-600">{s.absentCount}</TableCell>
+                      <TableCell className="text-right pr-8">
+                        <div className="inline-flex flex-col items-end gap-1">
+                          <span className={cn("text-[10px] font-black", rate >= 90 ? "text-primary" : "text-amber-600")}>{rate}%</span>
+                          <div className="w-20 h-1 bg-accent rounded-full overflow-hidden">
+                            <div className={cn("h-full transition-all duration-1000", rate >= 90 ? "bg-primary" : "bg-amber-500")} style={{ width: `${rate}%` }} />
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right pr-8">
-                      {isAdmin ? (
-                        <div className="flex justify-end gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="text-[10px] font-black uppercase gap-2 hover:bg-primary hover:text-white"
-                            onClick={() => setSelectedStudentLogs(s)}
-                          >
-                            <Eye className="w-3.5 h-3.5" /> Details
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 text-primary/40"
-                            onClick={() => handleExportStudentLogs(s)}
-                          >
-                            <Download className="w-3.5 h-3.5" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="flex justify-end gap-1">
-                          <Button size="icon" variant={registryState[s.id] === 'present' ? 'default' : 'outline'} className="h-8 w-8 rounded-lg" onClick={() => setStatus(s.id, 'present')}>
-                            <Check className="w-3.5 h-3.5" />
-                          </Button>
-                          <Button size="icon" variant={registryState[s.id] === 'absent' ? 'destructive' : 'outline'} className="h-8 w-8 rounded-lg" onClick={() => setStatus(s.id, 'absent')}>
-                            <X className="w-3.5 h-3.5" />
-                          </Button>
-                        </div>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
@@ -569,71 +603,7 @@ export default function AttendancePage() {
           <DialogFooter className="bg-accent/10 p-6 border-t border-accent flex justify-center shrink-0">
              <div className="flex items-center gap-2 text-muted-foreground italic">
                 <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
-                <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Administrative Presence Audit Record</p>
-             </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* STUDENT DETAILED ATTENDANCE DOSSIER */}
-      <Dialog open={!!selectedStudentLogs} onOpenChange={() => setSelectedStudentLogs(null)}>
-        <DialogContent className="sm:max-w-2xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
-          <DialogHeader className="bg-primary p-8 text-white relative">
-            <div className="flex items-center gap-6">
-              <Avatar className="h-16 w-16 border-4 border-white shadow-2xl shrink-0">
-                <AvatarImage src={selectedStudentLogs?.avatar} />
-                <AvatarFallback className="text-2xl font-black text-primary bg-white">{selectedStudentLogs?.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <div>
-                <DialogTitle className="text-2xl font-black uppercase tracking-tighter">Attendance Dossier</DialogTitle>
-                <DialogDescription className="text-white/60">
-                  Detailed logs for {selectedStudentLogs?.name} in {selectedClassDetails?.name}
-                </DialogDescription>
-              </div>
-            </div>
-            <Button variant="ghost" size="icon" onClick={() => setSelectedStudentLogs(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
-              <X className="w-6 h-6" />
-            </Button>
-          </DialogHeader>
-          <div className="p-0 max-h-[60vh] overflow-y-auto scrollbar-thin">
-            <Table>
-              <TableHeader className="bg-accent/10 uppercase text-[9px] font-black sticky top-0 z-10 border-b">
-                <TableRow>
-                  <TableHead className="pl-8 py-4">Session Date</TableHead>
-                  <TableHead>Subject</TableHead>
-                  <TableHead className="text-center">Status</TableHead>
-                  <TableHead className="text-right pr-8">Teacher</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {MOCK_STUDENT_LOGS.map((log, i) => (
-                  <TableRow key={i} className="hover:bg-accent/5 border-b last:border-0 h-14">
-                    <TableCell className="pl-8 text-xs font-bold text-muted-foreground">{log.date}</TableCell>
-                    <TableCell className="font-black text-primary text-[10px] uppercase">{log.subject}</TableCell>
-                    <TableCell className="text-center">
-                      <Badge className={cn(
-                        "text-[8px] font-black uppercase px-2 h-5 border-none",
-                        log.status === 'Present' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                      )}>
-                        {log.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right pr-8 text-[10px] font-bold opacity-60 italic">{log.teacher}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-          <DialogFooter className="bg-accent/10 p-6 border-t flex flex-col sm:flex-row gap-3">
-             <div className="flex-1 flex items-center gap-2 text-muted-foreground italic">
-                <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
-                <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Verified Registry Record</p>
-             </div>
-             <div className="flex gap-2 w-full sm:w-auto">
-                <Button variant="outline" className="flex-1 sm:flex-none gap-2 rounded-xl h-11" onClick={() => handleExportStudentLogs(selectedStudentLogs)}>
-                  <Download className="w-4 h-4" /> Download Statement
-                </Button>
-                <Button onClick={() => setSelectedStudentLogs(null)} className="flex-1 sm:flex-none rounded-xl h-11 px-8 font-black uppercase text-xs">Close</Button>
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-40">High-fidelity pedagogical record verified.</p>
              </div>
           </DialogFooter>
         </DialogContent>
