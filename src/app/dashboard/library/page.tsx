@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -45,7 +45,8 @@ import {
   Printer,
   Loader2,
   ArrowLeft,
-  Info
+  Info,
+  Upload
 } from "lucide-react";
 import { 
   Dialog, 
@@ -53,7 +54,7 @@ import {
   DialogHeader, 
   DialogTitle, 
   DialogDescription, 
-  DialogFooter,
+  DialogFooter, 
   DialogTrigger 
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
@@ -94,6 +95,7 @@ export default function LibraryPage() {
   const { t, language } = useI18n();
   const { toast } = useToast();
   const router = useRouter();
+  const coverInputRef = useRef<HTMLInputElement>(null);
   
   const [searchTerm, setSearchTerm] = useState("");
   const [books, setBooks] = useState(INITIAL_BOOKS);
@@ -125,6 +127,23 @@ export default function LibraryPage() {
   const isStudent = user?.role === "STUDENT";
   const isTeacher = user?.role === "TEACHER";
   const isPersonal = isStudent || isTeacher;
+
+  const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast({ variant: "destructive", title: "File too large", description: "Please select an image smaller than 2MB." });
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewBookData(prev => ({ ...prev, cover: reader.result as string }));
+        toast({ title: "Cover Processed", description: "Image preview updated." });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleIssueBook = (req: any) => {
     // Calculate due date based on current policy
@@ -234,7 +253,27 @@ export default function LibraryPage() {
                     <DialogTitle className="text-2xl font-black">Catalog Entry</DialogTitle>
                     <DialogDescription className="text-white/60">Initialize a new resource into the institutional collection.</DialogDescription>
                   </DialogHeader>
-                  <div className="p-8 space-y-6 max-h-[60vh] overflow-y-auto">
+                  <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+                    {/* Cover Image Upload Section */}
+                    <div className="space-y-4">
+                      <Label className="text-[10px] font-black uppercase text-muted-foreground text-center block tracking-widest">Book Cover Image</Label>
+                      <div 
+                        className="group relative w-32 h-48 mx-auto bg-accent/20 rounded-xl border-2 border-dashed border-accent flex items-center justify-center cursor-pointer overflow-hidden transition-all hover:border-primary shadow-inner"
+                        onClick={() => coverInputRef.current?.click()}
+                      >
+                        <input type="file" ref={coverInputRef} className="hidden" accept="image/*" onChange={handleCoverChange} />
+                        {newBookData.cover ? (
+                          <img src={newBookData.cover} alt="Preview" className="w-full h-full object-cover" />
+                        ) : (
+                          <Upload className="w-8 h-8 text-muted-foreground" />
+                        )}
+                        <div className="absolute inset-0 bg-primary/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white gap-1 backdrop-blur-sm">
+                          <Upload className="w-5 h-5" />
+                          <span className="text-[8px] font-black uppercase">Change Cover</span>
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="col-span-1 md:col-span-2 space-y-2">
                         <Label>Book Title</Label>
@@ -333,7 +372,7 @@ export default function LibraryPage() {
           isManagement ? "grid-cols-5 md:w-[1000px]" : "grid-cols-3 md:w-[600px]"
         )}>
           <TabsTrigger value="catalog" className="gap-2 py-3 rounded-xl transition-all whitespace-nowrap">
-            <BookOpen className="w-4 h-4" /> {language === 'en' ? 'Catalog' : 'Catalogue'}
+            <BookOpen className="w-4 h-4" /> {language === 'en' ? 'Catalogue' : 'Catalogue'}
           </TabsTrigger>
           {isManagement && (
             <TabsTrigger value="requests" className="gap-2 py-3 rounded-xl transition-all whitespace-nowrap">
@@ -788,7 +827,7 @@ export default function LibraryPage() {
           </DialogHeader>
 
           <div className="bg-muted p-6 md:p-10 print:p-0 print:bg-white overflow-hidden">
-            <div id="printable-receipt" className="bg-white p-8 border-2 border-black/10 shadow-sm relative flex flex-col space-y-6 font-serif text-black print:border-none print:shadow-none">
+            <div id="printable-receipt" className="bg-white p-8 border-2 border-black/10 shadow-sm relative flex flex-col space-y-6 font-serif text-black print:border-none print:shadow-none min-w-[350px]">
                {/* Receipt Header */}
                <div className="flex justify-between items-start border-b-2 border-black pb-4">
                   <div className="flex items-center gap-3">
