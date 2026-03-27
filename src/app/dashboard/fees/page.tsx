@@ -109,6 +109,7 @@ export default function FeesPage() {
   const [reportStatus, setReportStatus] = useState("all");
 
   const [isAddingFeeType, setIsAddingFeeType] = useState(false);
+  const [editingFeeType, setEditingFeeType] = useState<any>(null);
   const [newFeeTypeData, setNewFeeTypeData] = useState({ name: "", amount: "", description: "", status: "mandatory" });
 
   const [students, setStudents] = useState(INITIAL_STUDENTS);
@@ -231,6 +232,17 @@ export default function FeesPage() {
       setNewFeeTypeData({ name: "", amount: "", description: "", status: "mandatory" });
       toast({ title: "Fee Category Defined", description: `${created.name} added to institutional structure.` });
     }, 1000);
+  };
+
+  const handleUpdateFeeType = () => {
+    if (!editingFeeType?.name || !editingFeeType?.amount) return;
+    setIsProcessing(true);
+    setTimeout(() => {
+      setFeeTypes(prev => prev.map(f => f.id === editingFeeType.id ? editingFeeType : f));
+      setIsProcessing(false);
+      setEditingFeeType(null);
+      toast({ title: "Fee Category Updated", description: "Changes have been synced with the institutional structure." });
+    }, 800);
   };
 
   const handleDownloadList = () => {
@@ -549,7 +561,7 @@ export default function FeesPage() {
                       <X className="w-6 h-6" />
                     </Button>
                   </DialogHeader>
-                  <div className="p-8 space-y-6 max-h-[60vh] overflow-y-auto">
+                  <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Fee Label / Name</Label>
                       <Input value={newFeeTypeData.name} onChange={(e) => setNewFeeTypeData({...newFeeTypeData, name: e.target.value})} placeholder="e.g. Computer Lab Fee" className="h-12 bg-accent/30 border-none rounded-xl font-bold" />
@@ -607,7 +619,7 @@ export default function FeesPage() {
                     <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 italic">"{type.description}"</p>
                   </div>
                   <CardFooter className="bg-accent/10 border-t p-3 flex justify-end gap-2">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-primary/40 hover:text-primary"><Pencil className="w-4 h-4"/></Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-primary/40 hover:text-primary" onClick={() => setEditingFeeType({ ...type })}><Pencil className="w-4 h-4"/></Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive/40 hover:text-destructive" onClick={() => setFeeTypes(feeTypes.filter(f => f.id !== type.id))}><Trash2 className="w-4 h-4"/></Button>
                   </CardFooter>
                 </Card>
@@ -977,6 +989,56 @@ export default function FeesPage() {
                 <Button variant="outline" className="rounded-xl h-11 px-6 font-bold text-xs uppercase" onClick={() => toast({ title: "Exporting Dossier..." })}><Printer className="w-4 h-4 mr-2" /> Print Class Dossier</Button>
                 <Button onClick={() => setSelectedClassDetails(null)} className="rounded-xl px-10 h-11 font-black uppercase text-[10px] bg-primary text-white">Close Audit</Button>
              </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* EDIT FEE TYPE DIALOG */}
+      <Dialog open={!!editingFeeType} onOpenChange={() => setEditingFeeType(null)}>
+        <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="bg-primary p-8 text-white relative">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/10 rounded-2xl"><Settings2 className="w-8 h-8 text-secondary" /></div>
+              <div>
+                <DialogTitle className="text-2xl font-black">Edit Fee Category</DialogTitle>
+                <DialogDescription className="text-white/60">Modify existing financial parameters.</DialogDescription>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setEditingFeeType(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+              <X className="w-6 h-6" />
+            </Button>
+          </DialogHeader>
+          <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Fee Label / Name</Label>
+              <Input value={editingFeeType?.name || ""} onChange={(e) => setEditingFeeType({...editingFeeType, name: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl font-bold" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Mandated Amount (XAF)</Label>
+                <Input type="number" value={editingFeeType?.amount || ""} onChange={(e) => setEditingFeeType({...editingFeeType, amount: parseFloat(e.target.value)})} className="h-12 bg-accent/30 border-none rounded-xl font-black text-primary" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Mandatory Status</Label>
+                <Select value={editingFeeType?.status} onValueChange={(v) => setEditingFeeType({...editingFeeType, status: v})}>
+                  <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="mandatory">Mandatory</SelectItem>
+                    <SelectItem value="optional">Optional</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Description</Label>
+              <Textarea value={editingFeeType?.description || ""} onChange={(e) => setEditingFeeType({...editingFeeType, description: e.target.value})} className="bg-accent/30 border-none min-h-[80px] rounded-xl" />
+            </div>
+          </div>
+          <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+            <Button onClick={handleUpdateFeeType} className="w-full h-12 rounded-xl shadow-lg font-bold" disabled={isProcessing}>
+              {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+              Commit Changes
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
