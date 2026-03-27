@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
@@ -49,6 +48,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
+const SECTIONS = ["Anglophone Section", "Francophone Section", "Technical Section"];
 
 const INITIAL_COURSES = [
   { id: "PHY101", name: "Advanced Physics", instructorName: "Dr. Aris Tesla", instructorAvatar: "https://picsum.photos/seed/t1/200/200", targetClass: "2nde / Form 5", section: "Anglophone Section", type: "mandatory", color: "bg-blue-500", stats: { liveClasses: 24, exams: 8, attendance: 92 } },
