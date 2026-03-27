@@ -31,16 +31,18 @@ import {
   UserX, 
   Loader2, 
   X,
-  CheckCircle2,
-  History,
-  Activity,
-  Printer,
-  Download,
-  Clock,
-  Zap,
-  Lock,
-  BookOpen,
-  LayoutGrid
+  CheckCircle2, 
+  History, 
+  Activity, 
+  Printer, 
+  Download, 
+  Clock, 
+  Zap, 
+  Lock, 
+  BookOpen, 
+  LayoutGrid,
+  QrCode,
+  Trash2
 } from "lucide-react";
 import { 
   DropdownMenu, 
