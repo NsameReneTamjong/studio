@@ -82,9 +82,9 @@ const MOCK_CHILDREN = [
 const MOCK_GRADES = [
   { subject: "Physics", seq1: 14.5, seq2: 16.0, teacher: "Dr. Tesla", status: "Passed", coeff: 4 },
   { subject: "Mathematics", seq1: 18.0, seq2: 17.5, teacher: "Prof. Smith", status: "Passed", coeff: 5 },
-  { subject: "English Literature", seq1: 08.0, seq2: 13.0, teacher: "Ms. Bennet", status: "Passed", coeff: 3 },
-  { subject: "Chemistry", seq1: 09.5, seq2: 11.5, teacher: "Dr. White", status: "Passed", coeff: 4 },
-  { subject: "History", seq1: 07.0, seq2: 08.5, teacher: "Mr. Tabi", status: "Failed", coeff: 2 },
+  { subject: "English Literature", seq1: 8.0, seq2: 13.0, teacher: "Ms. Bennet", status: "Passed", coeff: 3 },
+  { subject: "Chemistry", seq1: 9.5, seq2: 11.5, teacher: "Dr. White", status: "Passed", coeff: 4 },
+  { subject: "History", seq1: 7.0, seq2: 8.5, teacher: "Mr. Tabi", status: "Failed", coeff: 2 },
 ];
 
 const MOCK_REPORT_HISTORY = [
