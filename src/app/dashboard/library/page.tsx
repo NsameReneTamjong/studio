@@ -1235,10 +1235,10 @@ export default function LibraryPage() {
 
       {/* EDIT BOOK DIALOG */}
       <Dialog open={!!editingBook} onOpenChange={() => setEditingBook(null)}>
-        <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-          <DialogHeader className="bg-primary p-8 text-white relative">
+        <DialogContent className="sm:max-w-md w-[95vw] sm:w-full rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="bg-primary p-6 md:p-8 text-white relative">
             <DialogTitle className="text-xl font-black">Edit Resource Record</DialogTitle>
-            <Button variant="ghost" size="icon" onClick={() => setEditingBook(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+            <Button variant="ghost" size="icon" onClick={() => setEditingBook(null)} className="absolute top-4 right-4 text-white/40 hover:text-white hover:bg-white/10">
               <X className="w-6 h-6" />
             </Button>
           </DialogHeader>
