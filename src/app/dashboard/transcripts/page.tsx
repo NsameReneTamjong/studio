@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useMemo } from "react";
@@ -75,10 +76,7 @@ export default function TranscriptsPage() {
     setIsProcessing(true);
     setTimeout(() => {
       setIsProcessing(false);
-      toast({
-        title: "Batch Generation Successful",
-        description: `Transcripts for ${filteredStudents.length} students have been prepared for issuance.`,
-      });
+      toast({ title: "Batch Generation Successful" });
     }, 2000);
   };
 
@@ -86,10 +84,7 @@ export default function TranscriptsPage() {
     setIsProcessing(true);
     setTimeout(() => {
       setIsProcessing(false);
-      toast({
-        title: "Transcript Prepared",
-        description: `Official record for ${student.name} is ready for download.`,
-      });
+      toast({ title: "Transcript Prepared", description: `Record for ${student.name} ready.` });
     }, 1200);
   };
 
@@ -101,23 +96,23 @@ export default function TranscriptsPage() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
+            <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline flex items-center gap-3">
               <div className="p-2 bg-primary rounded-xl shadow-lg">
                 <FileBadge className="w-6 h-6 text-secondary" />
               </div>
               {language === 'en' ? 'Transcripts Registry' : 'Gestion des Relevés'}
             </h1>
-            <p className="text-muted-foreground mt-1">Issue official landscape academic transcripts for the student body.</p>
+            <p className="text-muted-foreground mt-1 text-sm">Issue official landscape transcripts for students.</p>
           </div>
         </div>
         
         <Button 
-          className="gap-2 shadow-lg h-12 px-8 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-[10px]" 
+          className="gap-2 shadow-lg h-12 px-8 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-[9px] md:text-[10px] w-full md:w-auto" 
           onClick={handleBulkIssue}
           disabled={isProcessing || filteredStudents.length === 0}
         >
           {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-          Issue Batch Transcripts ({filteredStudents.length})
+          Issue Batch ({filteredStudents.length})
         </Button>
       </div>
 
@@ -127,29 +122,22 @@ export default function TranscriptsPage() {
             <div className="relative col-span-1 md:col-span-2">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input 
-                placeholder="Search students by name or matricule..." 
-                className="pl-10 h-12 bg-accent/20 border-none rounded-xl"
+                placeholder="Search name or matricule..." 
+                className="pl-10 h-12 bg-accent/20 border-none rounded-xl text-sm"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <div className="flex gap-2 col-span-1 md:col-span-2">
+            <div className="flex flex-col sm:flex-row gap-2 col-span-1 md:col-span-2">
               <Select value={sectionFilter} onValueChange={setSectionFilter}>
-                <SelectTrigger className="flex-1 h-12 bg-accent/20 border-none rounded-xl font-bold">
-                  <div className="flex items-center gap-2">
-                    <Network className="w-4 h-4 text-primary/40" />
-                    <SelectValue placeholder="All Sections" />
-                  </div>
-                </SelectTrigger>
+                <SelectTrigger className="flex-1 h-12 bg-accent/20 border-none rounded-xl font-bold text-xs"><SelectValue placeholder="All Sections" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Whole Node</SelectItem>
                   {SECTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                 </SelectContent>
               </Select>
               <Select value={classFilter} onValueChange={setClassFilter}>
-                <SelectTrigger className="flex-1 h-12 bg-accent/20 border-none rounded-xl font-bold">
-                  <SelectValue placeholder="All Classes" />
-                </SelectTrigger>
+                <SelectTrigger className="flex-1 h-12 bg-accent/20 border-none rounded-xl font-bold text-xs"><SelectValue placeholder="All Classes" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Entire School</SelectItem>
                   {CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
@@ -161,44 +149,35 @@ export default function TranscriptsPage() {
         <CardContent className="p-0 overflow-x-auto">
           <Table>
             <TableHeader className="bg-accent/10">
-              <TableRow className="uppercase text-[10px] font-black tracking-widest border-b border-accent/20">
+              <TableRow className="uppercase text-[9px] font-black tracking-widest border-b border-accent/20">
                 <TableHead className="pl-8 py-4">Matricule</TableHead>
                 <TableHead>Student Profile</TableHead>
-                <TableHead>Academic Level</TableHead>
-                <TableHead className="text-center">Record Status</TableHead>
+                <TableHead className="hidden md:table-cell">Class</TableHead>
+                <TableHead className="text-center">Status</TableHead>
                 <TableHead className="text-right pr-8">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredStudents.map((s) => (
-                <TableRow key={s.id} className="hover:bg-accent/5 transition-colors border-b border-accent/10">
-                  <TableCell className="pl-8 font-mono text-xs font-bold text-primary">{s.id}</TableCell>
+                <TableRow key={s.id} className="hover:bg-accent/5 transition-colors border-b border-accent/10 h-16">
+                  <TableCell className="pl-8 font-mono text-[10px] font-bold text-primary">{s.id}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent shrink-0">
-                        <AvatarImage src={s.avatar} alt={s.name} />
-                        <AvatarFallback className="bg-primary/5 text-primary text-xs font-bold">{s.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
+                      <Avatar className="h-9 w-9 border shrink-0"><AvatarImage src={s.avatar} /><AvatarFallback className="bg-primary/5 text-primary text-[10px] font-bold">{s.name.charAt(0)}</AvatarFallback></Avatar>
                       <div className="flex flex-col">
-                        <span className="font-bold text-sm text-primary uppercase">{s.name}</span>
-                        <span className="text-[8px] font-black uppercase text-muted-foreground">{s.section}</span>
+                        <span className="font-bold text-xs md:text-sm text-primary uppercase leading-none">{s.name}</span>
+                        <span className="text-[8px] font-black uppercase text-muted-foreground md:hidden">{s.class}</span>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="text-[10px] border-primary/10 text-primary font-bold">{s.class}</Badge>
+                  <TableCell className="hidden md:table-cell">
+                    <Badge variant="outline" className="text-[9px] border-primary/10 text-primary font-bold">{s.class}</Badge>
                   </TableCell>
-                  <TableCell className="text-center">
-                    <Badge className="bg-green-100 text-green-700 border-none text-[9px] font-black uppercase px-2 h-5">Verified Node</Badge>
-                  </TableCell>
+                  <TableCell className="text-center"><Badge className="bg-green-100 text-green-700 border-none text-[8px] font-black">VERIFIED</Badge></TableCell>
                   <TableCell className="text-right pr-8">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon" className="rounded-full hover:bg-primary/5" onClick={() => setPreviewStudent(s)}>
-                        <Eye className="w-4 h-4 text-primary/60" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="rounded-full hover:bg-primary/5" onClick={() => handleIndividualIssue(s)}>
-                        <Download className="w-4 h-4 text-primary/60" />
-                      </Button>
+                    <div className="flex justify-end gap-1">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5" onClick={() => setPreviewStudent(s)}><Eye className="w-4 h-4 text-primary/60" /></Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5" onClick={() => handleIndividualIssue(s)}><Download className="w-4 h-4 text-primary/60" /></Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -206,50 +185,35 @@ export default function TranscriptsPage() {
             </TableBody>
           </Table>
         </CardContent>
-        <CardFooter className="bg-accent/10 p-6 border-t border-accent flex justify-center">
-           <div className="flex items-center gap-2 text-muted-foreground">
-              <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
-              <p className="text-[10px] font-black uppercase tracking-widest italic opacity-40">All issued transcripts are digitally signed and timestamped within the node registry.</p>
-           </div>
-        </CardFooter>
       </Card>
 
-      {/* TRANSCRIPT PREVIEW DIALOG */}
       <Dialog open={!!previewStudent} onOpenChange={() => setPreviewStudent(null)}>
         <DialogContent className="sm:max-w-6xl max-h-[95vh] p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col">
-          <DialogHeader className="bg-primary p-8 text-white relative shrink-0">
+          <DialogHeader className="bg-primary p-6 md:p-8 text-white relative shrink-0 no-print">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-white/10 rounded-2xl">
-                  <FileBadge className="w-8 h-8 text-secondary" />
-                </div>
+                <div className="p-3 bg-white/10 rounded-xl text-secondary"><FileBadge className="w-8 h-8" /></div>
                 <div>
-                  <DialogTitle className="text-2xl font-black uppercase tracking-tighter">Transcript Preview</DialogTitle>
-                  <DialogDescription className="text-white/60">Official academic record for {previewStudent?.name}.</DialogDescription>
+                  <DialogTitle className="text-xl md:text-2xl font-black uppercase">Transcript Preview</DialogTitle>
+                  <DialogDescription className="text-white/60 text-xs">Official academic record for {previewStudent?.name}.</DialogDescription>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setPreviewStudent(null)} className="text-white hover:bg-white/10">
-                <X className="w-6 h-6" />
-              </Button>
+              <Button variant="ghost" size="icon" onClick={() => setPreviewStudent(null)} className="text-white hover:bg-white/10"><X className="w-6 h-6" /></Button>
             </div>
           </DialogHeader>
-
-          <div className="flex-1 overflow-y-auto bg-muted p-10 print:p-0 print:bg-white no-scrollbar">
-            <LandscapeTranscript student={previewStudent} platform={platformSettings} />
+          <div className="flex-1 overflow-y-auto bg-muted p-2 md:p-10 print:p-0 print:bg-white no-scrollbar">
+            <div className="overflow-x-auto rounded-xl border-2 border-primary/10 shadow-inner bg-white">
+              <LandscapeTranscript student={previewStudent} platform={platformSettings} />
+            </div>
           </div>
-
-          <DialogFooter className="bg-accent/10 p-6 border-t border-accent flex justify-between items-center shrink-0">
-             <div className="flex items-center gap-2 text-muted-foreground italic">
+          <DialogFooter className="bg-accent/10 p-6 border-t border-accent flex justify-between items-center shrink-0 no-print">
+             <div className="hidden sm:flex items-center gap-2 text-muted-foreground italic">
                 <Info className="w-4 h-4 text-primary opacity-40" />
                 <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Records up to current session are included.</p>
              </div>
-             <div className="flex gap-2">
-                <Button variant="outline" className="rounded-xl h-11 px-6 font-bold" onClick={() => window.print()}>
-                  <Printer className="w-4 h-4 mr-2" /> Print Document
-                </Button>
-                <Button onClick={() => handleIndividualIssue(previewStudent)} className="rounded-xl px-10 h-11 font-black uppercase text-[10px] bg-primary text-white">
-                  Download Official Copy
-                </Button>
+             <div className="flex gap-2 w-full sm:w-auto">
+                <Button variant="outline" className="flex-1 sm:flex-none rounded-xl h-11 px-6 font-bold text-xs" onClick={() => window.print()}><Printer className="w-4 h-4 mr-2" /> Print</Button>
+                <Button onClick={() => handleIndividualIssue(previewStudent)} className="flex-1 sm:flex-none rounded-xl px-10 h-11 font-black uppercase text-[9px] bg-primary text-white">Issue Official Copy</Button>
              </div>
           </DialogFooter>
         </DialogContent>
@@ -264,14 +228,7 @@ function LandscapeTranscript({ student, platform }: { student: any, platform: an
   const visibleClasses = CLASSES.slice(0, classIndex + 1);
 
   return (
-    <div className="max-w-[1200px] mx-auto bg-white p-12 border shadow-sm relative overflow-hidden font-serif text-black min-w-[1100px] print:shadow-none print:border-none">
-      <style jsx global>{`
-        @media print {
-          @page { size: landscape; margin: 10mm; }
-        }
-      `}</style>
-      
-      {/* Cameroon Header */}
+    <div className="bg-white p-8 md:p-12 relative overflow-hidden font-serif text-black min-w-[1100px] print:p-0">
       <div className="grid grid-cols-3 gap-4 items-start text-center border-b-2 border-black pb-6">
         <div className="space-y-1 text-[9px] uppercase font-black text-left">
           <p>Republic of Cameroon</p>
@@ -291,37 +248,34 @@ function LandscapeTranscript({ student, platform }: { student: any, platform: an
           <p>Paix - Travail - Patrie</p>
           <div className="h-px bg-black w-8 ml-auto my-1" />
           <p>Min. des Enseignements Secondaires</p>
-          <p>Direction des Études</p>
         </div>
       </div>
 
       <div className="text-center my-10 space-y-2">
         <h1 className="text-4xl font-black uppercase tracking-widest underline underline-offset-8 decoration-double">OFFICIAL TRANSCRIPT</h1>
-        <p className="text-sm font-bold opacity-60 italic">Relevé de Notes Certifié • Academic Record 2023 / 2024</p>
+        <p className="text-sm font-bold opacity-60 italic">Academic Record 2023 / 2024</p>
       </div>
 
-      {/* Student Identity */}
-      <div className="grid grid-cols-12 gap-8 bg-accent/5 p-6 border border-black/10 rounded-2xl items-center mb-10">
-        <div className="col-span-2">
-           <Avatar className="w-28 h-28 border-4 border-white rounded-[2rem] shadow-xl">
+      <div className="grid grid-cols-12 gap-8 bg-accent/5 p-6 border border-black/10 rounded-2xl items-center mb-10 shadow-inner">
+        <div className="col-span-3">
+           <Avatar className="w-28 h-28 border-4 border-white rounded-[2rem] shadow-xl mx-auto">
               <AvatarImage src={student?.avatar} />
               <AvatarFallback className="text-3xl font-black">{student?.name?.charAt(0)}</AvatarFallback>
            </Avatar>
         </div>
-        <div className="col-span-10 grid grid-cols-2 gap-x-12 gap-y-3 text-sm">
+        <div className="col-span-9 grid grid-cols-2 gap-x-12 gap-y-3 text-sm">
           <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Identity:</span><span className="font-black uppercase">{student?.name}</span></div>
           <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Matricule:</span><span className="font-mono font-bold text-primary">{student?.id}</span></div>
-          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Current Class:</span><span className="font-bold">{student?.class}</span></div>
-          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Born On:</span><span className="font-bold">{student?.dob}</span></div>
+          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Class:</span><span className="font-bold">{student?.class}</span></div>
+          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Status:</span><span className="font-bold text-green-600">ENROLLED</span></div>
         </div>
       </div>
 
-      {/* MATRIX */}
-      <div className="border-2 border-black overflow-hidden rounded-sm">
+      <div className="border-2 border-black overflow-hidden rounded-sm mb-10">
         <Table className="border-collapse">
           <TableHeader className="bg-black/5">
             <TableRow className="border-b-2 border-black h-12">
-              <TableHead rowSpan={2} className="border-r-2 border-black font-black text-black uppercase text-[10px] text-center w-48">Pedagogical Subject</TableHead>
+              <TableHead rowSpan={2} className="border-r-2 border-black font-black text-black uppercase text-[10px] text-center w-48">Subject</TableHead>
               {visibleClasses.map((cls, i) => (
                 <TableHead key={i} colSpan={3} className={cn("border-r-2 border-black font-black text-black uppercase text-[10px] text-center h-8", i === visibleClasses.length - 1 ? "border-r-0" : "")}>
                   {cls.split(' / ')[1] || cls}
@@ -343,8 +297,7 @@ function LandscapeTranscript({ student, platform }: { student: any, platform: an
               <TableRow key={idx} className="border-b border-black last:border-0 h-10">
                 <TableCell className="border-r-2 border-black font-black text-[10px] uppercase py-2 pl-4">{subject}</TableCell>
                 {visibleClasses.map((_, i) => {
-                  const key = `f${i + 1}`;
-                  const data = years[key] || ["---", "---", "---"];
+                  const data = years[`f${i + 1}`] || ["---", "---", "---"];
                   return (
                     <React.Fragment key={i}>
                       <TableCell className={cn("border-r border-black text-center text-[10px] font-mono", parseFloat(data[0]) < 10 ? "text-red-600" : "")}>{data[0]}</TableCell>
@@ -362,10 +315,10 @@ function LandscapeTranscript({ student, platform }: { student: any, platform: an
       <div className="grid grid-cols-3 gap-10 mt-16 pt-10 border-t-2 border-black/5">
         <div className="flex flex-col items-center gap-4 text-center">
           <QrCode className="w-20 h-20 opacity-10" />
-          <p className="text-[8px] font-black uppercase text-muted-foreground opacity-40">Provisional Registry Scan</p>
+          <p className="text-[8px] font-black uppercase text-muted-foreground opacity-40">Security Scan</p>
         </div>
-        <div className="text-center space-y-6">
-          <div className="h-14 w-full bg-accent/10 border-b-2 border-black/40 flex items-center justify-center">
+        <div className="text-center space-y-6 w-48 mx-auto">
+          <div className="h-14 w-full bg-accent/10 border-b-2 border-black/40 relative flex items-center justify-center overflow-hidden">
              <SignatureSVG className="w-full h-full text-primary/10 p-2" />
           </div>
           <p className="text-[10px] font-black uppercase text-primary tracking-widest leading-none">The Registrar</p>
@@ -377,15 +330,6 @@ function LandscapeTranscript({ student, platform }: { student: any, platform: an
           <p className="text-[10px] font-black uppercase text-primary tracking-widest leading-none">Institutional Head</p>
         </div>
       </div>
-
-      <div className="mt-12 text-center pt-8 border-t border-black/5 opacity-30">
-        <div className="flex items-center justify-center gap-3">
-           <img src={platform.logo} alt="EduIgnite" className="w-4 h-4 object-contain rounded-sm" />
-           <p className="text-[8px] font-black uppercase text-muted-foreground opacity-30 tracking-[0.4em]">
-             Verified Educational Record • {platform.name} Academic SaaS Node • {new Date().getFullYear()}
-           </p>
-        </div>
-      </div>
     </div>
   );
 }
@@ -394,7 +338,6 @@ function SignatureSVG({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path d="M15 30L85 10" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" strokeDasharray="2 2" />
     </svg>
   );
 }

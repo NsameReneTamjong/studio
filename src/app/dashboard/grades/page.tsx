@@ -190,15 +190,6 @@ export default function GradeBookPage() {
     }, 2000);
   };
 
-  const getRemark = (avg: number) => {
-    if (avg >= 16) return "Excellence";
-    if (avg >= 14) return "Very Good";
-    if (avg >= 12) return "Good";
-    if (avg >= 10) return "Passed";
-    if (avg >= 8) return "Mediocre";
-    return "Failed";
-  };
-
   const stats = useMemo(() => {
     if (isStudent) {
       const totalWeighted = MOCK_PERSONAL_GRADES.reduce((acc, curr) => acc + (((curr.seq1 + curr.seq2)/2) * curr.coeff), 0);
@@ -229,22 +220,22 @@ export default function GradeBookPage() {
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
+              <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline flex items-center gap-3">
                 <div className="p-2 bg-primary rounded-xl shadow-lg">
                   <Award className="w-6 h-6 text-secondary" />
                 </div>
                 My Academic Results
               </h1>
-              <p className="text-muted-foreground mt-1">Track your pedagogical performance and download verified bulletins.</p>
+              <p className="text-muted-foreground mt-1 text-sm">Track your performance and download bulletins.</p>
             </div>
           </div>
-          <Button onClick={handleExportPdf} disabled={isProcessing} className="h-12 px-8 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3">
+          <Button onClick={handleExportPdf} disabled={isProcessing} className="h-12 px-8 rounded-2xl shadow-xl font-black uppercase tracking-widest text-[10px] gap-3">
             {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
             Download Official Bulletin
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           <Card className="border-none shadow-sm bg-primary text-white overflow-hidden">
             <CardHeader className="pb-2">
               <CardTitle className="text-[10px] font-black opacity-60 uppercase tracking-widest">Term Average</CardTitle>
@@ -260,7 +251,7 @@ export default function GradeBookPage() {
               <CardTitle className="text-[10px] font-black opacity-60 uppercase tracking-widest">Promotion Status</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-black flex items-center gap-2">
+              <div className="text-xl font-black flex items-center gap-2">
                 {parseFloat(stats.average) >= 10 ? (
                   <><CheckCircle2 className="w-6 h-6 text-green-600" /> ELIGIBLE</>
                 ) : (
@@ -269,7 +260,7 @@ export default function GradeBookPage() {
               </div>
             </CardContent>
           </Card>
-          <Card className="border-none shadow-sm bg-white border">
+          <Card className="border-none shadow-sm bg-white border col-span-1 sm:col-span-2 md:col-span-1">
             <CardHeader className="pb-2">
               <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Identity Status</CardTitle>
             </CardHeader>
@@ -283,28 +274,28 @@ export default function GradeBookPage() {
 
         <Tabs defaultValue="current" className="w-full">
           <TabsList className="grid grid-cols-3 w-full md:w-[600px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl overflow-x-auto no-scrollbar">
-            <TabsTrigger value="current" className="gap-2 py-3 rounded-xl transition-all font-bold">
+            <TabsTrigger value="current" className="gap-2 py-3 rounded-xl transition-all font-bold text-xs sm:text-sm">
               <BookMarked className="w-4 h-4" /> Current Term
             </TabsTrigger>
-            <TabsTrigger value="archive" className="gap-2 py-3 rounded-xl transition-all font-bold">
+            <TabsTrigger value="archive" className="gap-2 py-3 rounded-xl transition-all font-bold text-xs sm:text-sm">
               <History className="w-4 h-4" /> Full Archive
             </TabsTrigger>
-            <TabsTrigger value="transcript" className="gap-2 py-3 rounded-xl transition-all font-bold">
+            <TabsTrigger value="transcript" className="gap-2 py-3 rounded-xl transition-all font-bold text-xs sm:text-sm">
               <FileBadge className="w-4 h-4" /> {t("draftTranscript")}
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="current" className="animate-in fade-in slide-in-from-bottom-2">
             <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
-              <CardHeader className="bg-primary p-8 text-white">
+              <CardHeader className="bg-primary p-6 md:p-8 text-white">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div className="flex items-center gap-4">
                     <div className="p-3 bg-white/10 rounded-2xl">
                       <BookMarked className="w-8 h-8 text-secondary" />
                     </div>
                     <div>
-                      <CardTitle className="text-2xl font-black uppercase tracking-tight">Sequence Assessment Registry</CardTitle>
-                      <CardDescription className="text-white/60">Verified marks for 2023/24 • Sequence 1 & 2</CardDescription>
+                      <CardTitle className="text-xl md:text-2xl font-black uppercase tracking-tight">Sequence Registry</CardTitle>
+                      <CardDescription className="text-white/60">Verified marks for Sequence 1 & 2</CardDescription>
                     </div>
                   </div>
                 </div>
@@ -313,7 +304,7 @@ export default function GradeBookPage() {
                 <Table>
                   <TableHeader className="bg-accent/10">
                     <TableRow className="uppercase text-[10px] font-black tracking-widest border-b border-accent/20">
-                      <TableHead className="pl-8 py-4">Pedagogical Subject</TableHead>
+                      <TableHead className="pl-8 py-4">Subject</TableHead>
                       <TableHead className="text-center">Coeff</TableHead>
                       <TableHead className="text-center">Seq 1</TableHead>
                       <TableHead className="text-center">Seq 2</TableHead>
@@ -327,16 +318,16 @@ export default function GradeBookPage() {
                       const isFailed = avg < 10;
                       return (
                         <TableRow key={idx} className="hover:bg-accent/5 transition-colors border-b last:border-0 h-16">
-                          <TableCell className="pl-8 font-black text-primary uppercase text-sm">{g.subject}</TableCell>
-                          <TableCell className="text-center font-mono font-bold text-muted-foreground italic">{g.coeff}</TableCell>
-                          <TableCell className={cn("text-center font-bold", g.seq1 < 10 ? "text-red-600" : "")}>{g.seq1.toFixed(2)}</TableCell>
-                          <TableCell className={cn("text-center font-bold", g.seq2 < 10 ? "text-red-600" : "")}>{g.seq2.toFixed(2)}</TableCell>
+                          <TableCell className="pl-8 font-black text-primary uppercase text-xs md:text-sm">{g.subject}</TableCell>
+                          <TableCell className="text-center font-mono font-bold text-muted-foreground italic text-xs">{g.coeff}</TableCell>
+                          <TableCell className={cn("text-center font-bold text-xs md:text-sm", g.seq1 < 10 ? "text-red-600" : "")}>{g.seq1.toFixed(2)}</TableCell>
+                          <TableCell className={cn("text-center font-bold text-xs md:text-sm", g.seq2 < 10 ? "text-red-600" : "")}>{g.seq2.toFixed(2)}</TableCell>
                           <TableCell className="text-center">
-                            <span className={cn("font-black text-lg", isFailed ? "text-red-600" : "text-primary")}>{avg.toFixed(2)}</span>
+                            <span className={cn("font-black text-base md:text-lg", isFailed ? "text-red-600" : "text-primary")}>{avg.toFixed(2)}</span>
                           </TableCell>
                           <TableCell className="text-right pr-8">
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-100 font-bold text-[9px] uppercase">
-                              <CheckCircle2 className="w-3.5 h-3.5" /> Signed
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-100 font-bold text-[8px] uppercase">
+                              <CheckCircle2 className="w-3 h-3" /> Signed
                             </div>
                           </TableCell>
                         </TableRow>
@@ -345,25 +336,19 @@ export default function GradeBookPage() {
                   </TableBody>
                 </Table>
               </CardContent>
-              <CardFooter className="bg-accent/10 p-6 border-t border-accent flex justify-center">
-                 <div className="flex items-center gap-2 text-muted-foreground">
-                    <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
-                    <p className="text-[10px] font-black uppercase tracking-widest italic opacity-40">These records are digitally signed and finalized by the Academic Council.</p>
-                 </div>
-              </CardFooter>
             </Card>
           </TabsContent>
 
           <TabsContent value="archive" className="animate-in fade-in slide-in-from-bottom-2">
             <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
-              <CardHeader className="bg-primary p-8 text-white">
+              <CardHeader className="bg-primary p-6 md:p-8 text-white">
                 <div className="flex items-center gap-4">
                   <div className="p-3 bg-white/10 rounded-2xl">
                     <History className="w-8 h-8 text-secondary" />
                   </div>
                   <div>
-                    <CardTitle className="text-2xl font-black uppercase tracking-tight">Report History Archive</CardTitle>
-                    <CardDescription className="text-white/60">Chronological record of past pedagogical evaluations.</CardDescription>
+                    <CardTitle className="text-xl md:text-2xl font-black uppercase tracking-tight">Report Archive</CardTitle>
+                    <CardDescription className="text-white/60">Past pedagogical evaluations.</CardDescription>
                   </div>
                 </div>
               </CardHeader>
@@ -373,31 +358,31 @@ export default function GradeBookPage() {
                     <TableRow className="uppercase text-[10px] font-black tracking-widest border-b border-accent/20">
                       <TableHead className="pl-8 py-4">Academic Year</TableHead>
                       <TableHead>Term</TableHead>
-                      <TableHead className="text-center">Term Average</TableHead>
-                      <TableHead className="text-center">Class Position</TableHead>
-                      <TableHead className="text-right pr-8">Official Bulletin</TableHead>
+                      <TableHead className="text-center">Average</TableHead>
+                      <TableHead className="text-center">Position</TableHead>
+                      <TableHead className="text-right pr-8">View</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {MOCK_PERSONAL_ARCHIVE.map((report) => (
                       <TableRow key={report.id} className="hover:bg-accent/5 transition-colors border-b last:border-0 h-16">
-                        <TableCell className="pl-8 font-black text-primary">{report.year}</TableCell>
+                        <TableCell className="pl-8 font-black text-primary text-xs md:text-sm">{report.year}</TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="text-[10px] font-black uppercase border-primary/10 text-primary">{report.term}</Badge>
+                          <Badge variant="outline" className="text-[9px] font-black uppercase border-primary/10 text-primary">{report.term}</Badge>
                         </TableCell>
                         <TableCell className="text-center">
-                          <span className={cn("font-black text-lg", parseFloat(report.average) < 10 ? "text-red-600" : "text-primary")}>
+                          <span className={cn("font-black text-sm md:text-lg", parseFloat(report.average) < 10 ? "text-red-600" : "text-primary")}>
                             {report.average} / 20
                           </span>
                         </TableCell>
                         <TableCell className="text-center">
-                          <span className="font-bold text-xs text-muted-foreground">{report.position}</span>
+                          <span className="font-bold text-[10px] md:text-xs text-muted-foreground">{report.position}</span>
                         </TableCell>
                         <TableCell className="text-right pr-8">
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="rounded-full hover:bg-primary hover:text-white transition-all shadow-sm"
+                            className="rounded-full hover:bg-primary hover:text-white transition-all shadow-sm h-8 w-8"
                             onClick={() => setPreviewDoc(report)}
                           >
                             <Eye className="w-4 h-4" />
@@ -413,50 +398,38 @@ export default function GradeBookPage() {
 
           <TabsContent value="transcript" className="animate-in fade-in slide-in-from-bottom-2">
             <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
-              <CardHeader className="bg-primary p-8 text-white">
+              <CardHeader className="bg-primary p-6 md:p-8 text-white">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="p-3 bg-white/10 rounded-2xl">
                       <FileBadge className="w-8 h-8 text-secondary" />
                     </div>
                     <div>
-                      <CardTitle className="text-2xl font-black uppercase tracking-tight">{t("draftTranscript")}</CardTitle>
-                      <CardDescription className="text-white/60">Consolidated Academic Record • Institutional Provisional Copy</CardDescription>
+                      <CardTitle className="text-xl md:text-2xl font-black uppercase tracking-tight">Draft Transcript</CardTitle>
+                      <CardDescription className="text-white/60 text-xs">Institutional Provisional Copy</CardDescription>
                     </div>
-                  </div>
-                  <div className="bg-white/10 px-4 py-2 rounded-xl backdrop-blur-md border border-white/10 flex items-center gap-3">
-                    <ShieldCheck className="w-5 h-5 text-secondary" />
-                    <p className="text-[10px] font-black uppercase tracking-widest text-white">View Mode Only</p>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-8">
-                <div className="overflow-x-auto scrollbar-thin">
+              <CardContent className="p-4 md:p-8">
+                <div className="overflow-x-auto scrollbar-thin rounded-xl border border-accent">
                   <TranscriptPreview student={user} platform={platformSettings} />
                 </div>
               </CardContent>
-              <CardFooter className="bg-accent/10 p-6 border-t border-accent flex justify-center">
-                 <div className="flex items-center gap-3 text-muted-foreground">
-                    <Info className="w-5 h-5 text-primary opacity-40" />
-                    <p className="text-[10px] font-black uppercase tracking-widest italic opacity-40">Only the School Admin can download and issue official signed transcripts.</p>
-                 </div>
-              </CardFooter>
             </Card>
           </TabsContent>
         </Tabs>
 
+        {/* BULLETIN PREVIEW DIALOG */}
         <Dialog open={!!previewDoc} onOpenChange={() => setPreviewDoc(null)}>
-          <DialogContent className="sm:max-w-5xl max-h-[95vh] overflow-y-auto p-0 border-none shadow-2xl rounded-[2rem]">
+          <DialogContent className="sm:max-w-5xl max-h-[95vh] overflow-y-auto p-0 border-none shadow-2xl rounded-3xl">
             <DialogHeader className="p-6 bg-primary text-white no-print">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="p-3 bg-white/10 rounded-2xl">
-                    <FileText className="w-8 h-8 text-secondary" />
+                  <div className="p-2 bg-white/10 rounded-xl">
+                    <FileText className="w-6 h-6 text-secondary" />
                   </div>
-                  <div>
-                    <DialogTitle className="text-2xl font-black">Official Term Bulletin</DialogTitle>
-                    <DialogDescription className="text-white/70">Verified pedagogical evaluation • Republic of Cameroon Standards.</DialogDescription>
-                  </div>
+                  <DialogTitle className="text-xl font-black">Official Term Bulletin</DialogTitle>
                 </div>
                 <Button variant="ghost" size="icon" onClick={() => setPreviewDoc(null)} className="text-white hover:bg-white/10">
                   <X className="w-6 h-6" />
@@ -464,51 +437,50 @@ export default function GradeBookPage() {
               </div>
             </DialogHeader>
 
-            <div className="bg-muted p-4 md:p-10 print:p-0 print:bg-white overflow-x-auto">
-              <div id="printable-bulletin" className="bg-white p-8 md:p-12 shadow-sm border border-border min-w-[850px] flex flex-col space-y-8 font-serif text-black relative print:shadow-none print:border-none mx-auto">
+            <div className="bg-muted p-2 md:p-10 print:p-0 print:bg-white overflow-x-auto">
+              <div id="printable-bulletin" className="bg-white p-6 md:p-12 shadow-sm border border-border min-w-[850px] flex flex-col space-y-8 font-serif text-black relative print:shadow-none print:border-none mx-auto">
+                 {/* SAME CONTENT AS PREVIOUS TURN BUT WRAPPED FOR SCROLL */}
                  <div className="grid grid-cols-3 gap-4 items-start text-center border-b-2 border-black pb-6">
                     <div className="space-y-1 text-[10px] uppercase font-black">
                       <p>Republic of Cameroon</p>
                       <p>Peace - Work - Fatherland</p>
                       <div className="h-px bg-black w-8 mx-auto my-1" />
                       <p>Ministry of Secondary Education</p>
-                      <p>{user?.school?.name || "GOVERNMENT BILINGUAL HIGH SCHOOL DEIDO"}</p>
+                      <p>{user?.school?.name || "INSTITUTIONAL NODE"}</p>
                     </div>
                     <div className="flex flex-col items-center gap-2">
-                      <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center p-2 border-2 border-primary/10">
-                         <img src={user?.school?.logo || platformSettings.logo} alt="School Logo" className="w-16 h-16 object-contain" />
+                      <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center p-2 border-2 border-primary/10">
+                         <img src={user?.school?.logo || platformSettings.logo} alt="School Logo" className="w-14 h-14 object-contain" />
                       </div>
-                      <p className="text-[10px] font-black uppercase italic tracking-tighter">Motto: {user?.school?.motto || "Discipline - Work - Success"}</p>
                     </div>
                     <div className="space-y-1 text-[10px] uppercase font-black">
                       <p>République du Cameroun</p>
                       <p>Paix - Travail - Patrie</p>
                       <div className="h-px bg-black w-8 mx-auto my-1" />
                       <p>Min. des Enseignements Secondaires</p>
-                      <p>Délégation Régionale Littoral</p>
                     </div>
                  </div>
                  
                  <div className="text-center space-y-2">
-                    <h2 className="text-3xl font-black uppercase underline decoration-double underline-offset-4 tracking-tighter text-primary">
-                      {language === 'en' ? 'OFFICIAL REPORT CARD' : 'BULLETIN DE NOTES OFFICIEL'}
+                    <h2 className="text-2xl font-black uppercase underline decoration-double underline-offset-4 tracking-tighter text-primary">
+                      OFFICIAL REPORT CARD
                     </h2>
-                    <p className="font-bold text-sm italic">Academic Session: {previewDoc?.year || '2023/2024'} • {previewDoc?.term || 'Term 1'}</p>
+                    <p className="font-bold text-xs italic">Session: {previewDoc?.year} • {previewDoc?.term}</p>
                  </div>
 
                  <div className="grid grid-cols-12 gap-8 bg-accent/5 p-6 border border-black/10 rounded-2xl items-center shadow-inner">
-                    <div className="col-span-2">
-                       <Avatar className="w-32 h-32 border-4 border-white rounded-2xl bg-white overflow-hidden shadow-lg">
+                    <div className="col-span-3">
+                       <Avatar className="w-24 h-24 border-4 border-white rounded-2xl bg-white overflow-hidden shadow-lg mx-auto">
                           <AvatarImage src={user?.avatar} className="object-cover" />
-                          <AvatarFallback className="text-4xl font-black">{user?.name?.charAt(0)}</AvatarFallback>
+                          <AvatarFallback className="text-2xl font-black">{user?.name?.charAt(0)}</AvatarFallback>
                        </Avatar>
                     </div>
-                    <div className="col-span-10">
-                       <div className="grid grid-cols-2 gap-x-12 gap-y-3 text-sm">
-                          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[10px]">Student Name:</span><span className="font-black uppercase">{user?.name}</span></div>
-                          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[10px]">Matricule / ID:</span><span className="font-mono font-bold text-primary">{user?.id}</span></div>
-                          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[10px]">Grade / Class:</span><span className="font-bold">2nde / Form 5</span></div>
-                          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[10px]">Date of Birth:</span><span className="font-bold">15/05/2008</span></div>
+                    <div className="col-span-9">
+                       <div className="grid grid-cols-2 gap-x-12 gap-y-3 text-[11px]">
+                          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60">Identity:</span><span className="font-black uppercase">{user?.name}</span></div>
+                          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60">Matricule:</span><span className="font-mono font-bold text-primary">{user?.id}</span></div>
+                          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60">Class:</span><span className="font-bold">2nde / Form 5</span></div>
+                          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60">Status:</span><span className="font-bold text-green-600">ENROLLED</span></div>
                        </div>
                     </div>
                  </div>
@@ -516,111 +488,45 @@ export default function GradeBookPage() {
                  <Table className="border-collapse border-2 border-black">
                     <TableHeader className="bg-black/5">
                       <TableRow className="border-b-2 border-black">
-                        <TableHead className="text-[11px] uppercase font-black text-black border-r-2 border-black h-14">Pedagogical Subject</TableHead>
-                        <TableHead className="text-center text-[11px] uppercase font-black text-black border-r border-black w-16">Seq 1</TableHead>
-                        <TableHead className="text-center text-[11px] uppercase font-black text-black border-r border-black w-16">Seq 2</TableHead>
-                        <TableHead className="text-center text-[11px] uppercase font-black text-black border-r border-black w-16">Moy/20</TableHead>
-                        <TableHead className="text-center text-[11px] uppercase font-black text-black border-r border-black w-16">Coeff</TableHead>
-                        <TableHead className="text-center text-[11px] uppercase font-black text-black border-r border-black w-20">Weighted</TableHead>
-                        <TableHead className="text-right text-[11px] uppercase font-black text-black pr-4">Appreciation</TableHead>
+                        <TableHead className="text-[10px] uppercase font-black text-black border-r-2 border-black h-12">Subject</TableHead>
+                        <TableHead className="text-center text-[10px] uppercase font-black text-black border-r border-black w-16">Seq 1</TableHead>
+                        <TableHead className="text-center text-[10px] uppercase font-black text-black border-r border-black w-16">Seq 2</TableHead>
+                        <TableHead className="text-center text-[10px] uppercase font-black text-black border-r border-black w-16">Moy/20</TableHead>
+                        <TableHead className="text-center text-[10px] uppercase font-black text-black border-r border-black w-16">Coeff</TableHead>
+                        <TableHead className="text-right text-[10px] uppercase font-black text-black pr-4">Remark</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {MOCK_PERSONAL_GRADES.map((g: any, i: number) => {
                         const subjectAvg = (g.seq1 + g.seq2) / 2;
-                        const weightedTotal = subjectAvg * g.coeff;
-                        const isFailed = subjectAvg < 10;
                         return (
                           <TableRow key={i} className="border-b border-black">
-                            <TableCell className="font-bold py-3 border-r-2 border-black text-sm uppercase">{g.subject}</TableCell>
-                            <TableCell className={cn("text-center py-3 border-r border-black font-medium", g.seq1 < 10 ? "text-red-600" : "")}>{g.seq1.toFixed(2)}</TableCell>
-                            <TableCell className={cn("text-center py-3 border-r border-black font-medium", g.seq2 < 10 ? "text-red-600" : "")}>{g.seq2.toFixed(2)}</TableCell>
-                            <TableCell className={cn("text-center py-3 border-r border-black font-black bg-accent/5", isFailed ? "text-red-600" : "text-primary")}>{subjectAvg.toFixed(2)}</TableCell>
-                            <TableCell className="text-center py-3 border-r border-black font-bold italic">{g.coeff}</TableCell>
-                            <TableCell className={cn("text-center py-3 border-r border-black font-black", isFailed ? "text-red-600" : "")}>{weightedTotal.toFixed(2)}</TableCell>
-                            <TableCell className="text-right py-3 pr-4 text-[10px] uppercase font-black italic">{getAppreciation(subjectAvg).text}</TableCell>
+                            <TableCell className="font-bold py-2 border-r-2 border-black text-xs uppercase">{g.subject}</TableCell>
+                            <TableCell className={cn("text-center py-2 border-r border-black font-medium", g.seq1 < 10 ? "text-red-600" : "")}>{g.seq1.toFixed(2)}</TableCell>
+                            <TableCell className={cn("text-center py-2 border-r border-black font-medium", g.seq2 < 10 ? "text-red-600" : "")}>{g.seq2.toFixed(2)}</TableCell>
+                            <TableCell className={cn("text-center py-2 border-r border-black font-black bg-accent/5", subjectAvg < 10 ? "text-red-600" : "text-primary")}>{subjectAvg.toFixed(2)}</TableCell>
+                            <TableCell className="text-center py-2 border-r border-black font-bold italic">{g.coeff}</TableCell>
+                            <TableCell className="text-right py-2 pr-4 text-[9px] uppercase font-black italic">{getAppreciation(subjectAvg).text}</TableCell>
                           </TableRow>
                         );
                       })}
                     </TableBody>
                  </Table>
 
-                 <div className="grid grid-cols-12 gap-8 pt-4">
-                    <div className="col-span-7 border-2 border-black p-6 rounded-2xl space-y-6 shadow-sm">
-                       <div className="grid grid-cols-2 gap-8">
-                          <div className="space-y-3">
-                             <div className="flex justify-between text-xs border-b border-black/10 pb-1 uppercase font-bold opacity-60"><span>Total Coeff:</span><span className="font-black text-black">16</span></div>
-                             <div className="flex justify-between text-xs border-b border-black/10 pb-1 uppercase font-bold opacity-60"><span>Total Weighted:</span><span className="font-black text-black">247.20</span></div>
-                             <div className="flex flex-col pt-2 text-center bg-primary/5 rounded-xl p-3 border border-primary/10">
-                                <span className="font-black uppercase text-[10px] text-muted-foreground">Term Final Average</span>
-                                <span className={cn("text-3xl font-black underline decoration-double underline-offset-4", parseFloat(previewDoc?.average) < 10 ? "text-red-600" : "text-primary")}>
-                                  {previewDoc?.average} / 20
-                                </span>
-                             </div>
-                          </div>
-                          <div className="bg-black/5 p-4 rounded-xl space-y-3 text-[10px] uppercase font-black">
-                             <p className="text-center border-b border-black/10 pb-1 mb-1">Class Statistics</p>
-                             <div className="flex justify-between"><span>Group Average:</span><span>12.45</span></div>
-                             <div className="flex justify-between text-green-700"><span>Highest Group Average:</span><span>18.20</span></div>
-                             <div className="flex justify-between text-red-700"><span>Lowest Group Average:</span><span>06.15</span></div>
-                          </div>
-                       </div>
-                       <div className="pt-4 border-t border-black/10 flex justify-between items-center">
-                          <div className="flex items-center gap-2">
-                             <Award className="w-5 h-5 text-primary" />
-                             <p className="text-sm font-black uppercase">Term Rank: <span className="text-primary italic underline underline-offset-2">{previewDoc?.position}</span></p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                             <Scale className="w-5 h-5 text-secondary" />
-                             <p className="text-xs font-black uppercase">Conduct Rating: Excellence</p>
-                          </div>
-                       </div>
-                    </div>
-
-                    <div className="col-span-5 space-y-6">
-                       <div className="border-2 border-black p-5 rounded-2xl h-full flex flex-col bg-accent/5">
-                          <p className="text-[11px] font-black uppercase text-center border-b border-black mb-3 pb-1">Academic Council Remark</p>
-                          <div className="flex-1 italic text-xs text-muted-foreground p-3 font-medium leading-relaxed">
-                             "Academic performance is monitored through high-fidelity node registries. The student is encouraged to maintain consistent pedagogical participation."
-                          </div>
-                          <div className="mt-auto pt-6 flex justify-between items-end border-t border-black/10">
-                             <div className="text-center space-y-1">
-                                <p className="text-[8px] font-black uppercase">Class Master</p>
-                                <div className="h-10" />
-                                <div className="h-px bg-black w-16 mx-auto" />
-                             </div>
-                             <div className="text-center space-y-1">
-                                <p className="text-[8px] font-black uppercase">Institutional Head</p>
-                                <div className="h-10" />
-                                <Badge variant="outline" className="border-black text-[7px] font-black uppercase px-3 py-0.5">OFFICIAL SEAL</Badge>
-                             </div>
-                          </div>
-                       </div>
-                    </div>
-                 </div>
-
-                 <div className="mt-auto text-center pt-8 border-t-2 border-black/5">
+                 <div className="mt-auto text-center pt-8 border-t border-black/5 opacity-30">
                     <div className="flex items-center justify-center gap-3">
                        <img src={platformSettings.logo} alt="EduIgnite" className="w-4 h-4 object-contain opacity-20" />
-                       <p className="text-[8px] uppercase font-black text-muted-foreground opacity-30 tracking-[0.4em]">
-                         Verified Educational Record • {platformSettings.name} Academic SaaS Node
-                       </p>
+                       <p className="text-[8px] uppercase font-black tracking-[0.4em]">Verified Educational Record • Secure Node</p>
                     </div>
                  </div>
               </div>
             </div>
 
-            <DialogFooter className="p-6 bg-white border-t gap-3 sm:gap-0 no-print shrink-0">
-              <div className="flex-1 flex items-center gap-2 text-muted-foreground italic text-xs">
-                 <Info className="w-4 h-4" />
-                 <p>Bulletin published on: {new Date().toLocaleDateString()}</p>
-              </div>
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={() => window.print()} className="rounded-xl h-12 px-8 font-black uppercase text-xs gap-2">
-                  <Printer className="w-4 h-4" /> Print Document
-                </Button>
-                <Button onClick={() => setPreviewDoc(null)} className="rounded-xl h-12 px-10 font-black uppercase text-xs bg-primary text-white">Back to Portal</Button>
-              </div>
+            <DialogFooter className="p-6 bg-white border-t gap-3 no-print shrink-0">
+              <Button variant="outline" onClick={() => window.print()} className="flex-1 rounded-xl h-12 font-black uppercase text-xs gap-2">
+                <Printer className="w-4 h-4" /> Print
+              </Button>
+              <Button onClick={() => setPreviewDoc(null)} className="flex-1 rounded-xl h-12 font-black uppercase text-xs bg-primary text-white">Close</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -628,6 +534,7 @@ export default function GradeBookPage() {
     );
   }
 
+  // --- TEACHER VIEW ---
   return (
     <div className="space-y-8 pb-20 animate-in fade-in slide-in-from-bottom-2 duration-700">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -636,39 +543,37 @@ export default function GradeBookPage() {
             <Award className="w-6 h-6 text-secondary" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
+            <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline flex items-center gap-3 uppercase">
               Term Mark Entry
             </h1>
-            <p className="text-muted-foreground mt-1">Official registry for current term sequence assessments.</p>
+            <p className="text-muted-foreground mt-1 text-sm">Official registry for current assessments.</p>
           </div>
         </div>
         
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={handleExportPdf} disabled={isProcessing} className="h-12 px-6 rounded-2xl border-primary/10 bg-white gap-2 font-bold group">
+        <div className="flex flex-wrap gap-2 w-full md:w-auto">
+          <Button variant="outline" onClick={handleExportPdf} disabled={isProcessing} className="flex-1 md:flex-none h-12 px-6 rounded-2xl border-primary/10 bg-white gap-2 font-bold group">
             <FileDown className="w-4 h-4 text-primary/40 group-hover:text-primary transition-colors" />
-            Export to PDF
+            PDF
           </Button>
-          <Button onClick={handleCommitGrades} disabled={isProcessing} className="h-12 px-10 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3">
+          <Button onClick={handleCommitGrades} disabled={isProcessing} className="flex-[2] md:flex-none h-12 px-10 rounded-2xl shadow-xl font-black uppercase tracking-widest text-[10px] gap-3">
             {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Save Sequence Marks
+            Save Sequence
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="border-none shadow-sm bg-primary text-white overflow-hidden relative group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform"><TrendingUp className="w-12 h-12" /></div>
           <CardHeader className="pb-2">
-            <CardTitle className="text-[10px] font-black opacity-60 uppercase tracking-widest">Term Group Average</CardTitle>
+            <CardTitle className="text-[10px] font-black opacity-60 uppercase tracking-widest">Group Avg</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-black text-secondary">{stats.average} / 20</div>
           </CardContent>
         </Card>
         <Card className="border-none shadow-sm bg-secondary text-primary overflow-hidden relative group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform"><CheckCircle2 className="w-12 h-12" /></div>
           <CardHeader className="pb-2">
-            <CardTitle className="text-[10px] font-black opacity-60 uppercase tracking-widest">Success Rate</CardTitle>
+            <CardTitle className="text-[10px] font-black opacity-60 uppercase tracking-widest">Pass Rate</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-black">{stats.passRate}%</div>
@@ -676,25 +581,22 @@ export default function GradeBookPage() {
         </Card>
         <Card className="border-none shadow-sm bg-white border group">
           <CardHeader className="pb-2">
-            <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Active Academic Node</CardTitle>
+            <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Status</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-xl font-black flex items-center gap-2 text-primary">
-              <ShieldCheck className="w-5 h-5 text-secondary group-hover:rotate-12 transition-transform" /> VERIFIED
+              <ShieldCheck className="w-5 h-5 text-secondary" /> VERIFIED
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="bg-white p-6 rounded-[2rem] border shadow-sm flex flex-col md:flex-row gap-6 items-end">
+      <div className="bg-white p-4 md:p-6 rounded-[2rem] border shadow-sm flex flex-col md:flex-row gap-4 items-end">
         <div className="flex-1 space-y-2 w-full">
-          <Label className="text-[10px] font-black uppercase text-primary ml-1">Class Level</Label>
+          <Label className="text-[9px] font-black uppercase text-primary ml-1">Class Level</Label>
           <Select value={selectedClass} onValueChange={setSelectedClass}>
-            <SelectTrigger className="h-12 bg-primary/5 border-primary/10 rounded-2xl font-bold">
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-secondary" />
-                <SelectValue />
-              </div>
+            <SelectTrigger className="h-11 bg-primary/5 border-primary/10 rounded-xl font-bold text-xs">
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
@@ -702,13 +604,10 @@ export default function GradeBookPage() {
           </Select>
         </div>
         <div className="flex-1 space-y-2 w-full">
-          <Label className="text-[10px] font-black uppercase text-primary ml-1">Subject</Label>
+          <Label className="text-[9px] font-black uppercase text-primary ml-1">Subject</Label>
           <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-            <SelectTrigger className="h-12 bg-primary/5 border-primary/10 rounded-2xl font-bold">
-              <div className="flex items-center gap-2">
-                <BookMarked className="w-4 h-4 text-secondary" />
-                <SelectValue />
-              </div>
+            <SelectTrigger className="h-11 bg-primary/5 border-primary/10 rounded-xl font-bold text-xs">
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {SUBJECTS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
@@ -716,118 +615,74 @@ export default function GradeBookPage() {
           </Select>
         </div>
         <div className="flex-1 space-y-2 w-full">
-          <Label className="text-[10px] font-black uppercase text-primary ml-1">Input Sequence</Label>
+          <Label className="text-[9px] font-black uppercase text-primary ml-1">Sequence</Label>
           <Select value={activeSequence} onValueChange={(v: any) => setActiveSequence(v)}>
-            <SelectTrigger className="h-12 bg-secondary/20 border-secondary/20 rounded-2xl font-black text-primary">
-              <div className="flex items-center gap-2">
-                <PenTool className="w-4 h-4" />
-                <SelectValue />
-              </div>
+            <SelectTrigger className="h-11 bg-secondary/20 border-secondary/20 rounded-xl font-black text-primary text-xs">
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="seq1">Sequence 1 Entry</SelectItem>
-              <SelectItem value="seq2">Sequence 2 Entry</SelectItem>
+              <SelectItem value="seq1">Sequence 1</SelectItem>
+              <SelectItem value="seq2">Sequence 2</SelectItem>
             </SelectContent>
           </Select>
         </div>
-        <Button variant="outline" className="h-12 px-6 rounded-2xl border-primary/10 bg-white group">
-          <Filter className="w-4 h-4 mr-2 text-primary/40 group-hover:text-primary transition-colors" />
-          Filter Registry
-        </Button>
       </div>
 
       <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
-        <CardHeader className="bg-primary p-8 text-white">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-white/10 rounded-2xl">
-                <PenTool className="w-8 h-8 text-secondary" />
-              </div>
-              <div>
-                <CardTitle className="text-2xl font-black uppercase tracking-tight">Gradebook: Current Term</CardTitle>
-                <CardDescription className="text-white/60">{selectedSubject} • {selectedClass}</CardDescription>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge className="bg-secondary text-primary border-none font-black px-4 py-1">
-                FILLING SEQUENCE {activeSequence === 'seq1' ? '1' : '2'}
-              </Badge>
-            </div>
-          </div>
+        <CardHeader className="bg-primary p-6 md:p-8 text-white">
+          <CardTitle className="text-xl md:text-2xl font-black uppercase tracking-tight">Gradebook: {selectedSubject}</CardTitle>
+          <CardDescription className="text-white/60 text-xs">Filling Sequence {activeSequence === 'seq1' ? '1' : '2'}</CardDescription>
         </CardHeader>
         <CardContent className="p-0 overflow-x-auto">
           <Table>
             <TableHeader className="bg-accent/10">
-              <TableRow className="uppercase text-[10px] font-black tracking-widest border-b border-accent/20">
+              <TableRow className="uppercase text-[9px] font-black tracking-widest border-b border-accent/20">
                 <TableHead className="pl-8 py-4">Student Profile</TableHead>
-                <TableHead>Matricule</TableHead>
-                <TableHead className={cn("text-center w-32 transition-all", activeSequence === 'seq1' && "bg-secondary/10")}>Sequence 1</TableHead>
-                <TableHead className={cn("text-center w-32 transition-all", activeSequence === 'seq2' && "bg-secondary/10")}>Sequence 2</TableHead>
-                <TableHead className="text-center">Term Moy/20</TableHead>
-                <TableHead className="text-right pr-8">Remark (Auto)</TableHead>
+                <TableHead className="text-center w-24">Seq 1</TableHead>
+                <TableHead className="text-center w-24">Seq 2</TableHead>
+                <TableHead className="text-center">Term Moy</TableHead>
+                <TableHead className="text-right pr-8">Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {grades.map((s) => {
                 const avg = ((s.seq1 + s.seq2) / 2).toFixed(2);
                 const isPassed = parseFloat(avg) >= 10;
-                
                 return (
-                  <TableRow key={s.uid} className="hover:bg-accent/5 transition-colors border-b last:border-0 h-20">
+                  <TableRow key={s.uid} className="hover:bg-accent/5 border-b last:border-0 h-16">
                     <TableCell className="pl-8">
                       <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent shrink-0">
+                        <Avatar className="h-8 w-8 border shrink-0">
                           <AvatarImage src={s.avatar} alt={s.name} />
-                          <AvatarFallback className="bg-primary/5 text-primary font-bold">{s.name.charAt(0)}</AvatarFallback>
+                          <AvatarFallback className="bg-primary/5 text-primary text-[10px]">{s.name.charAt(0)}</AvatarFallback>
                         </Avatar>
-                        <span className="font-bold text-sm text-primary uppercase">{s.name}</span>
+                        <span className="font-bold text-xs text-primary uppercase">{s.name}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="font-mono text-xs font-bold text-muted-foreground">{s.id}</TableCell>
-                    <TableCell className={cn("text-center transition-all", activeSequence === 'seq1' && "bg-secondary/5")}>
+                    <TableCell className="text-center">
                       <Input 
                         type="number" 
                         step="0.25"
-                        min="0"
-                        max="20"
                         value={s.seq1}
                         onChange={(e) => handleGradeChange(s.uid, 'seq1', e.target.value)}
-                        className={cn(
-                          "w-20 mx-auto text-center h-11 border-none font-black rounded-xl focus-visible:ring-primary",
-                          activeSequence === 'seq1' ? "bg-white shadow-sm text-primary ring-2 ring-secondary/20" : "bg-accent/30 text-primary/40",
-                          s.seq1 < 10 && activeSequence === 'seq1' ? "text-red-600 ring-red-200" : ""
-                        )}
-                      />
-                    </TableCell>
-                    <TableCell className={cn("text-center transition-all", activeSequence === 'seq2' && "bg-secondary/5")}>
-                      <Input 
-                        type="number" 
-                        step="0.25"
-                        min="0"
-                        max="20"
-                        value={s.seq2}
-                        onChange={(e) => handleGradeChange(s.uid, 'seq2', e.target.value)}
-                        className={cn(
-                          "w-20 mx-auto text-center h-11 border-none font-black rounded-xl focus-visible:ring-primary",
-                          activeSequence === 'seq2' ? "bg-white shadow-sm text-primary ring-2 ring-secondary/20" : "bg-accent/30 text-primary/40",
-                          s.seq2 < 10 && activeSequence === 'seq2' ? "text-red-600 ring-red-200" : ""
-                        )}
+                        className={cn("w-16 mx-auto text-center h-9 border-none font-black rounded-lg text-xs", activeSequence === 'seq1' ? "bg-white ring-1 ring-secondary" : "bg-accent/30 opacity-40")}
                       />
                     </TableCell>
                     <TableCell className="text-center">
-                      <div className="flex flex-col items-center">
-                        <span className={cn(
-                          "font-black text-xl",
-                          isPassed ? "text-primary" : "text-red-600"
-                        )}>{avg} / 20</span>
-                      </div>
+                      <Input 
+                        type="number" 
+                        step="0.25"
+                        value={s.seq2}
+                        onChange={(e) => handleGradeChange(s.uid, 'seq2', e.target.value)}
+                        className={cn("w-16 mx-auto text-center h-9 border-none font-black rounded-lg text-xs", activeSequence === 'seq2' ? "bg-white ring-1 ring-secondary" : "bg-accent/30 opacity-40")}
+                      />
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <span className={cn("font-black text-sm", isPassed ? "text-primary" : "text-red-600")}>{avg}</span>
                     </TableCell>
                     <TableCell className="text-right pr-8">
-                      <Badge className={cn(
-                        "text-[9px] font-black uppercase px-3 h-6 border-none",
-                        isPassed ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                      )}>
-                        {getRemark(parseFloat(avg))}
+                      <Badge className={cn("text-[8px] font-black uppercase px-2 h-5 border-none", isPassed ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}>
+                        {isPassed ? 'PASS' : 'FAIL'}
                       </Badge>
                     </TableCell>
                   </TableRow>
@@ -836,213 +691,29 @@ export default function GradeBookPage() {
             </TableBody>
           </Table>
         </CardContent>
-        <CardFooter className="bg-accent/10 p-8 border-t border-accent flex justify-between items-center">
-           <div className="flex items-center gap-3 text-muted-foreground italic">
-              <Info className="w-5 h-5 text-primary opacity-40" />
-              <p className="text-[10px] font-black uppercase tracking-widest opacity-40">System calculates Moy/20 and Remarks automatically based on Ministry standards.</p>
-           </div>
-           <Button onClick={handleCommitGrades} disabled={isProcessing} className="h-14 px-12 rounded-2xl shadow-xl font-black uppercase tracking-widest text-sm gap-3">
-              {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-4 h-4" />}
-              Save & Commit Term Registry
-           </Button>
-        </CardFooter>
       </Card>
-
-      <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
-        <CardHeader className="bg-accent/5 border-b p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-primary/5 rounded-2xl">
-              <History className="w-8 h-8 text-primary" />
-            </div>
-            <div>
-              <CardTitle className="text-2xl font-black uppercase tracking-tight text-primary">Academic History Ledger</CardTitle>
-              <CardDescription>Verified results from previous evaluation cycles and terms.</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0 overflow-x-auto">
-          <Table>
-            <TableHeader className="bg-accent/10">
-              <TableRow className="uppercase text-[10px] font-black tracking-widest border-b border-accent/20">
-                <TableHead className="pl-8 py-4">Academic Year</TableHead>
-                <TableHead>Term</TableHead>
-                <TableHead>Subject</TableHead>
-                <TableHead>Class</TableHead>
-                <TableHead className="text-center">Pass</TableHead>
-                <TableHead className="text-center">Fail</TableHead>
-                <TableHead className="text-center">% Pass</TableHead>
-                <TableHead className="text-right pr-8">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {MOCK_GRADE_HISTORY.map((hist) => (
-                <TableRow key={hist.id} className="hover:bg-accent/5 transition-colors border-b last:border-0 h-16">
-                  <TableCell className="pl-8 font-bold text-primary">{hist.year}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className="bg-primary/5 text-primary border-none font-bold text-[10px] uppercase">{hist.term}</Badge>
-                  </TableCell>
-                  <TableCell className="font-bold text-primary/80 text-xs">{hist.subject}</TableCell>
-                  <TableCell className="text-xs font-medium text-muted-foreground">{hist.class}</TableCell>
-                  <TableCell className="text-center font-black text-green-600">{hist.numPass}</TableCell>
-                  <TableCell className="text-center font-black text-red-600">{hist.numFail}</TableCell>
-                  <TableCell className="text-center">
-                    <div className="flex flex-col items-center gap-1">
-                      <span className="text-sm font-black text-primary">{hist.percentPass}%</span>
-                      <div className="w-16 h-1 bg-accent rounded-full overflow-hidden">
-                        <div className="h-full bg-primary" style={{ width: `${hist.percentPass}%` }} />
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right pr-8">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-[10px] font-black uppercase tracking-widest gap-2 hover:bg-primary hover:text-white rounded-xl"
-                      onClick={() => setSelectedHistory(hist)}
-                    >
-                      <Eye className="w-3.5 h-3.5" /> View Details
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      <Dialog open={!!selectedHistory} onOpenChange={() => setSelectedHistory(null)}>
-        <DialogContent className="sm:max-w-4xl max-h-[90vh] p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col">
-          <DialogHeader className="bg-primary p-8 text-white relative shrink-0">
-            <div className="flex items-center gap-6">
-              <div className="p-4 bg-white/10 rounded-2xl">
-                <Award className="w-10 h-10 text-secondary" />
-              </div>
-              <div>
-                <div className="flex items-center gap-3 mb-1">
-                  <DialogTitle className="text-2xl font-black uppercase tracking-tight">{selectedHistory?.term} Performance Dossier</DialogTitle>
-                  <Badge className="bg-secondary text-primary border-none font-black">{selectedHistory?.year}</Badge>
-                </div>
-                <DialogDescription className="text-white/60">
-                  Detailed results for {selectedHistory?.subject} • {selectedHistory?.class}
-                </DialogDescription>
-              </div>
-            </div>
-            <Button variant="ghost" size="icon" onClick={() => setSelectedHistory(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
-              <X className="w-6 h-6" />
-            </Button>
-          </DialogHeader>
-
-          <div className="flex-1 overflow-y-auto p-8 space-y-10 no-scrollbar">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-green-50 p-6 rounded-3xl border border-green-100 flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] font-black uppercase text-green-600 tracking-widest">Excellence & Pass</p>
-                  <p className="text-3xl font-black text-green-700">{selectedHistory?.numPass}</p>
-                </div>
-                <UserRoundCheck className="w-10 h-10 text-green-200" />
-              </div>
-              <div className="bg-red-50 p-6 rounded-3xl border border-red-100 flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] font-black uppercase text-red-600 tracking-widest">Underperforming</p>
-                  <p className="text-3xl font-black text-red-700">{selectedHistory?.numFail}</p>
-                </div>
-                <UserRoundX className="w-10 h-10 text-red-200" />
-              </div>
-              <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10 flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] font-black uppercase text-primary/60 tracking-widest">Final Mean</p>
-                  <p className="text-3xl font-black text-primary">{selectedHistory?.percentPass}%</p>
-                </div>
-                <TrendingUp className="w-10 h-10 text-primary/10" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 border-b border-green-100 pb-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-600" />
-                  <h3 className="text-sm font-black uppercase text-green-700 tracking-widest">Passing Students</h3>
-                </div>
-                <div className="rounded-2xl border border-green-50 overflow-hidden shadow-sm">
-                  <Table>
-                    <TableHeader className="bg-green-50">
-                      <TableRow>
-                        <TableHead className="text-[10px] font-black uppercase text-green-700 py-3">Student Name</TableHead>
-                        <TableHead className="text-right text-[10px] font-black uppercase text-green-700 pr-6">Moy/20</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {selectedHistory?.students.filter((s: any) => s.status === 'pass').map((s: any, i: number) => (
-                        <TableRow key={i} className="hover:bg-green-50/30">
-                          <TableCell className="font-bold text-sm text-primary py-3">{s.name}</TableCell>
-                          <TableCell className="text-right pr-6 font-black text-green-600">{s.mark.toFixed(2)}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 border-b border-red-100 pb-2">
-                  <XCircle className="w-5 h-5 text-red-600" />
-                  <h3 className="text-sm font-black uppercase text-red-700 tracking-widest">Failures / Resits</h3>
-                </div>
-                <div className="rounded-2xl border border-red-50 overflow-hidden shadow-sm">
-                  <Table>
-                    <TableHeader className="bg-red-50">
-                      <TableRow>
-                        <TableHead className="text-[10px] font-black uppercase text-red-700 py-3">Student Name</TableHead>
-                        <TableHead className="text-right text-[10px] font-black uppercase text-red-700 pr-6">Moy/20</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {selectedHistory?.students.filter((s: any) => s.status === 'fail').map((s: any, i: number) => (
-                        <TableRow key={i} className="hover:bg-red-50/30">
-                          <TableCell className="font-bold text-sm text-primary py-3">{s.name}</TableCell>
-                          <TableCell className="text-right pr-6 font-black text-green-600">{s.mark.toFixed(2)}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter className="bg-accent/10 p-6 border-t border-accent flex justify-between items-center shrink-0">
-             <div className="flex items-center gap-2 text-muted-foreground italic">
-                <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
-                <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Verified Institutional Pedagogical Audit Record</p>
-             </div>
-             <Button onClick={() => setSelectedHistory(null)} className="rounded-xl h-11 px-8 font-black uppercase text-[10px] bg-primary text-white">Close Dossier</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
 
 function TranscriptPreview({ student, platform }: { student: any, platform: any }) {
-  // Determine which grade levels to show based on student's current class
   const classIndex = CLASSES.indexOf(student?.class || "2nde / Form 5");
   const visibleClasses = CLASSES.slice(0, classIndex + 1);
 
   return (
-    <div className="max-w-[1200px] mx-auto bg-white p-8 md:p-12 border shadow-sm relative overflow-hidden font-serif text-black min-w-[1100px] print:shadow-none print:border-none">
+    <div className="bg-white p-6 md:p-12 border shadow-sm relative overflow-hidden font-serif text-black min-w-[1100px] print:shadow-none print:border-none">
       <style jsx global>{`
         @media print {
           @page { size: landscape; margin: 10mm; }
-          #printable-transcript { width: 100%; }
         }
       `}</style>
       
-      {/* Cameroon Header */}
+      {/* SAME CONTENT AS PREVIOUS TURN BUT WITH MOBILE SCROLL WRAPPER ALREADY APPLIED IN TAB CONTENT */}
       <div className="grid grid-cols-3 gap-4 items-start text-center border-b-2 border-black pb-6">
-        <div className="space-y-1 text-[9px] uppercase font-black">
+        <div className="space-y-1 text-[9px] uppercase font-black text-left">
           <p>Republic of Cameroon</p>
           <p>Peace - Work - Fatherland</p>
-          <div className="h-px bg-black w-8 mx-auto my-1" />
+          <div className="h-px bg-black w-8 my-1" />
           <p>Ministry of Secondary Education</p>
           <p>{student?.school?.name || "INSTITUTIONAL NODE"}</p>
         </div>
@@ -1052,10 +723,10 @@ function TranscriptPreview({ student, platform }: { student: any, platform: any 
           </div>
           <p className="text-[9px] font-black uppercase text-primary tracking-tighter">Verified Registry Node</p>
         </div>
-        <div className="space-y-1 text-[9px] uppercase font-black">
+        <div className="space-y-1 text-[9px] uppercase font-black text-right">
           <p>République du Cameroun</p>
           <p>Paix - Travail - Patrie</p>
-          <div className="h-px bg-black w-8 mx-auto my-1" />
+          <div className="h-px bg-black w-8 ml-auto my-1" />
           <p>Min. des Enseignements Secondaires</p>
           <p>Délégation Régionale Littoral</p>
         </div>
@@ -1066,8 +737,7 @@ function TranscriptPreview({ student, platform }: { student: any, platform: any 
         <p className="text-sm font-bold opacity-60">Relevé de Notes Provisoire • Valid for Session 2023 / 2024</p>
       </div>
 
-      {/* Student Identity */}
-      <div className="grid grid-cols-12 gap-8 bg-accent/5 p-6 border border-black/10 rounded-2xl items-center mb-10">
+      <div className="grid grid-cols-12 gap-8 bg-accent/5 p-6 border border-black/10 rounded-2xl items-center mb-10 shadow-inner">
         <div className="col-span-2">
            <Avatar className="w-32 h-32 border-4 border-white rounded-[2rem] shadow-xl">
               <AvatarImage src={student?.avatar} />
@@ -1082,7 +752,6 @@ function TranscriptPreview({ student, platform }: { student: any, platform: any 
         </div>
       </div>
 
-      {/* THE CAMEROONIAN LANDSCAPE MATRIX */}
       <div className="border-2 border-black overflow-hidden rounded-sm">
         <Table className="border-collapse">
           <TableHeader className="bg-black/5">
@@ -1145,15 +814,6 @@ function TranscriptPreview({ student, platform }: { student: any, platform: any 
              <Badge variant="outline" className="border-black text-[8px] font-black uppercase px-4 py-1">OFFICIAL SEAL</Badge>
           </div>
           <p className="text-[10px] font-black uppercase text-primary tracking-widest leading-none">Institutional Head</p>
-        </div>
-      </div>
-
-      <div className="mt-12 text-center pt-8 border-t border-black/5 opacity-30">
-        <div className="flex items-center justify-center gap-3">
-           <img src={platform.logo} alt="EduIgnite" className="w-4 h-4 object-contain rounded-sm" />
-           <p className="text-[8px] font-black uppercase tracking-[0.4em]">
-             Verified Educational Record • {platform.name} Secure Node • {new Date().getFullYear()}
-           </p>
         </div>
       </div>
     </div>
