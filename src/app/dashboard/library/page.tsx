@@ -106,6 +106,7 @@ export default function LibraryPage() {
   const [books, setBooks] = useState(INITIAL_BOOKS);
   const [requests, setRequests] = useState(MOCK_REQUESTS);
   const [loans, setLoans] = useState(INITIAL_LOANS);
+  const [borrowingBookId, setBorrowingBookId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   
   // Modals
@@ -145,7 +146,7 @@ export default function LibraryPage() {
       const reader = new FileReader();
       reader.onloadend = () => {
         setNewBookData(prev => ({ ...prev, cover: reader.result as string }));
-        toast({ title: "Cover Processed", description: "Image preview updated." });
+        toast({ title: "Cover Processed", description: "Image preview updated locally." });
       };
       reader.readAsDataURL(file);
     }
@@ -157,7 +158,17 @@ export default function LibraryPage() {
       return;
     }
 
-    setIsProcessing(true);
+    // CHECK FOR DUPLICATE LOAN OF SAME BOOK
+    if (loans.some(l => l.bookTitle === book.title && l.borrowerId === user?.id)) {
+      toast({ 
+        variant: "destructive", 
+        title: "Duplicate Loan Blocked", 
+        description: "Institutional policy prevents borrowing multiple copies of the same title." 
+      });
+      return;
+    }
+
+    setBorrowingBookId(book.id);
     // Simulate borrowing process
     setTimeout(() => {
       const dueDate = new Date();
@@ -180,7 +191,7 @@ export default function LibraryPage() {
       // Update books count locally
       setBooks(prev => prev.map(b => b.id === book.id ? { ...b, available: b.available - 1 } : b));
       
-      // Add to personal loans list (simulation)
+      // Add to loans list (simulation)
       const newLoan = {
         id: `LOAN-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
         bookTitle: book.title,
@@ -194,7 +205,7 @@ export default function LibraryPage() {
       };
       setLoans([newLoan, ...loans]);
 
-      setIsProcessing(false);
+      setBorrowingBookId(null);
       toast({
         title: "Borrowing Successful",
         description: "Your official collection receipt has been generated.",
@@ -519,10 +530,10 @@ export default function LibraryPage() {
                   ) : (
                     <Button 
                       className="w-full h-11 text-xs uppercase font-black tracking-widest bg-primary hover:bg-primary/90 shadow-sm" 
-                      disabled={book.available === 0 || isProcessing}
+                      disabled={book.available === 0 || borrowingBookId !== null}
                       onClick={() => handleBorrowBook(book)}
                     >
-                      {isProcessing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                      {borrowingBookId === book.id ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                       {book.available > 0 ? "Borrow This Book" : "Notify When Back"}
                     </Button>
                   )}
@@ -888,7 +899,7 @@ export default function LibraryPage() {
       {/* COLLECTION RECEIPT DIALOG */}
       <Dialog open={!!issuedReceipt} onOpenChange={() => setIssuedReceipt(null)}>
         <DialogContent className="sm:max-w-xl p-0 border-none shadow-2xl rounded-[2rem] overflow-hidden">
-          <DialogHeader className="bg-primary p-8 text-white no-print">
+          <DialogHeader className="bg-primary p-8 text-white no-print relative">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-white/10 rounded-2xl">
@@ -899,14 +910,14 @@ export default function LibraryPage() {
                   <DialogDescription className="text-white/60">Official institutional loan record finalized.</DialogDescription>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setIssuedReceipt(null)} className="text-white/40 hover:text-white">
+              <Button variant="ghost" size="icon" onClick={() => setIssuedReceipt(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
                 <X className="w-6 h-6" />
               </Button>
             </div>
           </DialogHeader>
 
-          <div className="bg-muted p-6 md:p-10 print:p-0 print:bg-white overflow-hidden">
-            <div id="printable-receipt" className="bg-white p-8 border-2 border-black/10 shadow-sm relative flex flex-col space-y-6 font-serif text-black print:border-none print:shadow-none min-w-[350px]">
+          <div className="bg-muted p-6 md:p-10 print:p-0 print:bg-white overflow-hidden overflow-y-auto max-h-[70vh]">
+            <div id="printable-receipt" className="bg-white p-8 border-2 border-black/10 shadow-sm relative flex flex-col space-y-6 font-serif text-black print:border-none print:shadow-none min-w-full sm:min-w-[350px]">
                {/* Receipt Header */}
                <div className="flex justify-between items-start border-b-2 border-black pb-4">
                   <div className="flex items-center gap-3">
@@ -923,7 +934,7 @@ export default function LibraryPage() {
                </div>
 
                {/* Borrower & Book Matrix */}
-               <div className="grid grid-cols-2 gap-8 py-4">
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 py-4">
                   <div className="space-y-4">
                     <div>
                       <p className="text-[8px] md:text-[9px] font-black uppercase text-muted-foreground tracking-widest border-b border-black/5 pb-1 mb-2">Borrower Identity</p>
@@ -936,7 +947,7 @@ export default function LibraryPage() {
                       <p className="text-[9px] font-bold italic">By {issuedReceipt?.bookAuthor}</p>
                     </div>
                   </div>
-                  <div className="space-y-4 text-right">
+                  <div className="space-y-4 text-left sm:text-right">
                     <div>
                       <p className="text-[8px] md:text-[9px] font-black uppercase text-muted-foreground tracking-widest">Issue Date</p>
                       <p className="font-bold text-sm">{issuedReceipt?.issueDate}</p>
@@ -951,7 +962,7 @@ export default function LibraryPage() {
                {/* Institutional Footprint */}
                <div className="pt-6 border-t border-black/5 flex justify-between items-end">
                   <div className="flex flex-col items-center gap-2">
-                    <QrCode className="w-16 h-16 opacity-10" />
+                    <QrCode className="w-14 h-14 md:w-20 md:h-20 text-primary opacity-20" />
                     <p className="text-[7px] font-black uppercase text-muted-foreground opacity-40">Verified Registry</p>
                   </div>
                   <div className="text-center space-y-4">
@@ -993,6 +1004,61 @@ export default function LibraryPage() {
               </Button>
             </div>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* RESOURCE DOSSIER DIALOG */}
+      <Dialog open={!!selectedLoanDetails} onOpenChange={() => setSelectedLoanDetails(null)}>
+        <DialogContent className="sm:max-w-2xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="bg-primary p-8 text-white relative">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/10 rounded-2xl">
+                <BookOpen className="w-8 h-8 text-secondary" />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-black">Resource Dossier</DialogTitle>
+                <DialogDescription className="text-white/60">Official collection tracking and pedagogical details.</DialogDescription>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setSelectedLoanDetails(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+              <X className="w-6 h-6" />
+            </Button>
+          </DialogHeader>
+          
+          <div className="p-10 grid grid-cols-1 md:grid-cols-12 gap-10 items-start">
+            <div className="md:col-span-4 aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl border-4 border-white bg-accent/30 transition-transform hover:scale-105 duration-500">
+               <img src={selectedLoanDetails?.cover} alt={selectedLoanDetails?.bookTitle} className="w-full h-full object-cover" />
+            </div>
+            
+            <div className="md:col-span-8 space-y-8">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge variant="secondary" className="bg-secondary/20 text-primary border-none text-[9px] font-black uppercase tracking-widest">
+                    {selectedLoanDetails?.category || "General"}
+                  </Badge>
+                </div>
+                <h2 className="text-3xl font-black text-primary leading-tight uppercase tracking-tight">{selectedLoanDetails?.bookTitle}</h2>
+                <p className="text-sm font-bold text-muted-foreground italic flex items-center gap-2">
+                  <User className="w-4 h-4" /> Authored by {selectedLoanDetails?.author}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-8 pt-6 border-t border-accent/50">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
+                    <QrCode className="w-3.5 h-3.5" /> Registry Code
+                  </p>
+                  <p className="text-lg font-mono font-black text-primary">{selectedLoanDetails?.collectionCode || "IGN-X"}</p>
+                </div>
+                <div className="space-y-1 text-right">
+                  <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2 justify-end">
+                    <Clock className="w-3.5 h-3.5 text-secondary" /> Due Window
+                  </p>
+                  <p className="text-lg font-black text-secondary">{selectedLoanDetails?.returnDate}</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -1105,10 +1171,10 @@ export default function LibraryPage() {
                </div>
 
                <div className="text-center pt-6 border-t border-black/5">
-                  <div className="flex items-center justify-center gap-3">
-                    <img src={platformSettings.logo} alt="EduIgnite" className="w-4 h-4 object-contain opacity-20" />
-                    <p className="text-[8px] font-black uppercase text-muted-foreground opacity-30 tracking-[0.3em]">
-                      Verified Pedagogical Intelligence • Secure Node Record • {new Date().getFullYear()}
+                  <div className="flex items-center justify-center gap-2">
+                    <img src={platformSettings.logo} alt="EduIgnite" className="w-3 h-3 object-contain opacity-20" />
+                    <p className="text-[7px] font-black uppercase text-muted-foreground opacity-30 tracking-[0.3em]">
+                      Powered by {platformSettings.name} • Secure Node Record
                     </p>
                   </div>
                </div>
@@ -1119,68 +1185,22 @@ export default function LibraryPage() {
             <Button variant="outline" className="flex-1 rounded-2xl h-14 font-black uppercase tracking-widest text-xs" onClick={() => setPreviewLibraryReport(null)}>
               Dismiss Audit
             </Button>
-            <Button 
-              className="flex-1 rounded-2xl h-14 shadow-2xl font-black uppercase tracking-widest text-xs gap-3 bg-primary text-white hover:bg-primary/90 transition-all active:scale-95" 
-              onClick={() => { window.print(); setPreviewLibraryReport(null); }}
-            >
-              <Printer className="w-4 h-4" /> Finalize & Print Dossier
-            </Button>
+            <div className="flex flex-1 gap-2">
+              <Button 
+                variant="secondary" 
+                className="flex-1 rounded-2xl h-14 font-black uppercase tracking-widest text-xs gap-2"
+                onClick={() => toast({ title: "Report Prepared", description: "Document PDF is being generated for download." })}
+              >
+                <Download className="w-4 h-4" /> Download PDF
+              </Button>
+              <Button 
+                className="flex-1 rounded-2xl h-14 shadow-2xl font-black uppercase tracking-widest text-xs gap-3 bg-primary text-white hover:bg-primary/90 transition-all active:scale-95" 
+                onClick={() => { window.print(); setPreviewLibraryReport(null); }}
+              >
+                <Printer className="w-4 h-4" /> Finalize & Print Dossier
+              </Button>
+            </div>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* RESOURCE DOSSIER DIALOG */}
-      <Dialog open={!!selectedLoanDetails} onOpenChange={() => setSelectedLoanDetails(null)}>
-        <DialogContent className="sm:max-w-2xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
-          <DialogHeader className="bg-primary p-8 text-white relative">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-white/10 rounded-2xl">
-                <BookOpen className="w-8 h-8 text-secondary" />
-              </div>
-              <div>
-                <DialogTitle className="text-2xl font-black">Resource Dossier</DialogTitle>
-                <DialogDescription className="text-white/60">Official collection tracking and pedagogical details.</DialogDescription>
-              </div>
-            </div>
-            <Button variant="ghost" size="icon" onClick={() => setSelectedLoanDetails(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
-              <X className="w-6 h-6" />
-            </Button>
-          </DialogHeader>
-          
-          <div className="p-10 grid grid-cols-1 md:grid-cols-12 gap-10 items-start">
-            <div className="md:col-span-4 aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl border-4 border-white bg-accent/30 transition-transform hover:scale-105 duration-500">
-               <img src={selectedLoanDetails?.cover} alt={selectedLoanDetails?.bookTitle} className="w-full h-full object-cover" />
-            </div>
-            
-            <div className="md:col-span-8 space-y-8">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 mb-2">
-                  <Badge variant="secondary" className="bg-secondary/20 text-primary border-none text-[9px] font-black uppercase tracking-widest">
-                    {selectedLoanDetails?.category || "General"}
-                  </Badge>
-                </div>
-                <h2 className="text-3xl font-black text-primary leading-tight uppercase tracking-tight">{selectedLoanDetails?.bookTitle}</h2>
-                <p className="text-sm font-bold text-muted-foreground italic flex items-center gap-2">
-                  <User className="w-4 h-4" /> Authored by {selectedLoanDetails?.author}
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-8 pt-6 border-t border-accent/50">
-                <div className="space-y-1">
-                  <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
-                    <QrCode className="w-3.5 h-3.5" /> Registry Code
-                  </p>
-                  <p className="text-lg font-mono font-black text-primary">{selectedLoanDetails?.collectionCode || "IGN-X"}</p>
-                </div>
-                <div className="space-y-1 text-right">
-                  <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2 justify-end">
-                    <Clock className="w-3.5 h-3.5 text-secondary" /> Due Window
-                  </p>
-                  <p className="text-lg font-black text-secondary">{selectedLoanDetails?.returnDate}</p>
-                </div>
-              </div>
-            </div>
-          </div>
         </DialogContent>
       </Dialog>
 
