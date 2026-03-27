@@ -70,7 +70,7 @@ const MOCK_CHILDREN = [
     dob: "15/05/2008",
     guardian: "Mr. Robert Thompson",
     guardianPhone: "+237 677 00 11 22",
-    address: "Rue de Deido, BP 123",
+    address: "Bonapriso, Douala",
     motto: "Discipline - Work - Success"
   }
 ];
@@ -105,32 +105,9 @@ const MOCK_GRADES = [
 ];
 
 const MOCK_REPORT_HISTORY = [
-  { year: "2023", term: "Term 2", average: "16.20", position: "1st / 45", classMaster: "Mr. Abena", isPublished: true },
-  { year: "2023", term: "Term 1", average: "14.50", position: "3rd / 45", classMaster: "Mr. Abena", isPublished: true },
+  { year: "2023 / 2024", term: "Term 2", average: "16.20", position: "1st / 45", classMaster: "Mr. Abena", isPublished: true },
+  { year: "2023 / 2024", term: "Term 1", average: "14.50", position: "3rd / 45", classMaster: "Mr. Abena", isPublished: true },
 ];
-
-const MOCK_SCHEDULE = {
-  Monday: [
-    { time: "08:00 - 10:00", subject: "Mathematics", room: "Room 101", teacher: "Prof. Smith" },
-    { time: "10:30 - 12:30", subject: "Physics", room: "Lab A", teacher: "Dr. Tesla" },
-  ],
-  Tuesday: [
-    { time: "08:00 - 10:00", subject: "Chemistry", room: "Lab C", teacher: "Dr. White" },
-    { time: "13:00 - 15:00", subject: "History", room: "Room 204", teacher: "Mr. Tabi" },
-  ],
-  Wednesday: [
-    { time: "08:00 - 10:00", subject: "Mathematics", room: "Room 101", teacher: "Prof. Smith" },
-    { time: "10:30 - 12:30", subject: "Biology", room: "Lab B", teacher: "Dr. Fon" },
-  ],
-  Thursday: [
-    { time: "08:00 - 10:00", subject: "English", room: "Room 302", teacher: "Ms. Bennet" },
-    { time: "13:00 - 15:00", subject: "Geography", room: "Room 201", teacher: "Mr. Abena" },
-  ],
-  Friday: [
-    { time: "08:00 - 10:00", subject: "Physics", room: "Lab A", teacher: "Dr. Tesla" },
-    { time: "10:30 - 12:30", subject: "Civics", room: "Hall B", teacher: "Mme. Njoh" },
-  ],
-};
 
 const MOCK_TODAY_ATTENDANCE = [
   { subject: "Mathematics", time: "08:00 AM", status: "Present", color: "text-green-600" },
@@ -178,9 +155,8 @@ export default function StudentDetailsPage() {
   const isTeacher = currentUser?.role === "TEACHER";
   const mySubjects = useMemo(() => {
     if (!isTeacher || !currentUser?.id) return [];
-    // For demo purposes, we map the mock GBHS teacher ID to Physics/Chemistry
     return TEACHER_ASSIGNMENTS["GBHS26T001"] || [];
-  }, [isTeacher]);
+  }, [isTeacher, currentUser]);
 
   // FILTERED DATA FOR TEACHERS
   const filteredGrades = useMemo(() => {
@@ -214,19 +190,12 @@ export default function StudentDetailsPage() {
       totalCoeff,
       totalWeighted: totalWeighted.toFixed(2),
       attendance: 94.5,
-      position: isTeacher ? "N/A (Subject View)" : "4th / 45",
+      position: isTeacher ? "N/A" : "4th / 45",
       classAvg: "12.45",
       highestAvg: "18.20",
       lowestAvg: "06.15"
     };
   }, [isTeacher, filteredGrades]);
-
-  const handleDownload = (docName: string) => {
-    toast({
-      title: t("download") + "...",
-      description: `${docName} is being prepared for download.`,
-    });
-  };
 
   const handleSendMessage = () => {
     if (!messageText.trim()) return;
@@ -282,7 +251,7 @@ export default function StudentDetailsPage() {
             <Button variant="outline" className="flex-1 sm:flex-none gap-2" onClick={() => setIsMessageModalOpen(true)}>
               <Mail className="w-4 h-4" /> {language === 'en' ? 'Contact Teacher' : 'Contacter Enseignant'}
             </Button>
-            <Button className="flex-1 sm:flex-none gap-2 shadow-lg" onClick={() => setPreviewDoc({ type: 'report' })}>
+            <Button className="flex-1 sm:flex-none gap-2 shadow-lg" onClick={() => setPreviewDoc({ type: 'report', data: MOCK_REPORT_HISTORY[0] })}>
               <Printer className="w-4 h-4" /> {t("print")} {t("reportCard")}
             </Button>
           </div>
@@ -334,11 +303,6 @@ export default function StudentDetailsPage() {
           <TabsTrigger value="grades" className="gap-2 py-2">
             <Award className="w-4 h-4" /> {isTeacher ? "Performance" : t("grades")}
           </TabsTrigger>
-          {!isTeacher && (
-            <TabsTrigger value="schedule" className="gap-2 py-2">
-              <Calendar className="w-4 h-4" /> {t("schedule")}
-            </TabsTrigger>
-          )}
           <TabsTrigger value="attendance" className="gap-2 py-2">
             <ClipboardCheck className="w-4 h-4" /> {t("presence")}
           </TabsTrigger>
@@ -424,7 +388,7 @@ export default function StudentDetailsPage() {
                   </div>
                 </div>
                 {!isTeacher && (
-                  <Button onClick={() => setPreviewDoc({ type: 'report' })} className="gap-2 bg-secondary text-primary shadow-lg border-none hover:bg-secondary/90 hidden sm:flex">
+                  <Button onClick={() => setPreviewDoc({ type: 'report', data: MOCK_REPORT_HISTORY[0] })} className="gap-2 bg-secondary text-primary shadow-lg border-none hover:bg-secondary/90 hidden sm:flex">
                     <Eye className="w-4 h-4" /> {t("officialBulletin")}
                   </Button>
                 )}
@@ -443,33 +407,30 @@ export default function StudentDetailsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredGrades.map((grade: any, idx: number) => {
-                    const avg = (grade.seq1 + grade.seq2) / 2;
-                    return (
-                      <TableRow key={idx} className="hover:bg-accent/5 border-b border-accent/10">
-                        <TableCell className="font-bold pl-8 py-4 text-primary uppercase">{grade.subject}</TableCell>
-                        <TableCell className="text-center font-black text-lg">{grade.seq1.toFixed(2)}</TableCell>
-                        <TableCell className="text-center font-black text-lg">{grade.seq2.toFixed(2)}</TableCell>
-                        <TableCell className="text-center font-bold text-muted-foreground italic">{grade.coeff}</TableCell>
-                        {!isTeacher && (
-                          <TableCell>
-                            <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
-                              <User className="w-3.5 h-3.5 text-primary/40" />
-                              {grade.teacher}
-                            </div>
-                          </TableCell>
-                        )}
-                        <TableCell className="text-right pr-8">
-                          <Badge className={cn(
-                            "text-[9px] font-black uppercase px-3 border-none",
-                            grade.status === 'Passed' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                          )}>
-                            {grade.status}
-                          </Badge>
+                  {filteredGrades.map((grade: any, idx: number) => (
+                    <TableRow key={idx} className="hover:bg-accent/5 border-b border-accent/10">
+                      <TableCell className="font-bold pl-8 py-4 text-primary uppercase">{grade.subject}</TableCell>
+                      <TableCell className="text-center font-black text-lg">{grade.seq1.toFixed(2)}</TableCell>
+                      <TableCell className="text-center font-black text-lg">{grade.seq2.toFixed(2)}</TableCell>
+                      <TableCell className="text-center font-bold text-muted-foreground italic">{grade.coeff}</TableCell>
+                      {!isTeacher && (
+                        <TableCell>
+                          <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
+                            <User className="w-3.5 h-3.5 text-primary/40" />
+                            {grade.teacher}
+                          </div>
                         </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                      )}
+                      <TableCell className="text-right pr-8">
+                        <Badge className={cn(
+                          "text-[9px] font-black uppercase px-3 border-none",
+                          grade.status === 'Passed' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                        )}>
+                          {grade.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </CardContent>
@@ -584,7 +545,7 @@ export default function StudentDetailsPage() {
               <CardTitle className="text-lg font-black text-primary uppercase tracking-widest flex items-center gap-2">
                 <Activity className="w-5 h-5" /> Recent Subject Activities
               </CardTitle>
-              <CardDescription>Chronological log of student interactions and submissions in {isTeacher ? "your subjects" : "all subjects"}.</CardDescription>
+              <CardDescription>Chronological log of student interactions and submissions.</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               <Table>
@@ -616,11 +577,6 @@ export default function StudentDetailsPage() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {filteredActivities.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={4} className="h-40 text-center text-muted-foreground italic">No recent activities recorded for your subjects.</TableCell>
-                    </TableRow>
-                  )}
                 </TableBody>
               </Table>
             </CardContent>
@@ -632,69 +588,82 @@ export default function StudentDetailsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="space-y-6">
                 <h3 className="text-lg font-bold text-primary flex items-center gap-2">
-                  <Award className="w-5 h-5" /> {t("reportCard")}
+                  <Award className="w-5 h-5" /> {t("reportCard")} Archives
                 </h3>
-                <Card className="border-none shadow-sm group hover:ring-2 hover:ring-primary/20 transition-all">
-                  <CardHeader className="flex flex-row items-center gap-4">
-                    <div className="p-3 bg-primary/10 rounded-xl text-primary">
-                      <FileText className="w-8 h-8" />
-                    </div>
-                    <div className="flex-1">
-                      <CardTitle className="text-base">{t("reportCard")} - Current Term</CardTitle>
-                      <CardDescription>{t("academicYear")} 2023/24</CardDescription>
-                    </div>
-                    <Button variant="outline" size="sm" onClick={() => setPreviewDoc({ type: 'report' })} className="gap-2">
-                      <Eye className="w-4 h-4" /> {language === 'en' ? 'View' : 'Voir'}
-                    </Button>
-                  </CardHeader>
-                </Card>
+                <div className="grid grid-cols-1 gap-4">
+                  {MOCK_REPORT_HISTORY.map((report, idx) => (
+                    <Card key={idx} className="border-none shadow-sm group hover:ring-2 hover:ring-primary/20 transition-all bg-white">
+                      <CardHeader className="flex flex-row items-center gap-4 p-5">
+                        <div className="p-3 bg-primary/10 rounded-xl text-primary shrink-0">
+                          <FileText className="w-6 h-6" />
+                        </div>
+                        <div className="flex-1 overflow-hidden">
+                          <CardTitle className="text-sm font-black text-primary truncate">{report.term} Bulletin</CardTitle>
+                          <CardDescription className="text-[10px] font-bold uppercase">Session {report.year} • Avg: {report.average}</CardDescription>
+                        </div>
+                        <Button variant="outline" size="sm" onClick={() => setPreviewDoc({ type: 'report', data: report })} className="gap-2 h-9 rounded-xl font-bold text-xs">
+                          <Eye className="w-3.5 h-3.5" /> {language === 'en' ? 'View' : 'Voir'}
+                        </Button>
+                      </CardHeader>
+                    </Card>
+                  ))}
+                </div>
               </div>
 
               <div className="space-y-6">
                 <h3 className="text-lg font-bold text-primary flex items-center gap-2">
-                  <CreditCard className="w-5 h-5" /> {t("idCard")}
+                  <CreditCard className="w-5 h-5" /> {t("idCard")} Management
                 </h3>
-                <div className="flex justify-center">
-                  <Card className="w-full max-w-sm border shadow-xl bg-white overflow-hidden relative group cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all" onClick={() => setPreviewDoc({ type: 'id' })}>
-                    <div className="absolute top-0 right-0 p-4 opacity-5">
-                      <GraduationCap className="w-32 h-32" />
+                <div className="flex flex-col items-center gap-6">
+                  <Card 
+                    className="w-full max-w-sm border-2 border-dashed border-primary/10 shadow-xl bg-white overflow-hidden relative group cursor-pointer hover:border-primary/40 transition-all rounded-[2rem]" 
+                    onClick={() => setPreviewDoc({ type: 'id' })}
+                  >
+                    <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10 backdrop-blur-[2px]">
+                       <Button className="rounded-xl font-black uppercase tracking-widest text-[10px] gap-2 shadow-2xl">
+                         <Eye className="w-4 h-4" /> Open ID Preview
+                       </Button>
                     </div>
-                    <CardHeader className="border-b bg-accent/5 pb-4">
+                    <CardHeader className="border-b bg-accent/10 pb-4">
                       <div className="flex items-center gap-3">
                         <Building2 className="w-6 h-6 text-primary" />
                         <div>
-                          <CardTitle className="text-sm font-bold tracking-tight text-primary">
+                          <CardTitle className="text-sm font-black tracking-tight text-primary uppercase">
                             {currentUser?.school?.name || "GBHS Deido"}
                           </CardTitle>
-                          <CardDescription className="text-primary/60 text-[10px] uppercase font-bold tracking-widest">{t("idCard")}</CardDescription>
+                          <CardDescription className="text-primary/60 text-[9px] uppercase font-black tracking-widest">{t("idCard")}</CardDescription>
                         </div>
                       </div>
                     </CardHeader>
                     <CardContent className="pt-6 pb-6 space-y-4">
                       <div className="flex gap-6">
-                        <Avatar className="w-20 h-20 rounded-lg overflow-hidden border-2 border-primary/10 shadow-lg shrink-0">
+                        <Avatar className="w-20 h-20 rounded-xl overflow-hidden border-2 border-primary/10 shadow-lg shrink-0">
                           <AvatarImage src={student.avatar} className="object-cover" />
                           <AvatarFallback className="bg-primary/5 text-primary text-2xl font-black">{student.name?.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="space-y-3 flex-1">
                           <div>
-                            <p className="text-[10px] text-muted-foreground uppercase font-bold">{language === 'en' ? "Student Name" : "Nom de l'élève"}</p>
-                            <p className="font-black text-primary uppercase text-sm leading-tight">{student.name}</p>
+                            <p className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">Full Name</p>
+                            <p className="font-black text-primary uppercase text-xs leading-tight">{student.name}</p>
                           </div>
                           <div>
-                            <p className="text-[10px] text-muted-foreground uppercase font-bold">{t("matricule")}</p>
-                            <p className="font-mono font-bold text-secondary text-sm">{student.id}</p>
+                            <p className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">{t("matricule")}</p>
+                            <p className="font-mono font-black text-secondary text-xs">{student.id}</p>
                           </div>
                         </div>
                       </div>
                     </CardContent>
-                    <CardFooter className="bg-accent/10 py-3 flex justify-between items-center text-[10px]">
-                      <span className="flex items-center gap-1 opacity-60 font-bold"><MapPin className="w-3 h-3" /> Douala, Cameroon</span>
-                      <Button variant="ghost" size="sm" className="text-primary hover:bg-white h-7 text-[10px] gap-1 font-bold">
-                        <Eye className="w-3.5 h-3.5" /> Full Suite
-                      </Button>
+                    <CardFooter className="bg-accent/10 py-3 flex justify-between items-center text-[9px]">
+                      <span className="flex items-center gap-1 opacity-60 font-black uppercase"><MapPin className="w-3 h-3" /> Cameroon</span>
+                      <div className="flex items-center gap-1 font-black text-primary uppercase">
+                        <ShieldCheck className="w-3.5 h-3.5" /> SECURE NODE
+                      </div>
                     </CardFooter>
                   </Card>
+                  
+                  <Button onClick={() => setPreviewDoc({ type: 'id' })} className="w-full max-w-sm rounded-xl h-12 shadow-lg font-black uppercase tracking-widest text-xs gap-3">
+                    <Printer className="w-4 h-4" /> Print High-Fidelity ID
+                  </Button>
                 </div>
               </div>
             </div>
@@ -723,8 +692,7 @@ export default function StudentDetailsPage() {
           </DialogHeader>
 
           <div className="bg-muted p-4 md:p-10 print:p-0 print:bg-white overflow-x-auto">
-            <div id="printable-bulletin" className="bg-white p-8 md:p-12 shadow-sm border border-border min-w-[850px] flex flex-col space-y-8 font-serif text-black relative print:shadow-none print:border-none">
-               {/* National Header */}
+            <div id="printable-bulletin" className="bg-white p-8 md:p-12 shadow-sm border border-border min-w-[850px] flex flex-col space-y-8 font-serif text-black relative print:shadow-none print:border-none mx-auto">
                <div className="grid grid-cols-3 gap-4 items-start text-center border-b-2 border-black pb-6">
                   <div className="space-y-1 text-[10px] uppercase font-black">
                     <p>Republic of Cameroon</p>
@@ -755,7 +723,6 @@ export default function StudentDetailsPage() {
                   <p className="font-bold text-sm italic">Academic Session: {previewDoc?.data?.year || '2023/2024'} • {previewDoc?.data?.term || 'Term 1'}</p>
                </div>
 
-               {/* Student Metadata Card */}
                <div className="grid grid-cols-12 gap-8 bg-accent/5 p-6 border border-black/10 rounded-2xl items-center shadow-inner">
                   <div className="col-span-2">
                      <Avatar className="w-32 h-32 border-4 border-white rounded-2xl bg-white overflow-hidden shadow-lg">
@@ -773,7 +740,6 @@ export default function StudentDetailsPage() {
                   </div>
                </div>
 
-               {/* Cameroon High School Standard Marks Table */}
                <Table className="border-collapse border-2 border-black">
                   <TableHeader className="bg-black/5">
                     <TableRow className="border-b-2 border-black">
@@ -805,9 +771,7 @@ export default function StudentDetailsPage() {
                   </TableBody>
                </Table>
 
-               {/* Performance Metrics Summary Footer */}
                <div className="grid grid-cols-12 gap-8 pt-4">
-                  {/* Performance Matrix */}
                   <div className="col-span-7 border-2 border-black p-6 rounded-2xl space-y-6 shadow-sm">
                      <div className="grid grid-cols-2 gap-8">
                         <div className="space-y-3">
@@ -815,7 +779,7 @@ export default function StudentDetailsPage() {
                            <div className="flex justify-between text-xs border-b border-black/10 pb-1 uppercase font-bold opacity-60"><span>Total Weighted:</span><span className="font-black text-black">{studentStats.totalWeighted}</span></div>
                            <div className="flex flex-col pt-2 text-center bg-primary/5 rounded-xl p-3 border border-primary/10">
                               <span className="font-black uppercase text-[10px] text-muted-foreground">Term Final Average</span>
-                              <span className="text-3xl font-black text-primary underline decoration-double underline-offset-4">{studentStats.average} / 20</span>
+                              <span className="text-3xl font-black text-primary underline decoration-double underline-offset-4">{previewDoc?.data?.average || studentStats.average} / 20</span>
                            </div>
                         </div>
                         <div className="bg-black/5 p-4 rounded-xl space-y-3 text-[10px] uppercase font-black">
@@ -828,7 +792,7 @@ export default function StudentDetailsPage() {
                      <div className="pt-4 border-t border-black/10 flex justify-between items-center">
                         <div className="flex items-center gap-2">
                            <Award className="w-5 h-5 text-primary" />
-                           <p className="text-sm font-black uppercase">Term Rank: <span className="text-primary italic underline underline-offset-2">{studentStats.position}</span></p>
+                           <p className="text-sm font-black uppercase">Term Rank: <span className="text-primary italic underline underline-offset-2">{previewDoc?.data?.position || studentStats.position}</span></p>
                         </div>
                         <div className="flex items-center gap-2">
                            <Scale className="w-5 h-5 text-secondary" />
@@ -837,17 +801,16 @@ export default function StudentDetailsPage() {
                      </div>
                   </div>
 
-                  {/* Remarks & Authorizations */}
                   <div className="col-span-5 space-y-6">
                      <div className="border-2 border-black p-5 rounded-2xl h-full flex flex-col bg-accent/5">
                         <p className="text-[11px] font-black uppercase text-center border-b border-black mb-3 pb-1">Academic Council Remark</p>
                         <div className="flex-1 italic text-xs text-muted-foreground p-3 font-medium leading-relaxed">
-                           "Academic performance is significantly above the class median. The student demonstrates excellent self-discipline and consistent pedagogical participation. Maintain this standard."
+                           "Academic performance is significantly above the class median. The student demonstrates excellent self-discipline and consistent pedagogical participation."
                         </div>
                         <div className="mt-auto pt-6 flex justify-between items-end border-t border-black/10">
                            <div className="text-center space-y-1">
                               <p className="text-[8px] font-black uppercase">Class Master</p>
-                              <div className="h-10 w-16 mx-auto flex items-center justify-center opacity-30"><Signature className="w-full h-full" /></div>
+                              <SignatureSVG className="w-16 h-8 text-primary/20 p-1" />
                               <div className="h-px bg-black w-16 mx-auto" />
                            </div>
                            <div className="text-center space-y-1">
@@ -871,7 +834,7 @@ export default function StudentDetailsPage() {
             </div>
           </div>
 
-          <DialogFooter className="p-6 bg-white border-t gap-3 sm:gap-0 no-print">
+          <DialogFooter className="p-6 bg-white border-t gap-3 sm:gap-0 no-print shrink-0">
             <div className="flex-1 flex items-center gap-2 text-muted-foreground italic text-xs">
                <Info className="w-4 h-4" />
                <p>Bulletin published on: {new Date().toLocaleDateString()}</p>
@@ -880,7 +843,167 @@ export default function StudentDetailsPage() {
               <Button variant="outline" onClick={() => window.print()} className="rounded-xl h-12 px-8 font-black uppercase text-xs gap-2">
                 <Printer className="w-4 h-4" /> Print Document
               </Button>
-              <Button onClick={() => setPreviewDoc(null)} className="rounded-xl h-12 px-10 font-black uppercase text-xs">Back to Registry</Button>
+              <Button onClick={() => setPreviewDoc(null)} className="rounded-xl h-12 px-10 font-black uppercase text-xs">Back to Portfolio</Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* High-Fidelity ID Card Dialog */}
+      <Dialog open={!!previewDoc && previewDoc.type === 'id'} onOpenChange={() => setPreviewDoc(null)}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto p-0 border-none shadow-2xl rounded-3xl">
+          <DialogHeader className="bg-primary p-8 text-white no-print shrink-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="bg-white/20 p-3 rounded-2xl">
+                  <CreditCard className="w-8 h-8 text-secondary" />
+                </div>
+                <div>
+                  <DialogTitle className="text-2xl font-black">Identity Verification Card</DialogTitle>
+                  <DialogDescription className="text-white/60">Official dual-sided institutional student identification.</DialogDescription>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setPreviewDoc(null)} className="text-white">
+                <X className="w-6 h-6" />
+              </Button>
+            </div>
+          </DialogHeader>
+
+          <div className="bg-muted p-10 print:p-0 print:bg-white">
+            <div className="flex flex-col items-center gap-12 print:gap-8">
+              {/* FRONT SIDE */}
+              <div className="relative group">
+                <Card className="w-[450px] h-[280px] border shadow-2xl bg-white overflow-hidden relative border-primary/20 flex flex-col print:shadow-none">
+                  <div className="bg-primary p-2 flex items-center justify-between text-white text-[7px] font-black uppercase tracking-tighter shrink-0 border-b border-white/10">
+                    <div className="text-left leading-none space-y-0.5">
+                      <p>Republic of Cameroon</p>
+                      <p>Peace - Work - Fatherland</p>
+                    </div>
+                    <div className="flex gap-1 h-3">
+                      <div className="w-2 h-full bg-[#007a5e]" />
+                      <div className="w-2 h-full bg-[#ce1126] flex items-center justify-center"><div className="w-0.5 h-0.5 bg-yellow-400 rounded-full" /></div>
+                      <div className="w-2 h-full bg-[#fcd116]" />
+                    </div>
+                    <div className="text-right leading-none space-y-0.5">
+                      <p>République du Cameroun</p>
+                      <p>Paix - Travail - Patrie</p>
+                    </div>
+                  </div>
+
+                  <div className="p-3 border-b border-accent flex items-center gap-3 bg-accent/5 shrink-0">
+                    <div className="w-12 h-12 bg-white rounded-lg p-1 border shadow-sm flex items-center justify-center shrink-0 overflow-hidden">
+                      <img src={currentUser?.school?.logo} alt="School Logo" className="w-full h-full object-contain" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[8px] font-black uppercase text-muted-foreground leading-none mb-0.5">Ministry of Secondary Education</p>
+                      <h3 className="text-xs font-black uppercase text-primary leading-tight">
+                        {currentUser?.school?.name || "GOVERNMENT BILINGUAL HIGH SCHOOL DEIDO"}
+                      </h3>
+                    </div>
+                  </div>
+
+                  <div className="flex-1 p-4 flex gap-6 relative">
+                    <div className="w-28 h-28 rounded-xl border-2 border-primary/10 overflow-hidden shadow-lg shrink-0 bg-accent/5">
+                      <img src={student.avatar} alt={student.name} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex-1 flex flex-col justify-center gap-3">
+                      <div className="space-y-0.5">
+                        <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Full Name / Nom Complet</p>
+                        <p className="text-sm font-black text-primary uppercase leading-tight">{student.name}</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-0.5">
+                          <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Matricule</p>
+                          <p className="text-sm font-mono font-black text-secondary">{student.id}</p>
+                        </div>
+                        <div className="space-y-0.5">
+                          <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Class / Classe</p>
+                          <p className="text-xs font-black text-primary">{student.class}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-primary/5 p-2 flex justify-between items-center border-t border-accent shrink-0">
+                    <div className="px-3 py-1 bg-primary text-white rounded-md text-[9px] font-black tracking-widest uppercase">
+                      STUDENT ID CARD
+                    </div>
+                    <Badge className="bg-secondary text-primary border-none text-[9px] font-black h-5 uppercase">2023 - 2024</Badge>
+                  </div>
+                </Card>
+                <p className="text-center text-[10px] font-black uppercase text-muted-foreground mt-2 no-print tracking-[0.2em]">Front View (Recto)</p>
+              </div>
+
+              {/* BACK SIDE */}
+              <div className="relative">
+                <Card className="w-[450px] h-[280px] border shadow-2xl bg-white overflow-hidden relative border-primary/20 flex flex-col print:shadow-none">
+                  <div className="bg-primary h-1 w-full shrink-0" />
+                  
+                  <div className="flex-1 p-6 flex flex-col gap-6">
+                    <div className="grid grid-cols-2 gap-8">
+                      <div className="space-y-4">
+                        <div className="space-y-1">
+                          <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Guardian / Tuteur</p>
+                          <p className="text-[10px] font-bold text-primary uppercase">{student.guardian}</p>
+                          <p className="text-[10px] font-black text-secondary flex items-center gap-1"><Phone className="w-2.5 h-2.5" /> {student.guardianPhone}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Date of Birth / Né(e) le</p>
+                          <p className="text-[10px] font-bold text-primary">{student.dob}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Address / Adresse</p>
+                          <p className="text-[9px] font-medium text-muted-foreground leading-tight">{student.address}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-col items-center justify-center gap-4 text-center border-l border-accent pl-8">
+                        <div className="p-2 bg-white border-2 border-accent rounded-xl shadow-inner">
+                          <QrCode className="w-20 h-20 text-primary" />
+                        </div>
+                        <p className="text-[7px] font-black text-muted-foreground uppercase leading-tight tracking-widest">
+                          Scan to verify authenticity<br/>Verified Node Registry
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-auto flex justify-between items-end border-t border-accent/50 pt-4">
+                      <div className="text-[8px] max-w-[200px] leading-relaxed text-muted-foreground font-medium">
+                        <p className="font-black text-[7px] uppercase text-primary mb-1">Notice</p>
+                        This card is strictly personal property of {currentUser?.school?.name}. If found, please return to the administration.
+                      </div>
+                      <div className="text-center space-y-1">
+                        <SignatureSVG className="w-20 h-8 text-primary/20 p-1" />
+                        <p className="text-[8px] font-black text-primary uppercase border-t border-black/10 pt-1">The Principal</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-accent/20 p-2 px-4 flex items-center justify-between shrink-0">
+                    <div className="flex items-center gap-2">
+                      <img src={platformSettings.logo} alt="SaaS" className="w-4 h-4 object-contain" />
+                      <p className="text-[7px] font-black text-primary uppercase tracking-widest">
+                        Powered by {platformSettings.name} • Secure ID
+                      </p>
+                    </div>
+                    <span className="text-[6px] text-muted-foreground font-black uppercase tracking-widest">Official Record</span>
+                  </div>
+                </Card>
+                <p className="text-center text-[10px] font-black uppercase text-muted-foreground mt-2 no-print tracking-[0.2em]">Back View (Verso)</p>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="bg-accent/10 p-8 border-t no-print flex sm:flex-row gap-3 shrink-0">
+            <div className="flex-1 flex items-center gap-2 text-muted-foreground italic">
+               <ShieldCheck className="w-5 h-5 text-primary opacity-40" />
+               <p className="text-[10px] font-black uppercase tracking-widest opacity-40">High-fidelity biometric record synchronized with node registry.</p>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline" className="rounded-xl h-12 px-8 font-black uppercase text-xs" onClick={() => setPreviewDoc(null)}>Close</Button>
+              <Button className="rounded-xl h-12 px-10 shadow-2xl font-black uppercase tracking-widest text-xs gap-3 bg-primary text-white" onClick={() => window.print()}>
+                <Printer className="w-5 h-5" /> Print Batch
+              </Button>
             </div>
           </DialogFooter>
         </DialogContent>
@@ -936,5 +1059,14 @@ export default function StudentDetailsPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function SignatureSVG({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M15 30L85 10" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" strokeDasharray="2 2" />
+    </svg>
   );
 }
