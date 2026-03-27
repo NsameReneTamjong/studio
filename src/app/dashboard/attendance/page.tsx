@@ -504,11 +504,10 @@ export default function AttendancePage() {
                       </div>
                       <Button 
                         size="sm" 
-                        variant="ghost" 
-                        className="h-8 text-[9px] md:text-[10px] font-black uppercase gap-1.5 hover:bg-primary hover:text-white rounded-lg px-2 shrink-0"
+                        className="h-10 text-[9px] md:text-[10px] font-black uppercase gap-1.5 shadow-lg rounded-xl px-4 shrink-0 bg-primary text-white"
                         onClick={() => setSelectedSubjectDetails({ ...sub, className: selectedClassDetails?.name })}
                       >
-                        Details <ChevronRight className="w-3 h-3" />
+                        View Details <ChevronRight className="w-3.5 h-3.5" />
                       </Button>
                    </div>
                 </CardContent>
