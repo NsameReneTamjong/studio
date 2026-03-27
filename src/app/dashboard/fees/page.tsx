@@ -77,6 +77,10 @@ const INITIAL_STUDENTS = [
   { id: "GBHS26S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", section: "Anglophone Section", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, isLicensePaid: true, class: "Terminale / Upper Sixth", year: "2023 / 2024" },
   { id: "GBHS26S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", section: "Francophone Section", balances: { "Tuition Fee": 45000, "Uniform Package": 0, "PTA Contribution": 5000, "Examination Fee": 0 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, isLicensePaid: false, class: "1ère / Lower Sixth", year: "2023 / 2024" },
   { id: "GBHS26S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100", section: "Anglophone Section", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, isLicensePaid: true, class: "2nde / Form 5", year: "2023 / 2024" },
+  // Extra students for Form 2 demo
+  { id: "GBHS26S005", name: "Ethan Hunt", avatar: "https://picsum.photos/seed/s5/100/100", section: "Anglophone Section", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, isLicensePaid: true, class: "5ème / Form 2", year: "2023 / 2024" },
+  { id: "GBHS26S006", name: "Frank Castle", avatar: "https://picsum.photos/seed/s6/100/100", section: "Anglophone Section", balances: { "Tuition Fee": 75000, "Uniform Package": 0, "PTA Contribution": 0, "Examination Fee": 0 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, isLicensePaid: true, class: "5ème / Form 2", year: "2023 / 2024" },
+  { id: "GBHS26S007", name: "Grace Hopper", avatar: "https://picsum.photos/seed/s7/100/100", section: "Anglophone Section", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, isLicensePaid: true, class: "5ème / Form 2", year: "2023 / 2024" },
 ];
 
 const MOCK_CLASS_STATS = [
@@ -125,8 +129,6 @@ export default function FeesPage() {
   const filteredClassStats = useMemo(() => {
     return MOCK_CLASS_STATS.filter(cls => {
       const matchesSection = sectionFilter === "all" || cls.section === sectionFilter;
-      // If Sub-Admin, further lock to their specific section if defined in user profile
-      // For prototype, we use the sectionFilter which is default "all" for CEO/Admin but can be set
       return matchesSection;
     });
   }, [sectionFilter]);
@@ -503,7 +505,12 @@ export default function FeesPage() {
             <div className="p-6 border-b bg-accent/10 flex flex-col md:flex-row items-center gap-4">
                <div className="relative flex-1 w-full">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input placeholder="Search students in class..." className="pl-10 h-11 bg-white border-none rounded-xl text-sm" value={dossierSearch} onChange={(e) => setDossierSearch(e.target.value)} />
+                  <input 
+                    placeholder="Search students in class..." 
+                    className="w-full pl-10 h-11 bg-white border-none rounded-xl text-sm focus:ring-2 focus:ring-primary/20" 
+                    value={dossierSearch} 
+                    onChange={(e) => setDossierSearch(e.target.value)} 
+                  />
                </div>
                <Button variant="outline" className="rounded-xl h-11 gap-2 font-bold bg-white border-primary/10 w-full md:w-auto" onClick={() => window.print()}>
                  <Printer className="w-4 h-4" /> Print Registry
@@ -540,7 +547,9 @@ export default function FeesPage() {
                       </TableCell>
                       <TableCell className="font-mono text-xs font-bold text-muted-foreground">{s.id}</TableCell>
                       <TableCell className="text-right font-black text-green-600">{paid.toLocaleString()}</TableCell>
-                      <TableCell className="text-right font-black text-red-600">{unpaid > 0 ? unpaid.toLocaleString() : 'CLEARED'}</TableCell>
+                      <TableCell className="text-right font-black text-red-600">
+                        {unpaid > 0 ? unpaid.toLocaleString() : <Badge className="bg-green-100 text-green-700 border-none text-[8px]">CLEARED</Badge>}
+                      </TableCell>
                       <TableCell className="text-right pr-8">
                         <div className="flex justify-end gap-2">
                           <Badge className={cn("text-[8px] font-black uppercase h-5 px-2 border-none", status === 'cleared' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700")}>
@@ -554,6 +563,11 @@ export default function FeesPage() {
                     </TableRow>
                   );
                 })}
+                {classDossierStudents.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="py-20 text-center text-muted-foreground italic">No student financial records found for this cohort.</TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>
