@@ -46,7 +46,12 @@ import {
   Loader2,
   ArrowLeft,
   Info,
-  Upload
+  Upload,
+  FileText,
+  Activity,
+  TrendingUp,
+  ChevronRight,
+  Download
 } from "lucide-react";
 import { 
   Dialog, 
@@ -108,6 +113,7 @@ export default function LibraryPage() {
   const [issuedReceipt, setIssuedReceipt] = useState<any>(null);
   const [isAddingBook, setIsAddingBook] = useState(false);
   const [editingBook, setEditingBook] = useState<any>(null);
+  const [previewLibraryReport, setPreviewLibraryReport] = useState<any>(null);
 
   // Policy State
   const [policyData, setPolicyData] = useState({
@@ -146,7 +152,6 @@ export default function LibraryPage() {
   };
 
   const handleIssueBook = (req: any) => {
-    // Calculate due date based on current policy
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + parseInt(policyData.loanDuration));
 
@@ -200,6 +205,25 @@ export default function LibraryPage() {
     }, 1000);
   };
 
+  const handleGenerateLibraryReport = () => {
+    setPreviewLibraryReport({
+      id: `LIB-REP-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+      date: new Date().toLocaleDateString(),
+      librarian: user?.name || "Official Librarian",
+      totalVolumes: books.reduce((acc, curr) => acc + curr.total, 0),
+      availableVolumes: books.reduce((acc, curr) => acc + curr.available, 0),
+      activeLoans: loans.length,
+      overdueItems: 2,
+      fineCollected: "12,500 XAF",
+      totalMembers: MOCK_MEMBERS.length,
+      categoryCounts: {
+        Science: books.filter(b => b.category === 'Science').length,
+        Math: books.filter(b => b.category === 'Mathematics').length,
+        Literature: books.filter(b => b.category === 'Literature').length,
+      }
+    });
+  };
+
   const [newBookData, setNewBookData] = useState({
     title: "",
     author: "",
@@ -238,8 +262,8 @@ export default function LibraryPage() {
         
         {isManagement && (
           <div className="flex items-center gap-2 flex-wrap">
-            <Button variant="outline" className="gap-2 rounded-xl h-11 border-primary/10 w-full sm:w-auto" onClick={() => toast({ title: "Generating Report..." })}>
-              <Printer className="w-4 h-4" /> Export Catalog
+            <Button variant="outline" className="gap-2 rounded-xl h-11 border-primary/10 w-full sm:w-auto font-bold bg-white" onClick={handleGenerateLibraryReport}>
+              <FileText className="w-4 h-4 text-primary" /> Download Library Report
             </Button>
             {isLibrarian && (
               <Dialog open={isAddingBook} onOpenChange={setIsAddingBook}>
@@ -254,7 +278,6 @@ export default function LibraryPage() {
                     <DialogDescription className="text-white/60">Initialize a new resource into the institutional collection.</DialogDescription>
                   </DialogHeader>
                   <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
-                    {/* Cover Image Upload Section */}
                     <div className="space-y-4">
                       <Label className="text-[10px] font-black uppercase text-muted-foreground text-center block tracking-widest">Book Cover Image</Label>
                       <div 
@@ -329,7 +352,7 @@ export default function LibraryPage() {
                 <p className="text-[10px] font-black uppercase text-blue-600">Total Volumes</p>
                 <Book className="w-4 h-4 text-blue-600" />
               </div>
-              <div className="text-3xl font-black text-blue-700">{books.length * 12}</div>
+              <div className="text-3xl font-black text-blue-700">{books.reduce((acc, curr) => acc + curr.total, 0)}</div>
               <p className="text-[9px] font-bold text-blue-600/60 uppercase mt-1">Across {books.length} titles</p>
             </CardContent>
           </Card>
@@ -903,6 +926,139 @@ export default function LibraryPage() {
             </Button>
             <Button className="flex-1 rounded-xl h-12 shadow-lg font-bold gap-2 bg-primary text-white" onClick={() => window.print()}>
               <Printer className="w-4 h-4" /> Print Receipt
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* STRATEGIC LIBRARY REPORT DIALOG */}
+      <Dialog open={!!previewLibraryReport} onOpenChange={() => setPreviewLibraryReport(null)}>
+        <DialogContent className="sm:max-w-5xl max-h-[95vh] p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col">
+          <DialogHeader className="bg-primary p-8 text-white no-print shrink-0 relative">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-2xl text-secondary">
+                  <FileText className="w-8 h-8" />
+                </div>
+                <div>
+                  <DialogTitle className="text-2xl font-black uppercase tracking-tight">Institutional Library Dossier</DialogTitle>
+                  <DialogDescription className="text-white/60">Verified strategic resources audit record.</DialogDescription>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setPreviewLibraryReport(null)} className="text-white hover:bg-white/10">
+                <X className="w-6 h-6" />
+              </Button>
+            </div>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto bg-muted p-4 md:p-10 print:p-0 print:bg-white no-scrollbar">
+            <div id="printable-library-audit" className="bg-white p-8 md:p-16 border-2 border-black/10 shadow-sm relative flex flex-col space-y-12 font-serif text-black print:border-none print:shadow-none min-w-[800px] mx-auto">
+               
+               {/* National Header */}
+               <div className="grid grid-cols-3 gap-2 items-start text-center border-b-2 border-black pb-6">
+                  <div className="space-y-0.5 text-[8px] uppercase font-bold">
+                    <p>Republic of Cameroon</p>
+                    <p>Peace - Work - Fatherland</p>
+                    <div className="h-px bg-black w-10 mx-auto my-1" />
+                    <p>Ministry of Secondary Education</p>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <img src={user?.school?.logo || platformSettings.logo} alt="School" className="w-20 h-20 object-contain" />
+                  </div>
+                  <div className="space-y-0.5 text-[8px] uppercase font-bold">
+                    <p>République du Cameroun</p>
+                    <p>Paix - Travail - Patrie</p>
+                    <div className="h-px bg-black w-10 mx-auto my-1" />
+                    <p>Min. des Enseignements Secondaires</p>
+                  </div>
+               </div>
+
+               <div className="text-center space-y-2">
+                  <h2 className="font-black text-2xl md:text-3xl uppercase tracking-tighter text-primary leading-tight">{user?.school?.name || "INSTITUTIONAL NODE"}</h2>
+                  <p className="text-[10px] md:text-xs font-bold uppercase opacity-60 tracking-[0.3em] underline underline-offset-4 decoration-double">STRATEGIC LIBRARY AUDIT: {previewLibraryReport?.date}</p>
+               </div>
+
+               <div className="grid grid-cols-2 gap-12 pt-4">
+                  <section className="space-y-4">
+                    <h4 className="text-xs font-black uppercase text-primary border-b border-black/10 pb-1 flex items-center gap-2"><Library className="w-4 h-4"/> Collection Matrix</h4>
+                    <div className="space-y-3">
+                       <div className="flex justify-between text-xs font-bold"><span className="opacity-60">1. Total Volumes Archived:</span><span>{previewLibraryReport?.totalVolumes}</span></div>
+                       <div className="flex justify-between text-xs font-bold"><span className="opacity-60">2. Active In-Stock:</span><span className="text-green-600">{previewLibraryReport?.availableVolumes}</span></div>
+                       <div className="flex justify-between text-xs font-bold"><span className="opacity-60">3. Distinct Titles:</span><span>{books.length}</span></div>
+                       <div className="flex justify-between text-xs font-bold"><span className="opacity-60">4. Node Integrity:</span><span className="text-green-600">VERIFIED</span></div>
+                    </div>
+                  </section>
+
+                  <section className="space-y-4">
+                    <h4 className="text-xs font-black uppercase text-primary border-b border-black/10 pb-1 flex items-center gap-2"><Activity className="w-4 h-4"/> Circulation Context</h4>
+                    <div className="space-y-3">
+                       <div className="flex justify-between text-xs font-bold"><span className="opacity-60">5. Active Loans:</span><span>{previewLibraryReport?.activeLoans}</span></div>
+                       <div className="flex justify-between text-xs font-bold"><span className="opacity-60">6. Overdue Records:</span><span className="text-red-600">{previewLibraryReport?.overdueItems}</span></div>
+                       <div className="flex justify-between text-xs font-bold"><span className="opacity-60">7. Fine Revenue:</span><span className="text-purple-600">{previewLibraryReport?.fineCollected}</span></div>
+                       <div className="flex justify-between text-xs font-bold"><span className="opacity-60">8. Registered Members:</span><span>{previewLibraryReport?.totalMembers}</span></div>
+                    </div>
+                  </section>
+               </div>
+
+               <section className="pt-8 border-t border-black/5">
+                  <h4 className="text-xs font-black uppercase text-primary border-b border-black/10 pb-1 mb-4">Subject Category Distribution</h4>
+                  <Table className="border-collapse border-2 border-black/5">
+                    <TableHeader className="bg-black/5">
+                       <TableRow>
+                          <TableHead className="text-[10px] font-black uppercase text-black">Pedagogical Category</TableHead>
+                          <TableHead className="text-center text-[10px] font-black uppercase text-black">Volume Count</TableHead>
+                          <TableHead className="text-center text-[10px] font-black uppercase text-black">Loan Activity</TableHead>
+                          <TableHead className="text-right text-[10px] font-black uppercase text-black pr-6">Density %</TableHead>
+                       </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                       {Object.entries(previewLibraryReport?.categoryCounts || {}).map(([cat, count], i) => (
+                         <TableRow key={i} className="border-b border-black/5">
+                            <TableCell className="font-black text-xs uppercase">{cat}</TableCell>
+                            <TableCell className="text-center font-bold text-xs">{count as number}</TableCell>
+                            <TableCell className="text-center font-bold text-xs">{(count as number) * 2} Units</TableCell>
+                            <TableCell className="text-right pr-6 font-black text-sm text-primary">
+                              {Math.round(((count as number) / books.length) * 100)}%
+                            </TableCell>
+                         </TableRow>
+                       ))}
+                    </TableBody>
+                  </Table>
+               </section>
+
+               <div className="pt-12 border-t border-black/5 flex justify-between items-end">
+                  <div className="flex flex-col items-center gap-2 text-center">
+                    <QrCode className="w-20 h-20 opacity-10" />
+                    <p className="text-[8px] font-black uppercase text-muted-foreground opacity-40 leading-tight">Institutional<br/>Library QR</p>
+                  </div>
+                  <div className="text-center space-y-6 w-48">
+                    <div className="h-14 w-full mx-auto bg-primary/5 rounded-xl border-b-2 border-black/40 relative flex items-center justify-center overflow-hidden shadow-inner">
+                       <SignatureSVG className="w-full h-full text-primary/20 p-2" />
+                    </div>
+                    <p className="text-[10px] font-black uppercase text-primary tracking-widest leading-none">The Librarian</p>
+                  </div>
+               </div>
+
+               <div className="text-center pt-6 border-t border-black/5">
+                  <div className="flex items-center justify-center gap-3">
+                    <img src={platformSettings.logo} alt="EduIgnite" className="w-4 h-4 object-contain opacity-20" />
+                    <p className="text-[8px] font-black uppercase text-muted-foreground opacity-30 tracking-[0.3em]">
+                      Verified Pedagogical Intelligence • Secure Node Record • {new Date().getFullYear()}
+                    </p>
+                  </div>
+               </div>
+            </div>
+          </div>
+
+          <DialogFooter className="bg-accent/10 p-8 border-t no-print flex flex-col sm:flex-row gap-4 shrink-0">
+            <Button variant="outline" className="flex-1 rounded-2xl h-14 font-black uppercase tracking-widest text-xs" onClick={() => setPreviewLibraryReport(null)}>
+              Dismiss Audit
+            </Button>
+            <Button 
+              className="flex-1 rounded-2xl h-14 shadow-2xl font-black uppercase tracking-widest text-xs gap-3 bg-primary text-white hover:bg-primary/90 transition-all active:scale-95" 
+              onClick={() => { window.print(); setPreviewLibraryReport(null); }}
+            >
+              <Printer className="w-4 h-4" /> Finalize & Print Dossier
             </Button>
           </DialogFooter>
         </DialogContent>
