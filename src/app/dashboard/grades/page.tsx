@@ -78,6 +78,13 @@ const MOCK_PERSONAL_ARCHIVE = [
   { id: "R3", year: "2022 / 2023", term: "Term 2", average: "13.85", position: "12th / 42", classMaster: "Mme. Njoh", status: "Published" },
 ];
 
+const MOCK_TRANSCRIPT_DATA = {
+  "Advanced Physics": { f1: ["12.5", "13.0", "14.2"], f2: ["11.0", "12.5", "13.5"], f3: ["14.0", "15.5", "16.0"] },
+  "Mathematics": { f1: ["15.0", "16.5", "17.0"], f2: ["14.5", "15.0", "16.0"], f3: ["17.5", "18.0", "17.5"] },
+  "English": { f1: ["10.0", "11.5", "12.0"], f2: ["09.5", "10.0", "11.0"], f3: ["12.5", "13.0", "13.5"] },
+  "History": { f1: ["08.5", "09.0", "10.5"], f2: ["07.5", "08.0", "09.5"], f3: ["09.0", "10.5", "11.0"] }
+};
+
 const MOCK_GRADE_HISTORY = [
   { 
     id: "H1", 
@@ -275,7 +282,7 @@ export default function GradeBookPage() {
         </div>
 
         <Tabs defaultValue="current" className="w-full">
-          <TabsList className="grid grid-cols-3 w-full md:w-[600px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl">
+          <TabsList className="grid grid-cols-3 w-full md:w-[600px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl overflow-x-auto no-scrollbar">
             <TabsTrigger value="current" className="gap-2 py-3 rounded-xl transition-all font-bold">
               <BookMarked className="w-4 h-4" /> Current Term
             </TabsTrigger>
@@ -424,7 +431,9 @@ export default function GradeBookPage() {
                 </div>
               </CardHeader>
               <CardContent className="p-8">
-                <TranscriptPreview student={user} grades={MOCK_PERSONAL_GRADES} archive={MOCK_PERSONAL_ARCHIVE} platform={platformSettings} />
+                <div className="overflow-x-auto scrollbar-thin">
+                  <TranscriptPreview student={user} platform={platformSettings} />
+                </div>
               </CardContent>
               <CardFooter className="bg-accent/10 p-6 border-t border-accent flex justify-center">
                  <div className="flex items-center gap-3 text-muted-foreground">
@@ -991,7 +1000,7 @@ export default function GradeBookPage() {
                       {selectedHistory?.students.filter((s: any) => s.status === 'fail').map((s: any, i: number) => (
                         <TableRow key={i} className="hover:bg-red-50/30">
                           <TableCell className="font-bold text-sm text-primary py-3">{s.name}</TableCell>
-                          <TableCell className="text-right pr-6 font-black text-red-600">{s.mark.toFixed(2)}</TableCell>
+                          <TableCell className="text-right pr-6 font-black text-green-600">{s.mark.toFixed(2)}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -1014,135 +1023,139 @@ export default function GradeBookPage() {
   );
 }
 
-function TranscriptPreview({ student, grades, archive, platform }: { student: any, grades: any[], archive: any[], platform: any }) {
+function TranscriptPreview({ student, platform }: { student: any, platform: any }) {
+  // Determine which grade levels to show based on student's current class
+  const classIndex = CLASSES.indexOf(student?.class || "2nde / Form 5");
+  const visibleClasses = CLASSES.slice(0, classIndex + 1);
+
   return (
-    <div className="max-w-4xl mx-auto bg-white p-8 md:p-12 border shadow-sm relative overflow-hidden font-serif text-black min-w-[800px]">
+    <div className="max-w-[1200px] mx-auto bg-white p-8 md:p-12 border shadow-sm relative overflow-hidden font-serif text-black min-w-[1100px] print:shadow-none print:border-none">
+      <style jsx global>{`
+        @media print {
+          @page { size: landscape; margin: 10mm; }
+          #printable-transcript { width: 100%; }
+        }
+      `}</style>
+      
+      {/* Cameroon Header */}
       <div className="grid grid-cols-3 gap-4 items-start text-center border-b-2 border-black pb-6">
         <div className="space-y-1 text-[9px] uppercase font-black">
           <p>Republic of Cameroon</p>
           <p>Peace - Work - Fatherland</p>
           <div className="h-px bg-black w-8 mx-auto my-1" />
           <p>Ministry of Secondary Education</p>
+          <p>{student?.school?.name || "INSTITUTIONAL NODE"}</p>
         </div>
         <div className="flex flex-col items-center gap-2">
           <div className="w-20 h-20 bg-white flex items-center justify-center p-2 border-2 border-primary/10">
              <img src={student?.school?.logo || platform.logo} alt="Logo" className="w-14 h-14 object-contain" />
           </div>
-          <p className="text-[9px] font-black uppercase text-primary tracking-tighter">{student?.school?.name || platform.name}</p>
+          <p className="text-[9px] font-black uppercase text-primary tracking-tighter">Verified Registry Node</p>
         </div>
         <div className="space-y-1 text-[9px] uppercase font-black">
           <p>République du Cameroun</p>
           <p>Paix - Travail - Patrie</p>
           <div className="h-px bg-black w-8 mx-auto my-1" />
           <p>Min. des Enseignements Secondaires</p>
+          <p>Délégation Régionale Littoral</p>
         </div>
       </div>
 
-      <div className="text-center space-y-4 my-8">
-        <h1 className="text-3xl font-black uppercase tracking-widest underline decoration-double underline-offset-4">Academic Transcript</h1>
-        <p className="text-sm font-bold opacity-60">Provisional Document • Draft Version</p>
+      <div className="text-center my-10 space-y-2">
+        <h1 className="text-4xl font-black uppercase tracking-widest underline underline-offset-8 decoration-double">Official Academic Transcript</h1>
+        <p className="text-sm font-bold opacity-60">Relevé de Notes Provisoire • Valid for Session 2023 / 2024</p>
       </div>
 
+      {/* Student Identity */}
       <div className="grid grid-cols-12 gap-8 bg-accent/5 p-6 border border-black/10 rounded-2xl items-center mb-10">
         <div className="col-span-2">
-           <Avatar className="w-28 h-28 border-4 border-white rounded-2xl shadow-lg">
+           <Avatar className="w-32 h-32 border-4 border-white rounded-[2rem] shadow-xl">
               <AvatarImage src={student?.avatar} />
-              <AvatarFallback className="text-3xl font-black">{student?.name?.charAt(0)}</AvatarFallback>
+              <AvatarFallback className="text-4xl font-black">{student?.name?.charAt(0)}</AvatarFallback>
            </Avatar>
         </div>
         <div className="col-span-10 grid grid-cols-2 gap-x-12 gap-y-3 text-sm">
-          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Student Name:</span><span className="font-black uppercase">{student?.name}</span></div>
-          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Matricule / ID:</span><span className="font-mono font-bold text-primary">{student?.id}</span></div>
-          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Current Grade:</span><span className="font-bold">2nde / Form 5</span></div>
-          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Session Start:</span><span className="font-bold">2023 / 2024</span></div>
+          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Identity:</span><span className="font-black uppercase">{student?.name}</span></div>
+          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Matricule:</span><span className="font-mono font-bold text-primary">{student?.id}</span></div>
+          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Current Grade:</span><span className="font-bold">{student?.class}</span></div>
+          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Status:</span><span className="font-black text-green-600">ENROLLED</span></div>
         </div>
       </div>
 
-      <div className="space-y-10">
-        <div className="space-y-4">
-          <h3 className="text-sm font-black uppercase border-b-2 border-black pb-1">I. Current Term Performance Summary</h3>
-          <Table className="border-collapse border border-black/20">
-            <TableHeader className="bg-black/5">
-              <TableRow className="border-b border-black/20">
-                <TableHead className="text-[10px] font-black text-black">Pedagogical Subject</TableHead>
-                <TableHead className="text-center text-[10px] font-black text-black">Coefficient</TableHead>
-                <TableHead className="text-center text-[10px] font-black text-black">Weighted Mean</TableHead>
-                <TableHead className="text-right text-[10px] font-black text-black pr-4">Appreciation</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {grades.map((g, i) => {
-                const avg = (g.seq1 + g.seq2) / 2;
-                return (
-                  <TableRow key={i} className="border-b border-black/10 h-10">
-                    <TableCell className="font-bold text-xs uppercase">{g.subject}</TableCell>
-                    <TableCell className="text-center text-xs font-mono">{g.coeff}</TableCell>
-                    <TableCell className={cn("text-center text-xs font-black", avg < 10 ? "text-red-600" : "text-primary")}>{avg.toFixed(2)}</TableCell>
-                    <TableCell className="text-right text-[9px] font-black uppercase italic pr-4">{getAppreciation(avg).text}</TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </div>
-
-        <div className="space-y-4">
-          <h3 className="text-sm font-black uppercase border-b-2 border-black pb-1">II. Historical Institutional Records</h3>
-          <Table className="border-collapse border border-black/20">
-            <TableHeader className="bg-black/5">
-              <TableRow className="border-b border-black/20">
-                <TableHead className="text-[10px] font-black text-black">Academic Session</TableHead>
-                <TableHead className="text-[10px] font-black text-black">Evaluation Cycle</TableHead>
-                <TableHead className="text-center text-[10px] font-black text-black">Aggregate Average</TableHead>
-                <TableHead className="text-right text-[10px] font-black text-black pr-4">Rank/Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {archive.map((a, i) => (
-                <TableRow key={i} className="border-b border-black/10 h-10">
-                  <TableCell className="font-bold text-xs">{a.year}</TableCell>
-                  <TableCell className="text-xs uppercase font-black text-primary/60">{a.term}</TableCell>
-                  <TableCell className={cn("text-center text-xs font-black", parseFloat(a.average) < 10 ? "text-red-600" : "text-primary")}>{a.average} / 20</TableCell>
-                  <TableCell className="text-right text-[9px] font-black uppercase pr-4">{a.position}</TableCell>
-                </TableRow>
+      {/* THE CAMEROONIAN LANDSCAPE MATRIX */}
+      <div className="border-2 border-black overflow-hidden rounded-sm">
+        <Table className="border-collapse">
+          <TableHeader className="bg-black/5">
+            <TableRow className="border-b-2 border-black h-12">
+              <TableHead rowSpan={2} className="border-r-2 border-black font-black text-black uppercase text-[10px] text-center w-48">Pedagogical Subject</TableHead>
+              {visibleClasses.map((cls, i) => (
+                <TableHead key={i} colSpan={3} className={cn("border-r-2 border-black font-black text-black uppercase text-[10px] text-center h-8", i === visibleClasses.length - 1 ? "border-r-0" : "")}>
+                  {cls.split(' / ')[1] || cls}
+                </TableHead>
               ))}
-            </TableBody>
-          </Table>
-        </div>
+            </TableRow>
+            <TableRow className="border-b-2 border-black h-8">
+              {visibleClasses.map((_, i) => (
+                <React.Fragment key={i}>
+                  <TableHead className="border-r border-black font-bold text-[8px] text-center">T1</TableHead>
+                  <TableHead className="border-r border-black font-bold text-[8px] text-center">T2</TableHead>
+                  <TableHead className={cn("border-r-2 border-black font-bold text-[8px] text-center", i === visibleClasses.length - 1 ? "border-r-0" : "")}>T3</TableHead>
+                </React.Fragment>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {Object.entries(MOCK_TRANSCRIPT_DATA).map(([subject, years]: [string, any], idx) => (
+              <TableRow key={idx} className="border-b border-black last:border-0 h-10">
+                <TableCell className="border-r-2 border-black font-black text-[10px] uppercase py-2 pl-4">{subject}</TableCell>
+                {visibleClasses.map((_, i) => {
+                  const key = `f${i + 1}`;
+                  const data = years[key] || ["---", "---", "---"];
+                  return (
+                    <React.Fragment key={i}>
+                      <TableCell className={cn("border-r border-black text-center text-[10px] font-mono", parseFloat(data[0]) < 10 ? "text-red-600" : "")}>{data[0]}</TableCell>
+                      <TableCell className={cn("border-r border-black text-center text-[10px] font-mono", parseFloat(data[1]) < 10 ? "text-red-600" : "")}>{data[1]}</TableCell>
+                      <TableCell className={cn("border-r-2 border-black text-center text-[10px] font-mono bg-accent/5", i === visibleClasses.length - 1 ? "border-r-0" : "", parseFloat(data[2]) < 10 ? "text-red-600" : "")}>{data[2]}</TableCell>
+                    </React.Fragment>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
 
-      <div className="grid grid-cols-2 gap-20 pt-16 mt-16 border-t-2 border-black/5">
-        <div className="text-center space-y-6">
-          <div className="h-14 w-full bg-accent/10 border-b-2 border-black/40 flex items-center justify-center">
-             <QrCode className="w-10 h-10 opacity-10" />
-          </div>
-          <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Provisional Registry Scan</p>
+      <div className="grid grid-cols-3 gap-10 mt-16 pt-10 border-t-2 border-black/5">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <QrCode className="w-20 h-20 opacity-10" />
+          <p className="text-[8px] font-black uppercase text-muted-foreground opacity-40">Security Registry Scan</p>
         </div>
         <div className="text-center space-y-6">
           <div className="h-14 w-full bg-accent/10 border-b-2 border-black/40 flex items-center justify-center">
-             <TranscriptSignatureSVG className="w-full h-full text-primary/5 p-2" />
+             <div className="w-full h-full opacity-10 p-2">
+                <svg viewBox="0 0 100 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+             </div>
           </div>
           <p className="text-[10px] font-black uppercase text-primary tracking-widest leading-none">The Registrar</p>
+        </div>
+        <div className="text-center space-y-6">
+          <div className="h-14 w-full bg-accent/10 border-b-2 border-black/40 flex items-center justify-center">
+             <Badge variant="outline" className="border-black text-[8px] font-black uppercase px-4 py-1">OFFICIAL SEAL</Badge>
+          </div>
+          <p className="text-[10px] font-black uppercase text-primary tracking-widest leading-none">Institutional Head</p>
         </div>
       </div>
 
       <div className="mt-12 text-center pt-8 border-t border-black/5 opacity-30">
         <div className="flex items-center justify-center gap-3">
            <img src={platform.logo} alt="EduIgnite" className="w-4 h-4 object-contain rounded-sm" />
-           <p className="text-[8px] uppercase font-black tracking-[0.4em]">
+           <p className="text-[8px] font-black uppercase tracking-[0.4em]">
              Verified Educational Record • {platform.name} Secure Node • {new Date().getFullYear()}
            </p>
         </div>
       </div>
     </div>
   )
-}
-
-function TranscriptSignatureSVG({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path d="M15 30L85 10" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" strokeDasharray="2 2" />
-    </svg>
-  );
 }
