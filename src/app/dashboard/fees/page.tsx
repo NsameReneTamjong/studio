@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -844,6 +845,80 @@ export default function FeesPage() {
         </DialogContent>
       </Dialog>
 
+      {/* CLASS FEE DOSSIER MODAL */}
+      <Dialog open={!!selectedClassDetails} onOpenChange={() => setSelectedClassDetails(null)}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col">
+          <DialogHeader className="bg-primary p-8 text-white relative shrink-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-2xl">
+                  <Building2 className="w-8 h-8 text-secondary" />
+                </div>
+                <div>
+                  <DialogTitle className="text-2xl font-black uppercase tracking-tighter">{selectedClassDetails?.name} Fee Dossier</DialogTitle>
+                  <DialogDescription className="text-white/60">Institutional oversight for financial compliance.</DialogDescription>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setSelectedClassDetails(null)} className="text-white hover:bg-white/10">
+                <X className="w-6 h-6" />
+              </Button>
+            </div>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto">
+            <Table>
+              <TableHeader className="bg-accent/10 uppercase text-[10px] font-black tracking-widest sticky top-0 z-10">
+                <TableRow>
+                  <TableHead className="pl-8 py-4">Student Profile</TableHead>
+                  <TableHead>Matricule</TableHead>
+                  <TableHead className="text-center">Paid Amount</TableHead>
+                  <TableHead className="text-right pr-8">Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {students.filter(s => s.class === selectedClassDetails?.name).map((s) => {
+                  const paid = (s.balances as any)[activeFeeFilter] || 0;
+                  const total = (s.totals as any)[activeFeeFilter] || 150000;
+                  const status = paid >= total ? 'cleared' : 'partial';
+                  
+                  return (
+                    <TableRow key={s.id} className="hover:bg-accent/5">
+                      <TableCell className="pl-8 py-4">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent">
+                            <AvatarImage src={s.avatar} alt={s.name} />
+                            <AvatarFallback className="bg-primary/5 text-primary text-xs font-black">{s.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <p className="font-bold text-sm text-primary uppercase">{s.name}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs font-bold text-muted-foreground">{s.id}</TableCell>
+                      <TableCell className="text-center font-black text-primary">{paid.toLocaleString()} XAF</TableCell>
+                      <TableCell className="text-right pr-8">
+                        <Badge className={cn(
+                          "text-[9px] font-black uppercase px-2 h-5 border-none",
+                          status === 'cleared' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                        )}>
+                          {status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+
+          <DialogFooter className="bg-accent/10 p-6 border-t border-accent flex justify-between items-center shrink-0">
+             <div className="flex items-center gap-2 text-muted-foreground italic mr-auto">
+                <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Verified Institutional Financial Record</p>
+             </div>
+             <Button variant="outline" onClick={() => setSelectedClassDetails(null)} className="rounded-xl px-10 h-11 font-bold text-xs uppercase">Close Dossier</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* OFFICIAL RECEIPT DIALOG */}
       <Dialog open={!!issuedReceipt} onOpenChange={() => setIssuedReceipt(null)}>
         <DialogContent className="sm:max-w-2xl p-0 border-none shadow-2xl rounded-[1.5rem] md:rounded-[2rem] overflow-hidden">
@@ -854,7 +929,7 @@ export default function FeesPage() {
                   <Receipt className="w-6 h-6 md:w-8 md:h-8 text-secondary" />
                 </div>
                 <div>
-                  <DialogTitle className="text-xl md:text-2xl font-black">Official Receipt Issued</DialogTitle>
+                  <DialogTitle className="text-xl md:text-2xl font-black">Official Financial Receipt</DialogTitle>
                   <DialogDescription className="text-white/60 text-xs">Institutional financial transaction successfully recorded.</DialogDescription>
                 </div>
               </div>
@@ -921,10 +996,6 @@ export default function FeesPage() {
                     </div>
                     <p className="text-[8px] font-black uppercase text-primary tracking-widest leading-none">The Bursar</p>
                   </div>
-               </div>
-
-               <div className="bg-accent/30 p-3 rounded-lg text-[8px] leading-relaxed italic text-muted-foreground border border-accent">
-                 "This resource is public property. Failure to return the item by the due date will result in institutional fines."
                </div>
 
                <div className="text-center pt-4 border-t border-black/5">
