@@ -188,9 +188,7 @@ export default function GradeBookPage() {
       const matchesClass = adminFilters.class === "all" || s.class === adminFilters.class;
       const matchesSection = adminFilters.section === "all" || s.section === adminFilters.section;
       
-      // Sub-admin section restriction logic
       if (isSubAdmin) {
-        // Assume sub-admin section is determined by their own profile (here we mock it)
         const subAdminSection = "Anglophone Section";
         if (s.section !== subAdminSection) return false;
       }
@@ -220,7 +218,6 @@ export default function GradeBookPage() {
     return <LoadingState message="Fetching pedagogical records..." />;
   }
 
-  // --- STUDENT VIEW ---
   if (isStudent) {
     return (
       <div className="space-y-8 pb-20 animate-in fade-in slide-in-from-bottom-2 duration-700">
@@ -403,6 +400,15 @@ export default function GradeBookPage() {
                   </TableBody>
                 </Table>
               </CardContent>
+              <CardFooter className="bg-accent/10 p-6 border-t border-accent flex flex-col sm:flex-row gap-4 justify-between items-center">
+                 <div className="flex items-center gap-2 text-muted-foreground">
+                    <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                    <p className="text-[10px] uppercase font-black tracking-widest italic opacity-40">All past transactions are digitally signed and archived.</p>
+                 </div>
+                 <Button variant="ghost" size="sm" className="gap-2 text-[10px] font-black uppercase w-full sm:w-auto">
+                   <Printer className="w-3.5 h-3.5" /> Print Statement
+                 </Button>
+              </CardFooter>
             </Card>
           </TabsContent>
 
@@ -433,7 +439,6 @@ export default function GradeBookPage() {
     );
   }
 
-  // --- ADMIN VIEW ---
   if (isAdmin) {
     return (
       <div className="space-y-8 pb-20 animate-in fade-in slide-in-from-bottom-2 duration-700">
@@ -589,7 +594,6 @@ export default function GradeBookPage() {
     );
   }
 
-  // --- TEACHER VIEW ---
   return (
     <div className="space-y-8 pb-20 animate-in fade-in slide-in-from-bottom-2 duration-700">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -643,7 +647,7 @@ export default function GradeBookPage() {
               <ShieldCheck className="w-5 h-5 text-secondary" /> VERIFIED
             </div>
           </CardContent>
-        </div>
+        </Card>
       </div>
 
       <div className="bg-white p-4 md:p-6 rounded-[2rem] border shadow-sm flex flex-col md:flex-row gap-4 items-end">
@@ -748,7 +752,6 @@ export default function GradeBookPage() {
         </CardContent>
       </Card>
 
-      {/* BULLETIN PREVIEW DIALOG */}
       <Dialog open={!!previewDoc} onOpenChange={() => setPreviewDoc(null)}>
         <DialogContent className="sm:max-w-5xl max-h-[95vh] overflow-y-auto p-0 border-none shadow-2xl rounded-3xl">
           <DialogHeader className="p-6 bg-primary text-white no-print">
