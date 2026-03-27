@@ -208,10 +208,6 @@ export default function LoginPage() {
                 <CardTitle className="text-4xl font-black text-primary uppercase tracking-tighter">
                   {mode === "login" ? t("signIn") : mode === "activate" ? "ACTIVATE ACCOUNT" : t("resetPassword")}
                 </CardTitle>
-                <CardDescription className={cn("text-sm font-medium opacity-60", (mode === "activate" || mode === "login") && "hidden")}>
-                  {mode === "forgot" ? "Identify your record via corporate email." :
-                   mode === "otp" ? "A verification token has been dispatched." : "Choose a secure new pedagogical passkey."}
-                </CardDescription>
               </CardHeader>
               <CardContent className="px-10">
                 <form onSubmit={handleAuth} className="space-y-6">
