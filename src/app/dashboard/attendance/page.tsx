@@ -38,7 +38,8 @@ import {
   WifiOff,
   Printer,
   Search,
-  Award
+  Award,
+  BarChart3
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -115,6 +116,7 @@ export default function AttendancePage() {
   }, [registryState]);
 
   const setStatus = (studentId: string, status: 'present' | 'absent') => {
+    if (isAdmin) return; // Prevent admins from changing status
     setRegistryState(prev => ({ ...prev, [studentId]: status }));
   };
 
@@ -128,6 +130,17 @@ export default function AttendancePage() {
       });
       if (selectedClassDetails) setSelectedClassDetails(null);
     }, 1200);
+  };
+
+  const handleDownloadStats = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      setIsProcessing(false);
+      toast({
+        title: "Statistics Exported",
+        description: `Attendance data for ${selectedClassDetails?.name} has been generated.`,
+      });
+    }, 1000);
   };
 
   if (isLoading) return <LoadingState message="Fetching institutional presence records..." />;
@@ -287,7 +300,7 @@ export default function AttendancePage() {
         
         <div className="flex flex-wrap items-center gap-2">
           {isAdmin && (
-            <Button variant="outline" className="flex-1 sm:flex-none gap-2 bg-white rounded-xl h-11 border-primary/10 font-bold text-xs" onClick={() => toast({ title: "Report Exported" })}>
+            <Button variant="outline" className="flex-1 sm:flex-none gap-2 bg-white rounded-xl h-11 border-primary/10 font-bold text-xs" onClick={() => toast({ title: "Node Report Exported" })}>
               <FileDown className="w-4 h-4 text-primary" /> Export Summary
             </Button>
           )}
@@ -312,7 +325,7 @@ export default function AttendancePage() {
                 <div>
                   <CardTitle className="text-lg md:text-xl font-black text-primary truncate max-w-[180px]">{cls.name}</CardTitle>
                   <CardDescription className="text-[9px] font-bold uppercase tracking-widest flex items-center gap-1 mt-1 truncate">
-                    <User className="w-3 h-3 text-secondary" /> {cls.teacher}
+                    <User className="w-3.5 h-3.5 text-secondary" /> {cls.teacher}
                   </CardDescription>
                 </div>
                 <Badge className="bg-accent/30 text-primary border-none h-8 font-black">{cls.percentage}%</Badge>
@@ -333,7 +346,7 @@ export default function AttendancePage() {
                 className="flex-1 justify-between hover:bg-white text-primary font-bold text-[10px] uppercase w-full rounded-xl"
                 onClick={() => setSelectedClassDetails(cls)}
               >
-                Inspect Records
+                {isAdmin ? "Audit Records" : "Inspect Records"}
                 <ArrowRight className="w-3.5 h-3.5" />
               </Button>
             </CardFooter>
@@ -450,12 +463,18 @@ export default function AttendancePage() {
               <Input placeholder="Search students..." className="pl-10 h-11 bg-accent/20 border-none rounded-xl text-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
             <div className="flex gap-2 w-full md:w-auto">
-              <Button variant="outline" className="rounded-xl gap-2 font-bold h-11 px-6 text-xs flex-1 sm:flex-none bg-white border-primary/10">
+              <Button variant="outline" className="rounded-xl gap-2 font-bold h-11 px-6 text-xs flex-1 sm:flex-none bg-white border-primary/10" onClick={() => window.print()}>
                 <Printer className="w-4 h-4" /> Print
               </Button>
-              <Button className="rounded-xl shadow-lg h-11 px-8 font-black uppercase text-[10px] tracking-widest gap-2 flex-1 sm:flex-none" onClick={handleSubmitRegistry} disabled={isProcessing}>
-                {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Commit
-              </Button>
+              {isAdmin ? (
+                <Button className="rounded-xl shadow-lg h-11 px-8 font-black uppercase text-[10px] tracking-widest gap-2 flex-1 sm:flex-none" onClick={handleDownloadStats} disabled={isProcessing}>
+                  {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <BarChart3 className="w-4 h-4" />} Download Statistics
+                </Button>
+              ) : (
+                <Button className="rounded-xl shadow-lg h-11 px-8 font-black uppercase text-[10px] tracking-widest gap-2 flex-1 sm:flex-none" onClick={handleSubmitRegistry} disabled={isProcessing}>
+                  {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Commit
+                </Button>
+              )}
             </div>
           </div>
 
@@ -465,7 +484,7 @@ export default function AttendancePage() {
                 <TableRow>
                   <TableHead className="pl-8 py-4">Student Profile</TableHead>
                   <TableHead className="text-center">Mean %</TableHead>
-                  <TableHead className="text-right pr-8">Daily Entry</TableHead>
+                  <TableHead className="text-right pr-8">{isAdmin ? "Current Status" : "Daily Entry"}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -492,14 +511,23 @@ export default function AttendancePage() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right pr-8">
-                      <div className="flex justify-end gap-1">
-                        <Button size="icon" variant={registryState[s.id] === 'present' ? 'default' : 'outline'} className="h-8 w-8 rounded-lg" onClick={() => setStatus(s.id, 'present')}>
-                          <Check className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button size="icon" variant={registryState[s.id] === 'absent' ? 'destructive' : 'outline'} className="h-8 w-8 rounded-lg" onClick={() => setStatus(s.id, 'absent')}>
-                          <X className="w-3.5 h-3.5" />
-                        </Button>
-                      </div>
+                      {isAdmin ? (
+                        <Badge className={cn(
+                          "text-[8px] font-black uppercase px-2 h-5 border-none",
+                          registryState[s.id] === 'present' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                        )}>
+                          {registryState[s.id]}
+                        </Badge>
+                      ) : (
+                        <div className="flex justify-end gap-1">
+                          <Button size="icon" variant={registryState[s.id] === 'present' ? 'default' : 'outline'} className="h-8 w-8 rounded-lg" onClick={() => setStatus(s.id, 'present')}>
+                            <Check className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button size="icon" variant={registryState[s.id] === 'absent' ? 'destructive' : 'outline'} className="h-8 w-8 rounded-lg" onClick={() => setStatus(s.id, 'absent')}>
+                            <X className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
