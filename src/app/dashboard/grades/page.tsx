@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
-import { LoadingState, CardSkeleton } from "@/components/shared/loading-state";
+import { LoadingState } from "@/components/shared/loading-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,12 +31,18 @@ import {
   QrCode,
   Users,
   PenTool,
-  Info
+  Info,
+  ArrowLeft,
+  XCircle,
+  ChevronRight,
+  UserRoundCheck,
+  UserRoundX
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRouter } from "next/navigation";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
 const SUBJECTS = ["Advanced Physics", "Mathematics", "English Literature", "General Chemistry", "Biology", "History", "Geography"];
@@ -48,6 +54,41 @@ const MOCK_STUDENTS_GRADES = [
   { uid: "S4", id: "GBHS26S004", name: "Diana Prince", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s4/100/100", seq1: 12.0, seq2: 13.0 },
 ];
 
+const MOCK_GRADE_HISTORY = [
+  { 
+    id: "H1", 
+    year: "2023 / 2024", 
+    term: "Term 1", 
+    subject: "Advanced Physics", 
+    class: "2nde / Form 5", 
+    numPass: 38, 
+    numFail: 4, 
+    percentPass: 90.5,
+    students: [
+      { name: "Alice Thompson", mark: 16.5, status: "pass" },
+      { name: "Bob Richards", mark: 14.0, status: "pass" },
+      { name: "Diana Prince", mark: 12.5, status: "pass" },
+      { name: "Charlie Davis", mark: 8.5, status: "fail" },
+      { name: "Ethan Hunt", mark: 11.0, status: "pass" },
+      { name: "Sarah Connor", mark: 07.5, status: "fail" },
+    ]
+  },
+  { 
+    id: "H2", 
+    year: "2022 / 2023", 
+    term: "Term 3", 
+    subject: "Mathematics", 
+    class: "3ème / Form 4", 
+    numPass: 32, 
+    numFail: 10, 
+    percentPass: 76.2,
+    students: [
+      { name: "John Smith", mark: 18.0, status: "pass" },
+      { name: "Jane Doe", mark: 09.0, status: "fail" },
+    ]
+  }
+];
+
 export default function GradeBookPage() {
   const { user } = useAuth();
   const { t, language } = useI18n();
@@ -55,14 +96,15 @@ export default function GradeBookPage() {
   const router = useRouter();
   
   const [isLoading, setIsLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedClass, setSelectedClass] = useState("2nde / Form 5");
   const [selectedSubject, setSelectedSubject] = useState("Advanced Physics");
   const [grades, setGrades] = useState(MOCK_STUDENTS_GRADES);
+  
+  // History Modal State
+  const [selectedHistory, setSelectedHistory] = useState<any>(null);
 
   const isTeacher = user?.role === "TEACHER";
-  const isAdmin = user?.role === "SCHOOL_ADMIN" || user?.role === "SUB_ADMIN";
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 1200);
@@ -306,6 +348,69 @@ export default function GradeBookPage() {
         </CardFooter>
       </Card>
 
+      {/* ACADEMIC HISTORY SECTION */}
+      <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+        <CardHeader className="bg-accent/5 border-b p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-primary/5 rounded-2xl">
+              <History className="w-8 h-8 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-2xl font-black uppercase tracking-tight text-primary">Academic History Ledger</CardTitle>
+              <CardDescription>Verified results from previous evaluation cycles and terms.</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0 overflow-x-auto">
+          <Table>
+            <TableHeader className="bg-accent/10">
+              <TableRow className="uppercase text-[10px] font-black tracking-widest border-b border-accent/20">
+                <TableHead className="pl-8 py-4">Academic Year</TableHead>
+                <TableHead>Term</TableHead>
+                <TableHead>Subject</TableHead>
+                <TableHead>Class</TableHead>
+                <TableHead className="text-center">Pass</TableHead>
+                <TableHead className="text-center">Fail</TableHead>
+                <TableHead className="text-center">% Pass</TableHead>
+                <TableHead className="text-right pr-8">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {MOCK_GRADE_HISTORY.map((hist) => (
+                <TableRow key={hist.id} className="hover:bg-accent/5 transition-colors border-b last:border-0 h-16">
+                  <TableCell className="pl-8 font-bold text-primary">{hist.year}</TableCell>
+                  <TableCell>
+                    <Badge variant="secondary" className="bg-primary/5 text-primary border-none font-bold text-[10px] uppercase">{hist.term}</Badge>
+                  </TableCell>
+                  <TableCell className="font-bold text-primary/80 text-xs">{hist.subject}</TableCell>
+                  <TableCell className="text-xs font-medium text-muted-foreground">{hist.class}</TableCell>
+                  <TableCell className="text-center font-black text-green-600">{hist.numPass}</TableCell>
+                  <TableCell className="text-center font-black text-red-600">{hist.numFail}</TableCell>
+                  <TableCell className="text-center">
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-sm font-black text-primary">{hist.percentPass}%</span>
+                      <div className="w-16 h-1 bg-accent rounded-full overflow-hidden">
+                        <div className="h-full bg-primary" style={{ width: `${hist.percentPass}%` }} />
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right pr-8">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-[10px] font-black uppercase tracking-widest gap-2 hover:bg-primary hover:text-white rounded-xl"
+                      onClick={() => setSelectedHistory(hist)}
+                    >
+                      <Eye className="w-3.5 h-3.5" /> View Details
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <Card className="border-none shadow-sm bg-blue-50 p-6 space-y-4 rounded-3xl">
           <div className="flex items-center gap-3">
@@ -330,6 +435,126 @@ export default function GradeBookPage() {
            <QrCode className="w-12 h-12 opacity-10" />
         </Card>
       </div>
+
+      {/* HISTORY DETAILS MODAL */}
+      <Dialog open={!!selectedHistory} onOpenChange={() => setSelectedHistory(null)}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col">
+          <DialogHeader className="bg-primary p-8 text-white relative shrink-0">
+            <div className="flex items-center gap-6">
+              <div className="p-4 bg-white/10 rounded-2xl">
+                <Award className="w-10 h-10 text-secondary" />
+              </div>
+              <div>
+                <div className="flex items-center gap-3 mb-1">
+                  <DialogTitle className="text-2xl font-black uppercase tracking-tight">{selectedHistory?.term} Performance Dossier</DialogTitle>
+                  <Badge className="bg-secondary text-primary border-none font-black">{selectedHistory?.year}</Badge>
+                </div>
+                <DialogDescription className="text-white/60">
+                  Detailed results for {selectedHistory?.subject} • {selectedHistory?.class}
+                </DialogDescription>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setSelectedHistory(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+              <X className="w-6 h-6" />
+            </Button>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto p-8 space-y-10 no-scrollbar">
+            {/* SUCCESS SUMMARY */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-green-50 p-6 rounded-3xl border border-green-100 flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-black uppercase text-green-600 tracking-widest">Excellence & Pass</p>
+                  <p className="text-3xl font-black text-green-700">{selectedHistory?.numPass}</p>
+                </div>
+                <UserRoundCheck className="w-10 h-10 text-green-200" />
+              </div>
+              <div className="bg-red-50 p-6 rounded-3xl border border-red-100 flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-black uppercase text-red-600 tracking-widest">Underperforming</p>
+                  <p className="text-3xl font-black text-red-700">{selectedHistory?.numFail}</p>
+                </div>
+                <UserRoundX className="w-10 h-10 text-red-200" />
+              </div>
+              <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10 flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-black uppercase text-primary/60 tracking-widest">Final Mean</p>
+                  <p className="text-3xl font-black text-primary">{selectedHistory?.percentPass}%</p>
+                </div>
+                <TrendingUp className="w-10 h-10 text-primary/10" />
+              </div>
+            </div>
+
+            {/* DETAILED TABLES */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* PASSED LIST */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 border-b border-green-100 pb-2">
+                  <CheckCircle2 className="w-5 h-5 text-green-600" />
+                  <h3 className="text-sm font-black uppercase text-green-700 tracking-widest">Passing Students</h3>
+                </div>
+                <div className="rounded-2xl border border-green-50 overflow-hidden shadow-sm">
+                  <Table>
+                    <TableHeader className="bg-green-50">
+                      <TableRow>
+                        <TableHead className="text-[10px] font-black uppercase text-green-700 py-3">Student Name</TableHead>
+                        <TableHead className="text-right text-[10px] font-black uppercase text-green-700 pr-6">Moy/20</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {selectedHistory?.students.filter((s: any) => s.status === 'pass').map((s: any, i: number) => (
+                        <TableRow key={i} className="hover:bg-green-50/30">
+                          <TableCell className="font-bold text-sm text-primary py-3">{s.name}</TableCell>
+                          <TableCell className="text-right pr-6 font-black text-green-600">{s.mark.toFixed(2)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+
+              {/* FAILED LIST */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 border-b border-red-100 pb-2">
+                  <XCircle className="w-5 h-5 text-red-600" />
+                  <h3 className="text-sm font-black uppercase text-red-700 tracking-widest">Failures / Resits</h3>
+                </div>
+                <div className="rounded-2xl border border-red-50 overflow-hidden shadow-sm">
+                  <Table>
+                    <TableHeader className="bg-red-50">
+                      <TableRow>
+                        <TableHead className="text-[10px] font-black uppercase text-red-700 py-3">Student Name</TableHead>
+                        <TableHead className="text-right text-[10px] font-black uppercase text-red-700 pr-6">Moy/20</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {selectedHistory?.students.filter((s: any) => s.status === 'fail').map((s: any, i: number) => (
+                        <TableRow key={i} className="hover:bg-red-50/30">
+                          <TableCell className="font-bold text-sm text-primary py-3">{s.name}</TableCell>
+                          <TableCell className="text-right pr-6 font-black text-red-600">{s.mark.toFixed(2)}</TableCell>
+                        </TableRow>
+                      ))}
+                      {selectedHistory?.students.filter((s: any) => s.status === 'fail').length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={2} className="h-20 text-center text-[10px] font-black uppercase text-muted-foreground opacity-40">Zero failures recorded.</TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="bg-accent/10 p-6 border-t border-accent flex justify-between items-center shrink-0">
+             <div className="flex items-center gap-2 text-muted-foreground italic">
+                <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Verified Institutional Pedagogical Audit Record</p>
+             </div>
+             <Button onClick={() => setSelectedHistory(null)} className="rounded-xl h-11 px-8 font-black uppercase text-[10px] bg-primary text-white">Close Dossier</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
