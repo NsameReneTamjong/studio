@@ -114,7 +114,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: language === 'en' ? 'Hierarchy & Sections' : 'Hiérarchie & Sections',
       icon: Network,
       href: "/dashboard/community",
-      roles: ["SCHOOL_ADMIN"],
+      roles: ["SCHOOL_ADMIN", "SUB_ADMIN"],
     },
     // GENERAL DASHBOARD LINKS
     {

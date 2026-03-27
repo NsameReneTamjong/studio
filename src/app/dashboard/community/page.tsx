@@ -38,7 +38,9 @@ import {
   Download,
   Clock,
   Zap,
-  Lock
+  Lock,
+  BookOpen,
+  LayoutGrid
 } from "lucide-react";
 import { 
   DropdownMenu, 
@@ -72,6 +74,14 @@ interface SchoolAdmin {
   permissions: SubAdminPermissions;
 }
 
+interface InstitutionalClass {
+  id: string;
+  name: string;
+  baseLevel: string;
+  section: string;
+  students: number;
+}
+
 // Mock Data
 const INITIAL_SUB_SCHOOLS = [
   { id: "SEC-01", name: "Anglophone Section", type: "General", head: "Dr. Aris Tesla", headRole: "Vice Principal", students: 450, staff: 18, color: "bg-blue-500" },
@@ -100,6 +110,12 @@ const INITIAL_ADMINS: SchoolAdmin[] = [
   },
 ];
 
+const INITIAL_CLASSES: InstitutionalClass[] = [
+  { id: "CLS-01", name: "Form 1A", baseLevel: "6ème / Form 1", section: "Anglophone Section", students: 42 },
+  { id: "CLS-02", name: "Form 1B", baseLevel: "6ème / Form 1", section: "Anglophone Section", students: 40 },
+  { id: "CLS-03", name: "2nde C", baseLevel: "2nde / Form 5", section: "Francophone Section", students: 38 },
+];
+
 const GOVERNANCE_LOGS = [
   { id: "L1", admin: "VP Academics", action: "Authorized ID Card Batch", purview: "Anglophone Section", time: "Today, 10:45 AM", type: "Operational", severity: "Medium" },
   { id: "L2", admin: "Section Head", action: "Modified Class Schedule", purview: "Technical Section", time: "Today, 09:12 AM", type: "Pedagogical", severity: "High" },
@@ -113,19 +129,26 @@ const STAFF_MEMBERS = [
   { id: "GBHS26L001", name: "Mr. Ebong", role: "LIBRARIAN" },
 ];
 
+const BASE_LEVELS = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
+
 export default function CommunityPage() {
   const { language } = useI18n();
   const { toast } = useToast();
   const [subSchools, setSubSchools] = useState(INITIAL_SUB_SCHOOLS);
   const [admins, setAdmins] = useState<SchoolAdmin[]>(INITIAL_ADMINS);
+  const [classes, setClasses] = useState<InstitutionalClass[]>(INITIAL_CLASSES);
   
   const [isAddingSubSchool, setIsAddingSubSchool] = useState(false);
   const [isAppointingAdmin, setIsAppointingAdmin] = useState(false);
+  const [isAddingClass, setIsAddingClass] = useState(false);
+  
   const [editingAdmin, setEditingAdmin] = useState<SchoolAdmin | null>(null);
   const [configuringSection, setConfiguringSection] = useState<any | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   
   const [newSectionData, setNewSectionData] = useState({ name: "", type: "General" });
+  const [newClassData, setNewClassData] = useState({ name: "", baseLevel: BASE_LEVELS[0], section: INITIAL_SUB_SCHOOLS[0].name });
+  
   const [newAdminData, setNewAdminData] = useState({
     name: "",
     id: "",
@@ -159,6 +182,23 @@ export default function CommunityPage() {
       setNewSectionData({ name: "", type: "General" });
       toast({ title: "Section Created", description: `${created.name} added to school structure.` });
     }, 800);
+  };
+
+  const handleAddClass = () => {
+    if (!newClassData.name) return;
+    setIsProcessing(true);
+    setTimeout(() => {
+      const created = {
+        id: `CLS-${Math.floor(100 + Math.random() * 900)}`,
+        ...newClassData,
+        students: 0
+      };
+      setClasses([...classes, created]);
+      setIsProcessing(false);
+      setIsAddingClass(false);
+      setNewClassData({ name: "", baseLevel: BASE_LEVELS[0], section: INITIAL_SUB_SCHOOLS[0].name });
+      toast({ title: "Class Registry Updated", description: `${created.name} is now active.` });
+    }, 1000);
   };
 
   const handleUpdateSection = () => {
@@ -232,19 +272,22 @@ export default function CommunityPage() {
             </div>
             {language === 'en' ? "Institutional Hierarchy" : "Hiérarchie Institutionnelle"}
           </h1>
-          <p className="text-muted-foreground mt-1">Manage sub-schools, sections, administrative appointments, and audit governance logs.</p>
+          <p className="text-muted-foreground mt-1">Manage sub-schools, classes, sections, and administrative appointments.</p>
         </div>
       </div>
 
       <Tabs defaultValue="structure" className="w-full">
-        <TabsList className="grid grid-cols-3 w-full md:w-[750px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl">
-          <TabsTrigger value="structure" className="gap-2 py-3 rounded-xl transition-all">
+        <TabsList className="grid grid-cols-4 w-full md:w-[1000px] mb-8 bg-white shadow-sm border h-auto p-1.5 rounded-3xl overflow-x-auto no-scrollbar">
+          <TabsTrigger value="structure" className="gap-2 py-3 rounded-2xl transition-all font-bold">
             <Building className="w-4 h-4" /> Sections
           </TabsTrigger>
-          <TabsTrigger value="hierarchy" className="gap-2 py-3 rounded-xl transition-all">
+          <TabsTrigger value="classes" className="gap-2 py-3 rounded-2xl transition-all font-bold">
+            <BookOpen className="w-4 h-4" /> Class Registry
+          </TabsTrigger>
+          <TabsTrigger value="hierarchy" className="gap-2 py-3 rounded-2xl transition-all font-bold">
             <ShieldCheck className="w-4 h-4" /> Admin Team
           </TabsTrigger>
-          <TabsTrigger value="logs" className="gap-2 py-3 rounded-xl transition-all">
+          <TabsTrigger value="logs" className="gap-2 py-3 rounded-2xl transition-all font-bold">
             <History className="w-4 h-4" /> Strategic Logs
           </TabsTrigger>
         </TabsList>
@@ -320,6 +363,79 @@ export default function CommunityPage() {
                     Section Configuration
                     <ChevronRight className="w-4 h-4" />
                   </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="classes" className="animate-in fade-in slide-in-from-bottom-4 mt-0 space-y-6">
+          <div className="flex justify-between items-center">
+            <h3 className="text-xl font-black text-primary uppercase tracking-tight">Active Class Streams</h3>
+            <Dialog open={isAddingClass} onOpenChange={setIsAddingClass}>
+              <DialogTrigger asChild>
+                <Button className="gap-2 rounded-xl h-11 px-6 shadow-lg bg-primary text-white font-bold">
+                  <Plus className="w-4 h-4" /> Add New Class
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+                <DialogHeader className="bg-primary p-8 text-white">
+                  <DialogTitle className="text-2xl font-black">Define Class Stream</DialogTitle>
+                  <DialogDescription className="text-white/60">Initialize a specific student cohort.</DialogDescription>
+                </DialogHeader>
+                <div className="p-8 space-y-6">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Class Label</Label>
+                    <Input value={newClassData.name} onChange={(e) => setNewClassData({...newClassData, name: e.target.value})} placeholder="e.g. Form 1B or Terminale C" className="h-12 bg-accent/30 border-none rounded-xl font-bold" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Academic Base Level</Label>
+                    <Select value={newClassData.baseLevel} onValueChange={(v) => setNewClassData({...newClassData, baseLevel: v})}>
+                      <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                      <SelectContent>{BASE_LEVELS.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Institutional Section</Label>
+                    <Select value={newClassData.section} onValueChange={(v) => setNewClassData({...newClassData, section: v})}>
+                      <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                      <SelectContent>{subSchools.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+                  <Button onClick={handleAddClass} className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs bg-primary text-white" disabled={isProcessing}>
+                    {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-5 h-5 mr-2" />}
+                    Confirm Registry Update
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {classes.map(cls => (
+              <Card key={cls.id} className="border-none shadow-sm overflow-hidden bg-white group hover:shadow-md transition-all">
+                <CardHeader className="p-6 pb-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <Badge variant="secondary" className="bg-primary/5 text-primary border-none text-[8px] font-black uppercase">{cls.section}</Badge>
+                    <div className="p-2 bg-accent rounded-lg"><LayoutGrid className="w-4 h-4 text-primary" /></div>
+                  </div>
+                  <CardTitle className="text-xl font-black text-primary leading-none uppercase">{cls.name}</CardTitle>
+                  <CardDescription className="text-[10px] font-bold mt-1">{cls.baseLevel}</CardDescription>
+                </CardHeader>
+                <CardContent className="px-6 pb-6">
+                   <div className="flex items-center justify-between p-3 bg-accent/20 rounded-xl border border-accent">
+                      <div className="space-y-0.5">
+                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Enrolled Students</p>
+                        <p className="text-base font-black text-primary">{cls.students}</p>
+                      </div>
+                      <QrCode className="w-8 h-8 opacity-10" />
+                   </div>
+                </CardContent>
+                <CardFooter className="p-3 bg-accent/10 border-t flex justify-end">
+                   <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-white text-primary/40 hover:text-primary"><Pencil className="w-3.5 h-3.5"/></Button>
+                   <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-white text-destructive/40 hover:text-destructive" onClick={() => setClasses(classes.filter(c => c.id !== cls.id))}><Trash2 className="w-3.5 h-3.5"/></Button>
                 </CardFooter>
               </Card>
             ))}
@@ -501,7 +617,7 @@ export default function CommunityPage() {
                 </TableBody>
               </Table>
             </CardContent>
-            <CardFooter className="bg-accent/10 p-6 border-t border-accent flex justify-between items-center">
+            <CardFooter className="bg-accent/10 p-6 border-t border-accent flex justify-center">
                <div className="flex items-center gap-2 text-muted-foreground">
                   <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
                   <p className="text-[10px] font-black uppercase tracking-widest italic opacity-40">Governance synchronization active. Records are tamper-proof.</p>
