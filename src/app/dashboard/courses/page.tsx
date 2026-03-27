@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -30,16 +30,14 @@ import {
   Image as ImageIcon,
   File as FileIcon,
   X,
-  Maximize,
   Radio,
   PenTool,
   Users,
-  Briefcase,
+  Building2,
   GraduationCap,
   History,
   QrCode,
   MapPin,
-  Signature
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n-context";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
@@ -117,10 +115,19 @@ export default function CoursesPage() {
   const [viewingPortfolio, setViewingPortfolio] = useState<any>(null);
   const [materials, setMaterials] = useState(INITIAL_MATERIALS);
   const [isAddingMaterial, setIsAddingMaterial] = useState(false);
-  const [newMaterialData, setNewMaterialData] = useState({ title: "", description: "", type: "pdf", url: "" });
+  
+  // Material Upload State
+  const [uploadSource, setUploadSource] = useState<'file' | 'url'>('file');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [newMaterialData, setNewMaterialData] = useState({ 
+    title: "", 
+    description: "", 
+    type: "pdf", 
+    url: "" 
+  });
 
   const [previewMaterial, setPreviewMaterial] = useState<any>(null);
-
   const [myOptionalSubjects, setMyOptionalSubjects] = useState<string[]>([]);
   
   const [newSubject, setNewSubject] = useState({
@@ -170,8 +177,26 @@ export default function CoursesPage() {
     toast({ title: "Removed", description: "Subject removed from curriculum." });
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.size > 5 * 1024 * 1024) {
+        toast({ variant: "destructive", title: "File too large", description: "Maximum file size is 5MB." });
+        return;
+      }
+      setSelectedFile(file);
+      // Auto-populate title if empty
+      if (!newMaterialData.title) {
+        setNewMaterialData({ ...newMaterialData, title: file.name.split('.')[0] });
+      }
+    }
+  };
+
   const handleAddMaterial = () => {
-    if (!newMaterialData.title || !newMaterialData.url) return;
+    if (!newMaterialData.title) return;
+    if (uploadSource === 'url' && !newMaterialData.url) return;
+    if (uploadSource === 'file' && !selectedFile) return;
+
     setIsProcessing(true);
     setTimeout(() => {
       const created = {
@@ -180,14 +205,15 @@ export default function CoursesPage() {
         description: newMaterialData.description,
         type: newMaterialData.type,
         date: new Date().toISOString().split('T')[0],
-        size: "1.2 MB",
+        size: uploadSource === 'file' ? `${(selectedFile!.size / (1024 * 1024)).toFixed(1)} MB` : "Link",
         subjectId: viewingMaterialsFor.id,
-        fileUrl: newMaterialData.url
+        fileUrl: uploadSource === 'url' ? newMaterialData.url : "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
       };
       setMaterials([created, ...materials]);
       setIsProcessing(false);
       setIsAddingMaterial(false);
       setNewMaterialData({ title: "", description: "", type: "pdf", url: "" });
+      setSelectedFile(null);
       toast({ title: "Material Uploaded", description: "Resource added to class archive." });
     }, 1200);
   };
@@ -252,7 +278,7 @@ export default function CoursesPage() {
                   <Upload className="w-5 h-5" /> {language === 'en' ? 'Upload Material' : 'Ajouter un Support'}
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+              <DialogContent className="sm:max-w-xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
                 <DialogHeader className="bg-primary p-8 text-white">
                   <div className="flex items-center gap-4">
                     <div className="p-3 bg-white/10 rounded-2xl"><BookMarked className="w-8 h-8 text-secondary" /></div>
@@ -262,54 +288,113 @@ export default function CoursesPage() {
                     </div>
                   </div>
                 </DialogHeader>
-                <div className="p-8 space-y-6">
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Title / Label</Label>
-                    <Input 
-                      value={newMaterialData.title} 
-                      onChange={(e) => setNewMaterialData({...newMaterialData, title: e.target.value})} 
-                      placeholder="e.g. Chapter 4 Summary" 
-                      className="h-12 bg-accent/30 border-none rounded-xl font-bold"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Short Description</Label>
-                    <Input 
-                      value={newMaterialData.description} 
-                      onChange={(e) => setNewMaterialData({...newMaterialData, description: e.target.value})} 
-                      placeholder="What is this material about?" 
-                      className="h-12 bg-accent/30 border-none rounded-xl"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Type</Label>
-                      <Select value={newMaterialData.type} onValueChange={(v) => setNewMaterialData({...newMaterialData, type: v})}>
-                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pdf">PDF Document</SelectItem>
-                          <SelectItem value="video">Lecture Video</SelectItem>
-                          <SelectItem value="image">Image / Diagram</SelectItem>
-                          <SelectItem value="document">Text File</SelectItem>
-                          <SelectItem value="link">Web Link</SelectItem>
-                        </SelectContent>
-                      </Select>
+                <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+                  <div className="space-y-4">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Upload Source</Label>
+                    <div className="flex gap-2 p-1 bg-accent/30 rounded-xl">
+                      <Button 
+                        variant={uploadSource === 'file' ? 'default' : 'ghost'} 
+                        className={cn("flex-1 rounded-lg h-10 font-bold", uploadSource === 'file' && "bg-white text-primary shadow-sm")}
+                        onClick={() => setUploadSource('file')}
+                      >
+                        <FileIcon className="w-4 h-4 mr-2" /> Local File
+                      </Button>
+                      <Button 
+                        variant={uploadSource === 'url' ? 'default' : 'ghost'} 
+                        className={cn("flex-1 rounded-lg h-10 font-bold", uploadSource === 'url' && "bg-white text-primary shadow-sm")}
+                        onClick={() => setUploadSource('url')}
+                      >
+                        <LinkIcon className="w-4 h-4 mr-2" /> External URL
+                      </Button>
                     </div>
+                  </div>
+
+                  <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Source URL</Label>
+                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Resource Title</Label>
                       <Input 
-                        value={newMaterialData.url} 
-                        onChange={(e) => setNewMaterialData({...newMaterialData, url: e.target.value})} 
-                        placeholder="https://..." 
-                        className="h-12 bg-accent/30 border-none rounded-xl"
+                        value={newMaterialData.title} 
+                        onChange={(e) => setNewMaterialData({...newMaterialData, title: e.target.value})} 
+                        placeholder="e.g. Chapter 4 Summary" 
+                        className="h-12 bg-accent/30 border-none rounded-xl font-bold"
                       />
+                    </div>
+
+                    {uploadSource === 'file' ? (
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Select File</Label>
+                        {!selectedFile ? (
+                          <div 
+                            className="group relative h-32 bg-accent/20 rounded-2xl border-2 border-dashed border-accent flex flex-col items-center justify-center cursor-pointer transition-all hover:border-primary hover:bg-primary/5"
+                            onClick={() => fileInputRef.current?.click()}
+                          >
+                            <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileChange} />
+                            <Upload className="w-6 h-6 text-primary/40 group-hover:scale-110 transition-transform mb-2" />
+                            <p className="text-xs font-bold text-primary/60">Click to browse or drag file</p>
+                            <p className="text-[9px] text-muted-foreground uppercase font-black mt-1">MAX SIZE: 5MB</p>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between p-4 bg-primary/5 rounded-2xl border border-primary/10">
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 bg-white rounded-lg shadow-sm">
+                                <FileText className="w-5 h-5 text-primary" />
+                              </div>
+                              <div className="overflow-hidden">
+                                <p className="text-sm font-bold text-primary truncate max-w-[200px]">{selectedFile.name}</p>
+                                <p className="text-[10px] font-black text-muted-foreground uppercase">{(selectedFile.size / 1024).toFixed(1)} KB</p>
+                              </div>
+                            </div>
+                            <Button variant="ghost" size="icon" className="text-red-400 hover:text-red-600" onClick={() => setSelectedFile(null)}>
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Source URL</Label>
+                        <div className="relative">
+                          <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
+                          <Input 
+                            value={newMaterialData.url} 
+                            onChange={(e) => setNewMaterialData({...newMaterialData, url: e.target.value})} 
+                            placeholder="https://..." 
+                            className="h-12 bg-accent/30 border-none rounded-xl pl-10"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Content Type</Label>
+                        <Select value={newMaterialData.type} onValueChange={(v) => setNewMaterialData({...newMaterialData, type: v})}>
+                          <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pdf">PDF Document</SelectItem>
+                            <SelectItem value="video">Lecture Video</SelectItem>
+                            <SelectItem value="image">Image / Diagram</SelectItem>
+                            <SelectItem value="document">Text File</SelectItem>
+                            <SelectItem value="link">Web Link</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Brief Context</Label>
+                        <Input 
+                          value={newMaterialData.description} 
+                          onChange={(e) => setNewMaterialData({...newMaterialData, description: e.target.value})} 
+                          placeholder="What is this?" 
+                          className="h-12 bg-accent/30 border-none rounded-xl"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
                 <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
-                  <Button onClick={handleAddMaterial} disabled={isProcessing || !newMaterialData.title || !newMaterialData.url} className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-2">
+                  <Button onClick={handleAddMaterial} disabled={isProcessing || !newMaterialData.title || (uploadSource === 'url' && !newMaterialData.url) || (uploadSource === 'file' && !selectedFile)} className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-2">
                     {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
-                    Confirm Upload
+                    Finalize Upload
                   </Button>
                 </DialogFooter>
               </DialogContent>
