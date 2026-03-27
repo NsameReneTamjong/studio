@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo } from "react";
@@ -38,7 +37,8 @@ import {
   History,
   Lock,
   Globe,
-  Scale
+  Scale,
+  CheckCircle2
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -102,7 +102,7 @@ const TOP_STUDENTS = [
 
 export default function StatisticsPage() {
   const { user, platformSettings } = useAuth();
-  const { language } = useI18n();
+  const { t, language } = useI18n();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("finance");
   const [previewReport, setPreviewReport] = useState<any>(null);
@@ -551,7 +551,7 @@ export default function StatisticsPage() {
                     <p className="text-[8px] font-black uppercase text-muted-foreground opacity-40 leading-tight">Institutional<br/>Strategic Data QR</p>
                   </div>
                   <div className="text-center space-y-6 w-48">
-                    <div className="h-14 w-full mx-auto bg-primary/5 rounded-xl border-b-2 border-black/40 relative flex items-center justify-center overflow-hidden">
+                    <div className="h-14 w-full mx-auto bg-primary/5 rounded-xl border-b-2 border-black/40 relative flex items-center justify-center overflow-hidden shadow-inner">
                        <SignatureSVG className="w-full h-full text-primary/20 p-2" />
                     </div>
                     <p className="text-[10px] font-black uppercase text-primary tracking-widest leading-none">The Principal</p>
@@ -577,7 +577,7 @@ export default function StatisticsPage() {
               <Button 
                 variant="secondary" 
                 className="flex-1 rounded-2xl h-14 font-black uppercase tracking-widest text-xs gap-2"
-                onClick={() => toast({ title: "Packet Prepared", description: "Strategic PDF is being generated." })}
+                onClick={() => toast({ title: "Packet Prepared", description: "Strategic PDF is being generated for export." })}
               >
                 <Download className="w-4 h-4" /> Download PDF
               </Button>
