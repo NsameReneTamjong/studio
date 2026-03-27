@@ -47,7 +47,8 @@ import {
   UserCog,
   LayoutGrid,
   Search,
-  School
+  School,
+  Smartphone
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -437,7 +438,7 @@ export default function StatisticsPage() {
                     <AvatarFallback>{t.name.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <CardTitle className="text-lg font-black uppercase tracking-tight">{t.name}</CardTitle>
-                  <Badge variant="outline" className="text-white/60 border-white/10 uppercase text-[8px] tracking-widest mt-2">{t.subject} LEAD</Badge>
+                  <Badge variant="outline" className="text-white/60 border-white/10 uppercase text-[8px] tracking-widest">{t.subject} LEAD</Badge>
                 </div>
                 <CardContent className="p-6 -mt-6 bg-white rounded-t-[2.5rem] space-y-6">
                   <div className="grid grid-cols-2 gap-4">
