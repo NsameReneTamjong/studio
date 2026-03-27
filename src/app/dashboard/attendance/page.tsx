@@ -75,6 +75,13 @@ const MOCK_STUDENT_TODAY = [
   { subject: "English Literature", start: "01:00 PM", end: "03:00 PM", status: "Upcoming", teacher: "Ms. Bennet" },
 ];
 
+const MOCK_SUBJECT_RECORDS = [
+  { subject: "Mathematics", present: 22, absent: 2, teacher: "Prof. Sarah Smith" },
+  { subject: "Advanced Physics", present: 18, absent: 6, teacher: "Dr. Aris Tesla" },
+  { subject: "English Literature", present: 24, absent: 0, teacher: "Ms. Bennet" },
+  { subject: "History", present: 15, absent: 9, teacher: "Mr. Tabi" },
+];
+
 export default function AttendancePage() {
   const { user } = useAuth();
   const { t, language } = useI18n();
@@ -197,56 +204,115 @@ export default function AttendancePage() {
            </Card>
         </div>
 
-        <Card className="border-none shadow-xl overflow-hidden rounded-[2rem]">
-          <CardHeader className="bg-primary p-8 text-white">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-white/10 rounded-2xl">
-                  <ListChecks className="w-8 h-8 text-secondary" />
-                </div>
-                <div>
-                  <CardTitle className="text-2xl font-black">Live Session Status</CardTitle>
-                  <CardDescription className="text-white/60">Verified presence for your scheduled pedagogical activities today.</CardDescription>
+        <div className="grid grid-cols-1 gap-8">
+          <Card className="border-none shadow-xl overflow-hidden rounded-[2rem]">
+            <CardHeader className="bg-primary p-8 text-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/10 rounded-2xl">
+                    <ListChecks className="w-8 h-8 text-secondary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-2xl font-black">Live Session Status</CardTitle>
+                    <CardDescription className="text-white/60">Verified presence for your scheduled pedagogical activities today.</CardDescription>
+                  </div>
                 </div>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0 overflow-x-auto">
-            <Table>
-              <TableHeader className="bg-accent/10">
-                <TableRow className="uppercase text-[10px] font-black tracking-widest border-b">
-                  <TableHead className="pl-8 py-4">Course / Subject</TableHead>
-                  <TableHead>Time Window</TableHead>
-                  <TableHead>Instructor</TableHead>
-                  <TableHead className="text-right pr-8">My Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {MOCK_STUDENT_TODAY.map((att, i) => (
-                  <TableRow key={i} className="hover:bg-accent/5 transition-colors border-b">
-                    <TableCell className="pl-8 py-4 font-bold text-sm text-primary uppercase">{att.subject}</TableCell>
-                    <TableCell className="text-xs font-mono font-bold text-muted-foreground">{att.start} - {att.end}</TableCell>
-                    <TableCell className="text-xs font-medium text-muted-foreground">{att.teacher}</TableCell>
-                    <TableCell className="text-right pr-8">
-                      <Badge className={cn(
-                        "text-[9px] font-black uppercase px-3 border-none", 
-                        att.status === 'Present' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-                      )}>
-                        {att.status}
-                      </Badge>
-                    </TableCell>
+            </CardHeader>
+            <CardContent className="p-0 overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-accent/10">
+                  <TableRow className="uppercase text-[10px] font-black tracking-widest border-b">
+                    <TableHead className="pl-8 py-4">Course / Subject</TableHead>
+                    <TableHead>Time Window</TableHead>
+                    <TableHead>Instructor</TableHead>
+                    <TableHead className="text-right pr-8">My Status</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-          <CardFooter className="bg-accent/10 p-6 border-t flex justify-center">
-             <div className="flex items-center gap-2 text-muted-foreground">
-                <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
-                <p className="text-[10px] font-black uppercase tracking-widest italic opacity-40">Attendance is automatically recorded via biometric node synchronization.</p>
-             </div>
-          </CardFooter>
-        </Card>
+                </TableHeader>
+                <TableBody>
+                  {MOCK_STUDENT_TODAY.map((att, i) => (
+                    <TableRow key={i} className="hover:bg-accent/5 transition-colors border-b">
+                      <TableCell className="pl-8 py-4 font-bold text-sm text-primary uppercase">{att.subject}</TableCell>
+                      <TableCell className="text-xs font-mono font-bold text-muted-foreground">{att.start} - {att.end}</TableCell>
+                      <TableCell className="text-xs font-medium text-muted-foreground">{att.teacher}</TableCell>
+                      <TableCell className="text-right pr-8">
+                        <Badge className={cn(
+                          "text-[9px] font-black uppercase px-3 border-none", 
+                          att.status === 'Present' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                        )}>
+                          {att.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          <Card className="border-none shadow-xl overflow-hidden rounded-[2rem] bg-white">
+            <CardHeader className="bg-white border-b p-8">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-primary/5 rounded-2xl">
+                  <History className="w-8 h-8 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl font-black text-primary uppercase tracking-tight">Attendance History</CardTitle>
+                  <CardDescription>Cumulative subject presence and participation audit.</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0 overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-accent/5 uppercase text-[10px] font-black tracking-widest border-b">
+                  <TableRow>
+                    <TableHead className="pl-8 py-4">Pedagogical Subject</TableHead>
+                    <TableHead className="text-center">Sessions Present</TableHead>
+                    <TableHead className="text-center">Sessions Absent</TableHead>
+                    <TableHead className="text-center">Rate %</TableHead>
+                    <TableHead className="text-right pr-8">Instructor</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {MOCK_SUBJECT_RECORDS.map((rec, i) => {
+                    const total = rec.present + rec.absent;
+                    const rate = total > 0 ? Math.round((rec.present / total) * 100) : 0;
+                    return (
+                      <TableRow key={i} className="hover:bg-accent/5 border-b last:border-0 h-16">
+                        <TableCell className="pl-8 font-black text-primary text-sm uppercase">{rec.subject}</TableCell>
+                        <TableCell className="text-center font-black text-green-600">{rec.present}</TableCell>
+                        <TableCell className="text-center font-black text-red-600">{rec.absent}</TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1.5">
+                            <span className={cn("text-xs font-black", rate >= 90 ? "text-primary" : "text-amber-600")}>{rate}%</span>
+                            <div className="w-16 h-1 bg-accent rounded-full overflow-hidden">
+                              <div 
+                                className={cn("h-full transition-all duration-1000", rate >= 90 ? "bg-primary" : "bg-amber-500")} 
+                                style={{ width: `${rate}%` }} 
+                              />
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right pr-8">
+                          <div className="flex items-center justify-end gap-2 text-[10px] font-bold text-muted-foreground">
+                            <User className="w-3 h-3 text-primary/40" />
+                            {rec.teacher}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+            <CardFooter className="bg-accent/10 p-6 border-t flex justify-center">
+               <div className="flex items-center gap-2 text-muted-foreground">
+                  <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                  <p className="text-[10px] font-black uppercase tracking-widest italic opacity-40">Verified institutional presence records are non-repudiable.</p>
+               </div>
+            </CardFooter>
+          </Card>
+        </div>
       </div>
     );
   }
