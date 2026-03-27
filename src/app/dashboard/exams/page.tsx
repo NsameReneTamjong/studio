@@ -390,17 +390,12 @@ export default function ExamsPage() {
                     </div>
                     <div className="space-y-2">
                       <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Venue</Label>
-                      <Select onValueChange={(v) => setOnsiteFormData({...onsiteFormData, room: v})}>
-                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue placeholder="Select Venue" /></SelectTrigger>
-                        <SelectContent>
-                          {ROOM_CATEGORIES.map(cat => (
-                            <SelectGroup key={cat.label}>
-                              <SelectLabel className="text-[10px] uppercase font-black opacity-40 px-2 py-1.5">{cat.label}</SelectLabel>
-                              {cat.rooms.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-                            </SelectGroup>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Input 
+                        placeholder="e.g. Hall A or Lab 1" 
+                        className="h-12 bg-accent/30 border-none rounded-xl font-bold" 
+                        value={onsiteFormData.room}
+                        onChange={(e) => setOnsiteFormData({...onsiteFormData, room: e.target.value})} 
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Exam Date</Label>
@@ -530,8 +525,10 @@ export default function ExamsPage() {
                         onClick={() => setViewingInstructions(exam)}
                       >
                         <div className="flex items-center gap-2">
-                          <Info className="w-4 h-4 text-primary" />
-                          {language === 'en' ? 'View Instructions' : 'Voir Instructions'}
+                          <div className="flex items-center gap-2">
+                            <Info className="w-4 h-4 text-primary" />
+                            {language === 'en' ? 'View Instructions' : 'Voir Instructions'}
+                          </div>
                         </div>
                       </Button>
                     )}
