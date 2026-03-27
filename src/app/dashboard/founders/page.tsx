@@ -73,6 +73,15 @@ const MOCK_FOUNDERS = [
   { id: "EduI24COO001", name: "Operations Lead", email: "coo@eduignite.io", role: "COO", status: "Active", isPrimary: false, avatar: "https://picsum.photos/seed/coo/150/150", permissions: { manageSchools: true, manageTeam: false, viewAnalytics: false, manageSupport: true } },
 ];
 
+const EXECUTIVE_LOGS = [
+  { actor: "CEO", action: "Updated Global Pricing Policy", time: "Today, 08:45 AM", impact: "Strategic", icon: Crown, color: "text-primary" },
+  { actor: "CTO", action: "Authorized High-Availability Node Sync", time: "Yesterday", impact: "System", icon: Zap, color: "text-indigo-600" },
+  { actor: "COO", action: "Provisioned 4 New Institutional Nodes", time: "Yesterday", impact: "Operational", icon: Building2, color: "text-blue-600" },
+  { actor: "Designer", action: "Updated Public Portfolio Media", time: "2 days ago", impact: "Marketing", icon: Sparkles, color: "text-cyan-600" },
+  { actor: "Investor", action: "Accessed Quarterly Revenue Audit", time: "3 days ago", impact: "Financial", icon: Coins, color: "text-emerald-600" },
+  { actor: "CTO", action: "Patched Node API #402 Security", time: "4 days ago", impact: "Security", icon: ShieldAlert, color: "text-rose-600" },
+];
+
 export default function FoundersManagementPage() {
   const { user, platformSettings } = useAuth();
   const { t, language } = useI18n();
@@ -407,16 +416,12 @@ export default function FoundersManagementPage() {
         <CardContent className="p-0">
           <Table>
             <TableBody>
-              {[
-                { actor: "CEO", action: "Updated Global Pricing Policy", time: "Today, 08:45 AM", impact: "Strategic" },
-                { actor: "CTO", action: "Authorized High-Availability Node Sync", time: "Yesterday", impact: "System" },
-                { actor: "COO", action: "Provisioned 4 New Institutional Nodes", time: "2 days ago", impact: "Operational" },
-              ].map((log, i) => (
+              {EXECUTIVE_LOGS.map((log, i) => (
                 <TableRow key={i} className="hover:bg-primary/5 transition-colors border-b last:border-0">
                   <TableCell className="pl-8 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary rounded-lg text-secondary">
-                        <Zap className="w-4 h-4" />
+                    <div className="flex items-center gap-4">
+                      <div className={cn("p-2.5 rounded-xl shadow-sm bg-white border", log.color.replace('text', 'border'))}>
+                        <log.icon className={cn("w-5 h-5", log.color)} />
                       </div>
                       <div>
                         <p className="text-xs font-black text-primary uppercase tracking-tight">{log.action}</p>

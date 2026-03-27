@@ -33,7 +33,9 @@ import {
   Wallet,
   User,
   Radio,
-  PenTool
+  PenTool,
+  History,
+  LayoutGrid
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -101,6 +103,14 @@ const USER_DISTRIBUTION = [
   { name: 'Founders', value: 5, color: '#CE1126' },
 ];
 
+const EXECUTIVE_LOGS = [
+  { actor: "CEO", action: "Updated Global Pricing Policy", time: "08:45 AM", date: "Today", impact: "Strategic", icon: Crown, color: "text-primary" },
+  { actor: "CTO", action: "Authorized High-Availability Node Sync", time: "Yesterday", date: "May 24", impact: "System", icon: Zap, color: "text-indigo-600" },
+  { actor: "COO", action: "Provisioned 4 New Institutional Nodes", time: "Yesterday", date: "May 24", impact: "Operational", icon: Building2, color: "text-blue-600" },
+  { actor: "Designer", action: "Updated Public Portfolio Media", time: "2 days ago", date: "May 23", impact: "Marketing", icon: Sparkles, color: "text-cyan-600" },
+  { actor: "Investor", action: "Accessed Quarterly Revenue Audit", time: "3 days ago", date: "May 22", impact: "Financial", icon: Coins, color: "text-emerald-600" },
+];
+
 export default function DashboardPage() {
   const { user, schools, isLoading } = useAuth();
   const { t } = useI18n();
@@ -134,7 +144,6 @@ export default function DashboardPage() {
   }
 
   const isPlatformExecutive = ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV", "DESIGNER"].includes(user.role);
-  const isInstitutionalAdmin = ["SCHOOL_ADMIN", "SUB_ADMIN"].includes(user.role);
 
   if (isPlatformExecutive) {
     return (
@@ -313,82 +322,109 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
-          <CardHeader className="bg-white border-b p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="space-y-1">
-              <CardTitle className="text-xl font-black text-primary uppercase tracking-tight flex items-center gap-2">
-                <Building2 className="w-6 h-6 text-secondary" />
-                Node Performance Audit
-              </CardTitle>
-              <CardDescription>Granular review of institutional nodes and their financial integrity.</CardDescription>
-            </div>
-            <div className="relative w-full md:w-80">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search nodes..." 
-                className="pl-10 bg-accent/20 border-none rounded-xl"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-          </CardHeader>
-          <CardContent className="p-0 overflow-x-auto">
-            <Table>
-              <TableHeader className="bg-accent/10 uppercase text-[10px] font-black tracking-widest border-b">
-                <TableRow>
-                  <TableHead className="pl-8 py-4">Institutional Node</TableHead>
-                  <TableHead className="text-center">Students</TableHead>
-                  <TableHead className="text-center">Teachers</TableHead>
-                  <TableHead className="text-center">Collection %</TableHead>
-                  <TableHead className="text-center">License Rev.</TableHead>
-                  <TableHead className="text-right pr-8">Integrity</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {(schools || []).filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase())).map((school) => (
-                  <TableRow key={school.id} className="hover:bg-accent/5 transition-colors border-b last:border-0">
-                    <TableCell className="pl-8 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-white p-1 border shadow-sm flex items-center justify-center shrink-0">
-                          <img src={school.logo} alt="Logo" className="w-full h-full object-contain" />
+        {/* STRATEGIC GOVERNANCE LOGS FOR CEO */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <Card className="lg:col-span-7 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+            <CardHeader className="bg-white border-b p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="space-y-1">
+                <CardTitle className="text-xl font-black text-primary uppercase tracking-tight flex items-center gap-2">
+                  <History className="w-6 h-6 text-secondary" />
+                  Executive Activity Ledger
+                </CardTitle>
+                <CardDescription>Live auditing of strategic interventions by platform founders.</CardDescription>
+              </div>
+              <Button variant="outline" className="rounded-xl h-10 px-6 font-black uppercase text-[10px] gap-2 border-primary/10">
+                <Activity className="w-4 h-4 text-primary" /> Board Audit
+              </Button>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableBody>
+                  {EXECUTIVE_LOGS.map((log, i) => (
+                    <TableRow key={i} className="hover:bg-primary/5 transition-colors border-b last:border-0">
+                      <TableCell className="pl-8 py-4">
+                        <div className="flex items-center gap-4">
+                          <div className={cn("p-2.5 rounded-xl shadow-sm bg-white border", log.color.replace('text', 'border'))}>
+                            <log.icon className={cn("w-5 h-5", log.color)} />
+                          </div>
+                          <div>
+                            <p className="text-xs font-black text-primary uppercase tracking-tight">{log.action}</p>
+                            <p className="text-[10px] text-muted-foreground font-bold">Executed by: {log.actor}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-bold text-sm text-primary uppercase">{school.name}</p>
-                          <p className="text-[9px] font-mono text-muted-foreground">{school.id}</p>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <div className="flex flex-col items-end">
+                          <Badge variant="secondary" className="bg-secondary/20 text-primary border-none text-[8px] font-black uppercase tracking-widest">{log.impact}</Badge>
+                          <span className="text-[9px] text-muted-foreground mt-1 font-bold italic">{log.time} • {log.date}</span>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center font-black text-primary">1,240</TableCell>
-                    <TableCell className="text-center font-black text-primary">85</TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex flex-col items-center gap-1">
-                        <span className="text-xs font-bold text-green-600">92%</span>
-                        <div className="w-16 h-1 bg-accent rounded-full overflow-hidden">
-                          <div className="h-full bg-green-500" style={{ width: '92%' }} />
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center font-black text-primary">850,000 XAF</TableCell>
-                    <TableCell className="text-right pr-8">
-                      <div className="flex items-center justify-end gap-2 text-green-600 font-bold text-[9px] uppercase tracking-widest">
-                        <ShieldCheck className="w-4 h-4" /> VERIFIED
-                      </div>
-                    </TableCell>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+            <CardFooter className="bg-accent/10 p-6 border-t flex justify-center">
+               <div className="flex items-center gap-2 text-muted-foreground italic">
+                  <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Verified Platform Governance Node</p>
+               </div>
+            </CardFooter>
+          </Card>
+
+          <Card className="lg:col-span-5 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+            <CardHeader className="bg-white border-b p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="space-y-1">
+                <CardTitle className="text-xl font-black text-primary uppercase tracking-tight flex items-center gap-2">
+                  <Building2 className="w-6 h-6 text-secondary" />
+                  Node Performance
+                </CardTitle>
+                <CardDescription>Verified institutional records.</CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0 overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-accent/10 uppercase text-[10px] font-black tracking-widest border-b">
+                  <TableRow>
+                    <TableHead className="pl-8 py-4">Node</TableHead>
+                    <TableHead className="text-center">Intake %</TableHead>
+                    <TableHead className="text-right pr-8">Status</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-          <CardFooter className="bg-accent/10 p-6 border-t flex justify-between items-center">
-             <div className="flex items-center gap-2 text-muted-foreground italic">
-                <Info className="w-4 h-4 text-primary/40" />
-                <p className="text-[10px] font-black uppercase tracking-widest opacity-40">All metrics are computed in real-time across the regional clusters.</p>
-             </div>
-             <Button variant="ghost" className="gap-2 text-[10px] font-black uppercase" asChild>
-               <Link href="/dashboard/schools">Manage All Nodes <ChevronRight className="w-4 h-4"/></Link>
-             </Button>
-          </CardFooter>
-        </Card>
+                </TableHeader>
+                <TableBody>
+                  {(schools || []).slice(0, 5).map((school) => (
+                    <TableRow key={school.id} className="hover:bg-accent/5 transition-colors border-b last:border-0">
+                      <TableCell className="pl-8 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-white p-1 border shadow-sm flex items-center justify-center shrink-0">
+                            <img src={school.logo} alt="Logo" className="w-full h-full object-contain" />
+                          </div>
+                          <p className="font-bold text-xs text-primary uppercase truncate max-w-[120px]">{school.name}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="text-[10px] font-black text-green-600">92%</span>
+                          <div className="w-12 h-1 bg-accent rounded-full overflow-hidden">
+                            <div className="h-full bg-green-500" style={{ width: '92%' }} />
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <Badge className="bg-green-100 text-green-700 border-none text-[8px] font-black">ACTIVE</Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+            <CardFooter className="bg-accent/10 p-4 border-t flex justify-end">
+               <Button variant="ghost" className="gap-2 text-[10px] font-black uppercase" asChild>
+                 <Link href="/dashboard/schools">All Nodes <ArrowRight className="w-3.5 h-3.5"/></Link>
+               </Button>
+            </CardFooter>
+          </Card>
+        </div>
       </div>
     );
   }
