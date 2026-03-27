@@ -46,7 +46,9 @@ import {
   TrendingDown,
   Scale,
   Building2,
-  FileBadge
+  FileBadge,
+  Globe,
+  Download
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -56,12 +58,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
 const SUBJECTS = ["Advanced Physics", "Mathematics", "English Literature", "General Chemistry", "Biology", "History", "Geography"];
+const SECTIONS = ["Anglophone Section", "Francophone Section", "Technical Section"];
+const ACADEMIC_YEARS = ["2023 / 2024", "2022 / 2023", "2021 / 2022"];
+const TERMS = ["Term 1", "Term 2", "Term 3"];
 
 const MOCK_STUDENTS_GRADES = [
-  { uid: "S1", id: "GBHS26S001", name: "Alice Thompson", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s1/100/100", seq1: 14.5, seq2: 16.0 },
-  { uid: "S2", id: "GBHS26S002", name: "Bob Richards", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s2/100/100", seq1: 18.0, seq2: 17.5 },
-  { uid: "S3", id: "GBHS26S003", name: "Charlie Davis", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s3/100/100", seq1: 9.5, seq2: 10.5 },
-  { uid: "S4", id: "GBHS26S004", name: "Diana Prince", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s4/100/100", seq1: 12.0, seq2: 13.0 },
+  { uid: "S1", id: "GBHS26S001", name: "Alice Thompson", class: "2nde / Form 5", section: "Anglophone Section", avatar: "https://picsum.photos/seed/s1/100/100", seq1: 14.5, seq2: 16.0 },
+  { uid: "S2", id: "GBHS26S002", name: "Bob Richards", class: "2nde / Form 5", section: "Anglophone Section", avatar: "https://picsum.photos/seed/s2/100/100", seq1: 18.0, seq2: 17.5 },
+  { uid: "S3", id: "GBHS26S003", name: "Charlie Davis", class: "2nde / Form 5", section: "Francophone Section", avatar: "https://picsum.photos/seed/s3/100/100", seq1: 9.5, seq2: 10.5 },
+  { uid: "S4", id: "GBHS26S004", name: "Diana Prince", class: "2nde / Form 5", section: "Technical Section", avatar: "https://picsum.photos/seed/s4/100/100", seq1: 12.0, seq2: 13.0 },
 ];
 
 const MOCK_PERSONAL_GRADES = [
@@ -85,41 +90,6 @@ const MOCK_TRANSCRIPT_DATA = {
   "History": { f1: ["08.5", "09.0", "10.5"], f2: ["07.5", "08.0", "09.5"], f3: ["09.0", "10.5", "11.0"] }
 };
 
-const MOCK_GRADE_HISTORY = [
-  { 
-    id: "H1", 
-    year: "2023 / 2024", 
-    term: "Term 1", 
-    subject: "Advanced Physics", 
-    class: "2nde / Form 5", 
-    numPass: 38, 
-    numFail: 4, 
-    percentPass: 90.5,
-    students: [
-      { name: "Alice Thompson", mark: 16.5, status: "pass" },
-      { name: "Bob Richards", mark: 14.0, status: "pass" },
-      { name: "Diana Prince", mark: 12.5, status: "pass" },
-      { name: "Charlie Davis", mark: 8.5, status: "fail" },
-      { name: "Ethan Hunt", mark: 11.0, status: "pass" },
-      { name: "Sarah Connor", mark: 7.5, status: "fail" },
-    ]
-  },
-  { 
-    id: "H2", 
-    year: "2022 / 2023", 
-    term: "Term 3", 
-    subject: "Mathematics", 
-    class: "3ème / Form 4", 
-    numPass: 32, 
-    numFail: 10, 
-    percentPass: 76.2,
-    students: [
-      { name: "John Smith", mark: 18.0, status: "pass" },
-      { name: "Jane Doe", mark: 9.0, status: "fail" },
-    ]
-  }
-];
-
 const getAppreciation = (note: number) => {
   if (note >= 16) return { text: "Excellence", color: "bg-green-600" };
   if (note >= 14) return { text: "Très Bien", color: "bg-green-500" };
@@ -140,13 +110,24 @@ export default function GradeBookPage() {
   const [selectedClass, setSelectedClass] = useState("2nde / Form 5");
   const [selectedSubject, setSelectedSubject] = useState("Advanced Physics");
   const [activeSequence, setActiveSequence] = useState<"seq1" | "seq2">("seq1");
-  const [grades, setGrades] = useState(MOCK_STUDENTS_GRADES);
   
-  const [selectedHistory, setSelectedHistory] = useState<any>(null);
+  // Admin Filters
+  const [adminFilters, setAdminFilters] = useState({
+    year: ACADEMIC_YEARS[0],
+    term: TERMS[0],
+    section: "all",
+    class: "all",
+    search: ""
+  });
+
+  const [grades, setGrades] = useState(MOCK_STUDENTS_GRADES);
   const [previewDoc, setPreviewDoc] = useState<any>(null);
 
   const isTeacher = user?.role === "TEACHER";
   const isStudent = user?.role === "STUDENT";
+  const isSchoolAdmin = user?.role === "SCHOOL_ADMIN";
+  const isSubAdmin = user?.role === "SUB_ADMIN";
+  const isAdmin = isSchoolAdmin || isSubAdmin;
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 1200);
@@ -190,6 +171,34 @@ export default function GradeBookPage() {
     }, 2000);
   };
 
+  const handleBulkIssue = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      setIsProcessing(false);
+      toast({
+        title: "Batch Generation Successful",
+        description: `Preparing all bulletins for ${adminFilters.class} - ${adminFilters.term}.`,
+      });
+    }, 2500);
+  };
+
+  const filteredAdminStudents = useMemo(() => {
+    return MOCK_STUDENTS_GRADES.filter(s => {
+      const matchesSearch = s.name.toLowerCase().includes(adminFilters.search.toLowerCase()) || s.id.toLowerCase().includes(adminFilters.search.toLowerCase());
+      const matchesClass = adminFilters.class === "all" || s.class === adminFilters.class;
+      const matchesSection = adminFilters.section === "all" || s.section === adminFilters.section;
+      
+      // Sub-admin section restriction logic
+      if (isSubAdmin) {
+        // Assume sub-admin section is determined by their own profile (here we mock it)
+        const subAdminSection = "Anglophone Section";
+        if (s.section !== subAdminSection) return false;
+      }
+
+      return matchesSearch && matchesClass && matchesSection;
+    });
+  }, [adminFilters, isSubAdmin]);
+
   const stats = useMemo(() => {
     if (isStudent) {
       const totalWeighted = MOCK_PERSONAL_GRADES.reduce((acc, curr) => acc + (((curr.seq1 + curr.seq2)/2) * curr.coeff), 0);
@@ -199,11 +208,11 @@ export default function GradeBookPage() {
         passRate: "100"
       };
     }
-    const totalAvg = grades.reduce((acc, curr) => acc + (curr.seq1 + curr.seq2) / 2, 0) / grades.length;
+    const totalAvg = grades.reduce((acc, curr) => acc + (curr.seq1 + curr.seq2) / 2, 0) / (grades.length || 1);
     const passedCount = grades.filter(g => (g.seq1 + g.seq2) / 2 >= 10).length;
     return {
       average: totalAvg.toFixed(2),
-      passRate: ((passedCount / grades.length) * 100).toFixed(0)
+      passRate: ((passedCount / (grades.length || 1)) * 100).toFixed(0)
     };
   }, [grades, isStudent]);
 
@@ -211,6 +220,7 @@ export default function GradeBookPage() {
     return <LoadingState message="Fetching pedagogical records..." />;
   }
 
+  // --- STUDENT VIEW ---
   if (isStudent) {
     return (
       <div className="space-y-8 pb-20 animate-in fade-in slide-in-from-bottom-2 duration-700">
@@ -419,117 +429,162 @@ export default function GradeBookPage() {
             </Card>
           </TabsContent>
         </Tabs>
+      </div>
+    );
+  }
 
-        {/* BULLETIN PREVIEW DIALOG */}
-        <Dialog open={!!previewDoc} onOpenChange={() => setPreviewDoc(null)}>
-          <DialogContent className="sm:max-w-5xl max-h-[95vh] overflow-y-auto p-0 border-none shadow-2xl rounded-3xl">
-            <DialogHeader className="p-6 bg-primary text-white no-print">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="p-2 bg-white/10 rounded-xl">
-                    <FileText className="w-6 h-6 text-secondary" />
-                  </div>
-                  <DialogTitle className="text-xl font-black">Official Term Bulletin</DialogTitle>
-                </div>
-                <Button variant="ghost" size="icon" onClick={() => setPreviewDoc(null)} className="text-white hover:bg-white/10">
-                  <X className="w-6 h-6" />
-                </Button>
-              </div>
-            </DialogHeader>
+  // --- ADMIN VIEW ---
+  if (isAdmin) {
+    return (
+      <div className="space-y-8 pb-20 animate-in fade-in slide-in-from-bottom-2 duration-700">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="p-2 bg-primary rounded-xl shadow-lg">
+              <FileText className="w-6 h-6 text-secondary" />
+            </div>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline flex items-center gap-3 uppercase">
+                Institutional Report Issuance
+              </h1>
+              <p className="text-muted-foreground mt-1 text-sm">Strategic portal for auditing and generating academic bulletins.</p>
+            </div>
+          </div>
+          
+          <Button 
+            onClick={handleBulkIssue} 
+            disabled={isProcessing || filteredAdminStudents.length === 0} 
+            className="h-12 px-8 rounded-2xl shadow-xl font-black uppercase tracking-widest text-[10px] gap-3"
+          >
+            {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            Issue Batch Reports ({filteredAdminStudents.length})
+          </Button>
+        </div>
 
-            <div className="bg-muted p-2 md:p-10 print:p-0 print:bg-white overflow-x-auto">
-              <div id="printable-bulletin" className="bg-white p-6 md:p-12 shadow-sm border border-border min-w-[850px] flex flex-col space-y-8 font-serif text-black relative print:shadow-none print:border-none mx-auto">
-                 {/* SAME CONTENT AS PREVIOUS TURN BUT WRAPPED FOR SCROLL */}
-                 <div className="grid grid-cols-3 gap-4 items-start text-center border-b-2 border-black pb-6">
-                    <div className="space-y-1 text-[10px] uppercase font-black">
-                      <p>Republic of Cameroon</p>
-                      <p>Peace - Work - Fatherland</p>
-                      <div className="h-px bg-black w-8 mx-auto my-1" />
-                      <p>Ministry of Secondary Education</p>
-                      <p>{user?.school?.name || "INSTITUTIONAL NODE"}</p>
-                    </div>
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center p-2 border-2 border-primary/10">
-                         <img src={user?.school?.logo || platformSettings.logo} alt="School Logo" className="w-14 h-14 object-contain" />
-                      </div>
-                    </div>
-                    <div className="space-y-1 text-[10px] uppercase font-black">
-                      <p>République du Cameroun</p>
-                      <p>Paix - Travail - Patrie</p>
-                      <div className="h-px bg-black w-8 mx-auto my-1" />
-                      <p>Min. des Enseignements Secondaires</p>
-                    </div>
-                 </div>
-                 
-                 <div className="text-center space-y-2">
-                    <h2 className="text-2xl font-black uppercase underline decoration-double underline-offset-4 tracking-tighter text-primary">
-                      OFFICIAL REPORT CARD
-                    </h2>
-                    <p className="font-bold text-xs italic">Session: {previewDoc?.year} • {previewDoc?.term}</p>
-                 </div>
-
-                 <div className="grid grid-cols-12 gap-8 bg-accent/5 p-6 border border-black/10 rounded-2xl items-center shadow-inner">
-                    <div className="col-span-3">
-                       <Avatar className="w-24 h-24 border-4 border-white rounded-2xl bg-white overflow-hidden shadow-lg mx-auto">
-                          <AvatarImage src={user?.avatar} className="object-cover" />
-                          <AvatarFallback className="text-2xl font-black">{user?.name?.charAt(0)}</AvatarFallback>
-                       </Avatar>
-                    </div>
-                    <div className="col-span-9">
-                       <div className="grid grid-cols-2 gap-x-12 gap-y-3 text-[11px]">
-                          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60">Identity:</span><span className="font-black uppercase">{user?.name}</span></div>
-                          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60">Matricule:</span><span className="font-mono font-bold text-primary">{user?.id}</span></div>
-                          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60">Class:</span><span className="font-bold">2nde / Form 5</span></div>
-                          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60">Status:</span><span className="font-bold text-green-600">ENROLLED</span></div>
-                       </div>
-                    </div>
-                 </div>
-
-                 <Table className="border-collapse border-2 border-black">
-                    <TableHeader className="bg-black/5">
-                      <TableRow className="border-b-2 border-black">
-                        <TableHead className="text-[10px] uppercase font-black text-black border-r-2 border-black h-12">Subject</TableHead>
-                        <TableHead className="text-center text-[10px] uppercase font-black text-black border-r border-black w-16">Seq 1</TableHead>
-                        <TableHead className="text-center text-[10px] uppercase font-black text-black border-r border-black w-16">Seq 2</TableHead>
-                        <TableHead className="text-center text-[10px] uppercase font-black text-black border-r border-black w-16">Moy/20</TableHead>
-                        <TableHead className="text-center text-[10px] uppercase font-black text-black border-r border-black w-16">Coeff</TableHead>
-                        <TableHead className="text-right text-[10px] uppercase font-black text-black pr-4">Remark</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {MOCK_PERSONAL_GRADES.map((g: any, i: number) => {
-                        const subjectAvg = (g.seq1 + g.seq2) / 2;
-                        return (
-                          <TableRow key={i} className="border-b border-black">
-                            <TableCell className="font-bold py-2 border-r-2 border-black text-xs uppercase">{g.subject}</TableCell>
-                            <TableCell className={cn("text-center py-2 border-r border-black font-medium", g.seq1 < 10 ? "text-red-600" : "")}>{g.seq1.toFixed(2)}</TableCell>
-                            <TableCell className={cn("text-center py-2 border-r border-black font-medium", g.seq2 < 10 ? "text-red-600" : "")}>{g.seq2.toFixed(2)}</TableCell>
-                            <TableCell className={cn("text-center py-2 border-r border-black font-black bg-accent/5", subjectAvg < 10 ? "text-red-600" : "text-primary")}>{subjectAvg.toFixed(2)}</TableCell>
-                            <TableCell className="text-center py-2 border-r border-black font-bold italic">{g.coeff}</TableCell>
-                            <TableCell className="text-right py-2 pr-4 text-[9px] uppercase font-black italic">{getAppreciation(subjectAvg).text}</TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                 </Table>
-
-                 <div className="mt-auto text-center pt-8 border-t border-black/5 opacity-30">
-                    <div className="flex items-center justify-center gap-3">
-                       <img src={platformSettings.logo} alt="EduIgnite" className="w-4 h-4 object-contain opacity-20" />
-                       <p className="text-[8px] uppercase font-black tracking-[0.4em]">Verified Educational Record • Secure Node</p>
-                    </div>
-                 </div>
+        <div className="bg-white p-4 md:p-6 rounded-[2rem] border shadow-sm space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+            <div className="space-y-2">
+              <Label className="text-[9px] font-black uppercase text-primary ml-1">Academic Session</Label>
+              <Select value={adminFilters.year} onValueChange={(v) => setAdminFilters({...adminFilters, year: v})}>
+                <SelectTrigger className="h-11 bg-primary/5 border-primary/10 rounded-xl font-bold text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>{ACADEMIC_YEARS.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[9px] font-black uppercase text-primary ml-1">Evaluation Term</Label>
+              <Select value={adminFilters.term} onValueChange={(v) => setAdminFilters({...adminFilters, term: v})}>
+                <SelectTrigger className="h-11 bg-primary/5 border-primary/10 rounded-xl font-bold text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>{TERMS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[9px] font-black uppercase text-primary ml-1">Sub-School / Section</Label>
+              <Select value={adminFilters.section} onValueChange={(v) => setAdminFilters({...adminFilters, section: v})}>
+                <SelectTrigger className="h-11 bg-primary/5 border-primary/10 rounded-xl font-bold text-xs"><SelectValue placeholder="All Sections" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Entire Node</SelectItem>
+                  {SECTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[9px] font-black uppercase text-primary ml-1">Class Stream</Label>
+              <Select value={adminFilters.class} onValueChange={(v) => setAdminFilters({...adminFilters, class: v})}>
+                <SelectTrigger className="h-11 bg-primary/5 border-primary/10 rounded-xl font-bold text-xs"><SelectValue placeholder="All Classes" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Entire School</SelectItem>
+                  {CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[9px] font-black uppercase text-primary ml-1">Find Student</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input 
+                  placeholder="Name or ID..." 
+                  className="h-11 bg-accent/30 border-none rounded-xl text-xs" 
+                  value={adminFilters.search}
+                  onChange={(e) => setAdminFilters({...adminFilters, search: e.target.value})}
+                />
               </div>
             </div>
+          </div>
+        </div>
 
-            <DialogFooter className="p-6 bg-white border-t gap-3 no-print shrink-0">
-              <Button variant="outline" onClick={() => window.print()} className="flex-1 rounded-xl h-12 font-black uppercase text-xs gap-2">
-                <Printer className="w-4 h-4" /> Print
-              </Button>
-              <Button onClick={() => setPreviewDoc(null)} className="flex-1 rounded-xl h-12 font-black uppercase text-xs bg-primary text-white">Close</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+          <CardHeader className="bg-primary p-6 md:p-8 text-white">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-2xl text-secondary">
+                  <ShieldCheck className="w-8 h-8" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl md:text-2xl font-black uppercase tracking-tight">Academic Bulletin Registry</CardTitle>
+                  <CardDescription className="text-white/60 text-xs">Viewing verified records for {adminFilters.year} • {adminFilters.term}</CardDescription>
+                </div>
+              </div>
+              <div className="bg-white/10 px-4 py-2 rounded-xl backdrop-blur-md border border-white/10 flex items-center gap-3">
+                <Users className="w-5 h-5 text-secondary" />
+                <span className="text-sm font-black">{filteredAdminStudents.length} Students Listed</span>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0 overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest border-b">
+                <TableRow>
+                  <TableHead className="pl-8 py-4">Matricule</TableHead>
+                  <TableHead>Student Identity</TableHead>
+                  <TableHead>Class / Section</TableHead>
+                  <TableHead className="text-center">Moyenne</TableHead>
+                  <TableHead className="text-center">Status</TableHead>
+                  <TableHead className="text-right pr-8">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredAdminStudents.map((s) => {
+                  const avg = ((s.seq1 + s.seq2) / 2);
+                  const isPassed = avg >= 10;
+                  return (
+                    <TableRow key={s.uid} className="hover:bg-accent/5 border-b last:border-0 h-16">
+                      <TableCell className="pl-8 font-mono text-[10px] font-bold text-primary">{s.id}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-9 w-9 border shrink-0"><AvatarImage src={s.avatar} /><AvatarFallback>{s.name.charAt(0)}</AvatarFallback></Avatar>
+                          <span className="font-bold text-xs md:text-sm text-primary uppercase">{s.name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-bold uppercase">{s.class}</span>
+                          <span className="text-[8px] font-black text-muted-foreground uppercase">{s.section}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span className={cn("font-black text-base", isPassed ? "text-primary" : "text-red-600")}>{avg.toFixed(2)}</span>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge className={cn("text-[8px] font-black uppercase px-2 h-5 border-none", isPassed ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}>
+                          {isPassed ? 'CLEARED' : 'FAILED'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <div className="flex justify-end gap-1">
+                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5" onClick={() => setPreviewDoc({ ...s, year: adminFilters.year, term: adminFilters.term })}>
+                            <Eye className="w-4 h-4 text-primary/60" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5" onClick={() => toast({ title: "Report Download Started" })}>
+                            <Download className="w-4 h-4 text-primary/60" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -588,7 +643,7 @@ export default function GradeBookPage() {
               <ShieldCheck className="w-5 h-5 text-secondary" /> VERIFIED
             </div>
           </CardContent>
-        </Card>
+        </div>
       </div>
 
       <div className="bg-white p-4 md:p-6 rounded-[2rem] border shadow-sm flex flex-col md:flex-row gap-4 items-end">
@@ -692,6 +747,116 @@ export default function GradeBookPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* BULLETIN PREVIEW DIALOG */}
+      <Dialog open={!!previewDoc} onOpenChange={() => setPreviewDoc(null)}>
+        <DialogContent className="sm:max-w-5xl max-h-[95vh] overflow-y-auto p-0 border-none shadow-2xl rounded-3xl">
+          <DialogHeader className="p-6 bg-primary text-white no-print">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-2 bg-white/10 rounded-xl">
+                  <FileText className="w-6 h-6 text-secondary" />
+                </div>
+                <DialogTitle className="text-xl font-black">Official Term Bulletin</DialogTitle>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setPreviewDoc(null)} className="text-white hover:bg-white/10">
+                <X className="w-6 h-6" />
+              </Button>
+            </div>
+          </DialogHeader>
+
+          <div className="bg-muted p-2 md:p-10 print:p-0 print:bg-white overflow-x-auto">
+            <div id="printable-bulletin" className="bg-white p-6 md:p-12 shadow-sm border border-border min-w-[850px] flex flex-col space-y-8 font-serif text-black relative print:shadow-none print:border-none mx-auto">
+               <div className="grid grid-cols-3 gap-4 items-start text-center border-b-2 border-black pb-6">
+                  <div className="space-y-1 text-[10px] uppercase font-black">
+                    <p>Republic of Cameroon</p>
+                    <p>Peace - Work - Fatherland</p>
+                    <div className="h-px bg-black w-8 mx-auto my-1" />
+                    <p>Ministry of Secondary Education</p>
+                    <p>{user?.school?.name || "INSTITUTIONAL NODE"}</p>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center p-2 border-2 border-primary/10">
+                       <img src={previewDoc?.schoolLogo || user?.school?.logo || platformSettings.logo} alt="School Logo" className="w-14 h-14 object-contain" />
+                    </div>
+                  </div>
+                  <div className="space-y-1 text-[10px] uppercase font-black">
+                    <p>République du Cameroun</p>
+                    <p>Paix - Travail - Patrie</p>
+                    <div className="h-px bg-black w-8 mx-auto my-1" />
+                    <p>Min. des Enseignements Secondaires</p>
+                  </div>
+               </div>
+               
+               <div className="text-center space-y-2">
+                  <h2 className="text-2xl font-black uppercase underline decoration-double underline-offset-4 tracking-tighter text-primary">
+                    OFFICIAL REPORT CARD
+                  </h2>
+                  <p className="font-bold text-xs italic">Session: {previewDoc?.year} • {previewDoc?.term}</p>
+               </div>
+
+               <div className="grid grid-cols-12 gap-8 bg-accent/5 p-6 border border-black/10 rounded-2xl items-center shadow-inner">
+                  <div className="col-span-3">
+                     <Avatar className="w-24 h-24 border-4 border-white rounded-2xl bg-white overflow-hidden shadow-lg mx-auto">
+                        <AvatarImage src={previewDoc?.avatar} className="object-cover" />
+                        <AvatarFallback className="text-2xl font-black">{previewDoc?.name?.charAt(0)}</AvatarFallback>
+                     </Avatar>
+                  </div>
+                  <div className="col-span-9">
+                     <div className="grid grid-cols-2 gap-x-12 gap-y-3 text-[11px]">
+                        <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60">Identity:</span><span className="font-black uppercase">{previewDoc?.name}</span></div>
+                        <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60">Matricule:</span><span className="font-mono font-bold text-primary">{previewDoc?.id}</span></div>
+                        <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60">Class:</span><span className="font-bold">{previewDoc?.class || "2nde / Form 5"}</span></div>
+                        <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60">Status:</span><span className="font-bold text-green-600 uppercase">{previewDoc?.status || "ENROLLED"}</span></div>
+                     </div>
+                  </div>
+               </div>
+
+               <Table className="border-collapse border-2 border-black">
+                  <TableHeader className="bg-black/5">
+                    <TableRow className="border-b-2 border-black">
+                      <TableHead className="text-[10px] uppercase font-black text-black border-r-2 border-black h-12">Subject</TableHead>
+                      <TableHead className="text-center text-[10px] uppercase font-black text-black border-r border-black w-16">Seq 1</TableHead>
+                      <TableHead className="text-center text-[10px] uppercase font-black text-black border-r border-black w-16">Seq 2</TableHead>
+                      <TableHead className="text-center text-[10px] uppercase font-black text-black border-r border-black w-16">Moy/20</TableHead>
+                      <TableHead className="text-center text-[10px] uppercase font-black text-black border-r border-black w-16">Coeff</TableHead>
+                      <TableHead className="text-right text-[10px] uppercase font-black text-black pr-4">Remark</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {MOCK_PERSONAL_GRADES.map((g: any, i: number) => {
+                      const subjectAvg = (g.seq1 + g.seq2) / 2;
+                      return (
+                        <TableRow key={i} className="border-b border-black">
+                          <TableCell className="font-bold py-2 border-r-2 border-black text-xs uppercase">{g.subject}</TableCell>
+                          <TableCell className={cn("text-center py-2 border-r border-black font-medium", g.seq1 < 10 ? "text-red-600" : "")}>{g.seq1.toFixed(2)}</TableCell>
+                          <TableCell className={cn("text-center py-2 border-r border-black font-medium", g.seq2 < 10 ? "text-red-600" : "")}>{g.seq2.toFixed(2)}</TableCell>
+                          <TableCell className={cn("text-center py-2 border-r border-black font-black bg-accent/5", subjectAvg < 10 ? "text-red-600" : "text-primary")}>{subjectAvg.toFixed(2)}</TableCell>
+                          <TableCell className="text-center py-2 border-r border-black font-bold italic">{g.coeff}</TableCell>
+                          <TableCell className="text-right py-2 pr-4 text-[9px] uppercase font-black italic">{getAppreciation(subjectAvg).text}</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+               </Table>
+
+               <div className="mt-auto text-center pt-8 border-t border-black/5 opacity-30">
+                  <div className="flex items-center justify-center gap-3">
+                     <img src={platformSettings.logo} alt="EduIgnite" className="w-4 h-4 object-contain opacity-20" />
+                     <p className="text-[8px] uppercase font-black tracking-[0.4em]">Verified Educational Record • Secure Node</p>
+                  </div>
+               </div>
+            </div>
+          </div>
+
+          <DialogFooter className="p-6 bg-white border-t gap-3 no-print shrink-0">
+            <Button variant="outline" onClick={() => window.print()} className="flex-1 rounded-xl h-12 font-black uppercase text-xs gap-2">
+              <Printer className="w-4 h-4" /> Print
+            </Button>
+            <Button onClick={() => setPreviewDoc(null)} className="flex-1 rounded-xl h-12 font-black uppercase text-xs bg-primary text-white">Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -708,7 +873,6 @@ function TranscriptPreview({ student, platform }: { student: any, platform: any 
         }
       `}</style>
       
-      {/* SAME CONTENT AS PREVIOUS TURN BUT WITH MOBILE SCROLL WRAPPER ALREADY APPLIED IN TAB CONTENT */}
       <div className="grid grid-cols-3 gap-4 items-start text-center border-b-2 border-black pb-6">
         <div className="space-y-1 text-[9px] uppercase font-black text-left">
           <p>Republic of Cameroon</p>
@@ -818,4 +982,13 @@ function TranscriptPreview({ student, platform }: { student: any, platform: any 
       </div>
     </div>
   )
+}
+
+function SignatureSVG({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M15 30L85 10" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" strokeDasharray="2 2" />
+    </svg>
+  );
 }
