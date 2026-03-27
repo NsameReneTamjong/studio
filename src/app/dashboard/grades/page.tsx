@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Award, 
@@ -38,7 +39,9 @@ import {
   UserRoundCheck,
   UserRoundX,
   FileDown,
-  Printer
+  Printer,
+  TrendingDown,
+  Scale
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -54,6 +57,13 @@ const MOCK_STUDENTS_GRADES = [
   { uid: "S2", id: "GBHS26S002", name: "Bob Richards", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s2/100/100", seq1: 18.0, seq2: 17.5 },
   { uid: "S3", id: "GBHS26S003", name: "Charlie Davis", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s3/100/100", seq1: 9.5, seq2: 10.5 },
   { uid: "S4", id: "GBHS26S004", name: "Diana Prince", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s4/100/100", seq1: 12.0, seq2: 13.0 },
+];
+
+const MOCK_PERSONAL_GRADES = [
+  { subject: "Advanced Physics", seq1: 14.5, seq2: 16.0, coeff: 4, teacher: "Dr. Tesla", status: "Passed" },
+  { subject: "Mathematics", seq1: 18.0, seq2: 17.5, coeff: 5, teacher: "Prof. Smith", status: "Passed" },
+  { subject: "English Literature", seq1: 12.0, seq2: 13.0, coeff: 3, teacher: "Ms. Bennet", status: "Passed" },
+  { subject: "General Chemistry", seq1: 10.5, seq2: 11.5, coeff: 4, teacher: "Dr. White", status: "Passed" },
 ];
 
 const MOCK_GRADE_HISTORY = [
@@ -108,6 +118,7 @@ export default function GradeBookPage() {
   const [selectedHistory, setSelectedHistory] = useState<any>(null);
 
   const isTeacher = user?.role === "TEACHER";
+  const isStudent = user?.role === "STUDENT";
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 1200);
@@ -144,7 +155,9 @@ export default function GradeBookPage() {
       setIsProcessing(false);
       toast({
         title: "Document Prepared",
-        description: `Formal Grade Registry for ${selectedSubject} has been generated as PDF.`,
+        description: isStudent 
+          ? "Your official Academic Bulletin has been generated as PDF."
+          : `Formal Grade Registry for ${selectedSubject} has been generated as PDF.`,
       });
     }, 2000);
   };
@@ -159,18 +172,146 @@ export default function GradeBookPage() {
   };
 
   const stats = useMemo(() => {
+    if (isStudent) {
+      const totalWeighted = MOCK_PERSONAL_GRADES.reduce((acc, curr) => acc + (((curr.seq1 + curr.seq2)/2) * curr.coeff), 0);
+      const totalCoeff = MOCK_PERSONAL_GRADES.reduce((acc, curr) => acc + curr.coeff, 0);
+      return {
+        average: (totalWeighted / totalCoeff).toFixed(2),
+        passRate: "100"
+      };
+    }
     const totalAvg = grades.reduce((acc, curr) => acc + (curr.seq1 + curr.seq2) / 2, 0) / grades.length;
     const passedCount = grades.filter(g => (g.seq1 + g.seq2) / 2 >= 10).length;
     return {
       average: totalAvg.toFixed(2),
       passRate: ((passedCount / grades.length) * 100).toFixed(0)
     };
-  }, [grades]);
+  }, [grades, isStudent]);
 
   if (isLoading) {
     return <LoadingState message="Fetching pedagogical records..." />;
   }
 
+  // --- STUDENT PERSONAL VIEW ---
+  if (isStudent) {
+    return (
+      <div className="space-y-8 pb-20 animate-in fade-in slide-in-from-bottom-2 duration-700">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full hover:bg-white shadow-sm shrink-0">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
+                <div className="p-2 bg-primary rounded-xl shadow-lg">
+                  <Award className="w-6 h-6 text-secondary" />
+                </div>
+                My Results & Report Card
+              </h1>
+              <p className="text-muted-foreground mt-1">Track your personal academic progress and download verified bulletins.</p>
+            </div>
+          </div>
+          <Button onClick={handleExportPdf} disabled={isProcessing} className="h-12 px-8 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3">
+            {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
+            Download Official Bulletin
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="border-none shadow-sm bg-primary text-white overflow-hidden">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-[10px] font-black opacity-60 uppercase tracking-widest">Personal Average</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-black text-secondary">{stats.average} / 20</div>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-sm bg-secondary text-primary overflow-hidden">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-[10px] font-black opacity-60 uppercase tracking-widest">Promotion Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-black flex items-center gap-2">
+                <CheckCircle2 className="w-6 h-6 text-green-600" /> ELIGIBLE
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-sm bg-white border">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Identity Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-xl font-black flex items-center gap-2 text-primary">
+                <ShieldCheck className="w-5 h-5 text-secondary" /> VERIFIED
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+          <CardHeader className="bg-primary p-8 text-white">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-2xl">
+                  <BookMarked className="w-8 h-8 text-secondary" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl font-black uppercase tracking-tight">Active Evaluation Cycle</CardTitle>
+                  <CardDescription className="text-white/60">Verified marks for 2023/24 • Sequence 1 & 2</CardDescription>
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0 overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-accent/10">
+                <TableRow className="uppercase text-[10px] font-black tracking-widest border-b border-accent/20">
+                  <TableHead className="pl-8 py-4">Pedagogical Subject</TableHead>
+                  <TableHead className="text-center">Coeff</TableHead>
+                  <TableHead className="text-center">Seq 1</TableHead>
+                  <TableHead className="text-center">Seq 2</TableHead>
+                  <TableHead className="text-center">Moy/20</TableHead>
+                  <TableHead className="text-right pr-8">Remark</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {MOCK_PERSONAL_GRADES.map((g, idx) => {
+                  const avg = (g.seq1 + g.seq2) / 2;
+                  return (
+                    <TableRow key={idx} className="hover:bg-accent/5 transition-colors border-b last:border-0 h-16">
+                      <TableCell className="pl-8 font-black text-primary uppercase text-sm">{g.subject}</TableCell>
+                      <TableCell className="text-center font-bold text-muted-foreground italic">{g.coeff}</TableCell>
+                      <TableCell className="text-center font-bold">{g.seq1.toFixed(2)}</TableCell>
+                      <TableCell className="text-center font-bold">{g.seq2.toFixed(2)}</TableCell>
+                      <TableCell className="text-center">
+                        <span className="font-black text-lg text-primary">{avg.toFixed(2)}</span>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <Badge className={cn(
+                          "text-[9px] font-black uppercase px-3 h-6 border-none",
+                          avg >= 10 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                        )}>
+                          {getRemark(avg)}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </CardContent>
+          <CardFooter className="bg-accent/10 p-6 border-t border-accent flex justify-center">
+             <div className="flex items-center gap-2 text-muted-foreground">
+                <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                <p className="text-[10px] font-black uppercase tracking-widest italic opacity-40">These records are digitally signed and finalized by the Academic Council.</p>
+             </div>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
+
+  // --- TEACHER / ADMIN MARK ENTRY VIEW ---
   return (
     <div className="space-y-8 pb-20 animate-in fade-in slide-in-from-bottom-2 duration-700">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -452,31 +593,6 @@ export default function GradeBookPage() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <Card className="border-none shadow-sm bg-blue-50 p-6 space-y-4 rounded-3xl">
-          <div className="flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-blue-600" />
-            <h4 className="text-xs font-black uppercase text-blue-700 tracking-widest">Pedagogical Compliance</h4>
-          </div>
-          <p className="text-[11px] text-blue-800 leading-relaxed font-medium italic">
-            "All marks recorded here are subject to verification by the Institutional Academic Council. Ensure that assessments are graded fairly and conform to the Ministry of Secondary Education's standards."
-          </p>
-        </Card>
-        
-        <Card className="border-none shadow-sm bg-accent/20 p-6 flex items-center justify-between rounded-3xl">
-           <div className="flex items-center gap-4">
-              <div className="p-3 bg-white rounded-2xl shadow-sm border border-accent">
-                 <ShieldCheck className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                 <p className="text-xs font-black text-primary uppercase leading-tight">Node Integrity</p>
-                 <p className="text-[10px] text-muted-foreground font-bold">Records are digitally signed and immutable once finalized.</p>
-              </div>
-           </div>
-           <QrCode className="w-12 h-12 opacity-10" />
-        </Card>
-      </div>
-
       {/* HISTORY DETAILS MODAL */}
       <Dialog open={!!selectedHistory} onOpenChange={() => setSelectedHistory(null)}>
         <DialogContent className="sm:max-w-4xl max-h-[90vh] p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col">
@@ -501,7 +617,6 @@ export default function GradeBookPage() {
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto p-8 space-y-10 no-scrollbar">
-            {/* SUCCESS SUMMARY */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-green-50 p-6 rounded-3xl border border-green-100 flex items-center justify-between">
                 <div>
@@ -526,9 +641,7 @@ export default function GradeBookPage() {
               </div>
             </div>
 
-            {/* DETAILED TABLES */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* PASSED LIST */}
               <div className="space-y-4">
                 <div className="flex items-center gap-3 border-b border-green-100 pb-2">
                   <CheckCircle2 className="w-5 h-5 text-green-600" />
@@ -554,7 +667,6 @@ export default function GradeBookPage() {
                 </div>
               </div>
 
-              {/* FAILED LIST */}
               <div className="space-y-4">
                 <div className="flex items-center gap-3 border-b border-red-100 pb-2">
                   <XCircle className="w-5 h-5 text-red-600" />
@@ -575,11 +687,6 @@ export default function GradeBookPage() {
                           <TableCell className="text-right pr-6 font-black text-green-600">{s.mark.toFixed(2)}</TableCell>
                         </TableRow>
                       ))}
-                      {selectedHistory?.students.filter((s: any) => s.status === 'fail').length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={2} className="h-20 text-center text-[10px] font-black uppercase text-muted-foreground opacity-40">Zero failures recorded.</TableCell>
-                        </TableRow>
-                      )}
                     </TableBody>
                   </Table>
                 </div>

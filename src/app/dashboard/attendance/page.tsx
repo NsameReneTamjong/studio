@@ -146,7 +146,7 @@ export default function AttendancePage() {
     );
   }
 
-  // STUDENT VIEW
+  // --- STUDENT VIEW ---
   if (isStudent) {
     return (
       <div className="space-y-8 pb-20 animate-in slide-in-from-bottom-4 duration-700">
@@ -160,9 +160,9 @@ export default function AttendancePage() {
                 <div className="p-2 bg-primary rounded-xl shadow-lg">
                   <CheckCircle2 className="w-6 h-6 text-secondary" />
                 </div>
-                {t("attendance")}
+                My Attendance
               </h1>
-              <p className="text-muted-foreground mt-1">Official registry of your pedagogical presence.</p>
+              <p className="text-muted-foreground mt-1">Monitor your daily presence and track your participation across all courses.</p>
             </div>
           </div>
           {!isOnline && (
@@ -170,6 +170,30 @@ export default function AttendancePage() {
               <WifiOff className="w-4 h-4" /> Offline Mode
             </Badge>
           )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+           <Card className="border-none shadow-sm bg-white p-6 rounded-3xl flex items-center gap-4">
+              <div className="p-3 bg-green-50 rounded-2xl text-green-600"><CheckCircle2 className="w-6 h-6" /></div>
+              <div>
+                 <p className="text-[10px] font-black uppercase text-muted-foreground">Session Presence</p>
+                 <p className="text-2xl font-black text-primary">94.5%</p>
+              </div>
+           </Card>
+           <Card className="border-none shadow-sm bg-white p-6 rounded-3xl flex items-center gap-4">
+              <div className="p-3 bg-blue-50 rounded-2xl text-blue-600"><TrendingUp className="w-6 h-6" /></div>
+              <div>
+                 <p className="text-[10px] font-black uppercase text-muted-foreground">Target Rate</p>
+                 <p className="text-2xl font-black text-primary">90.0%</p>
+              </div>
+           </Card>
+           <Card className="border-none shadow-sm bg-white p-6 rounded-3xl flex items-center gap-4">
+              <div className="p-3 bg-secondary/20 rounded-2xl text-primary"><Award className="w-6 h-6" /></div>
+              <div>
+                 <p className="text-[10px] font-black uppercase text-muted-foreground">Conduct Status</p>
+                 <p className="text-2xl font-black text-secondary">EXCELLENT</p>
+              </div>
+           </Card>
         </div>
 
         <Card className="border-none shadow-xl overflow-hidden rounded-[2rem]">
@@ -180,8 +204,8 @@ export default function AttendancePage() {
                   <ListChecks className="w-8 h-8 text-secondary" />
                 </div>
                 <div>
-                  <CardTitle className="text-2xl font-black">{t("todayPresence")}</CardTitle>
-                  <CardDescription className="text-white/60">Live session status for your scheduled courses.</CardDescription>
+                  <CardTitle className="text-2xl font-black">Live Session Status</CardTitle>
+                  <CardDescription className="text-white/60">Verified presence for your scheduled pedagogical activities today.</CardDescription>
                 </div>
               </div>
             </div>
@@ -190,16 +214,18 @@ export default function AttendancePage() {
             <Table>
               <TableHeader className="bg-accent/10">
                 <TableRow className="uppercase text-[10px] font-black tracking-widest border-b">
-                  <TableHead className="pl-8 py-4">{t("subjects")}</TableHead>
+                  <TableHead className="pl-8 py-4">Course / Subject</TableHead>
                   <TableHead>Time Window</TableHead>
-                  <TableHead className="text-right pr-8">{t("status")}</TableHead>
+                  <TableHead>Instructor</TableHead>
+                  <TableHead className="text-right pr-8">My Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {MOCK_STUDENT_TODAY.map((att, i) => (
                   <TableRow key={i} className="hover:bg-accent/5 transition-colors border-b">
-                    <TableCell className="pl-8 py-4 font-bold text-sm text-primary">{att.subject}</TableCell>
+                    <TableCell className="pl-8 py-4 font-bold text-sm text-primary uppercase">{att.subject}</TableCell>
                     <TableCell className="text-xs font-mono font-bold text-muted-foreground">{att.start} - {att.end}</TableCell>
+                    <TableCell className="text-xs font-medium text-muted-foreground">{att.teacher}</TableCell>
                     <TableCell className="text-right pr-8">
                       <Badge className={cn(
                         "text-[9px] font-black uppercase px-3 border-none", 
@@ -213,12 +239,18 @@ export default function AttendancePage() {
               </TableBody>
             </Table>
           </CardContent>
+          <CardFooter className="bg-accent/10 p-6 border-t flex justify-center">
+             <div className="flex items-center gap-2 text-muted-foreground">
+                <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                <p className="text-[10px] font-black uppercase tracking-widest italic opacity-40">Attendance is automatically recorded via biometric node synchronization.</p>
+             </div>
+          </CardFooter>
         </Card>
       </div>
     );
   }
 
-  // TEACHER/ADMIN VIEW
+  // --- TEACHER / ADMIN VIEW ---
   return (
     <div className="space-y-8 pb-20 animate-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
