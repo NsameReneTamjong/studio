@@ -44,11 +44,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
-const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
 const SECTIONS = ["Anglophone Section", "Francophone Section", "Technical Section"];
+
+const SECTION_CLASSES: Record<string, string[]> = {
+  "Anglophone Section": ["Form 1", "Form 2", "Form 3", "Form 4", "Form 5", "Lower Sixth", "Upper Sixth"],
+  "Francophone Section": ["6ème", "5ème", "4ème", "3ème", "2nde", "1ère", "Terminale"],
+  "Technical Section": ["1ère Year", "2nd Year", "3rd Year", "4th Year", "5th Year", "6th Year", "7th Year"]
+};
 
 const INITIAL_COURSES = [
   { id: "PHY101", name: "Advanced Physics", instructorName: "Dr. Aris Tesla", instructorAvatar: "https://picsum.photos/seed/t1/200/200", targetClass: "2nde / Form 5", section: "Anglophone Section", type: "mandatory", color: "bg-blue-500", stats: { liveClasses: 24, exams: 8, attendance: 92 } },
@@ -134,7 +140,7 @@ export default function CoursesPage() {
     name: "",
     id: "",
     instructorName: "Dr. Jean Dupont",
-    targetClass: "2nde / Form 5",
+    targetClasses: [] as string[],
     section: "Anglophone Section",
     type: "mandatory",
     color: "bg-blue-500"
@@ -154,13 +160,32 @@ export default function CoursesPage() {
   }, []);
 
   const handleCreateSubject = async () => {
-    if (!newSubject.name || !newSubject.id) return;
+    if (!newSubject.name || !newSubject.id || newSubject.targetClasses.length === 0) {
+      toast({ 
+        variant: "destructive", 
+        title: "Incomplete Form", 
+        description: "Subject Name, ID, and at least one target class are required." 
+      });
+      return;
+    }
     setIsProcessing(true);
     setTimeout(() => {
-      setSubjects([...subjects, { ...newSubject, stats: { liveClasses: 0, exams: 0, attendance: 0 } }]);
+      setSubjects([...subjects, { 
+        ...newSubject, 
+        targetClass: newSubject.targetClasses.join(', '),
+        stats: { liveClasses: 0, exams: 0, attendance: 0 } 
+      }]);
       setIsProcessing(false);
       setIsAddingSubject(false);
-      setNewSubject({ name: "", id: "", instructorName: "Dr. Jean Dupont", targetClass: "2nde / Form 5", section: "Anglophone Section", type: "mandatory", color: "bg-blue-500" });
+      setNewSubject({ 
+        name: "", 
+        id: "", 
+        instructorName: "Dr. Jean Dupont", 
+        targetClasses: [], 
+        section: "Anglophone Section", 
+        type: "mandatory", 
+        color: "bg-blue-500" 
+      });
       toast({ title: "Subject Registered", description: `${newSubject.name} added to curriculum.` });
     }, 800);
   };
@@ -693,25 +718,25 @@ export default function CoursesPage() {
                 <Plus className="w-5 h-5" /> Add New Subject
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+            <DialogContent className="sm:max-w-2xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
               <DialogHeader className="bg-primary p-8 text-white">
                 <DialogTitle className="text-2xl font-black">Setup New Subject</DialogTitle>
                 <DialogDescription className="text-white/60">Configure curriculum requirements and instructor assignment.</DialogDescription>
               </DialogHeader>
-              <div className="p-8 space-y-6">
-                <div className="grid grid-cols-2 gap-6">
+              <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="col-span-2 space-y-2">
-                    <Label>Subject Name</Label>
-                    <Input value={newSubject.name} onChange={(e) => setNewSubject({...newSubject, name: e.target.value})} placeholder="e.g. Advanced Physics" className="h-11 rounded-xl" />
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Subject Name</Label>
+                    <Input value={newSubject.name} onChange={(e) => setNewSubject({...newSubject, name: e.target.value})} placeholder="e.g. Advanced Physics" className="h-11 bg-accent/30 border-none rounded-xl" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Subject ID (Code)</Label>
-                    <Input value={newSubject.id} onChange={(e) => setNewSubject({...newSubject, id: e.target.value})} placeholder="e.g. PHY101" className="h-11 rounded-xl" />
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Subject ID (Code)</Label>
+                    <Input value={newSubject.id} onChange={(e) => setNewSubject({...newSubject, id: e.target.value})} placeholder="e.g. PHY101" className="h-11 bg-accent/30 border-none rounded-xl" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Subject Type</Label>
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Subject Type</Label>
                     <Select value={newSubject.type} onValueChange={(v) => setNewSubject({...newSubject, type: v})}>
-                      <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="h-11 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="mandatory">Mandatory</SelectItem>
                         <SelectItem value="optional">Optional</SelectItem>
@@ -719,19 +744,42 @@ export default function CoursesPage() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>Sub-School / Section</Label>
-                    <Select value={newSubject.section} onValueChange={(v) => setNewSubject({...newSubject, section: v})}>
-                      <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Sub-School / Section</Label>
+                    <Select value={newSubject.section} onValueChange={(v) => setNewSubject({...newSubject, section: v, targetClasses: []})}>
+                      <SelectTrigger className="h-11 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {SECTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
+
+                  <div className="col-span-2 space-y-3">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Target Classes (Select All That Apply)</Label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 bg-accent/20 rounded-2xl border border-accent/50 max-h-[200px] overflow-y-auto">
+                      {SECTION_CLASSES[newSubject.section]?.map((cls) => (
+                        <div key={cls} className="flex items-center space-x-2">
+                          <Checkbox 
+                            id={`cls-${cls}`} 
+                            checked={newSubject.targetClasses.includes(cls)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setNewSubject({...newSubject, targetClasses: [...newSubject.targetClasses, cls]})
+                              } else {
+                                setNewSubject({...newSubject, targetClasses: newSubject.targetClasses.filter(c => c !== cls)})
+                              }
+                            }}
+                          />
+                          <Label htmlFor={`cls-${cls}`} className="text-xs font-bold cursor-pointer leading-none">{cls}</Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
               <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
-                <Button onClick={handleCreateSubject} className="w-full h-12 shadow-lg font-bold" disabled={isProcessing}>
-                  {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Register Subject"}
+                <Button onClick={handleCreateSubject} className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-2" disabled={isProcessing}>
+                  {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
+                  Register Subject to Curriculum
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -851,6 +899,10 @@ function CourseCard({ course, isAdmin, onDelete, onViewMaterials }: { course: an
             <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Section</p>
             <p className="text-xs font-black text-primary/80 pt-1.5">{course.section}</p>
           </div>
+        </div>
+        <div className="pt-2">
+           <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">Target Classes</p>
+           <p className="text-xs font-bold text-primary/60">{course.targetClass || "All Streams"}</p>
         </div>
       </CardContent>
       <CardFooter className="bg-accent/30 border-t border-accent/50 pt-4 flex gap-2">
