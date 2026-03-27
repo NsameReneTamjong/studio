@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
 import { 
   Award, 
   CheckCircle2, 
@@ -48,7 +49,10 @@ import {
   Building2,
   FileBadge,
   Globe,
-  Download
+  Download,
+  Activity,
+  Clock,
+  Check
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -81,6 +85,14 @@ const MOCK_PERSONAL_ARCHIVE = [
   { id: "R1", year: "2023 / 2024", term: "Term 1", average: "15.45", position: "4th / 45", classMaster: "Mr. Abena", status: "Published" },
   { id: "R2", year: "2022 / 2023", term: "Term 3", average: "14.20", position: "8th / 42", classMaster: "Mme. Njoh", status: "Published" },
   { id: "R3", year: "2022 / 2023", term: "Term 2", average: "13.85", position: "12th / 42", classMaster: "Mme. Njoh", status: "Published" },
+];
+
+const MOCK_FILLING_LOGS = [
+  { subject: "Advanced Physics", class: "2nde / Form 5", teacher: "Dr. Tesla", progress: 100, status: "Filled", lastUpdate: "2h ago" },
+  { subject: "Mathematics", class: "2nde / Form 5", teacher: "Prof. Smith", progress: 100, status: "Filled", lastUpdate: "1d ago" },
+  { subject: "English Literature", class: "2nde / Form 5", teacher: "Ms. Bennet", progress: 45, status: "Pending", lastUpdate: "5h ago" },
+  { subject: "Chemistry", class: "2nde / Form 5", teacher: "Dr. White", progress: 0, status: "Pending", lastUpdate: "Never" },
+  { subject: "History", class: "3ème / Form 4", teacher: "Mr. Tabi", progress: 100, status: "Filled", lastUpdate: "10m ago" },
 ];
 
 const MOCK_TRANSCRIPT_DATA = {
@@ -196,6 +208,13 @@ export default function GradeBookPage() {
       return matchesSearch && matchesClass && matchesSection;
     });
   }, [adminFilters, isSubAdmin]);
+
+  const fillingLogs = useMemo(() => {
+    return MOCK_FILLING_LOGS.filter(log => {
+      const matchesClass = adminFilters.class === "all" || log.class === adminFilters.class;
+      return matchesClass;
+    });
+  }, [adminFilters.class]);
 
   const stats = useMemo(() => {
     if (isStudent) {
@@ -449,7 +468,7 @@ export default function GradeBookPage() {
             </div>
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline flex items-center gap-3 uppercase">
-                Institutional Report Issuance
+                Institutional Report Registry
               </h1>
               <p className="text-muted-foreground mt-1 text-sm">Strategic portal for auditing and generating academic bulletins.</p>
             </div>
@@ -516,80 +535,169 @@ export default function GradeBookPage() {
           </div>
         </div>
 
-        <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
-          <CardHeader className="bg-primary p-6 md:p-8 text-white">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-white/10 rounded-2xl text-secondary">
-                  <ShieldCheck className="w-8 h-8" />
+        <Tabs defaultValue="issuance" className="w-full">
+          <TabsList className="grid grid-cols-2 w-full md:w-[400px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl">
+            <TabsTrigger value="issuance" className="gap-2 py-3 rounded-xl transition-all font-bold text-xs sm:text-sm">
+              <FileBadge className="w-4 h-4" /> Issuance Registry
+            </TabsTrigger>
+            <TabsTrigger value="filling" className="gap-2 py-3 rounded-xl transition-all font-bold text-xs sm:text-sm">
+              <Activity className="w-4 h-4" /> Filling Audit
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="issuance" className="mt-0">
+            <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+              <CardHeader className="bg-primary p-6 md:p-8 text-white">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-white/10 rounded-2xl text-secondary">
+                      <ShieldCheck className="w-8 h-8" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-xl md:text-2xl font-black uppercase tracking-tight">Academic Bulletin Registry</CardTitle>
+                      <CardDescription className="text-white/60 text-xs">Viewing verified records for {adminFilters.year} • {adminFilters.term}</CardDescription>
+                    </div>
+                  </div>
+                  <div className="bg-white/10 px-4 py-2 rounded-xl backdrop-blur-md border border-white/10 flex items-center gap-3">
+                    <Users className="w-5 h-5 text-secondary" />
+                    <span className="text-sm font-black">{filteredAdminStudents.length} Students Listed</span>
+                  </div>
                 </div>
-                <div>
-                  <CardTitle className="text-xl md:text-2xl font-black uppercase tracking-tight">Academic Bulletin Registry</CardTitle>
-                  <CardDescription className="text-white/60 text-xs">Viewing verified records for {adminFilters.year} • {adminFilters.term}</CardDescription>
-                </div>
-              </div>
-              <div className="bg-white/10 px-4 py-2 rounded-xl backdrop-blur-md border border-white/10 flex items-center gap-3">
-                <Users className="w-5 h-5 text-secondary" />
-                <span className="text-sm font-black">{filteredAdminStudents.length} Students Listed</span>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0 overflow-x-auto">
-            <Table>
-              <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest border-b">
-                <TableRow>
-                  <TableHead className="pl-8 py-4">Matricule</TableHead>
-                  <TableHead>Student Identity</TableHead>
-                  <TableHead>Class / Section</TableHead>
-                  <TableHead className="text-center">Moyenne</TableHead>
-                  <TableHead className="text-center">Status</TableHead>
-                  <TableHead className="text-right pr-8">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredAdminStudents.map((s) => {
-                  const avg = ((s.seq1 + s.seq2) / 2);
-                  const isPassed = avg >= 10;
-                  return (
-                    <TableRow key={s.uid} className="hover:bg-accent/5 border-b last:border-0 h-16">
-                      <TableCell className="pl-8 font-mono text-[10px] font-bold text-primary">{s.id}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-9 w-9 border shrink-0"><AvatarImage src={s.avatar} /><AvatarFallback>{s.name.charAt(0)}</AvatarFallback></Avatar>
-                          <span className="font-bold text-xs md:text-sm text-primary uppercase">{s.name}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className="text-[10px] font-bold uppercase">{s.class}</span>
-                          <span className="text-[8px] font-black text-muted-foreground uppercase">{s.section}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <span className={cn("font-black text-base", isPassed ? "text-primary" : "text-red-600")}>{avg.toFixed(2)}</span>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge className={cn("text-[8px] font-black uppercase px-2 h-5 border-none", isPassed ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}>
-                          {isPassed ? 'CLEARED' : 'FAILED'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right pr-8">
-                        <div className="flex justify-end gap-1">
-                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5" onClick={() => setPreviewDoc({ ...s, year: adminFilters.year, term: adminFilters.term })}>
-                            <Eye className="w-4 h-4 text-primary/60" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5" onClick={() => toast({ title: "Report Download Started" })}>
-                            <Download className="w-4 h-4 text-primary/60" />
-                          </Button>
-                        </div>
-                      </TableCell>
+              </CardHeader>
+              <CardContent className="p-0 overflow-x-auto">
+                <Table>
+                  <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest border-b">
+                    <TableRow>
+                      <TableHead className="pl-8 py-4">Matricule</TableHead>
+                      <TableHead>Student Identity</TableHead>
+                      <TableHead>Class / Section</TableHead>
+                      <TableHead className="text-center">Moyenne</TableHead>
+                      <TableHead className="text-center">Status</TableHead>
+                      <TableHead className="text-right pr-8">Actions</TableHead>
                     </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredAdminStudents.map((s) => {
+                      const avg = ((s.seq1 + s.seq2) / 2);
+                      const isPassed = avg >= 10;
+                      return (
+                        <TableRow key={s.uid} className="hover:bg-accent/5 border-b last:border-0 h-16">
+                          <TableCell className="pl-8 font-mono text-[10px] font-bold text-primary">{s.id}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-9 w-9 border shrink-0"><AvatarImage src={s.avatar} /><AvatarFallback>{s.name.charAt(0)}</AvatarFallback></Avatar>
+                              <span className="font-bold text-xs md:text-sm text-primary uppercase">{s.name}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col">
+                              <span className="text-[10px] font-bold uppercase">{s.class}</span>
+                              <span className="text-[8px] font-black text-muted-foreground uppercase">{s.section}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <span className={cn("font-black text-base", isPassed ? "text-primary" : "text-red-600")}>{avg.toFixed(2)}</span>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge className={cn("text-[8px] font-black uppercase px-2 h-5 border-none", isPassed ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}>
+                              {isPassed ? 'CLEARED' : 'FAILED'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right pr-8">
+                            <div className="flex justify-end gap-1">
+                              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5" onClick={() => setPreviewDoc({ ...s, year: adminFilters.year, term: adminFilters.term })}>
+                                <Eye className="w-4 h-4 text-primary/60" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5" onClick={() => toast({ title: "Report Download Started" })}>
+                                <Download className="w-4 h-4 text-primary/60" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="filling" className="mt-0">
+            <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+              <CardHeader className="bg-primary p-6 md:p-8 text-white">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-white/10 rounded-2xl text-secondary">
+                      <Clock className="w-8 h-8" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-xl md:text-2xl font-black uppercase tracking-tight">Grade Filling Audit</CardTitle>
+                      <CardDescription className="text-white/60 text-xs">Real-time pedagogical progress for current sequence.</CardDescription>
+                    </div>
+                  </div>
+                  <div className="bg-white/10 px-4 py-2 rounded-xl backdrop-blur-md border border-white/10 flex items-center gap-3">
+                    <Info className="w-5 h-5 text-secondary" />
+                    <span className="text-sm font-black">Overall Node Completion: 72%</span>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0 overflow-x-auto">
+                <Table>
+                  <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest border-b">
+                    <TableRow>
+                      <TableHead className="pl-8 py-4">Subject & Level</TableHead>
+                      <TableHead>Instructor</TableHead>
+                      <TableHead className="text-center">Completion Rate</TableHead>
+                      <TableHead className="text-center">Sequence Status</TableHead>
+                      <TableHead className="text-right pr-8">Last Sync</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {fillingLogs.map((log, idx) => (
+                      <TableRow key={idx} className="hover:bg-accent/5 border-b last:border-0 h-16">
+                        <TableCell className="pl-8">
+                          <div className="space-y-0.5">
+                            <p className="font-black text-sm text-primary uppercase leading-tight">{log.subject}</p>
+                            <Badge variant="outline" className="text-[8px] font-bold border-primary/10 text-primary/60">{log.class}</Badge>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="p-1.5 bg-primary/5 rounded-lg border border-primary/10">
+                              <User className="w-3.5 h-3.5 text-primary/40" />
+                            </div>
+                            <span className="text-xs font-bold text-primary">{log.teacher}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="w-32 mx-auto space-y-1.5">
+                            <div className="flex justify-between text-[8px] font-black uppercase">
+                              <span className="text-primary/40">Audit</span>
+                              <span className="text-primary">{log.progress}%</span>
+                            </div>
+                            <Progress value={log.progress} className="h-1 bg-accent" />
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge className={cn(
+                            "text-[8px] font-black uppercase px-2.5 border-none h-5",
+                            log.status === 'Filled' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                          )}>
+                            {log.status === 'Filled' ? <Check className="w-2.5 h-2.5 mr-1" /> : <Clock className="w-2.5 h-2.5 mr-1" />}
+                            {log.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right pr-8">
+                          <span className="text-[10px] font-mono font-bold text-muted-foreground italic">{log.lastUpdate}</span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     );
   }
