@@ -44,7 +44,11 @@ import {
   Network,
   ArrowLeft,
   UserCheck,
-  UserX
+  UserX,
+  FileText,
+  TrendingDown,
+  Activity,
+  ChevronRight
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -102,6 +106,7 @@ export default function FeesPage() {
   const [selectedClassDetails, setSelectedClassDetails] = useState<any>(null);
   const [dossierSearch, setDossierSearch] = useState("");
   const [issuedReceipt, setIssuedReceipt] = useState<any>(null);
+  const [previewReport, setPreviewReport] = useState<any>(null);
   const [paymentForm, setPaymentForm] = useState({ type: INITIAL_FEE_TYPES[0].name, amount: "" });
   
   const [reportYear, setReportYear] = useState(ACADEMIC_YEARS[0]);
@@ -215,6 +220,18 @@ export default function FeesPage() {
     }, 1500);
   };
 
+  const handleGenerateFinancialReport = () => {
+    setPreviewReport({
+      id: `FIN-REP-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+      date: new Date().toLocaleDateString(),
+      session: reportYear,
+      bursar: user?.name || "Official Bursar",
+      totalCollected: "22.45M",
+      totalArrears: "4.12M",
+      velocity: "84%"
+    });
+  };
+
   const handleAddFeeType = () => {
     if (!newFeeTypeData.name || !newFeeTypeData.amount) return;
     setIsProcessing(true);
@@ -285,6 +302,12 @@ export default function FeesPage() {
         </div>
         
         <div className="flex items-center gap-2">
+          {isBursar && (
+            <Button className="h-11 px-6 rounded-xl font-black uppercase tracking-widest text-[10px] gap-2 shadow-lg" onClick={handleGenerateFinancialReport}>
+              <FileText className="w-4 h-4 text-secondary" />
+              Download Financial Report
+            </Button>
+          )}
           <Badge variant="outline" className="h-10 px-4 rounded-xl border-primary/20 text-primary font-black uppercase tracking-widest flex items-center gap-2 bg-white">
             <ShieldCheck className="w-4 h-4 text-secondary" />
             {isAdmin ? "Node Integrity Active" : "Official Collector"}
@@ -868,6 +891,136 @@ export default function FeesPage() {
             >
               {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
               Finalize & Generate Receipt
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* STRATEGIC FINANCIAL DOSSIER MODAL */}
+      <Dialog open={!!previewReport} onOpenChange={() => setPreviewReport(null)}>
+        <DialogContent className="sm:max-w-5xl max-h-[95vh] p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col">
+          <DialogHeader className="bg-primary p-8 text-white no-print relative shrink-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-2xl">
+                  <FileText className="w-8 h-8 text-secondary" />
+                </div>
+                <div>
+                  <DialogTitle className="text-2xl font-black uppercase tracking-tight">Institutional Financial Dossier</DialogTitle>
+                  <DialogDescription className="text-white/60">Verified strategic revenue audit record.</DialogDescription>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setPreviewReport(null)} className="text-white hover:bg-white/10">
+                <X className="w-6 h-6" />
+              </Button>
+            </div>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto bg-muted p-4 md:p-10 print:p-0 print:bg-white no-scrollbar">
+            <div id="printable-financial-audit" className="bg-white p-8 md:p-16 border-2 border-black/10 shadow-sm relative flex flex-col space-y-12 font-serif text-black print:border-none print:shadow-none min-w-[800px] mx-auto">
+               
+               {/* National Header */}
+               <div className="grid grid-cols-3 gap-2 items-start text-center border-b-2 border-black pb-6">
+                  <div className="space-y-0.5 text-[8px] uppercase font-bold">
+                    <p>Republic of Cameroon</p>
+                    <p>Peace - Work - Fatherland</p>
+                    <div className="h-px bg-black w-10 mx-auto my-1" />
+                    <p>Ministry of Secondary Education</p>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <img src={user?.school?.logo || platformSettings.logo} alt="School" className="w-20 h-20 object-contain" />
+                  </div>
+                  <div className="space-y-0.5 text-[8px] uppercase font-bold">
+                    <p>République du Cameroun</p>
+                    <p>Paix - Travail - Patrie</p>
+                    <div className="h-px bg-black w-10 mx-auto my-1" />
+                    <p>Min. des Enseignements Secondaires</p>
+                  </div>
+               </div>
+
+               <div className="text-center space-y-2">
+                  <h2 className="font-black text-2xl md:text-3xl uppercase tracking-tighter text-primary leading-tight">{user?.school?.name || "INSTITUTIONAL NODE"}</h2>
+                  <p className="text-[10px] md:text-xs font-bold uppercase opacity-60 tracking-[0.3em] underline underline-offset-4 decoration-double">STRATEGIC FINANCIAL AUDIT: {previewReport?.session}</p>
+               </div>
+
+               <div className="grid grid-cols-2 gap-12 pt-4">
+                  <section className="space-y-4">
+                    <h4 className="text-xs font-black uppercase text-primary border-b border-black/10 pb-1 flex items-center gap-2"><Coins className="w-4 h-4"/> Revenue Matrix</h4>
+                    <div className="space-y-3">
+                       <div className="flex justify-between text-xs font-bold"><span className="opacity-60">1. Total Intake:</span><span>{previewReport?.totalCollected} XAF</span></div>
+                       <div className="flex justify-between text-xs font-bold"><span className="opacity-60">2. Active Arrears:</span><span className="text-red-600">{previewReport?.totalArrears} XAF</span></div>
+                       <div className="flex justify-between text-xs font-bold"><span className="opacity-60">3. Collection Velocity:</span><span>{previewReport?.velocity}</span></div>
+                       <div className="flex justify-between text-xs font-bold"><span className="opacity-60">4. Node Integrity:</span><span className="text-green-600">VERIFIED</span></div>
+                    </div>
+                  </section>
+
+                  <section className="space-y-4">
+                    <h4 className="text-xs font-black uppercase text-primary border-b border-black/10 pb-1 flex items-center gap-2"><Activity className="w-4 h-4"/> Operational Context</h4>
+                    <div className="space-y-3">
+                       <div className="flex justify-between text-xs font-bold"><span className="opacity-60">5. Audit ID:</span><span className="font-mono">{previewReport?.id}</span></div>
+                       <div className="flex justify-between text-xs font-bold"><span className="opacity-60">6. Generated Date:</span><span>{previewReport?.date}</span></div>
+                       <div className="flex justify-between text-xs font-bold"><span className="opacity-60">7. Bursar:</span><span>{previewReport?.bursar}</span></div>
+                    </div>
+                  </section>
+               </div>
+
+               <section className="pt-8 border-t border-black/5">
+                  <h4 className="text-xs font-black uppercase text-primary border-b border-black/10 pb-1 mb-4">Class Level Collection Summary</h4>
+                  <Table className="border-collapse border-2 border-black/5">
+                    <TableHeader className="bg-black/5">
+                       <TableRow>
+                          <TableHead className="text-[10px] font-black uppercase text-black">Class Stream</TableHead>
+                          <TableHead className="text-center text-[10px] font-black uppercase text-black">Total Intake</TableHead>
+                          <TableHead className="text-center text-[10px] font-black uppercase text-black">Outstanding</TableHead>
+                          <TableHead className="text-right text-[10px] font-black uppercase text-black pr-6">Efficiency %</TableHead>
+                       </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                       {MOCK_CLASS_STATS.map((c, i) => (
+                         <TableRow key={i} className="border-b border-black/5">
+                            <TableCell className="font-black text-xs uppercase">{c.name}</TableCell>
+                            <TableCell className="text-center font-bold text-xs">{c.revenue}</TableCell>
+                            <TableCell className="text-center font-bold text-xs text-red-600">{c.arrears}</TableCell>
+                            <TableCell className="text-right pr-6 font-black text-sm text-primary">{c.percentage}%</TableCell>
+                         </TableRow>
+                       ))}
+                    </TableBody>
+                  </Table>
+               </section>
+
+               <div className="pt-12 border-t border-black/5 flex justify-between items-end">
+                  <div className="flex flex-col items-center gap-2 text-center">
+                    <QrCode className="w-20 h-20 opacity-10" />
+                    <p className="text-[8px] font-black uppercase text-muted-foreground opacity-40 leading-tight">Institutional<br/>Strategic Data QR</p>
+                  </div>
+                  <div className="text-center space-y-6 w-48">
+                    <div className="h-14 w-full mx-auto bg-primary/5 rounded-xl border-b-2 border-black/40 relative flex items-center justify-center overflow-hidden shadow-inner">
+                       <SignatureSVG className="w-full h-full text-primary/20 p-2" />
+                    </div>
+                    <p className="text-[10px] font-black uppercase text-primary tracking-widest leading-none">The Bursar</p>
+                  </div>
+               </div>
+
+               <div className="text-center pt-6 border-t border-black/5">
+                  <div className="flex items-center justify-center gap-3">
+                    <img src={platformSettings.logo} alt="EduIgnite" className="w-4 h-4 object-contain opacity-20" />
+                    <p className="text-[8px] font-black uppercase text-muted-foreground opacity-30 tracking-[0.3em]">
+                      Verified Financial Intelligence • Secure Node Record • {new Date().getFullYear()}
+                    </p>
+                  </div>
+               </div>
+            </div>
+          </div>
+
+          <DialogFooter className="bg-accent/10 p-8 border-t no-print flex flex-col sm:flex-row gap-4 shrink-0">
+            <Button variant="outline" className="flex-1 rounded-2xl h-14 font-black uppercase tracking-widest text-xs" onClick={() => setPreviewReport(null)}>
+              Dismiss Audit
+            </Button>
+            <Button 
+              className="flex-1 rounded-2xl h-14 shadow-2xl font-black uppercase tracking-widest text-xs gap-3 bg-primary text-white hover:bg-primary/90 transition-all active:scale-95" 
+              onClick={() => { window.print(); setPreviewReport(null); }}
+            >
+              <Printer className="w-4 h-4" /> Finalize & Print Dossier
             </Button>
           </DialogFooter>
         </DialogContent>
