@@ -49,7 +49,10 @@ import {
   Signature,
   Activity,
   Lock,
-  FileBadge
+  FileBadge,
+  FileDown,
+  Briefcase,
+  Fingerprint
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -72,6 +75,11 @@ const MOCK_CHILDREN = [
     avatar: "https://picsum.photos/seed/alice/200/200",
     createdAt: { toDate: () => new Date() },
     dob: "15/05/2008",
+    gender: "Female",
+    region: "Littoral",
+    division: "Wouri",
+    subDivision: "Douala 1er",
+    placeOfBirth: "Douala",
     guardian: "Mr. Robert Thompson",
     guardianPhone: "+237 677 00 11 22",
     address: "Bonapriso, Douala",
@@ -87,6 +95,21 @@ const MOCK_GRADES = [
   { subject: "History", seq1: 7.0, seq2: 8.5, teacher: "Mr. Tabi", status: "Failed", coeff: 2 },
 ];
 
+const MOCK_ATTENDANCE = [
+  { date: "May 24, 2024", subject: "Mathematics", time: "08:00 AM", status: "Present", teacher: "Prof. Smith" },
+  { date: "May 24, 2024", subject: "Physics", time: "10:30 AM", status: "Present", teacher: "Dr. Tesla" },
+  { date: "May 23, 2024", subject: "History", time: "01:00 PM", status: "Absent", teacher: "Mr. Tabi" },
+  { date: "May 22, 2024", subject: "English", time: "09:00 AM", status: "Present", teacher: "Ms. Bennet" },
+  { date: "May 21, 2024", subject: "Chemistry", time: "11:00 AM", status: "Present", teacher: "Dr. White" },
+];
+
+const MOCK_DOCUMENTS = [
+  { id: "D1", title: "Official Admission Letter", type: "PDF", size: "1.2 MB", date: "Sept 10, 2023", icon: FileText },
+  { id: "D2", title: "Term 1 Fee Receipt", type: "PDF", size: "450 KB", date: "Oct 15, 2023", icon: Receipt },
+  { id: "D3", title: "Institutional ID Card Copy", type: "PNG", size: "800 KB", date: "Sept 12, 2023", icon: CreditCard },
+  { id: "D4", title: "Sequence 1 Performance Slip", type: "PDF", size: "1.1 MB", date: "Nov 20, 2023", icon: Award },
+];
+
 const MOCK_REPORT_HISTORY = [
   { year: "2023 / 2024", term: "Term 2", average: "16.20", position: "1st / 45", classMaster: "Mr. Abena", isPublished: true },
   { year: "2023 / 2024", term: "Term 1", average: "14.50", position: "3rd / 45", classMaster: "Mr. Abena", isPublished: true },
@@ -97,15 +120,6 @@ const MOCK_TRANSCRIPT_DATA = {
   "Mathematics": { f1: ["15.0", "16.5", "17.0"], f2: ["14.5", "15.0", "16.0"], f3: ["17.5", "18.0", "17.5"] },
   "English": { f1: ["10.0", "11.5", "12.0"], f2: ["09.5", "10.0", "11.0"], f3: ["12.5", "13.0", "13.5"] },
   "History": { f1: ["08.5", "09.0", "10.5"], f2: ["07.5", "08.0", "09.5"], f3: ["09.0", "10.5", "11.0"] }
-};
-
-const getAppreciation = (note: number) => {
-  if (note >= 16) return { text: "Excellence", color: "bg-green-600" };
-  if (note >= 14) return { text: "Très Bien", color: "bg-green-500" };
-  if (note >= 12) return { text: "Bien", color: "bg-blue-500" };
-  if (note >= 10) return { text: "Passable", color: "bg-amber-500" };
-  if (note >= 8) return { text: "Médiocre", color: "bg-orange-500" };
-  return { text: "Faible", color: "bg-red-500" };
 };
 
 export default function StudentDetailsPage() {
@@ -208,11 +222,11 @@ export default function StudentDetailsPage() {
         {!isTeacher && (
           <div className="flex gap-2 w-full sm:w-auto">
             {isParent && (
-              <Button variant="outline" className="flex-1 sm:flex-none gap-2" onClick={() => setIsMessageModalOpen(true)}>
+              <Button variant="outline" className="flex-1 sm:flex-none gap-2 rounded-xl" onClick={() => setIsMessageModalOpen(true)}>
                 <Mail className="w-4 h-4" /> {language === 'en' ? 'Contact Teacher' : 'Contacter Enseignant'}
               </Button>
             )}
-            <Button className="flex-1 sm:flex-none gap-2 shadow-lg" onClick={() => setPreviewDoc({ type: 'report', data: MOCK_REPORT_HISTORY[0] })}>
+            <Button className="flex-1 sm:flex-none gap-2 shadow-lg rounded-xl" onClick={() => setPreviewDoc({ type: 'report', data: MOCK_REPORT_HISTORY[0] })}>
               <Printer className="w-4 h-4" /> {t("print")} {t("reportCard")}
             </Button>
           </div>
@@ -220,13 +234,226 @@ export default function StudentDetailsPage() {
       </div>
 
       <Tabs defaultValue="grades" className="w-full">
-        <TabsList className="grid w-full bg-white border shadow-sm h-auto p-1 rounded-xl grid-cols-6 overflow-x-auto no-scrollbar">
+        <TabsList className="grid w-full bg-white border shadow-sm h-auto p-1 rounded-xl grid-cols-5 overflow-x-auto no-scrollbar">
           <TabsTrigger value="profile" className="gap-2 py-2 whitespace-nowrap"><User className="w-4 h-4" /> {t("profile")}</TabsTrigger>
           <TabsTrigger value="grades" className="gap-2 py-2 whitespace-nowrap"><Award className="w-4 h-4" /> {t("grades")}</TabsTrigger>
           <TabsTrigger value="attendance" className="gap-2 py-2 whitespace-nowrap"><ClipboardCheck className="w-4 h-4" /> {t("presence")}</TabsTrigger>
           <TabsTrigger value="documents" className="gap-2 py-2 whitespace-nowrap"><FileText className="w-4 h-4" /> {t("documents")}</TabsTrigger>
           <TabsTrigger value="transcript" className="gap-2 py-2 whitespace-nowrap"><FileBadge className="w-4 h-4" /> {t("draftTranscript")}</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="profile" className="mt-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+            <Card className="md:col-span-4 border-none shadow-sm overflow-hidden rounded-3xl">
+              <CardHeader className="bg-primary p-6 text-white text-center">
+                <Avatar className="h-24 w-24 border-4 border-white/20 mx-auto shadow-xl mb-2">
+                  <AvatarImage src={student.avatar} />
+                  <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <CardTitle className="text-xl font-black uppercase tracking-tight">{student.name}</CardTitle>
+                <Badge variant="secondary" className="bg-secondary text-primary border-none text-[8px] font-black uppercase mt-2">Verified Identity</Badge>
+              </CardHeader>
+              <CardContent className="p-6 space-y-4">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black uppercase text-muted-foreground">National Matricule</p>
+                  <p className="font-mono font-bold text-primary">{student.id}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black uppercase text-muted-foreground">Institutional Section</p>
+                  <p className="font-bold text-primary">{student.section}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black uppercase text-muted-foreground">Status</p>
+                  <Badge className="bg-green-100 text-green-700 border-none font-black uppercase text-[9px]">Enrolled & Active</Badge>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="md:col-span-8 space-y-6">
+              <Card className="border-none shadow-sm rounded-3xl">
+                <CardHeader className="border-b bg-accent/5">
+                  <CardTitle className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
+                    <Fingerprint className="w-4 h-4" /> Personal Registry
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Date of Birth</Label>
+                    <p className="font-bold text-primary">{student.dob}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Place of Origin</Label>
+                    <p className="font-bold text-primary">{student.placeOfBirth}, {student.region}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Gender</Label>
+                    <p className="font-bold text-primary">{student.gender}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Academic Node</Label>
+                    <p className="font-bold text-primary">{student.section}</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-none shadow-sm rounded-3xl">
+                <CardHeader className="border-b bg-accent/5">
+                  <CardTitle className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
+                    <Heart className="w-4 h-4" /> Guardian Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Primary Guardian</Label>
+                    <p className="font-bold text-primary">{student.guardian}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Emergency Contact</Label>
+                    <p className="font-bold text-primary">{student.guardianPhone}</p>
+                  </div>
+                  <div className="col-span-full">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Residential Address</Label>
+                    <p className="font-bold text-primary">{student.address}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="grades" className="mt-6">
+          <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
+            <CardHeader className="bg-primary p-8 text-white">
+              <CardTitle className="text-2xl font-black">Term Performance Registry</CardTitle>
+              <CardDescription className="text-white/60">Verified marks for current evaluation cycle.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0 overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-accent/10">
+                  <TableRow className="uppercase text-[10px] font-black tracking-widest border-b">
+                    <TableHead className="pl-8 py-4">{t("subjects")}</TableHead>
+                    <TableHead className="text-center">Seq 1</TableHead>
+                    <TableHead className="text-center">Seq 2</TableHead>
+                    <TableHead className="text-center">Coeff</TableHead>
+                    <TableHead className="text-right pr-8">{t("status")}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {MOCK_GRADES.map((g, idx) => {
+                    const avg = (g.seq1 + g.seq2) / 2;
+                    return (
+                      <TableRow key={idx} className="hover:bg-accent/5 border-b last:border-0">
+                        <TableCell className="pl-8 font-black text-primary uppercase text-sm py-4">{g.subject}</TableCell>
+                        <TableCell className={cn("text-center font-bold", g.seq1 < 10 ? "text-red-600" : "")}>{g.seq1.toFixed(2)}</TableCell>
+                        <TableCell className={cn("text-center font-bold", g.seq2 < 10 ? "text-red-600" : "")}>{g.seq2.toFixed(2)}</TableCell>
+                        <TableCell className="text-center font-mono font-bold text-muted-foreground italic">{g.coeff}</TableCell>
+                        <TableCell className="text-right pr-8">
+                          <Badge className={cn("text-[9px] font-black uppercase border-none px-3", avg >= 10 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}>
+                            {avg >= 10 ? "Passed" : "Failed"}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="attendance" className="mt-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="border-none shadow-sm bg-green-50 p-6 rounded-3xl flex items-center gap-4">
+              <div className="p-3 bg-white rounded-2xl text-green-600 shadow-sm"><CheckCircle2 className="w-6 h-6" /></div>
+              <div>
+                <p className="text-[10px] font-black uppercase text-green-600">Session Presence</p>
+                <p className="text-2xl font-black text-green-700">94.5%</p>
+              </div>
+            </Card>
+            <Card className="border-none shadow-sm bg-blue-50 p-6 rounded-3xl flex items-center gap-4">
+              <div className="p-3 bg-white rounded-2xl text-blue-600 shadow-sm"><Activity className="w-6 h-6" /></div>
+              <div>
+                <p className="text-[10px] font-black uppercase text-blue-600">Active Sessions</p>
+                <p className="text-2xl font-black text-blue-700">142</p>
+              </div>
+            </Card>
+            <Card className="border-none shadow-sm bg-primary p-6 rounded-3xl flex items-center gap-4 text-white">
+              <div className="p-3 bg-white/10 rounded-2xl text-secondary"><Scale className="w-6 h-6" /></div>
+              <div>
+                <p className="text-[10px] font-black uppercase text-white/60">Conduct Rating</p>
+                <p className="text-2xl font-black text-secondary">EXCELLENT</p>
+              </div>
+            </Card>
+          </div>
+
+          <Card className="border-none shadow-xl overflow-hidden rounded-3xl bg-white">
+            <CardHeader className="bg-primary p-8 text-white">
+              <CardTitle className="text-2xl font-black uppercase tracking-tight">Presence Ledger</CardTitle>
+              <CardDescription className="text-white/60">Chronological record of subject-wise attendance logs.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0 overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-accent/10">
+                  <TableRow className="uppercase text-[10px] font-black border-b">
+                    <TableHead className="pl-8 py-4">Session Date</TableHead>
+                    <TableHead>Pedagogical Subject</TableHead>
+                    <TableHead>Start Time</TableHead>
+                    <TableHead>Instructor</TableHead>
+                    <TableHead className="text-right pr-8">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {MOCK_ATTENDANCE.map((att, idx) => (
+                    <TableRow key={idx} className="hover:bg-accent/5 border-b last:border-0 h-16">
+                      <TableCell className="pl-8 font-bold text-xs text-muted-foreground">{att.date}</TableCell>
+                      <TableCell className="font-black text-primary uppercase text-sm">{att.subject}</TableCell>
+                      <TableCell className="font-mono text-xs font-bold">{att.time}</TableCell>
+                      <TableCell className="text-xs font-medium text-muted-foreground">{att.teacher}</TableCell>
+                      <TableCell className="text-right pr-8">
+                        <Badge className={cn(
+                          "text-[9px] font-black uppercase border-none px-3",
+                          att.status === 'Present' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                        )}>
+                          {att.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="documents" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {MOCK_DOCUMENTS.map((doc) => (
+              <Card key={doc.id} className="border-none shadow-sm overflow-hidden bg-white group hover:shadow-md transition-all rounded-3xl">
+                <CardHeader className="p-6 pb-4">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="p-3 bg-primary/5 rounded-2xl text-primary group-hover:scale-110 transition-transform">
+                      <doc.icon className="w-6 h-6" />
+                    </div>
+                    <Badge variant="outline" className="text-[10px] font-black border-primary/10 text-primary">{doc.type}</Badge>
+                  </div>
+                  <CardTitle className="text-base font-black text-primary uppercase leading-tight line-clamp-2">{doc.title}</CardTitle>
+                  <CardDescription className="text-[10px] font-bold mt-1">Issued on: {doc.date}</CardDescription>
+                </CardHeader>
+                <CardContent className="px-6 pb-6 pt-2">
+                   <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground bg-accent/20 p-2 rounded-lg w-fit">
+                      <Info className="w-3 h-3" />
+                      {doc.size}
+                   </div>
+                </CardContent>
+                <CardFooter className="bg-accent/10 p-4 border-t">
+                   <Button className="w-full h-10 rounded-xl font-black uppercase text-[10px] tracking-widest gap-2 shadow-sm" onClick={() => toast({ title: "Download Started" })}>
+                     <FileDown className="w-4 h-4" /> {t("download")}
+                   </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
 
         <TabsContent value="transcript" className="mt-6 space-y-8">
           <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
@@ -265,45 +492,6 @@ export default function StudentDetailsPage() {
             </CardContent>
           </Card>
         </TabsContent>
-
-        <TabsContent value="grades" className="mt-6">
-          <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
-            <CardHeader className="bg-primary p-8 text-white">
-              <CardTitle className="text-2xl font-black">Term Performance Registry</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader className="bg-accent/10">
-                  <TableRow className="uppercase text-[10px] font-black tracking-widest">
-                    <TableHead className="pl-8 py-4">{t("subjects")}</TableHead>
-                    <TableHead className="text-center">Seq 1</TableHead>
-                    <TableHead className="text-center">Seq 2</TableHead>
-                    <TableHead className="text-center">Coeff</TableHead>
-                    <TableHead className="text-right pr-8">{t("status")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {MOCK_GRADES.map((g, idx) => {
-                    const avg = (g.seq1 + g.seq2) / 2;
-                    return (
-                      <TableRow key={idx} className="hover:bg-accent/5">
-                        <TableCell className="pl-8 font-bold text-primary uppercase">{g.subject}</TableCell>
-                        <TableCell className={cn("text-center font-bold", g.seq1 < 10 ? "text-red-600" : "")}>{g.seq1.toFixed(2)}</TableCell>
-                        <TableCell className={cn("text-center font-bold", g.seq2 < 10 ? "text-red-600" : "")}>{g.seq2.toFixed(2)}</TableCell>
-                        <TableCell className="text-center font-mono font-bold text-muted-foreground">{g.coeff}</TableCell>
-                        <TableCell className="text-right pr-8">
-                          <Badge className={cn("text-[9px] font-black uppercase", avg >= 10 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}>
-                            {avg >= 10 ? "Passed" : "Failed"}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
 
       {/* RE-USE PREVIEW DIALOGS FROM GRADES PAGE IF NEEDED */}
@@ -327,10 +515,10 @@ function LandscapeTranscript({ student, platform }: { student: any, platform: an
       
       {/* Cameroon Header */}
       <div className="grid grid-cols-3 gap-4 items-start text-center border-b-2 border-black pb-6">
-        <div className="space-y-1 text-[9px] uppercase font-black">
+        <div className="space-y-1 text-[9px] uppercase font-black text-left">
           <p>Republic of Cameroon</p>
           <p>Peace - Work - Fatherland</p>
-          <div className="h-px bg-black w-8 mx-auto my-1" />
+          <div className="h-px bg-black w-8 my-1" />
           <p>Ministry of Secondary Education</p>
           <p>{student?.school?.name || "INSTITUTIONAL NODE"}</p>
         </div>
@@ -340,17 +528,17 @@ function LandscapeTranscript({ student, platform }: { student: any, platform: an
           </div>
           <p className="text-[9px] font-black uppercase text-primary tracking-tighter">Official Digital Node</p>
         </div>
-        <div className="space-y-1 text-[9px] uppercase font-black">
+        <div className="space-y-1 text-[9px] uppercase font-black text-right">
           <p>République du Cameroun</p>
           <p>Paix - Travail - Patrie</p>
-          <div className="h-px bg-black w-8 mx-auto my-1" />
+          <div className="h-px bg-black w-8 ml-auto my-1" />
           <p>Min. des Enseignements Secondaires</p>
           <p>Délégation Régionale Littoral</p>
         </div>
       </div>
 
       <div className="text-center my-10 space-y-2">
-        <h1 className="text-4xl font-black uppercase tracking-widest underline underline-offset-8 decoration-double">Academic Transcript</h1>
+        <h1 className="text-4xl font-black uppercase tracking-widest underline underline-offset-8 decoration-double leading-none">Academic Transcript</h1>
         <p className="text-sm font-bold opacity-60">Relevé de Notes Provisoire • Valid for Session 2023 / 2024</p>
       </div>
 
