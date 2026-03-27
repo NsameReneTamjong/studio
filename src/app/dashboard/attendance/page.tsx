@@ -221,7 +221,7 @@ export default function AttendancePage() {
                 <ListChecks className="w-6 h-6 text-secondary" /> Today's Sessions
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-0 overflow-x-auto">
+            <CardContent className="p-0 overflow-x-auto scrollbar-thin">
               <Table>
                 <TableHeader className="bg-accent/10">
                   <TableRow className="uppercase text-[9px] font-black tracking-widest border-b">
@@ -258,7 +258,7 @@ export default function AttendancePage() {
                 <History className="w-6 h-6 text-secondary" /> History Breakdown
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-0 overflow-x-auto">
+            <CardContent className="p-0 overflow-x-auto scrollbar-thin">
               <Table>
                 <TableHeader className="bg-accent/5 uppercase text-[9px] font-black tracking-widest border-b">
                   <TableRow>
@@ -395,7 +395,7 @@ export default function AttendancePage() {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="p-0 overflow-x-auto">
+          <CardContent className="p-0 overflow-x-auto scrollbar-thin">
             <Table>
               <TableHeader className="bg-accent/10 font-black uppercase text-[9px] tracking-widest">
                 <TableRow>
@@ -460,56 +460,56 @@ export default function AttendancePage() {
 
       {/* ADMIN CLASS SUBJECTS DIALOG (TIER 2) */}
       <Dialog open={!!selectedClassDetails} onOpenChange={() => setSelectedClassDetails(null)}>
-        <DialogContent className="sm:max-w-4xl max-h-[95vh] p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col">
-          <DialogHeader className="bg-primary p-6 md:p-8 text-white relative shrink-0">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-white/10 rounded-2xl">
-                  <LayoutGrid className="w-8 h-8 text-secondary" />
+        <DialogContent className="sm:max-w-4xl w-[95vw] sm:w-full max-h-[95vh] p-0 border-none shadow-2xl rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden flex flex-col">
+          <DialogHeader className="bg-primary p-5 md:p-8 text-white relative shrink-0">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
+                <div className="p-2.5 bg-white/10 rounded-xl shrink-0">
+                  <LayoutGrid className="w-6 h-6 md:w-8 md:h-8 text-secondary" />
                 </div>
-                <div>
-                  <DialogTitle className="text-xl md:text-2xl font-black uppercase tracking-tighter">{selectedClassDetails?.name} Subjects</DialogTitle>
-                  <DialogDescription className="text-white/60 text-xs">Strategic oversight of class subject performance.</DialogDescription>
+                <div className="overflow-hidden">
+                  <DialogTitle className="text-lg md:text-2xl font-black uppercase tracking-tighter truncate">{selectedClassDetails?.name} Subjects</DialogTitle>
+                  <DialogDescription className="text-white/60 text-[10px] md:text-xs">Strategic oversight of class subject performance.</DialogDescription>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setSelectedClassDetails(null)} className="text-white hover:bg-white/10">
-                <X className="w-6 h-6" />
+              <Button variant="ghost" size="icon" onClick={() => setSelectedClassDetails(null)} className="text-white hover:bg-white/10 shrink-0">
+                <X className="w-5 h-5 md:w-6 md:h-6" />
               </Button>
             </div>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 md:grid-cols-2 gap-6 bg-accent/5">
+          <div className="flex-1 overflow-y-auto p-4 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 bg-accent/5 scrollbar-thin">
             {MOCK_CLASS_SUBJECTS.map((sub) => (
-              <Card key={sub.id} className="border-none shadow-sm group hover:shadow-md transition-all bg-white overflow-hidden rounded-3xl">
+              <Card key={sub.id} className="border-none shadow-sm group hover:shadow-md transition-all bg-white overflow-hidden rounded-2xl md:rounded-3xl">
                 <div className={cn("h-1.5 w-full", sub.color)} />
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-start">
-                    <div>
+                <CardHeader className="p-4 md:p-6 pb-2">
+                  <div className="flex justify-between items-start gap-4">
+                    <div className="overflow-hidden">
                       <Badge variant="outline" className="text-[8px] font-bold uppercase tracking-widest border-primary/10 text-primary mb-1">{sub.code}</Badge>
-                      <CardTitle className="text-lg font-black text-primary uppercase">{sub.name}</CardTitle>
-                      <p className="text-[10px] font-bold text-muted-foreground italic flex items-center gap-1 mt-1">
+                      <CardTitle className="text-base md:text-lg font-black text-primary uppercase truncate">{sub.name}</CardTitle>
+                      <p className="text-[9px] md:text-[10px] font-bold text-muted-foreground italic flex items-center gap-1 mt-1 truncate">
                         <User className="w-3 h-3" /> {sub.teacher}
                       </p>
                     </div>
-                    <div className="text-right">
-                       <p className="text-[10px] font-black uppercase opacity-40">Presence Mean</p>
-                       <p className="text-xl font-black text-primary">{sub.percentage}%</p>
+                    <div className="text-right shrink-0">
+                       <p className="text-[8px] md:text-[10px] font-black uppercase opacity-40 leading-none">Mean</p>
+                       <p className="text-lg md:text-xl font-black text-primary">{sub.percentage}%</p>
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
-                   <div className="flex items-center justify-between p-3 bg-accent/20 rounded-xl">
-                      <div className="flex items-center gap-2">
-                         <Users className="w-4 h-4 text-primary/40" />
-                         <span className="text-xs font-bold text-primary">{sub.students} Enrolled</span>
+                <CardContent className="p-4 md:p-6 pt-2">
+                   <div className="flex items-center justify-between p-2.5 md:p-3 bg-accent/20 rounded-xl">
+                      <div className="flex items-center gap-2 overflow-hidden">
+                         <Users className="w-3.5 h-3.5 text-primary/40 shrink-0" />
+                         <span className="text-[10px] md:text-xs font-bold text-primary truncate">{sub.students} Enrolled</span>
                       </div>
                       <Button 
                         size="sm" 
                         variant="ghost" 
-                        className="text-[10px] font-black uppercase gap-2 hover:bg-primary hover:text-white rounded-lg"
+                        className="h-8 text-[9px] md:text-[10px] font-black uppercase gap-1.5 hover:bg-primary hover:text-white rounded-lg px-2 shrink-0"
                         onClick={() => setSelectedSubjectDetails({ ...sub, className: selectedClassDetails?.name })}
                       >
-                        View Details <ChevronRight className="w-3.5 h-3.5" />
+                        Details <ChevronRight className="w-3 h-3" />
                       </Button>
                    </div>
                 </CardContent>
@@ -517,7 +517,7 @@ export default function AttendancePage() {
             ))}
           </div>
 
-          <DialogFooter className="bg-accent/10 p-6 border-t border-accent flex justify-center shrink-0">
+          <DialogFooter className="bg-accent/10 p-4 md:p-6 border-t border-accent flex justify-center shrink-0">
              <div className="flex items-center gap-2 text-muted-foreground italic">
                 <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
                 <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Node Registry Audit Active</p>
@@ -528,20 +528,20 @@ export default function AttendancePage() {
 
       {/* ADMIN SUBJECT STUDENT DOSSIER DIALOG (TIER 3) */}
       <Dialog open={!!selectedSubjectDetails} onOpenChange={() => setSelectedSubjectDetails(null)}>
-        <DialogContent className="sm:max-w-4xl max-h-[90vh] p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col">
-          <DialogHeader className="bg-primary p-6 md:p-8 text-white relative shrink-0">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-white/10 rounded-2xl text-secondary">
-                  <Users className="w-8 h-8 text-secondary" />
+        <DialogContent className="sm:max-w-4xl w-[95vw] sm:w-full max-h-[90vh] p-0 border-none shadow-2xl rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden flex flex-col">
+          <DialogHeader className="bg-primary p-5 md:p-8 text-white relative shrink-0">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
+                <div className="p-2.5 bg-white/10 rounded-xl text-secondary shrink-0">
+                  <Users className="w-6 h-6 md:w-8 md:h-8 text-secondary" />
                 </div>
-                <div>
-                  <DialogTitle className="text-xl md:text-2xl font-black uppercase tracking-tighter">{selectedSubjectDetails?.name} Dossier</DialogTitle>
-                  <DialogDescription className="text-white/60 text-xs">Presence registry for {selectedSubjectDetails?.className}</DialogDescription>
+                <div className="overflow-hidden">
+                  <DialogTitle className="text-lg md:text-2xl font-black uppercase tracking-tighter truncate">{selectedSubjectDetails?.name} Dossier</DialogTitle>
+                  <DialogDescription className="text-white/60 text-[10px] md:text-xs truncate">Presence registry for {selectedSubjectDetails?.className}</DialogDescription>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setSelectedSubjectDetails(null)} className="text-white hover:bg-white/10">
-                <X className="w-6 h-6" />
+              <Button variant="ghost" size="icon" onClick={() => setSelectedSubjectDetails(null)} className="text-white hover:bg-white/10 shrink-0">
+                <X className="w-5 h-5 md:w-6 md:h-6" />
               </Button>
             </div>
           </DialogHeader>
@@ -549,9 +549,14 @@ export default function AttendancePage() {
           <div className="bg-white border-b p-4 md:p-6 flex flex-col md:flex-row items-center justify-between gap-4 shrink-0">
             <div className="relative flex-1 w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input placeholder="Search students in dossier..." className="pl-10 h-11 bg-accent/20 border-none rounded-xl text-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <Input 
+                placeholder="Search students in dossier..." 
+                className="pl-10 h-11 bg-accent/20 border-none rounded-xl text-sm" 
+                value={searchTerm} 
+                onChange={(e) => setSearchTerm(e.target.value)} 
+              />
             </div>
-            <Button variant="outline" className="rounded-xl gap-2 font-bold h-11 px-6 text-xs flex-1 sm:flex-none bg-white border-primary/10" onClick={handleDownloadStats}>
+            <Button variant="outline" className="w-full md:w-auto rounded-xl gap-2 font-bold h-11 px-6 text-xs bg-white border-primary/10" onClick={handleDownloadStats}>
               <Printer className="w-4 h-4" /> Print Dossier
             </Button>
           </div>
@@ -561,7 +566,7 @@ export default function AttendancePage() {
               <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest sticky top-0 z-10 border-b">
                 <TableRow>
                   <TableHead className="pl-8 py-4">Student Identity</TableHead>
-                  <TableHead>Matricule</TableHead>
+                  <TableHead className="hidden sm:table-cell">Matricule</TableHead>
                   <TableHead className="text-center">Present</TableHead>
                   <TableHead className="text-center">Absent</TableHead>
                   <TableHead className="text-right pr-8">Mean Rate %</TableHead>
@@ -575,20 +580,23 @@ export default function AttendancePage() {
                     <TableRow key={s.id} className="hover:bg-accent/5 transition-colors h-16 border-b border-accent/10">
                       <TableCell className="pl-8">
                         <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10 border-2 border-white shadow-sm shrink-0">
+                          <Avatar className="h-9 w-9 md:h-10 md:w-10 border-2 border-white shadow-sm shrink-0">
                             <AvatarImage src={s.avatar} />
                             <AvatarFallback className="bg-primary/5 text-primary text-[10px] font-bold">{s.name.charAt(0)}</AvatarFallback>
                           </Avatar>
-                          <span className="font-bold text-xs md:text-sm text-primary uppercase truncate max-w-[150px]">{s.name}</span>
+                          <div className="flex flex-col">
+                            <span className="font-bold text-xs md:text-sm text-primary uppercase truncate max-w-[120px] sm:max-w-[150px]">{s.name}</span>
+                            <span className="text-[8px] font-mono font-bold text-muted-foreground sm:hidden">{s.matricule}</span>
+                          </div>
                         </div>
                       </TableCell>
-                      <TableCell className="font-mono text-[10px] font-bold text-muted-foreground uppercase">{s.matricule}</TableCell>
-                      <TableCell className="text-center font-black text-green-600">{s.presentCount}</TableCell>
-                      <TableCell className="text-center font-black text-red-600">{s.absentCount}</TableCell>
+                      <TableCell className="hidden sm:table-cell font-mono text-[10px] font-bold text-muted-foreground uppercase">{s.matricule}</TableCell>
+                      <TableCell className="text-center font-black text-green-600 text-xs md:text-sm">{s.presentCount}</TableCell>
+                      <TableCell className="text-center font-black text-red-600 text-xs md:text-sm">{s.absentCount}</TableCell>
                       <TableCell className="text-right pr-8">
                         <div className="inline-flex flex-col items-end gap-1">
-                          <span className={cn("text-[10px] font-black", rate >= 90 ? "text-primary" : "text-amber-600")}>{rate}%</span>
-                          <div className="w-20 h-1 bg-accent rounded-full overflow-hidden">
+                          <span className={cn("text-[9px] md:text-[10px] font-black", rate >= 90 ? "text-primary" : "text-amber-600")}>{rate}%</span>
+                          <div className="w-16 md:w-20 h-1 bg-accent rounded-full overflow-hidden">
                             <div className={cn("h-full transition-all duration-1000", rate >= 90 ? "bg-primary" : "bg-amber-500")} style={{ width: `${rate}%` }} />
                           </div>
                         </div>
@@ -600,7 +608,7 @@ export default function AttendancePage() {
             </Table>
           </div>
 
-          <DialogFooter className="bg-accent/10 p-6 border-t border-accent flex justify-center shrink-0">
+          <DialogFooter className="bg-accent/10 p-4 md:p-6 border-t border-accent flex justify-center shrink-0">
              <div className="flex items-center gap-2 text-muted-foreground italic">
                 <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
                 <p className="text-[10px] font-black uppercase tracking-widest opacity-40">High-fidelity pedagogical record verified.</p>
