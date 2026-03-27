@@ -72,10 +72,11 @@ export default function LoginPage() {
   const [authData, setAuthData] = useState({
     matricule: "",
     password: "",
+    confirmPassword: "",
     email: "",
     otp: "",
     newPassword: "",
-    confirmPassword: ""
+    resetConfirmPassword: ""
   });
 
   const handleQuickLogin = async (matricule: string) => {
@@ -95,6 +96,16 @@ export default function LoginPage() {
     setIsProcessing(true);
     
     if (mode === "login" || mode === "activate") {
+      if (mode === "activate" && authData.password !== authData.confirmPassword) {
+        toast({ 
+          variant: "destructive", 
+          title: "Password Mismatch", 
+          description: language === "en" ? "The passwords provided do not match." : "Les mots de passe ne correspondent pas." 
+        });
+        setIsProcessing(false);
+        return;
+      }
+
       try {
         await login(authData.matricule);
       } catch (error: any) {
@@ -114,7 +125,7 @@ export default function LoginPage() {
         setAuthMode("reset");
       }, 800);
     } else if (mode === "reset") {
-      if (authData.newPassword !== authData.confirmPassword) {
+      if (authData.newPassword !== authData.resetConfirmPassword) {
         toast({ variant: "destructive", title: "Error", description: t("confirmPassword") });
         setIsProcessing(false);
         return;
@@ -233,6 +244,21 @@ export default function LoginPage() {
                     </div>
                   )}
 
+                  {mode === "activate" && (
+                    <div className="space-y-2 animate-in slide-in-from-top-2">
+                      <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest flex items-center gap-2">
+                        <ShieldCheck className="w-3 h-3"/> {language === "en" ? "Confirm Password" : "Confirmer mot de passe"}
+                      </Label>
+                      <Input 
+                        required
+                        type="password" 
+                        className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary font-bold text-center"
+                        value={authData.confirmPassword}
+                        onChange={(e) => setAuthData({...authData, confirmPassword: e.target.value})}
+                      />
+                    </div>
+                  )}
+
                   {mode === "forgot" && (
                     <div className="space-y-2 animate-in slide-in-from-top-2">
                       <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest flex items-center gap-2">
@@ -284,8 +310,8 @@ export default function LoginPage() {
                           required
                           type="password"
                           className="h-12 bg-accent/30 border-none rounded-xl"
-                          value={authData.confirmPassword}
-                          onChange={(e) => setAuthData({...authData, confirmPassword: e.target.value})}
+                          value={authData.resetConfirmPassword}
+                          onChange={(e) => setAuthData({...authData, resetConfirmPassword: e.target.value})}
                         />
                       </div>
                     </div>
