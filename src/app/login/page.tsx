@@ -78,7 +78,20 @@ export default function LoginPage() {
     resetConfirmPassword: ""
   });
 
+  const clearAuthData = () => {
+    setAuthData({
+      matricule: "",
+      password: "",
+      confirmPassword: "",
+      email: "",
+      otp: "",
+      newPassword: "",
+      resetConfirmPassword: ""
+    });
+  };
+
   const handleQuickLogin = async (matricule: string) => {
+    if (mode !== "login") return;
     setIsProcessing(true);
     try {
       await login(matricule);
@@ -181,24 +194,23 @@ export default function LoginPage() {
                 <CardTitle className="text-3xl font-black text-primary uppercase tracking-tighter">Credentials Updated</CardTitle>
                 <CardDescription className="text-sm font-medium px-4">Your identity records have been synchronized. You may now proceed to sign in with your updated credentials.</CardDescription>
               </div>
-              <Button onClick={() => setAuthMode("login")} className="w-full h-16 rounded-[1.5rem] font-black uppercase tracking-widest text-sm bg-primary shadow-xl hover:bg-primary/90 transition-all active:scale-95">
+              <Button onClick={() => { clearAuthData(); setAuthMode("login"); }} className="w-full h-16 rounded-[1.5rem] font-black uppercase tracking-widest text-sm bg-primary shadow-xl hover:bg-primary/90 transition-all active:scale-95">
                 Return to Secure Sign In
               </Button>
             </div>
           ) : (
             <>
-              <CardHeader className="pb-10 pt-10 text-center space-y-2 px-10">
+              <CardHeader className="pb-8 pt-10 text-center space-y-2 px-10">
                 <div className="flex items-center justify-center mb-3">
                   {mode === "login" && <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest border-primary/20 text-primary bg-primary/5 px-4 h-6 rounded-full">Secure Registry Access</Badge>}
-                  {mode === "activate" && <Badge className="bg-secondary text-primary border-none text-[9px] font-black uppercase tracking-widest px-4 h-6 rounded-full">Account Initialization</Badge>}
+                  {/* Badge and description removed for activate mode as requested */}
                   {(mode === "forgot" || mode === "otp" || mode === "reset") && <Badge variant="destructive" className="bg-red-50 text-red-600 border-none text-[9px] font-black uppercase tracking-widest px-4 h-6 rounded-full">Identity Recovery</Badge>}
                 </div>
                 <CardTitle className="text-4xl font-black text-primary uppercase tracking-tighter">
-                  {mode === "login" ? t("signIn") : mode === "activate" ? "Activate Account" : t("resetPassword")}
+                  {mode === "login" ? t("signIn") : mode === "activate" ? "ACTIVATE ACCOUNT" : t("resetPassword")}
                 </CardTitle>
-                <CardDescription className="text-sm font-medium opacity-60">
+                <CardDescription className={cn("text-sm font-medium opacity-60", mode === "activate" && "hidden")}>
                   {mode === "login" ? "Authorized personnel only. Enter your matricule." : 
-                   mode === "activate" ? "Synchronize your institutional profile." : 
                    mode === "forgot" ? "Identify your record via corporate email." :
                    mode === "otp" ? "A verification token has been dispatched." : "Choose a secure new pedagogical passkey."}
                 </CardDescription>
@@ -230,7 +242,7 @@ export default function LoginPage() {
                           <button 
                             type="button" 
                             className="text-[10px] font-black uppercase text-primary/40 hover:text-primary transition-colors tracking-widest"
-                            onClick={() => setAuthMode("forgot")}
+                            onClick={() => { clearAuthData(); setAuthMode("forgot"); }}
                           >
                             {t("forgotPassword")}
                           </button>
@@ -339,7 +351,7 @@ export default function LoginPage() {
                   <Button 
                     variant="ghost" 
                     className="w-full text-[10px] font-black uppercase tracking-widest text-primary/40 hover:text-primary hover:bg-primary/5 rounded-xl h-12"
-                    onClick={() => setAuthMode("activate")}
+                    onClick={() => { clearAuthData(); setAuthMode("activate"); }}
                   >
                     {t("dontHaveAccount")}
                   </Button>
@@ -347,7 +359,7 @@ export default function LoginPage() {
                   <Button 
                     variant="ghost" 
                     className="w-full text-[10px] font-black uppercase tracking-widest text-primary/40 hover:text-primary hover:bg-primary/5 rounded-xl h-12 flex items-center gap-2"
-                    onClick={() => setAuthMode("login")}
+                    onClick={() => { clearAuthData(); setAuthMode("login"); }}
                   >
                     <ArrowLeft className="w-4 h-4" /> {t("alreadyHaveAccount")}
                   </Button>
