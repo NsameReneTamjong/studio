@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -7,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { 
   Building2, 
   Languages,
@@ -27,7 +27,6 @@ import {
   Monitor,
   Mail,
   ArrowLeft,
-  KeyRound,
   CheckCircle2
 } from "lucide-react";
 import {
@@ -206,10 +205,6 @@ export default function LoginPage() {
           ) : (
             <>
               <CardHeader className="pb-8 pt-10 text-center space-y-2 px-10">
-                <div className="flex items-center justify-center mb-3">
-                  {/* Security badge removed per request */}
-                  {(mode === "forgot" || mode === "otp" || mode === "reset") && <Badge variant="destructive" className="bg-red-50 text-red-600 border-none text-[9px] font-black uppercase tracking-widest px-4 h-6 rounded-full">Identity Recovery</Badge>}
-                </div>
                 <CardTitle className="text-4xl font-black text-primary uppercase tracking-tighter">
                   {mode === "login" ? t("signIn") : mode === "activate" ? "ACTIVATE ACCOUNT" : t("resetPassword")}
                 </CardTitle>
@@ -227,10 +222,10 @@ export default function LoginPage() {
                       </Label>
                       <Input 
                         required
+                        autoComplete="off"
                         className="h-14 bg-accent/30 border-none rounded-2xl focus-visible:ring-primary font-black uppercase text-center text-xl shadow-inner transition-all focus:bg-white"
                         value={authData.matricule}
                         onChange={(e) => setAuthData({...authData, matricule: e.target.value})}
-                        autoFocus
                       />
                     </div>
                   )}
@@ -253,6 +248,7 @@ export default function LoginPage() {
                       </div>
                       <Input 
                         required
+                        autoComplete="new-password"
                         type="password" 
                         className="h-14 bg-accent/30 border-none rounded-2xl focus-visible:ring-primary font-bold text-center text-lg shadow-inner transition-all focus:bg-white"
                         value={authData.password}
@@ -268,6 +264,7 @@ export default function LoginPage() {
                       </Label>
                       <Input 
                         required
+                        autoComplete="new-password"
                         type="password" 
                         className="h-14 bg-accent/30 border-none rounded-2xl focus-visible:ring-primary font-bold text-center text-lg shadow-inner transition-all focus:bg-white"
                         value={authData.confirmPassword}
@@ -283,6 +280,7 @@ export default function LoginPage() {
                       </Label>
                       <Input 
                         required
+                        autoComplete="off"
                         type="email"
                         className="h-14 bg-accent/30 border-none rounded-2xl focus-visible:ring-primary font-bold shadow-inner transition-all focus:bg-white px-6"
                         value={authData.email}
@@ -297,6 +295,7 @@ export default function LoginPage() {
                         <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-[0.2em] text-center block">6-Digit Verification Code</Label>
                         <Input 
                           required
+                          autoComplete="one-time-code"
                           className="h-20 bg-accent/30 border-none rounded-[2rem] focus-visible:ring-primary font-black text-4xl text-center tracking-[0.5em] shadow-inner transition-all focus:bg-white"
                           maxLength={6}
                           value={authData.otp}
@@ -313,6 +312,7 @@ export default function LoginPage() {
                         <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-[0.2em] ml-1">New Secure Password</Label>
                         <Input 
                           required
+                          autoComplete="new-password"
                           type="password"
                           className="h-14 bg-accent/30 border-none rounded-2xl shadow-inner focus:bg-white px-6 font-bold"
                           value={authData.newPassword}
@@ -323,6 +323,7 @@ export default function LoginPage() {
                         <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-[0.2em] ml-1">Confirm New Password</Label>
                         <Input 
                           required
+                          autoComplete="new-password"
                           type="password"
                           className="h-14 bg-accent/30 border-none rounded-2xl shadow-inner focus:bg-white px-6 font-bold"
                           value={authData.resetConfirmPassword}
@@ -351,21 +352,21 @@ export default function LoginPage() {
               </CardContent>
               <CardFooter className="pb-10 pt-4 flex flex-col gap-3 px-10">
                 {mode === "login" ? (
-                  <Button 
-                    variant="ghost" 
-                    className="w-full text-[10px] font-black uppercase tracking-widest text-primary/40 hover:text-primary hover:bg-primary/5 rounded-xl h-12"
+                  <button 
+                    type="button"
+                    className="w-full text-[10px] font-black uppercase tracking-widest text-primary/40 hover:text-primary transition-all h-12 flex items-center justify-center gap-2"
                     onClick={() => switchMode("activate")}
                   >
                     {t("dontHaveAccount")}
-                  </Button>
+                  </button>
                 ) : (
-                  <Button 
-                    variant="ghost" 
-                    className="w-full text-[10px] font-black uppercase tracking-widest text-primary/40 hover:text-primary hover:bg-primary/5 rounded-xl h-12 flex items-center gap-2"
+                  <button 
+                    type="button"
+                    className="w-full text-[10px] font-black uppercase tracking-widest text-primary/40 hover:text-primary transition-all h-12 flex items-center justify-center gap-2"
                     onClick={() => switchMode("login")}
                   >
                     <ArrowLeft className="w-4 h-4" /> {t("alreadyHaveAccount")}
-                  </Button>
+                  </button>
                 )}
               </CardFooter>
             </>
