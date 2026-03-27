@@ -38,10 +38,15 @@ import {
   ChevronRight,
   UserRoundCheck,
   UserRoundX,
+  UserCog,
+  LayoutGrid,
+  Smartphone,
   FileDown,
   Printer,
   TrendingDown,
-  Scale
+  Scale,
+  Building2,
+  Signature
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -64,6 +69,12 @@ const MOCK_PERSONAL_GRADES = [
   { subject: "Mathematics", seq1: 18.0, seq2: 17.5, coeff: 5, teacher: "Prof. Smith", status: "Passed" },
   { subject: "English Literature", seq1: 12.0, seq2: 13.0, coeff: 3, teacher: "Ms. Bennet", status: "Passed" },
   { subject: "General Chemistry", seq1: 10.5, seq2: 11.5, coeff: 4, teacher: "Dr. White", status: "Passed" },
+];
+
+const MOCK_PERSONAL_ARCHIVE = [
+  { id: "R1", year: "2023 / 2024", term: "Term 1", average: "15.45", position: "4th / 45", classMaster: "Mr. Abena", status: "Published" },
+  { id: "R2", year: "2022 / 2023", term: "Term 3", average: "14.20", position: "8th / 42", classMaster: "Mme. Njoh", status: "Published" },
+  { id: "R3", year: "2022 / 2023", term: "Term 2", average: "13.85", position: "12th / 42", classMaster: "Mme. Njoh", status: "Published" },
 ];
 
 const MOCK_GRADE_HISTORY = [
@@ -101,8 +112,17 @@ const MOCK_GRADE_HISTORY = [
   }
 ];
 
+const getAppreciation = (note: number) => {
+  if (note >= 16) return { text: "Excellence", color: "bg-green-600" };
+  if (note >= 14) return { text: "Très Bien", color: "bg-green-500" };
+  if (note >= 12) return { text: "Bien", color: "bg-blue-500" };
+  if (note >= 10) return { text: "Passable", color: "bg-amber-500" };
+  if (note >= 8) return { text: "Médiocre", color: "bg-orange-500" };
+  return { text: "Faible", color: "bg-red-500" };
+};
+
 export default function GradeBookPage() {
-  const { user } = useAuth();
+  const { user, platformSettings } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
   const router = useRouter();
@@ -114,8 +134,9 @@ export default function GradeBookPage() {
   const [activeSequence, setActiveSequence] = useState<"seq1" | "seq2">("seq1");
   const [grades, setGrades] = useState(MOCK_STUDENTS_GRADES);
   
-  // History Modal State
+  // Modal states
   const [selectedHistory, setSelectedHistory] = useState<any>(null);
+  const [previewDoc, setPreviewDoc] = useState<any>(null);
 
   const isTeacher = user?.role === "TEACHER";
   const isStudent = user?.role === "STUDENT";
@@ -248,65 +269,311 @@ export default function GradeBookPage() {
           </Card>
         </div>
 
-        <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
-          <CardHeader className="bg-primary p-8 text-white">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-white/10 rounded-2xl">
-                  <BookMarked className="w-8 h-8 text-secondary" />
+        <Tabs defaultValue="current" className="w-full">
+          <TabsList className="grid grid-cols-2 w-full md:w-[400px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl">
+            <TabsTrigger value="current" className="gap-2 py-3 rounded-xl transition-all font-bold">
+              <BookMarked className="w-4 h-4" /> Current Term
+            </TabsTrigger>
+            <TabsTrigger value="archive" className="gap-2 py-3 rounded-xl transition-all font-bold">
+              <History className="w-4 h-4" /> Full Archive
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="current" className="animate-in fade-in slide-in-from-bottom-2">
+            <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+              <CardHeader className="bg-primary p-8 text-white">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-white/10 rounded-2xl">
+                      <BookMarked className="w-8 h-8 text-secondary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-2xl font-black uppercase tracking-tight">Active Evaluation Cycle</CardTitle>
+                      <CardDescription className="text-white/60">Verified marks for 2023/24 • Sequence 1 & 2</CardDescription>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <CardTitle className="text-2xl font-black uppercase tracking-tight">Active Evaluation Cycle</CardTitle>
-                  <CardDescription className="text-white/60">Verified marks for 2023/24 • Sequence 1 & 2</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0 overflow-x-auto">
+                <Table>
+                  <TableHeader className="bg-accent/10">
+                    <TableRow className="uppercase text-[10px] font-black tracking-widest border-b border-accent/20">
+                      <TableHead className="pl-8 py-4">Pedagogical Subject</TableHead>
+                      <TableHead className="text-center">Coeff</TableHead>
+                      <TableHead className="text-center">Seq 1</TableHead>
+                      <TableHead className="text-center">Seq 2</TableHead>
+                      <TableHead className="text-center">Moy/20</TableHead>
+                      <TableHead className="text-right pr-8">Remark</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {MOCK_PERSONAL_GRADES.map((g, idx) => {
+                      const avg = (g.seq1 + g.seq2) / 2;
+                      return (
+                        <TableRow key={idx} className="hover:bg-accent/5 transition-colors border-b last:border-0 h-16">
+                          <TableCell className="pl-8 font-black text-primary uppercase text-sm">{g.subject}</TableCell>
+                          <TableCell className="text-center font-bold text-muted-foreground italic">{g.coeff}</TableCell>
+                          <TableCell className="text-center font-bold">{g.seq1.toFixed(2)}</TableCell>
+                          <TableCell className="text-center font-bold">{g.seq2.toFixed(2)}</TableCell>
+                          <TableCell className="text-center">
+                            <span className="font-black text-lg text-primary">{avg.toFixed(2)}</span>
+                          </TableCell>
+                          <TableCell className="text-right pr-8">
+                            <Badge className={cn(
+                              "text-[9px] font-black uppercase px-3 h-6 border-none",
+                              avg >= 10 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                            )}>
+                              {getRemark(avg)}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </CardContent>
+              <CardFooter className="bg-accent/10 p-6 border-t border-accent flex justify-center">
+                 <div className="flex items-center gap-2 text-muted-foreground">
+                    <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                    <p className="text-[10px] font-black uppercase tracking-widest italic opacity-40">These records are digitally signed and finalized by the Academic Council.</p>
+                 </div>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="archive" className="animate-in fade-in slide-in-from-bottom-2">
+            <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+              <CardHeader className="bg-primary p-8 text-white">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/10 rounded-2xl">
+                    <History className="w-8 h-8 text-secondary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-2xl font-black uppercase tracking-tight">Report History Archive</CardTitle>
+                    <CardDescription className="text-white/60">Chronological record of past pedagogical evaluations.</CardDescription>
+                  </div>
                 </div>
+              </CardHeader>
+              <CardContent className="p-0 overflow-x-auto">
+                <Table>
+                  <TableHeader className="bg-accent/10">
+                    <TableRow className="uppercase text-[10px] font-black tracking-widest border-b border-accent/20">
+                      <TableHead className="pl-8 py-4">Academic Year</TableHead>
+                      <TableHead>Term</TableHead>
+                      <TableHead className="text-center">Term Average</TableHead>
+                      <TableHead className="text-center">Class Position</TableHead>
+                      <TableHead className="text-right pr-8">Official Bulletin</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {MOCK_PERSONAL_ARCHIVE.map((report) => (
+                      <TableRow key={report.id} className="hover:bg-accent/5 transition-colors border-b last:border-0 h-16">
+                        <TableCell className="pl-8 font-black text-primary">{report.year}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-[10px] font-black uppercase border-primary/10 text-primary">{report.term}</Badge>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span className="font-black text-lg text-primary">{report.average} / 20</span>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span className="font-bold text-xs text-muted-foreground">{report.position}</span>
+                        </TableCell>
+                        <TableCell className="text-right pr-8">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="rounded-full hover:bg-primary hover:text-white transition-all shadow-sm"
+                            onClick={() => setPreviewDoc(report)}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
+        {/* HIGH-FIDELITY BULLETIN DIALOG */}
+        <Dialog open={!!previewDoc} onOpenChange={() => setPreviewDoc(null)}>
+          <DialogContent className="sm:max-w-5xl max-h-[95vh] overflow-y-auto p-0 border-none shadow-2xl rounded-[2rem]">
+            <DialogHeader className="p-6 bg-primary text-white no-print">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/10 rounded-2xl">
+                    <FileText className="w-8 h-8 text-secondary" />
+                  </div>
+                  <div>
+                    <DialogTitle className="text-2xl font-black">Official Term Bulletin</DialogTitle>
+                    <DialogDescription className="text-white/70">Verified pedagogical evaluation • Republic of Cameroon Standards.</DialogDescription>
+                  </div>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => setPreviewDoc(null)} className="text-white hover:bg-white/10">
+                  <X className="w-6 h-6" />
+                </Button>
+              </div>
+            </DialogHeader>
+
+            <div className="bg-muted p-4 md:p-10 print:p-0 print:bg-white overflow-x-auto">
+              <div id="printable-bulletin" className="bg-white p-8 md:p-12 shadow-sm border border-border min-w-[850px] flex flex-col space-y-8 font-serif text-black relative print:shadow-none print:border-none mx-auto">
+                 <div className="grid grid-cols-3 gap-4 items-start text-center border-b-2 border-black pb-6">
+                    <div className="space-y-1 text-[10px] uppercase font-black">
+                      <p>Republic of Cameroon</p>
+                      <p>Peace - Work - Fatherland</p>
+                      <div className="h-px bg-black w-8 mx-auto my-1" />
+                      <p>Ministry of Secondary Education</p>
+                      <p>{user?.school?.name || "GOVERNMENT BILINGUAL HIGH SCHOOL DEIDO"}</p>
+                    </div>
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center p-2 border-2 border-primary/10">
+                         <img src={user?.school?.logo || platformSettings.logo} alt="School Logo" className="w-16 h-16 object-contain" />
+                      </div>
+                      <p className="text-[10px] font-black uppercase italic tracking-tighter">Motto: {user?.school?.motto || "Discipline - Work - Success"}</p>
+                    </div>
+                    <div className="space-y-1 text-[10px] uppercase font-black">
+                      <p>République du Cameroun</p>
+                      <p>Paix - Travail - Patrie</p>
+                      <div className="h-px bg-black w-8 mx-auto my-1" />
+                      <p>Min. des Enseignements Secondaires</p>
+                      <p>Délégation Régionale Littoral</p>
+                    </div>
+                 </div>
+                 
+                 <div className="text-center space-y-2">
+                    <h2 className="text-3xl font-black uppercase underline decoration-double underline-offset-4 tracking-tighter text-primary">
+                      {language === 'en' ? 'OFFICIAL REPORT CARD' : 'BULLETIN DE NOTES OFFICIEL'}
+                    </h2>
+                    <p className="font-bold text-sm italic">Academic Session: {previewDoc?.year || '2023/2024'} • {previewDoc?.term || 'Term 1'}</p>
+                 </div>
+
+                 <div className="grid grid-cols-12 gap-8 bg-accent/5 p-6 border border-black/10 rounded-2xl items-center shadow-inner">
+                    <div className="col-span-2">
+                       <Avatar className="w-32 h-32 border-4 border-white rounded-2xl bg-white overflow-hidden shadow-lg">
+                          <AvatarImage src={user?.avatar} className="object-cover" />
+                          <AvatarFallback className="text-4xl font-black">{user?.name?.charAt(0)}</AvatarFallback>
+                       </Avatar>
+                    </div>
+                    <div className="col-span-10">
+                       <div className="grid grid-cols-2 gap-x-12 gap-y-3 text-sm">
+                          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[10px]">Student Name:</span><span className="font-black uppercase">{user?.name}</span></div>
+                          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[10px]">Matricule / ID:</span><span className="font-mono font-bold text-primary">{user?.id}</span></div>
+                          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[10px]">Grade / Class:</span><span className="font-bold">2nde / Form 5</span></div>
+                          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[10px]">Date of Birth:</span><span className="font-bold">15/05/2008</span></div>
+                       </div>
+                    </div>
+                 </div>
+
+                 <Table className="border-collapse border-2 border-black">
+                    <TableHeader className="bg-black/5">
+                      <TableRow className="border-b-2 border-black">
+                        <TableHead className="text-[11px] uppercase font-black text-black border-r-2 border-black h-14">Pedagogical Subject</TableHead>
+                        <TableHead className="text-center text-[11px] uppercase font-black text-black border-r border-black w-16">Seq 1</TableHead>
+                        <TableHead className="text-center text-[11px] uppercase font-black text-black border-r border-black w-16">Seq 2</TableHead>
+                        <TableHead className="text-center text-[11px] uppercase font-black text-black border-r border-black w-16">Moy/20</TableHead>
+                        <TableHead className="text-center text-[11px] uppercase font-black text-black border-r border-black w-16">Coeff</TableHead>
+                        <TableHead className="text-center text-[11px] uppercase font-black text-black border-r border-black w-20">Weighted</TableHead>
+                        <TableHead className="text-right text-[11px] uppercase font-black text-black pr-4">Appreciation</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {MOCK_PERSONAL_GRADES.map((g: any, i: number) => {
+                        const subjectAvg = (g.seq1 + g.seq2) / 2;
+                        const weightedTotal = subjectAvg * g.coeff;
+                        return (
+                          <TableRow key={i} className="border-b border-black">
+                            <TableCell className="font-bold py-3 border-r-2 border-black text-sm uppercase">{g.subject}</TableCell>
+                            <TableCell className="text-center py-3 border-r border-black font-medium">{g.seq1.toFixed(2)}</TableCell>
+                            <TableCell className="text-center py-3 border-r border-black font-medium">{g.seq2.toFixed(2)}</TableCell>
+                            <TableCell className="text-center py-3 border-r border-black font-black text-primary bg-accent/5">{subjectAvg.toFixed(2)}</TableCell>
+                            <TableCell className="text-center py-3 border-r border-black font-bold italic">{g.coeff}</TableCell>
+                            <TableCell className="text-center py-3 border-r border-black font-black">{weightedTotal.toFixed(2)}</TableCell>
+                            <TableCell className="text-right py-3 pr-4 text-[10px] uppercase font-black italic">{getAppreciation(subjectAvg).text}</TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                 </Table>
+
+                 <div className="grid grid-cols-12 gap-8 pt-4">
+                    <div className="col-span-7 border-2 border-black p-6 rounded-2xl space-y-6 shadow-sm">
+                       <div className="grid grid-cols-2 gap-8">
+                          <div className="space-y-3">
+                             <div className="flex justify-between text-xs border-b border-black/10 pb-1 uppercase font-bold opacity-60"><span>Total Coeff:</span><span className="font-black text-black">16</span></div>
+                             <div className="flex justify-between text-xs border-b border-black/10 pb-1 uppercase font-bold opacity-60"><span>Total Weighted:</span><span className="font-black text-black">247.20</span></div>
+                             <div className="flex flex-col pt-2 text-center bg-primary/5 rounded-xl p-3 border border-primary/10">
+                                <span className="font-black uppercase text-[10px] text-muted-foreground">Term Final Average</span>
+                                <span className="text-3xl font-black text-primary underline decoration-double underline-offset-4">{previewDoc?.average} / 20</span>
+                             </div>
+                          </div>
+                          <div className="bg-black/5 p-4 rounded-xl space-y-3 text-[10px] uppercase font-black">
+                             <p className="text-center border-b border-black/10 pb-1 mb-1">Class Statistics</p>
+                             <div className="flex justify-between"><span>Group Average:</span><span>12.45</span></div>
+                             <div className="flex justify-between text-green-700"><span>Highest Group Average:</span><span>18.20</span></div>
+                             <div className="flex justify-between text-red-700"><span>Lowest Group Average:</span><span>06.15</span></div>
+                          </div>
+                       </div>
+                       <div className="pt-4 border-t border-black/10 flex justify-between items-center">
+                          <div className="flex items-center gap-2">
+                             <Award className="w-5 h-5 text-primary" />
+                             <p className="text-sm font-black uppercase">Term Rank: <span className="text-primary italic underline underline-offset-2">{previewDoc?.position}</span></p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                             <Scale className="w-5 h-5 text-secondary" />
+                             <p className="text-xs font-black uppercase">Conduct Rating: Excellence</p>
+                          </div>
+                       </div>
+                    </div>
+
+                    <div className="col-span-5 space-y-6">
+                       <div className="border-2 border-black p-5 rounded-2xl h-full flex flex-col bg-accent/5">
+                          <p className="text-[11px] font-black uppercase text-center border-b border-black mb-3 pb-1">Academic Council Remark</p>
+                          <div className="flex-1 italic text-xs text-muted-foreground p-3 font-medium leading-relaxed">
+                             "Academic performance is significantly above the class median. The student demonstrates excellent self-discipline and consistent pedagogical participation."
+                          </div>
+                          <div className="mt-auto pt-6 flex justify-between items-end border-t border-black/10">
+                             <div className="text-center space-y-1">
+                                <p className="text-[8px] font-black uppercase">Class Master</p>
+                                <SignatureSVG className="w-16 h-8 text-primary/20 p-1" />
+                                <div className="h-px bg-black w-16 mx-auto" />
+                             </div>
+                             <div className="text-center space-y-1">
+                                <p className="text-[8px] font-black uppercase">Institutional Head</p>
+                                <div className="h-10" />
+                                <Badge variant="outline" className="border-black text-[7px] font-black uppercase px-3 py-0.5">OFFICIAL SEAL</Badge>
+                             </div>
+                          </div>
+                       </div>
+                    </div>
+                 </div>
+
+                 <div className="mt-auto text-center pt-8 border-t-2 border-black/5">
+                    <div className="flex items-center justify-center gap-3">
+                       <img src={platformSettings.logo} alt="EduIgnite" className="w-4 h-4 object-contain opacity-20" />
+                       <p className="text-[8px] uppercase font-black text-muted-foreground opacity-30 tracking-[0.4em]">
+                         Verified Educational Record • {platformSettings.name} Academic SaaS Node
+                       </p>
+                    </div>
+                 </div>
               </div>
             </div>
-          </CardHeader>
-          <CardContent className="p-0 overflow-x-auto">
-            <Table>
-              <TableHeader className="bg-accent/10">
-                <TableRow className="uppercase text-[10px] font-black tracking-widest border-b border-accent/20">
-                  <TableHead className="pl-8 py-4">Pedagogical Subject</TableHead>
-                  <TableHead className="text-center">Coeff</TableHead>
-                  <TableHead className="text-center">Seq 1</TableHead>
-                  <TableHead className="text-center">Seq 2</TableHead>
-                  <TableHead className="text-center">Moy/20</TableHead>
-                  <TableHead className="text-right pr-8">Remark</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {MOCK_PERSONAL_GRADES.map((g, idx) => {
-                  const avg = (g.seq1 + g.seq2) / 2;
-                  return (
-                    <TableRow key={idx} className="hover:bg-accent/5 transition-colors border-b last:border-0 h-16">
-                      <TableCell className="pl-8 font-black text-primary uppercase text-sm">{g.subject}</TableCell>
-                      <TableCell className="text-center font-bold text-muted-foreground italic">{g.coeff}</TableCell>
-                      <TableCell className="text-center font-bold">{g.seq1.toFixed(2)}</TableCell>
-                      <TableCell className="text-center font-bold">{g.seq2.toFixed(2)}</TableCell>
-                      <TableCell className="text-center">
-                        <span className="font-black text-lg text-primary">{avg.toFixed(2)}</span>
-                      </TableCell>
-                      <TableCell className="text-right pr-8">
-                        <Badge className={cn(
-                          "text-[9px] font-black uppercase px-3 h-6 border-none",
-                          avg >= 10 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                        )}>
-                          {getRemark(avg)}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </CardContent>
-          <CardFooter className="bg-accent/10 p-6 border-t border-accent flex justify-center">
-             <div className="flex items-center gap-2 text-muted-foreground">
-                <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
-                <p className="text-[10px] font-black uppercase tracking-widest italic opacity-40">These records are digitally signed and finalized by the Academic Council.</p>
-             </div>
-          </CardFooter>
-        </Card>
+
+            <DialogFooter className="p-6 bg-white border-t gap-3 sm:gap-0 no-print shrink-0">
+              <div className="flex-1 flex items-center gap-2 text-muted-foreground italic text-xs">
+                 <Info className="w-4 h-4" />
+                 <p>Bulletin published on: {new Date().toLocaleDateString()}</p>
+              </div>
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={() => window.print()} className="rounded-xl h-12 px-8 font-black uppercase text-xs gap-2">
+                  <Printer className="w-4 h-4" /> Print Document
+                </Button>
+                <Button onClick={() => setPreviewDoc(null)} className="rounded-xl h-12 px-10 font-black uppercase text-xs bg-primary text-white">Back to Portal</Button>
+              </div>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
@@ -593,7 +860,7 @@ export default function GradeBookPage() {
         </CardContent>
       </Card>
 
-      {/* HISTORY DETAILS MODAL */}
+      {/* HISTORY DETAILS MODAL (TEACHER VIEW) */}
       <Dialog open={!!selectedHistory} onOpenChange={() => setSelectedHistory(null)}>
         <DialogContent className="sm:max-w-4xl max-h-[90vh] p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col">
           <DialogHeader className="bg-primary p-8 text-white relative shrink-0">
