@@ -36,7 +36,9 @@ import {
   XCircle,
   ChevronRight,
   UserRoundCheck,
-  UserRoundX
+  UserRoundX,
+  FileDown,
+  Printer
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -99,6 +101,7 @@ export default function GradeBookPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedClass, setSelectedClass] = useState("2nde / Form 5");
   const [selectedSubject, setSelectedSubject] = useState("Advanced Physics");
+  const [activeSequence, setActiveSequence] = useState<"seq1" | "seq2">("seq1");
   const [grades, setGrades] = useState(MOCK_STUDENTS_GRADES);
   
   // History Modal State
@@ -130,9 +133,20 @@ export default function GradeBookPage() {
       setIsProcessing(false);
       toast({
         title: "Registry Synchronized",
-        description: `Marks for ${selectedSubject} in ${selectedClass} have been committed.`,
+        description: `Marks for ${selectedSubject} in ${selectedClass} (Sequence ${activeSequence === 'seq1' ? '1' : '2'}) have been committed.`,
       });
     }, 1500);
+  };
+
+  const handleExportPdf = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      setIsProcessing(false);
+      toast({
+        title: "Document Prepared",
+        description: `Formal Grade Registry for ${selectedSubject} has been generated as PDF.`,
+      });
+    }, 2000);
   };
 
   const getRemark = (avg: number) => {
@@ -172,7 +186,11 @@ export default function GradeBookPage() {
           </div>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={handleExportPdf} disabled={isProcessing} className="h-12 px-6 rounded-2xl border-primary/10 bg-white gap-2 font-bold group">
+            <FileDown className="w-4 h-4 text-primary/40 group-hover:text-primary transition-colors" />
+            Export to PDF
+          </Button>
           <Button onClick={handleCommitGrades} disabled={isProcessing} className="h-12 px-10 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3">
             {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             Save Sequence Marks
@@ -240,6 +258,21 @@ export default function GradeBookPage() {
             </SelectContent>
           </Select>
         </div>
+        <div className="flex-1 space-y-2 w-full">
+          <Label className="text-[10px] font-black uppercase text-primary ml-1">Input Sequence</Label>
+          <Select value={activeSequence} onValueChange={(v: any) => setActiveSequence(v)}>
+            <SelectTrigger className="h-12 bg-secondary/20 border-secondary/20 rounded-2xl font-black text-primary">
+              <div className="flex items-center gap-2">
+                <PenTool className="w-4 h-4" />
+                <SelectValue />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="seq1">Sequence 1 Entry</SelectItem>
+              <SelectItem value="seq2">Sequence 2 Entry</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <Button variant="outline" className="h-12 px-6 rounded-2xl border-primary/10 bg-white group">
           <Filter className="w-4 h-4 mr-2 text-primary/40 group-hover:text-primary transition-colors" />
           Filter Registry
@@ -258,9 +291,11 @@ export default function GradeBookPage() {
                 <CardDescription className="text-white/60">{selectedSubject} • {selectedClass}</CardDescription>
               </div>
             </div>
-            <Badge className="bg-secondary text-primary border-none font-black px-4 py-1">
-              INPUT MODE ACTIVE
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge className="bg-secondary text-primary border-none font-black px-4 py-1">
+                FILLING SEQUENCE {activeSequence === 'seq1' ? '1' : '2'}
+              </Badge>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="p-0 overflow-x-auto">
@@ -269,8 +304,8 @@ export default function GradeBookPage() {
               <TableRow className="uppercase text-[10px] font-black tracking-widest border-b border-accent/20">
                 <TableHead className="pl-8 py-4">Student Profile</TableHead>
                 <TableHead>Matricule</TableHead>
-                <TableHead className="text-center w-32">Sequence 1</TableHead>
-                <TableHead className="text-center w-32">Sequence 2</TableHead>
+                <TableHead className={cn("text-center w-32 transition-all", activeSequence === 'seq1' && "bg-secondary/10")}>Sequence 1</TableHead>
+                <TableHead className={cn("text-center w-32 transition-all", activeSequence === 'seq2' && "bg-secondary/10")}>Sequence 2</TableHead>
                 <TableHead className="text-center">Term Moy/20</TableHead>
                 <TableHead className="text-right pr-8">Remark (Auto)</TableHead>
               </TableRow>
@@ -292,7 +327,7 @@ export default function GradeBookPage() {
                       </div>
                     </TableCell>
                     <TableCell className="font-mono text-xs font-bold text-muted-foreground">{s.id}</TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className={cn("text-center transition-all", activeSequence === 'seq1' && "bg-secondary/5")}>
                       <Input 
                         type="number" 
                         step="0.25"
@@ -300,10 +335,13 @@ export default function GradeBookPage() {
                         max="20"
                         value={s.seq1}
                         onChange={(e) => handleGradeChange(s.uid, 'seq1', e.target.value)}
-                        className="w-20 mx-auto text-center h-11 bg-accent/30 border-none font-black text-primary rounded-xl focus-visible:ring-primary"
+                        className={cn(
+                          "w-20 mx-auto text-center h-11 border-none font-black rounded-xl focus-visible:ring-primary",
+                          activeSequence === 'seq1' ? "bg-white shadow-sm text-primary ring-2 ring-secondary/20" : "bg-accent/30 text-primary/40"
+                        )}
                       />
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className={cn("text-center transition-all", activeSequence === 'seq2' && "bg-secondary/5")}>
                       <Input 
                         type="number" 
                         step="0.25"
@@ -311,7 +349,10 @@ export default function GradeBookPage() {
                         max="20"
                         value={s.seq2}
                         onChange={(e) => handleGradeChange(s.uid, 'seq2', e.target.value)}
-                        className="w-20 mx-auto text-center h-11 bg-accent/30 border-none font-black text-primary rounded-xl focus-visible:ring-primary"
+                        className={cn(
+                          "w-20 mx-auto text-center h-11 border-none font-black rounded-xl focus-visible:ring-primary",
+                          activeSequence === 'seq2' ? "bg-white shadow-sm text-primary ring-2 ring-secondary/20" : "bg-accent/30 text-primary/40"
+                        )}
                       />
                     </TableCell>
                     <TableCell className="text-center">
@@ -556,5 +597,14 @@ export default function GradeBookPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function SignatureSVG({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M15 30L85 10" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" strokeDasharray="2 2" />
+    </svg>
   );
 }
