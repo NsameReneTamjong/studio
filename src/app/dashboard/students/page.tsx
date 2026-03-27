@@ -55,7 +55,8 @@ import {
   TrendingUp,
   ArrowUpCircle,
   LogOut,
-  UserRoundCheck
+  UserRoundCheck,
+  Zap
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -84,7 +85,7 @@ import { Progress } from "@/components/ui/progress";
 const MOCK_STUDENTS = [
   { id: "GBHS26S001", uid: "S1", name: "Alice Thompson", email: "alice.t@school.edu", phone: "+237 600 11 22 33", whatsapp: "+237 600 11 22 33", class: "2nde / Form 5", section: "Anglophone Section", isLicensePaid: true, status: "active", avatar: "https://picsum.photos/seed/s1/100/100", annualAvg: 16.45 },
   { id: "GBHS26S002", uid: "S2", name: "Bob Richards", email: "bob.r@school.edu", phone: "+237 600 44 55 66", whatsapp: "+237 600 44 55 66", class: "Terminale / Upper Sixth", section: "Anglophone Section", isLicensePaid: true, status: "active", avatar: "https://picsum.photos/seed/s2/100/100", annualAvg: 14.20 },
-  { id: "GBHS26S003", uid: "S3", name: "Charlie Davis", email: "charlie.d@school.edu", phone: "+237 600 77 88 99", whatsapp: "+237 600 77 88 99", class: "1ère / Lower Sixth", section: "Francophone Section", isLicensePaid: false, status: "active", avatar: "https://picsum.photos/seed/s3/100/100", annualAvg: 09.15 },
+  { id: "GBHS26S003", uid: "S3", name: "Charlie Davis", email: "charlie.d@school.edu", phone: "+237 600 77 88 99", whatsapp: "+237 600 77 88 99", class: "1ère / Lower Sixth", section: "Francophone Section", isLicensePaid: false, status: "active", avatar: "https://picsum.photos/seed/s3/100/100", annualAvg: 9.15 },
   { id: "GBHS26S004", uid: "S4", name: "Diana Prince", email: "diana.p@school.edu", phone: "+237 600 00 11 22", whatsapp: "+237 600 00 11 22", class: "Terminale / Upper Sixth", section: "Technical Section", isLicensePaid: true, status: "active", avatar: "https://picsum.photos/seed/s4/100/100", annualAvg: 17.10 },
   { id: "GBHS25S099", uid: "S5", name: "Ex-Student John", email: "john.ex@mail.com", class: "Terminale / Upper Sixth", section: "Anglophone Section", isLicensePaid: true, status: "graduated", avatar: "https://picsum.photos/seed/ex1/100/100", annualAvg: 12.00 },
 ];
@@ -157,7 +158,7 @@ export default function StudentsPage() {
         const currentIdx = CLASSES.indexOf(s.class);
         if (currentIdx === CLASSES.length - 1) {
           // It's a Terminale / Upper Sixth student graduating
-          return { ...s, status: 'graduated' as const };
+          return { ...s, status: 'graduated' as any };
         } else {
           // Promote to next class
           return { ...s, class: CLASSES[currentIdx + 1] };
@@ -172,7 +173,7 @@ export default function StudentsPage() {
   };
 
   const handleWithdrawStudent = (uid: string) => {
-    setStudentList(prev => prev.map(s => s.uid === uid ? { ...s, status: 'withdrawn' as const } : s));
+    setStudentList(prev => prev.map(s => s.uid === uid ? { ...s, status: 'withdrawn' as any } : s));
     toast({ variant: "destructive", title: "Student Withdrawn", description: "Record moved to non-active registry." });
   };
 
@@ -185,7 +186,7 @@ export default function StudentsPage() {
         ...newStudent, 
         id, 
         uid: Math.random().toString(), 
-        status: "active" as const, 
+        status: "active" as any, 
         avatar: `https://picsum.photos/seed/${id}/200/200`,
         annualAvg: 0
       };
@@ -194,6 +195,21 @@ export default function StudentsPage() {
       setIsAdmissionOpen(false);
       toast({ title: "Student Admitted", description: `Assigned ID: ${id}` });
     }, 1500);
+  };
+
+  const handleGenerateReport = () => {
+    toast({ title: "Report Generation Initiated", description: "High-fidelity pedagogical registry is being prepared." });
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingUser.name) return;
+    setIsProcessing(true);
+    setTimeout(() => {
+      setStudentList(prev => prev.map(s => s.uid === editingUser.uid ? editingUser : s));
+      setIsProcessing(false);
+      setEditingUser(null);
+      toast({ title: "Identity Updated" });
+    }, 800);
   };
 
   if (isAuthLoading) return null;
@@ -217,7 +233,7 @@ export default function StudentsPage() {
         </div>
         {isAdmin && (
           <div className="flex gap-2 w-full md:w-auto">
-            <Button variant="outline" className="flex-1 md:flex-none h-12 rounded-2xl font-bold gap-2 border-primary/10 bg-white" onClick={() => handleGenerateReport()}>
+            <Button variant="outline" className="flex-1 md:flex-none h-12 rounded-2xl font-bold gap-2 border-primary/10 bg-white" onClick={handleGenerateReport}>
               <FileDown className="w-4 h-4 text-primary" /> Export
             </Button>
             <Button className="flex-[2] md:flex-none gap-2 shadow-lg h-12 px-6 rounded-2xl font-bold" onClick={() => setIsAdmissionOpen(true)}>
@@ -336,7 +352,7 @@ export default function StudentsPage() {
                               <Eye className="w-4 h-4 text-primary/60" /> 
                               <span className="font-bold text-xs">Access Dossier</span>
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="gap-3 rounded-xl cursor-pointer">
+                            <DropdownMenuItem className="gap-3 rounded-xl cursor-pointer" onClick={() => setEditingUser({...s})}>
                               <Pencil className="w-4 h-4 text-primary/60" /> 
                               <span className="font-bold text-xs">Update Profile</span>
                             </DropdownMenuItem>
@@ -363,7 +379,6 @@ export default function StudentsPage() {
           </Card>
         </TabsContent>
 
-        {/* PROMOTION CENTER - END OF YEAR OPERATIONS */}
         <TabsContent value="promotion" className="animate-in fade-in slide-in-from-bottom-2 mt-0 space-y-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div className="lg:col-span-8 space-y-6">
@@ -471,10 +486,10 @@ export default function StudentsPage() {
         </TabsContent>
       </Tabs>
 
-      {/* ADMISSION DIALOG RESPONSIVE */}
+      {/* ADMISSION DIALOG */}
       <Dialog open={isAdmissionOpen} onOpenChange={setIsAdmissionOpen}>
         <DialogContent className="sm:max-w-3xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
-          <DialogHeader className="bg-primary p-6 md:p-8 text-white relative">
+          <DialogHeader className="bg-primary p-6 md:p-8 text-white relative shrink-0">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/10 rounded-xl"><UserPlus className="w-8 h-8 text-secondary" /></div>
               <DialogTitle className="text-xl md:text-2xl font-black uppercase tracking-tighter">New Student Admission</DialogTitle>
@@ -545,9 +560,4 @@ export default function StudentsPage() {
       </Dialog>
     </div>
   );
-}
-
-function handleGenerateReport() {
-  // Prototype hook for report generation
-  alert("Generating high-fidelity pedagogical report PDF...");
 }
