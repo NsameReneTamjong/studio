@@ -45,8 +45,7 @@ import {
   Printer,
   TrendingDown,
   Scale,
-  Building2,
-  Signature
+  Building2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -67,8 +66,9 @@ const MOCK_STUDENTS_GRADES = [
 const MOCK_PERSONAL_GRADES = [
   { subject: "Advanced Physics", seq1: 14.5, seq2: 16.0, coeff: 4, teacher: "Dr. Tesla", status: "Passed" },
   { subject: "Mathematics", seq1: 18.0, seq2: 17.5, coeff: 5, teacher: "Prof. Smith", status: "Passed" },
-  { subject: "English Literature", seq1: 12.0, seq2: 13.0, coeff: 3, teacher: "Ms. Bennet", status: "Passed" },
+  { subject: "English Literature", seq1: 8.0, seq2: 13.0, coeff: 3, teacher: "Ms. Bennet", status: "Passed" },
   { subject: "General Chemistry", seq1: 10.5, seq2: 11.5, coeff: 4, teacher: "Dr. White", status: "Passed" },
+  { subject: "History", seq1: 7.5, seq2: 9.0, coeff: 2, teacher: "Mr. Tabi", status: "Failed" },
 ];
 
 const MOCK_PERSONAL_ARCHIVE = [
@@ -134,7 +134,6 @@ export default function GradeBookPage() {
   const [activeSequence, setActiveSequence] = useState<"seq1" | "seq2">("seq1");
   const [grades, setGrades] = useState(MOCK_STUDENTS_GRADES);
   
-  // Modal states
   const [selectedHistory, setSelectedHistory] = useState<any>(null);
   const [previewDoc, setPreviewDoc] = useState<any>(null);
 
@@ -213,7 +212,6 @@ export default function GradeBookPage() {
     return <LoadingState message="Fetching pedagogical records..." />;
   }
 
-  // --- STUDENT PERSONAL VIEW ---
   if (isStudent) {
     return (
       <div className="space-y-8 pb-20 animate-in fade-in slide-in-from-bottom-2 duration-700">
@@ -227,9 +225,9 @@ export default function GradeBookPage() {
                 <div className="p-2 bg-primary rounded-xl shadow-lg">
                   <Award className="w-6 h-6 text-secondary" />
                 </div>
-                My Results & Report Card
+                My Academic Results
               </h1>
-              <p className="text-muted-foreground mt-1">Track your personal academic progress and download verified bulletins.</p>
+              <p className="text-muted-foreground mt-1">Track your pedagogical performance and download verified bulletins.</p>
             </div>
           </div>
           <Button onClick={handleExportPdf} disabled={isProcessing} className="h-12 px-8 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3">
@@ -241,10 +239,12 @@ export default function GradeBookPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="border-none shadow-sm bg-primary text-white overflow-hidden">
             <CardHeader className="pb-2">
-              <CardTitle className="text-[10px] font-black opacity-60 uppercase tracking-widest">Personal Average</CardTitle>
+              <CardTitle className="text-[10px] font-black opacity-60 uppercase tracking-widest">Term Average</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-black text-secondary">{stats.average} / 20</div>
+              <div className={cn("text-3xl font-black", parseFloat(stats.average) < 10 ? "text-red-400" : "text-secondary")}>
+                {stats.average} / 20
+              </div>
             </CardContent>
           </Card>
           <Card className="border-none shadow-sm bg-secondary text-primary overflow-hidden">
@@ -253,7 +253,11 @@ export default function GradeBookPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-black flex items-center gap-2">
-                <CheckCircle2 className="w-6 h-6 text-green-600" /> ELIGIBLE
+                {parseFloat(stats.average) >= 10 ? (
+                  <><CheckCircle2 className="w-6 h-6 text-green-600" /> ELIGIBLE</>
+                ) : (
+                  <><XCircle className="w-6 h-6 text-red-600" /> AT RISK</>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -288,7 +292,7 @@ export default function GradeBookPage() {
                       <BookMarked className="w-8 h-8 text-secondary" />
                     </div>
                     <div>
-                      <CardTitle className="text-2xl font-black uppercase tracking-tight">Active Evaluation Cycle</CardTitle>
+                      <CardTitle className="text-2xl font-black uppercase tracking-tight">Sequence Assessment Registry</CardTitle>
                       <CardDescription className="text-white/60">Verified marks for 2023/24 • Sequence 1 & 2</CardDescription>
                     </div>
                   </div>
@@ -303,28 +307,26 @@ export default function GradeBookPage() {
                       <TableHead className="text-center">Seq 1</TableHead>
                       <TableHead className="text-center">Seq 2</TableHead>
                       <TableHead className="text-center">Moy/20</TableHead>
-                      <TableHead className="text-right pr-8">Remark</TableHead>
+                      <TableHead className="text-right pr-8">Integrity</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {MOCK_PERSONAL_GRADES.map((g, idx) => {
                       const avg = (g.seq1 + g.seq2) / 2;
+                      const isFailed = avg < 10;
                       return (
                         <TableRow key={idx} className="hover:bg-accent/5 transition-colors border-b last:border-0 h-16">
                           <TableCell className="pl-8 font-black text-primary uppercase text-sm">{g.subject}</TableCell>
-                          <TableCell className="text-center font-bold text-muted-foreground italic">{g.coeff}</TableCell>
-                          <TableCell className="text-center font-bold">{g.seq1.toFixed(2)}</TableCell>
-                          <TableCell className="text-center font-bold">{g.seq2.toFixed(2)}</TableCell>
+                          <TableCell className="text-center font-mono font-bold text-muted-foreground italic">{g.coeff}</TableCell>
+                          <TableCell className={cn("text-center font-bold", g.seq1 < 10 ? "text-red-600" : "")}>{g.seq1.toFixed(2)}</TableCell>
+                          <TableCell className={cn("text-center font-bold", g.seq2 < 10 ? "text-red-600" : "")}>{g.seq2.toFixed(2)}</TableCell>
                           <TableCell className="text-center">
-                            <span className="font-black text-lg text-primary">{avg.toFixed(2)}</span>
+                            <span className={cn("font-black text-lg", isFailed ? "text-red-600" : "text-primary")}>{avg.toFixed(2)}</span>
                           </TableCell>
                           <TableCell className="text-right pr-8">
-                            <Badge className={cn(
-                              "text-[9px] font-black uppercase px-3 h-6 border-none",
-                              avg >= 10 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                            )}>
-                              {getRemark(avg)}
-                            </Badge>
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-100 font-bold text-[9px] uppercase">
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Signed
+                            </div>
                           </TableCell>
                         </TableRow>
                       );
@@ -373,7 +375,9 @@ export default function GradeBookPage() {
                           <Badge variant="outline" className="text-[10px] font-black uppercase border-primary/10 text-primary">{report.term}</Badge>
                         </TableCell>
                         <TableCell className="text-center">
-                          <span className="font-black text-lg text-primary">{report.average} / 20</span>
+                          <span className={cn("font-black text-lg", parseFloat(report.average) < 10 ? "text-red-600" : "text-primary")}>
+                            {report.average} / 20
+                          </span>
                         </TableCell>
                         <TableCell className="text-center">
                           <span className="font-bold text-xs text-muted-foreground">{report.position}</span>
@@ -397,7 +401,6 @@ export default function GradeBookPage() {
           </TabsContent>
         </Tabs>
 
-        {/* HIGH-FIDELITY BULLETIN DIALOG */}
         <Dialog open={!!previewDoc} onOpenChange={() => setPreviewDoc(null)}>
           <DialogContent className="sm:max-w-5xl max-h-[95vh] overflow-y-auto p-0 border-none shadow-2xl rounded-[2rem]">
             <DialogHeader className="p-6 bg-primary text-white no-print">
@@ -482,14 +485,15 @@ export default function GradeBookPage() {
                       {MOCK_PERSONAL_GRADES.map((g: any, i: number) => {
                         const subjectAvg = (g.seq1 + g.seq2) / 2;
                         const weightedTotal = subjectAvg * g.coeff;
+                        const isFailed = subjectAvg < 10;
                         return (
                           <TableRow key={i} className="border-b border-black">
                             <TableCell className="font-bold py-3 border-r-2 border-black text-sm uppercase">{g.subject}</TableCell>
-                            <TableCell className="text-center py-3 border-r border-black font-medium">{g.seq1.toFixed(2)}</TableCell>
-                            <TableCell className="text-center py-3 border-r border-black font-medium">{g.seq2.toFixed(2)}</TableCell>
-                            <TableCell className="text-center py-3 border-r border-black font-black text-primary bg-accent/5">{subjectAvg.toFixed(2)}</TableCell>
+                            <TableCell className={cn("text-center py-3 border-r border-black font-medium", g.seq1 < 10 ? "text-red-600" : "")}>{g.seq1.toFixed(2)}</TableCell>
+                            <TableCell className={cn("text-center py-3 border-r border-black font-medium", g.seq2 < 10 ? "text-red-600" : "")}>{g.seq2.toFixed(2)}</TableCell>
+                            <TableCell className={cn("text-center py-3 border-r border-black font-black bg-accent/5", isFailed ? "text-red-600" : "text-primary")}>{subjectAvg.toFixed(2)}</TableCell>
                             <TableCell className="text-center py-3 border-r border-black font-bold italic">{g.coeff}</TableCell>
-                            <TableCell className="text-center py-3 border-r border-black font-black">{weightedTotal.toFixed(2)}</TableCell>
+                            <TableCell className={cn("text-center py-3 border-r border-black font-black", isFailed ? "text-red-600" : "")}>{weightedTotal.toFixed(2)}</TableCell>
                             <TableCell className="text-right py-3 pr-4 text-[10px] uppercase font-black italic">{getAppreciation(subjectAvg).text}</TableCell>
                           </TableRow>
                         );
@@ -505,7 +509,9 @@ export default function GradeBookPage() {
                              <div className="flex justify-between text-xs border-b border-black/10 pb-1 uppercase font-bold opacity-60"><span>Total Weighted:</span><span className="font-black text-black">247.20</span></div>
                              <div className="flex flex-col pt-2 text-center bg-primary/5 rounded-xl p-3 border border-primary/10">
                                 <span className="font-black uppercase text-[10px] text-muted-foreground">Term Final Average</span>
-                                <span className="text-3xl font-black text-primary underline decoration-double underline-offset-4">{previewDoc?.average} / 20</span>
+                                <span className={cn("text-3xl font-black underline decoration-double underline-offset-4", parseFloat(previewDoc?.average) < 10 ? "text-red-600" : "text-primary")}>
+                                  {previewDoc?.average} / 20
+                                </span>
                              </div>
                           </div>
                           <div className="bg-black/5 p-4 rounded-xl space-y-3 text-[10px] uppercase font-black">
@@ -531,12 +537,12 @@ export default function GradeBookPage() {
                        <div className="border-2 border-black p-5 rounded-2xl h-full flex flex-col bg-accent/5">
                           <p className="text-[11px] font-black uppercase text-center border-b border-black mb-3 pb-1">Academic Council Remark</p>
                           <div className="flex-1 italic text-xs text-muted-foreground p-3 font-medium leading-relaxed">
-                             "Academic performance is significantly above the class median. The student demonstrates excellent self-discipline and consistent pedagogical participation."
+                             "Academic performance is monitored through high-fidelity node registries. The student is encouraged to maintain consistent pedagogical participation."
                           </div>
                           <div className="mt-auto pt-6 flex justify-between items-end border-t border-black/10">
                              <div className="text-center space-y-1">
                                 <p className="text-[8px] font-black uppercase">Class Master</p>
-                                <SignatureSVG className="w-16 h-8 text-primary/20 p-1" />
+                                <div className="h-10" />
                                 <div className="h-px bg-black w-16 mx-auto" />
                              </div>
                              <div className="text-center space-y-1">
@@ -578,7 +584,6 @@ export default function GradeBookPage() {
     );
   }
 
-  // --- TEACHER / ADMIN MARK ENTRY VIEW ---
   return (
     <div className="space-y-8 pb-20 animate-in fade-in slide-in-from-bottom-2 duration-700">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -745,7 +750,8 @@ export default function GradeBookPage() {
                         onChange={(e) => handleGradeChange(s.uid, 'seq1', e.target.value)}
                         className={cn(
                           "w-20 mx-auto text-center h-11 border-none font-black rounded-xl focus-visible:ring-primary",
-                          activeSequence === 'seq1' ? "bg-white shadow-sm text-primary ring-2 ring-secondary/20" : "bg-accent/30 text-primary/40"
+                          activeSequence === 'seq1' ? "bg-white shadow-sm text-primary ring-2 ring-secondary/20" : "bg-accent/30 text-primary/40",
+                          s.seq1 < 10 && activeSequence === 'seq1' ? "text-red-600 ring-red-200" : ""
                         )}
                       />
                     </TableCell>
@@ -759,7 +765,8 @@ export default function GradeBookPage() {
                         onChange={(e) => handleGradeChange(s.uid, 'seq2', e.target.value)}
                         className={cn(
                           "w-20 mx-auto text-center h-11 border-none font-black rounded-xl focus-visible:ring-primary",
-                          activeSequence === 'seq2' ? "bg-white shadow-sm text-primary ring-2 ring-secondary/20" : "bg-accent/30 text-primary/40"
+                          activeSequence === 'seq2' ? "bg-white shadow-sm text-primary ring-2 ring-secondary/20" : "bg-accent/30 text-primary/40",
+                          s.seq2 < 10 && activeSequence === 'seq2' ? "text-red-600 ring-red-200" : ""
                         )}
                       />
                     </TableCell>
@@ -797,7 +804,6 @@ export default function GradeBookPage() {
         </CardFooter>
       </Card>
 
-      {/* ACADEMIC HISTORY SECTION */}
       <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
         <CardHeader className="bg-accent/5 border-b p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
@@ -860,7 +866,6 @@ export default function GradeBookPage() {
         </CardContent>
       </Card>
 
-      {/* HISTORY DETAILS MODAL (TEACHER VIEW) */}
       <Dialog open={!!selectedHistory} onOpenChange={() => setSelectedHistory(null)}>
         <DialogContent className="sm:max-w-4xl max-h-[90vh] p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col">
           <DialogHeader className="bg-primary p-8 text-white relative shrink-0">
@@ -895,7 +900,7 @@ export default function GradeBookPage() {
               <div className="bg-red-50 p-6 rounded-3xl border border-red-100 flex items-center justify-between">
                 <div>
                   <p className="text-[10px] font-black uppercase text-red-600 tracking-widest">Underperforming</p>
-                  <p className="text-3xl font-black text-green-700">{selectedHistory?.numFail}</p>
+                  <p className="text-3xl font-black text-red-700">{selectedHistory?.numFail}</p>
                 </div>
                 <UserRoundX className="w-10 h-10 text-red-200" />
               </div>
@@ -951,7 +956,7 @@ export default function GradeBookPage() {
                       {selectedHistory?.students.filter((s: any) => s.status === 'fail').map((s: any, i: number) => (
                         <TableRow key={i} className="hover:bg-red-50/30">
                           <TableCell className="font-bold text-sm text-primary py-3">{s.name}</TableCell>
-                          <TableCell className="text-right pr-6 font-black text-green-600">{s.mark.toFixed(2)}</TableCell>
+                          <TableCell className="text-right pr-6 font-black text-red-600">{s.mark.toFixed(2)}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

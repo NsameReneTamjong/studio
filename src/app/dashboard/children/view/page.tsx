@@ -75,7 +75,6 @@ const MOCK_CHILDREN = [
   }
 ];
 
-// Teacher Assignment Mapping (Demo)
 const TEACHER_ASSIGNMENTS: Record<string, string[]> = {
   "GBHS26T001": ["Physics", "Chemistry", "Advanced Physics", "General Science"],
 };
@@ -100,8 +99,9 @@ const getConduct = (attendanceRate: number) => {
 const MOCK_GRADES = [
   { subject: "Physics", seq1: 14.5, seq2: 16.0, teacher: "Dr. Tesla", status: "Passed", coeff: 4 },
   { subject: "Mathematics", seq1: 18.0, seq2: 17.5, teacher: "Prof. Smith", status: "Passed", coeff: 5 },
-  { subject: "English Literature", seq1: 12.0, seq2: 13.0, teacher: "Ms. Bennet", status: "Passed", coeff: 3 },
-  { subject: "Chemistry", seq1: 10.5, seq2: 11.5, teacher: "Dr. White", status: "Passed", coeff: 4 },
+  { subject: "English Literature", seq1: 8.0, seq2: 13.0, teacher: "Ms. Bennet", status: "Passed", coeff: 3 },
+  { subject: "Chemistry", seq1: 9.5, seq2: 11.5, teacher: "Dr. White", status: "Passed", coeff: 4 },
+  { subject: "History", seq1: 7.0, seq2: 8.5, teacher: "Mr. Tabi", status: "Failed", coeff: 2 },
 ];
 
 const MOCK_REPORT_HISTORY = [
@@ -158,7 +158,6 @@ export default function StudentDetailsPage() {
     return TEACHER_ASSIGNMENTS["GBHS26T001"] || [];
   }, [isTeacher, currentUser]);
 
-  // FILTERED DATA FOR TEACHERS
   const filteredGrades = useMemo(() => {
     if (!isTeacher) return MOCK_GRADES;
     return MOCK_GRADES.filter(g => mySubjects.includes(g.subject));
@@ -266,7 +265,9 @@ export default function StudentDetailsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-black text-secondary">{studentStats.average} / 20</div>
+            <div className={cn("text-3xl font-black", parseFloat(studentStats.average) < 10 ? "text-red-400" : "text-secondary")}>
+              {studentStats.average} / 20
+            </div>
           </CardContent>
         </Card>
         <Card className="border-none shadow-sm bg-secondary text-primary">
@@ -407,30 +408,33 @@ export default function StudentDetailsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredGrades.map((grade: any, idx: number) => (
-                    <TableRow key={idx} className="hover:bg-accent/5 border-b border-accent/10">
-                      <TableCell className="font-bold pl-8 py-4 text-primary uppercase">{grade.subject}</TableCell>
-                      <TableCell className="text-center font-black text-lg">{grade.seq1.toFixed(2)}</TableCell>
-                      <TableCell className="text-center font-black text-lg">{grade.seq2.toFixed(2)}</TableCell>
-                      <TableCell className="text-center font-bold text-muted-foreground italic">{grade.coeff}</TableCell>
-                      {!isTeacher && (
-                        <TableCell>
-                          <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
-                            <User className="w-3.5 h-3.5 text-primary/40" />
-                            {grade.teacher}
-                          </div>
+                  {filteredGrades.map((grade: any, idx: number) => {
+                    const avg = (grade.seq1 + grade.seq2) / 2;
+                    return (
+                      <TableRow key={idx} className="hover:bg-accent/5 border-b border-accent/10">
+                        <TableCell className="font-bold pl-8 py-4 text-primary uppercase">{grade.subject}</TableCell>
+                        <TableCell className={cn("text-center font-black text-lg", grade.seq1 < 10 ? "text-red-600" : "")}>{grade.seq1.toFixed(2)}</TableCell>
+                        <TableCell className={cn("text-center font-black text-lg", grade.seq2 < 10 ? "text-red-600" : "")}>{grade.seq2.toFixed(2)}</TableCell>
+                        <TableCell className="text-center font-bold text-muted-foreground italic">{grade.coeff}</TableCell>
+                        {!isTeacher && (
+                          <TableCell>
+                            <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
+                              <User className="w-3.5 h-3.5 text-primary/40" />
+                              {grade.teacher}
+                            </div>
+                          </TableCell>
+                        )}
+                        <TableCell className="text-right pr-8">
+                          <Badge className={cn(
+                            "text-[9px] font-black uppercase px-3 border-none",
+                            avg >= 10 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                          )}>
+                            {avg >= 10 ? "Passed" : "Failed"}
+                          </Badge>
                         </TableCell>
-                      )}
-                      <TableCell className="text-right pr-8">
-                        <Badge className={cn(
-                          "text-[9px] font-black uppercase px-3 border-none",
-                          grade.status === 'Passed' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                        )}>
-                          {grade.status}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </CardContent>
@@ -440,7 +444,9 @@ export default function StudentDetailsPage() {
                </div>
                <div className="text-right">
                   <p className="text-[10px] uppercase font-black text-muted-foreground">{isTeacher ? "Subject Average" : t("termAverage")}</p>
-                  <p className="text-2xl font-black text-primary">{studentStats.average} / 20</p>
+                  <p className={cn("text-2xl font-black", parseFloat(studentStats.average) < 10 ? "text-red-600" : "text-primary")}>
+                    {studentStats.average} / 20
+                  </p>
                </div>
             </CardFooter>
           </Card>
@@ -717,7 +723,7 @@ export default function StudentDetailsPage() {
                </div>
                
                <div className="text-center space-y-2">
-                  <h2 className="text-3xl font-black uppercase underline decoration-double underline-offset-4 tracking-tighter">
+                  <h2 className="text-3xl font-black uppercase underline decoration-double underline-offset-4 tracking-tighter text-primary">
                     {language === 'en' ? 'OFFICIAL REPORT CARD' : 'BULLETIN DE NOTES OFFICIEL'}
                   </h2>
                   <p className="font-bold text-sm italic">Academic Session: {previewDoc?.data?.year || '2023/2024'} • {previewDoc?.data?.term || 'Term 1'}</p>
@@ -756,14 +762,15 @@ export default function StudentDetailsPage() {
                     {MOCK_GRADES.map((g: any, i: number) => {
                       const subjectAvg = (g.seq1 + g.seq2) / 2;
                       const weightedTotal = subjectAvg * g.coeff;
+                      const isFailed = subjectAvg < 10;
                       return (
                         <TableRow key={i} className="border-b border-black">
                           <TableCell className="font-bold py-3 border-r-2 border-black text-sm uppercase">{g.subject}</TableCell>
-                          <TableCell className="text-center py-3 border-r border-black font-medium">{g.seq1.toFixed(2)}</TableCell>
-                          <TableCell className="text-center py-3 border-r border-black font-medium">{g.seq2.toFixed(2)}</TableCell>
-                          <TableCell className="text-center py-3 border-r border-black font-black text-primary bg-accent/5">{subjectAvg.toFixed(2)}</TableCell>
+                          <TableCell className={cn("text-center py-3 border-r border-black font-medium", g.seq1 < 10 ? "text-red-600" : "")}>{g.seq1.toFixed(2)}</TableCell>
+                          <TableCell className={cn("text-center py-3 border-r border-black font-medium", g.seq2 < 10 ? "text-red-600" : "")}>{g.seq2.toFixed(2)}</TableCell>
+                          <TableCell className={cn("text-center py-3 border-r border-black font-black bg-accent/5", isFailed ? "text-red-600" : "text-primary")}>{subjectAvg.toFixed(2)}</TableCell>
                           <TableCell className="text-center py-3 border-r border-black font-bold italic">{g.coeff}</TableCell>
-                          <TableCell className="text-center py-3 border-r border-black font-black">{weightedTotal.toFixed(2)}</TableCell>
+                          <TableCell className={cn("text-center py-3 border-r border-black font-black", isFailed ? "text-red-600" : "")}>{weightedTotal.toFixed(2)}</TableCell>
                           <TableCell className="text-right py-3 pr-4 text-[10px] uppercase font-black italic">{getAppreciation(subjectAvg).text}</TableCell>
                         </TableRow>
                       );
@@ -779,7 +786,9 @@ export default function StudentDetailsPage() {
                            <div className="flex justify-between text-xs border-b border-black/10 pb-1 uppercase font-bold opacity-60"><span>Total Weighted:</span><span className="font-black text-black">{studentStats.totalWeighted}</span></div>
                            <div className="flex flex-col pt-2 text-center bg-primary/5 rounded-xl p-3 border border-primary/10">
                               <span className="font-black uppercase text-[10px] text-muted-foreground">Term Final Average</span>
-                              <span className="text-3xl font-black text-primary underline decoration-double underline-offset-4">{previewDoc?.data?.average || studentStats.average} / 20</span>
+                              <span className={cn("text-3xl font-black underline decoration-double underline-offset-4", parseFloat(previewDoc?.data?.average || studentStats.average) < 10 ? "text-red-600" : "text-primary")}>
+                                {previewDoc?.data?.average || studentStats.average} / 20
+                              </span>
                            </div>
                         </div>
                         <div className="bg-black/5 p-4 rounded-xl space-y-3 text-[10px] uppercase font-black">
@@ -805,12 +814,12 @@ export default function StudentDetailsPage() {
                      <div className="border-2 border-black p-5 rounded-2xl h-full flex flex-col bg-accent/5">
                         <p className="text-[11px] font-black uppercase text-center border-b border-black mb-3 pb-1">Academic Council Remark</p>
                         <div className="flex-1 italic text-xs text-muted-foreground p-3 font-medium leading-relaxed">
-                           "Academic performance is significantly above the class median. The student demonstrates excellent self-discipline and consistent pedagogical participation."
+                           "Academic performance is significantly monitored via node registries. Consistent pedagogical participation is advised."
                         </div>
                         <div className="mt-auto pt-6 flex justify-between items-end border-t border-black/10">
                            <div className="text-center space-y-1">
                               <p className="text-[8px] font-black uppercase">Class Master</p>
-                              <SignatureSVG className="w-16 h-8 text-primary/20 p-1" />
+                              <div className="h-10" />
                               <div className="h-px bg-black w-16 mx-auto" />
                            </div>
                            <div className="text-center space-y-1">
@@ -843,167 +852,7 @@ export default function StudentDetailsPage() {
               <Button variant="outline" onClick={() => window.print()} className="rounded-xl h-12 px-8 font-black uppercase text-xs gap-2">
                 <Printer className="w-4 h-4" /> Print Document
               </Button>
-              <Button onClick={() => setPreviewDoc(null)} className="rounded-xl h-12 px-10 font-black uppercase text-xs">Back to Portfolio</Button>
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* High-Fidelity ID Card Dialog */}
-      <Dialog open={!!previewDoc && previewDoc.type === 'id'} onOpenChange={() => setPreviewDoc(null)}>
-        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto p-0 border-none shadow-2xl rounded-3xl">
-          <DialogHeader className="bg-primary p-8 text-white no-print shrink-0">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="bg-white/20 p-3 rounded-2xl">
-                  <CreditCard className="w-8 h-8 text-secondary" />
-                </div>
-                <div>
-                  <DialogTitle className="text-2xl font-black">Identity Verification Card</DialogTitle>
-                  <DialogDescription className="text-white/60">Official dual-sided institutional student identification.</DialogDescription>
-                </div>
-              </div>
-              <Button variant="ghost" size="icon" onClick={() => setPreviewDoc(null)} className="text-white">
-                <X className="w-6 h-6" />
-              </Button>
-            </div>
-          </DialogHeader>
-
-          <div className="bg-muted p-10 print:p-0 print:bg-white">
-            <div className="flex flex-col items-center gap-12 print:gap-8">
-              {/* FRONT SIDE */}
-              <div className="relative group">
-                <Card className="w-[450px] h-[280px] border shadow-2xl bg-white overflow-hidden relative border-primary/20 flex flex-col print:shadow-none">
-                  <div className="bg-primary p-2 flex items-center justify-between text-white text-[7px] font-black uppercase tracking-tighter shrink-0 border-b border-white/10">
-                    <div className="text-left leading-none space-y-0.5">
-                      <p>Republic of Cameroon</p>
-                      <p>Peace - Work - Fatherland</p>
-                    </div>
-                    <div className="flex gap-1 h-3">
-                      <div className="w-2 h-full bg-[#007a5e]" />
-                      <div className="w-2 h-full bg-[#ce1126] flex items-center justify-center"><div className="w-0.5 h-0.5 bg-yellow-400 rounded-full" /></div>
-                      <div className="w-2 h-full bg-[#fcd116]" />
-                    </div>
-                    <div className="text-right leading-none space-y-0.5">
-                      <p>République du Cameroun</p>
-                      <p>Paix - Travail - Patrie</p>
-                    </div>
-                  </div>
-
-                  <div className="p-3 border-b border-accent flex items-center gap-3 bg-accent/5 shrink-0">
-                    <div className="w-12 h-12 bg-white rounded-lg p-1 border shadow-sm flex items-center justify-center shrink-0 overflow-hidden">
-                      <img src={currentUser?.school?.logo} alt="School Logo" className="w-full h-full object-contain" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-[8px] font-black uppercase text-muted-foreground leading-none mb-0.5">Ministry of Secondary Education</p>
-                      <h3 className="text-xs font-black uppercase text-primary leading-tight">
-                        {currentUser?.school?.name || "GOVERNMENT BILINGUAL HIGH SCHOOL DEIDO"}
-                      </h3>
-                    </div>
-                  </div>
-
-                  <div className="flex-1 p-4 flex gap-6 relative">
-                    <div className="w-28 h-28 rounded-xl border-2 border-primary/10 overflow-hidden shadow-lg shrink-0 bg-accent/5">
-                      <img src={student.avatar} alt={student.name} className="w-full h-full object-cover" />
-                    </div>
-                    <div className="flex-1 flex flex-col justify-center gap-3">
-                      <div className="space-y-0.5">
-                        <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Full Name / Nom Complet</p>
-                        <p className="text-sm font-black text-primary uppercase leading-tight">{student.name}</p>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-0.5">
-                          <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Matricule</p>
-                          <p className="text-sm font-mono font-black text-secondary">{student.id}</p>
-                        </div>
-                        <div className="space-y-0.5">
-                          <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Class / Classe</p>
-                          <p className="text-xs font-black text-primary">{student.class}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-primary/5 p-2 flex justify-between items-center border-t border-accent shrink-0">
-                    <div className="px-3 py-1 bg-primary text-white rounded-md text-[9px] font-black tracking-widest uppercase">
-                      STUDENT ID CARD
-                    </div>
-                    <Badge className="bg-secondary text-primary border-none text-[9px] font-black h-5 uppercase">2023 - 2024</Badge>
-                  </div>
-                </Card>
-                <p className="text-center text-[10px] font-black uppercase text-muted-foreground mt-2 no-print tracking-[0.2em]">Front View (Recto)</p>
-              </div>
-
-              {/* BACK SIDE */}
-              <div className="relative">
-                <Card className="w-[450px] h-[280px] border shadow-2xl bg-white overflow-hidden relative border-primary/20 flex flex-col print:shadow-none">
-                  <div className="bg-primary h-1 w-full shrink-0" />
-                  
-                  <div className="flex-1 p-6 flex flex-col gap-6">
-                    <div className="grid grid-cols-2 gap-8">
-                      <div className="space-y-4">
-                        <div className="space-y-1">
-                          <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Guardian / Tuteur</p>
-                          <p className="text-[10px] font-bold text-primary uppercase">{student.guardian}</p>
-                          <p className="text-[10px] font-black text-secondary flex items-center gap-1"><Phone className="w-2.5 h-2.5" /> {student.guardianPhone}</p>
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Date of Birth / Né(e) le</p>
-                          <p className="text-[10px] font-bold text-primary">{student.dob}</p>
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Address / Adresse</p>
-                          <p className="text-[9px] font-medium text-muted-foreground leading-tight">{student.address}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex flex-col items-center justify-center gap-4 text-center border-l border-accent pl-8">
-                        <div className="p-2 bg-white border-2 border-accent rounded-xl shadow-inner">
-                          <QrCode className="w-20 h-20 text-primary" />
-                        </div>
-                        <p className="text-[7px] font-black text-muted-foreground uppercase leading-tight tracking-widest">
-                          Scan to verify authenticity<br/>Verified Node Registry
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="mt-auto flex justify-between items-end border-t border-accent/50 pt-4">
-                      <div className="text-[8px] max-w-[200px] leading-relaxed text-muted-foreground font-medium">
-                        <p className="font-black text-[7px] uppercase text-primary mb-1">Notice</p>
-                        This card is strictly personal property of {currentUser?.school?.name}. If found, please return to the administration.
-                      </div>
-                      <div className="text-center space-y-1">
-                        <SignatureSVG className="w-20 h-8 text-primary/20 p-1" />
-                        <p className="text-[8px] font-black text-primary uppercase border-t border-black/10 pt-1">The Principal</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-accent/20 p-2 px-4 flex items-center justify-between shrink-0">
-                    <div className="flex items-center gap-2">
-                      <img src={platformSettings.logo} alt="SaaS" className="w-4 h-4 object-contain" />
-                      <p className="text-[7px] font-black text-primary uppercase tracking-widest">
-                        Powered by {platformSettings.name} • Secure ID
-                      </p>
-                    </div>
-                    <span className="text-[6px] text-muted-foreground font-black uppercase tracking-widest">Official Record</span>
-                  </div>
-                </Card>
-                <p className="text-center text-[10px] font-black uppercase text-muted-foreground mt-2 no-print tracking-[0.2em]">Back View (Verso)</p>
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter className="bg-accent/10 p-8 border-t no-print flex sm:flex-row gap-3 shrink-0">
-            <div className="flex-1 flex items-center gap-2 text-muted-foreground italic">
-               <ShieldCheck className="w-5 h-5 text-primary opacity-40" />
-               <p className="text-[10px] font-black uppercase tracking-widest opacity-40">High-fidelity biometric record synchronized with node registry.</p>
-            </div>
-            <div className="flex gap-3">
-              <Button variant="outline" className="rounded-xl h-12 px-8 font-black uppercase text-xs" onClick={() => setPreviewDoc(null)}>Close</Button>
-              <Button className="rounded-xl h-12 px-10 shadow-2xl font-black uppercase tracking-widest text-xs gap-3 bg-primary text-white" onClick={() => window.print()}>
-                <Printer className="w-5 h-5" /> Print Batch
-              </Button>
+              <Button onClick={() => setPreviewDoc(null)} className="rounded-xl h-12 px-10 font-black uppercase text-xs bg-primary text-white">Back to Portfolio</Button>
             </div>
           </DialogFooter>
         </DialogContent>
@@ -1059,14 +908,5 @@ export default function StudentDetailsPage() {
         </DialogContent>
       </Dialog>
     </div>
-  );
-}
-
-function SignatureSVG({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path d="M15 30L85 10" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" strokeDasharray="2 2" />
-    </svg>
   );
 }
