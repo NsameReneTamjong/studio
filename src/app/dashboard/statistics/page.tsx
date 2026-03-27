@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 import { 
   BarChart3, 
   TrendingUp, 
@@ -128,6 +129,7 @@ export default function StatisticsPage() {
     lowestSchool: "06.12",
     passRate: "84%",
     totalAssessments: "14,200",
+    totalStudents: "2,500",
     // Financial (6-10)
     totalRevenue: "22.45M",
     totalArrears: "4.12M",
@@ -338,7 +340,7 @@ export default function StatisticsPage() {
                 <TableBody>
                   {STUDENT_MERIT_LIST.map((s, i) => (
                     <TableRow key={i} className="hover:bg-accent/5">
-                      <TableCell className="pl-8"><Badge className="bg-primary/5 text-primary border-none font-black h-7 w-7 rounded-full flex items-center justify-center">0{i+1}</Badge></TableCell>
+                      <TableCell className="pl-8"><Badge className="bg-primary/5 text-primary border-none font-black h-7 w-7 rounded-full flex items-center justify-center p-0 shadow-lg">0{i+1}</Badge></TableCell>
                       <TableCell className="font-bold text-sm text-primary uppercase">{s.name}</TableCell>
                       <TableCell><Badge variant="outline" className="text-[10px] font-bold uppercase">{s.class}</Badge></TableCell>
                       <TableCell className="text-center font-black text-primary text-lg">{s.avg.toFixed(2)}</TableCell>
