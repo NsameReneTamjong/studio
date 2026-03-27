@@ -33,7 +33,13 @@ import {
   Maximize,
   Radio,
   PenTool,
-  Users
+  Users,
+  Briefcase,
+  GraduationCap,
+  History,
+  QrCode,
+  MapPin,
+  Signature
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n-context";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
@@ -97,7 +103,7 @@ const INITIAL_MATERIALS = [
 ];
 
 export default function CoursesPage() {
-  const { user } = useAuth();
+  const { user, platformSettings } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
   
@@ -108,6 +114,7 @@ export default function CoursesPage() {
   const [subjects, setSubjects] = useState<any[]>([]);
   
   const [viewingMaterialsFor, setViewingMaterialsFor] = useState<any>(null);
+  const [viewingPortfolio, setViewingPortfolio] = useState<any>(null);
   const [materials, setMaterials] = useState(INITIAL_MATERIALS);
   const [isAddingMaterial, setIsAddingMaterial] = useState(false);
   const [newMaterialData, setNewMaterialData] = useState({ title: "", description: "", type: "pdf", url: "" });
@@ -327,7 +334,14 @@ export default function CoursesPage() {
                   <p className="text-sm font-bold text-primary">{viewingMaterialsFor.name} Department</p>
                 </div>
                 <div className="pt-4 border-t flex justify-between items-center">
-                   <Button variant="outline" size="sm" className="rounded-xl h-8 px-4 text-[10px] font-black uppercase w-full">View Professional Portfolio</Button>
+                   <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="rounded-xl h-10 px-4 text-[10px] font-black uppercase w-full shadow-sm hover:bg-primary/5 transition-all"
+                    onClick={() => setViewingPortfolio(viewingMaterialsFor)}
+                   >
+                    View Professional Portfolio
+                   </Button>
                 </div>
               </CardContent>
             </Card>
@@ -489,6 +503,124 @@ export default function CoursesPage() {
               >
                 <Download className="w-4 h-4" /> Download Original
               </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* PROFESSIONAL PORTFOLIO DIALOG */}
+        <Dialog open={!!viewingPortfolio} onOpenChange={() => setViewingPortfolio(null)}>
+          <DialogContent className="sm:max-w-4xl max-h-[90vh] p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col">
+            <DialogHeader className="bg-primary p-8 text-white relative shrink-0">
+              <div className="flex items-center gap-6">
+                <Avatar className="h-24 w-24 border-4 border-white shadow-2xl shrink-0">
+                  <AvatarImage src={viewingPortfolio?.instructorAvatar} />
+                  <AvatarFallback className="text-3xl font-black text-primary bg-white">{viewingPortfolio?.instructorName?.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <DialogTitle className="text-3xl font-black uppercase tracking-tighter">{viewingPortfolio?.instructorName}</DialogTitle>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge variant="secondary" className="bg-secondary text-primary border-none font-black h-6">PEDAGOGICAL LEAD</Badge>
+                    <Badge variant="outline" className="border-white/20 text-white font-mono text-[10px]">PROF-REF-2024</Badge>
+                  </div>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setViewingPortfolio(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+                <X className="w-6 h-6" />
+              </Button>
+            </DialogHeader>
+
+            <div className="flex-1 overflow-y-auto bg-white p-8 md:p-12 space-y-12 no-scrollbar">
+               {/* Cameroon National Header (Small) */}
+               <div className="grid grid-cols-3 gap-2 text-center border-b pb-6 opacity-40">
+                  <div className="text-[7px] font-black uppercase">Republic of Cameroon</div>
+                  <div className="flex justify-center"><Building2 className="w-4 h-4" /></div>
+                  <div className="text-[7px] font-black uppercase">République du Cameroun</div>
+               </div>
+
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <div className="md:col-span-2 space-y-10">
+                    <section className="space-y-4">
+                      <div className="flex items-center gap-3 border-b border-accent pb-2">
+                        <GraduationCap className="w-5 h-5 text-primary" />
+                        <h3 className="text-sm font-black uppercase text-primary tracking-widest">Academic Credentials</h3>
+                      </div>
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-black text-primary text-base">PhD in Theoretical Physics</p>
+                            <p className="text-xs text-muted-foreground">University of Yaoundé I • 2018</p>
+                          </div>
+                          <Badge variant="outline" className="text-[9px] font-bold">CERTIFIED</Badge>
+                        </div>
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-black text-primary text-base">MSc. Applied Mathematics</p>
+                            <p className="text-xs text-muted-foreground">National Polytechnic School • 2014</p>
+                          </div>
+                          <Badge variant="outline" className="text-[9px] font-bold">CERTIFIED</Badge>
+                        </div>
+                      </div>
+                    </section>
+
+                    <section className="space-y-4">
+                      <div className="flex items-center gap-3 border-b border-accent pb-2">
+                        <History className="w-5 h-5 text-primary" />
+                        <h3 className="text-sm font-black uppercase text-primary tracking-widest">Professional Trajectory</h3>
+                      </div>
+                      <p className="text-sm leading-relaxed text-muted-foreground font-medium italic">
+                        "With over 10 years of classroom and research experience, I specialize in simplifying complex scientific concepts for secondary level students. My pedagogy focuses on inquiry-based learning and the practical application of STEM principles."
+                      </p>
+                    </section>
+                  </div>
+
+                  <div className="space-y-8">
+                    <Card className="border-none shadow-sm bg-accent/20 rounded-3xl overflow-hidden">
+                      <CardHeader className="bg-primary/5 p-6 border-b">
+                        <CardTitle className="text-xs font-black uppercase text-primary tracking-widest">Pedagogical Stats</CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-6 space-y-6">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] font-bold uppercase opacity-60">Pass Rate</span>
+                          <span className="text-lg font-black text-green-600">94%</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] font-bold uppercase opacity-60">Experience</span>
+                          <span className="text-lg font-black text-primary">12 Yrs</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] font-bold uppercase opacity-60">Verified Records</span>
+                          <CheckCircle2 className="w-5 h-5 text-green-500" />
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <div className="text-center space-y-4">
+                       <QrCode className="w-24 h-24 mx-auto opacity-10" />
+                       <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Registry Authentication Code</p>
+                    </div>
+                  </div>
+               </div>
+
+               <div className="pt-8 border-t flex justify-between items-end">
+                  <div className="space-y-1">
+                    <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Verified by</p>
+                    <p className="font-black text-xs uppercase tracking-tighter">Institutional Academic Council</p>
+                  </div>
+                  <div className="text-center space-y-2 w-32">
+                    <div className="h-10 w-full border-b-2 border-black/20 flex items-center justify-center">
+                       <Signature className="w-full h-full text-primary/20 p-2" />
+                    </div>
+                    <p className="text-[8px] font-black uppercase text-primary">Registrar</p>
+                  </div>
+               </div>
+            </div>
+
+            <DialogFooter className="bg-accent/10 p-6 border-t border-accent shrink-0">
+               <div className="flex items-center gap-2 text-muted-foreground mr-auto italic">
+                  <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Verified Institutional Pedagogical Record</p>
+               </div>
+               <Button onClick={() => setViewingPortfolio(null)} className="rounded-xl px-10 h-12 font-black uppercase text-xs">Close Dossier</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -730,5 +862,14 @@ function CourseCard({ course, isAdmin, onDelete, onViewMaterials }: { course: an
         )}
       </CardFooter>
     </Card>
+  );
+}
+
+function Signature({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M15 30L85 10" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" strokeDasharray="2 2" />
+    </svg>
   );
 }
