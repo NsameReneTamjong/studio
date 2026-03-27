@@ -51,7 +51,8 @@ import {
   Fingerprint,
   UsersRound,
   History,
-  AlertCircle
+  AlertCircle,
+  Signature
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -212,7 +213,8 @@ export default function StudentsPage() {
         guardianType: guardian?.type || "Guardian",
         guardianPhone: guardian?.phone || "N/A",
         guardianEmail: guardian?.email || "N/A",
-        guardianWhatsapp: guardian?.whatsapp || "N/A"
+        guardianWhatsapp: guardian?.whatsapp || "N/A",
+        admissionDate: new Date().toLocaleDateString()
       };
 
       setStudentList([created, ...studentList]);
@@ -260,7 +262,7 @@ export default function StudentsPage() {
       const siblings = studentList.filter(s => s.guardianId === user.guardianId && s.id !== user.id);
       setViewingLinkedInfo({ type: 'student', user, guardian, siblings });
     } else {
-      const children = studentList.filter(s => s.guardianId === user.id);
+      const children = studentList.filter(s => s.id === user.id || s.guardianId === user.id);
       setViewingLinkedInfo({ type: 'parent', user, children });
     }
   };
@@ -840,6 +842,224 @@ export default function StudentsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* OFFICIAL ADMISSION LETTER DIALOG */}
+      <Dialog open={!!admissionSuccess} onOpenChange={() => setAdmissionSuccess(null)}>
+        <DialogContent className="sm:max-w-5xl max-h-[95vh] p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col">
+          <DialogHeader className="bg-primary p-6 md:p-8 text-white no-print relative shrink-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-2xl text-secondary">
+                  <CheckCircle2 className="w-8 h-8" />
+                </div>
+                <div>
+                  <DialogTitle className="text-xl md:text-2xl font-black uppercase tracking-tighter">Admission Letter Finalized</DialogTitle>
+                  <DialogDescription className="text-white/60 text-xs md:text-sm">Official institutional entry record for {admissionSuccess?.name}.</DialogDescription>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setAdmissionSuccess(null)} className="text-white/40 hover:text-white">
+                <X className="w-6 h-6" />
+              </Button>
+            </div>
+          </DialogHeader>
+
+          <div className="bg-muted flex-1 overflow-y-auto overflow-x-auto p-4 md:p-10 print:p-0 print:bg-white no-scrollbar">
+            <div id="printable-admission-letter" className="bg-white p-8 md:p-16 border-2 border-black/10 shadow-sm relative flex flex-col space-y-12 font-serif text-black print:border-none print:shadow-none min-w-[800px] mx-auto">
+               
+               {/* National Header */}
+               <div className="grid grid-cols-3 gap-2 items-start text-center border-b-2 border-black pb-6">
+                  <div className="space-y-0.5 text-[8px] uppercase font-bold">
+                    <p>Republic of Cameroon</p>
+                    <p>Peace - Work - Fatherland</p>
+                    <div className="h-px bg-black w-10 mx-auto my-1" />
+                    <p>Ministry of Secondary Education</p>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <img src={user?.school?.logo || platformSettings.logo} alt="School" className="w-20 h-20 object-contain" />
+                  </div>
+                  <div className="space-y-0.5 text-[8px] uppercase font-bold">
+                    <p>République du Cameroun</p>
+                    <p>Paix - Travail - Patrie</p>
+                    <div className="h-px bg-black w-10 mx-auto my-1" />
+                    <p>Min. des Enseignements Secondaires</p>
+                  </div>
+               </div>
+
+               <div className="text-center space-y-2">
+                  <h2 className="font-black text-2xl md:text-3xl uppercase tracking-tighter text-primary leading-tight">{user?.school?.name || "GOVERNMENT BILINGUAL HIGH SCHOOL DEIDO"}</h2>
+                  <p className="text-[10px] md:text-xs font-bold uppercase opacity-60 tracking-[0.3em] underline underline-offset-4 decoration-double">OFFICIAL ADMISSION LETTER & REGISTRY TICKET</p>
+               </div>
+
+               <div className="space-y-8 bg-primary/5 p-8 rounded-3xl border border-black/5 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-8 opacity-5"><Building2 className="w-48 h-48" /></div>
+                  
+                  <div className="grid grid-cols-12 gap-8 items-center">
+                    <div className="col-span-3">
+                       <Avatar className="w-32 h-32 border-4 border-white rounded-[2rem] shadow-xl">
+                          <AvatarImage src={admissionSuccess?.avatar} />
+                          <AvatarFallback className="text-4xl font-black">{admissionSuccess?.name?.charAt(0)}</AvatarFallback>
+                       </Avatar>
+                    </div>
+                    <div className="col-span-9 space-y-6">
+                       <div className="grid grid-cols-2 gap-8 text-sm">
+                          <div className="space-y-1">
+                             <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Admitted Student</p>
+                             <p className="text-lg font-black uppercase text-primary leading-none">{admissionSuccess?.name}</p>
+                          </div>
+                          <div className="space-y-1">
+                             <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Provisioned Matricule</p>
+                             <div className="bg-primary text-secondary px-4 py-1 rounded-lg w-fit">
+                                <p className="text-lg font-mono font-black">{admissionSuccess?.id}</p>
+                             </div>
+                          </div>
+                          <div className="space-y-1">
+                             <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Assigned Class</p>
+                             <p className="font-black uppercase text-primary">{admissionSuccess?.class}</p>
+                          </div>
+                          <div className="space-y-1">
+                             <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Institutional Section</p>
+                             <p className="font-bold">{admissionSuccess?.section}</p>
+                          </div>
+                       </div>
+                    </div>
+                  </div>
+               </div>
+
+               <div className="grid grid-cols-2 gap-12">
+                  <div className="space-y-6">
+                    <h4 className="text-xs font-black uppercase text-primary border-b border-black/10 pb-1 flex items-center gap-2">
+                      <Fingerprint className="w-4 h-4" /> Biometric Registry
+                    </h4>
+                    <div className="space-y-3 text-[11px]">
+                       <p><span className="font-bold opacity-60">Date of Birth:</span> {admissionSuccess?.dob}</p>
+                       <p><span className="font-bold opacity-60">Gender:</span> {admissionSuccess?.gender}</p>
+                       <p><span className="font-bold opacity-60">Region of Origin:</span> {admissionSuccess?.region}</p>
+                       <p><span className="font-bold opacity-60">Place of Birth:</span> {admissionSuccess?.placeOfBirth}</p>
+                       <p><span className="font-bold opacity-60">Admission Date:</span> {admissionSuccess?.admissionDate}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-6">
+                    <h4 className="text-xs font-black uppercase text-primary border-b border-black/10 pb-1 flex items-center gap-2">
+                      <Heart className="w-4 h-4" /> Guardian Information
+                    </h4>
+                    <div className="space-y-3 text-[11px]">
+                       <p><span className="font-bold opacity-60">Name:</span> {admissionSuccess?.guardianName}</p>
+                       <p><span className="font-bold opacity-60">Type:</span> {admissionSuccess?.guardianType}</p>
+                       <p><span className="font-bold opacity-60">Matricule:</span> {admissionSuccess?.guardianMatricule}</p>
+                       <p><span className="font-bold opacity-60">Primary Contact:</span> {admissionSuccess?.guardianPhone}</p>
+                       <p><span className="font-bold opacity-60">Institutional Email:</span> {admissionSuccess?.guardianEmail}</p>
+                    </div>
+                  </div>
+               </div>
+
+               <div className="border-2 border-black/10 p-10 rounded-[2.5rem] bg-accent/5 space-y-4 relative overflow-hidden">
+                  <div className="absolute -top-4 -right-4 opacity-5 rotate-12"><GraduationCap className="w-32 h-32" /></div>
+                  <h4 className="text-sm font-black uppercase text-primary">Notice of Admission</h4>
+                  <p className="text-[11px] leading-relaxed italic text-muted-foreground font-medium relative z-10">
+                    "This letter serves as an official confirmation of admission to {user?.school?.name || "this institution"}. The student is expected to adhere to all institutional rules and regulations. This record is digitally signed and registered within the national pedagogical database. Any modification to this document without authorization is strictly prohibited."
+                  </p>
+               </div>
+
+               <div className="pt-12 border-t border-black/5 flex justify-between items-end">
+                  <div className="flex flex-col items-center gap-2 text-center">
+                    <QrCode className="w-20 h-20 opacity-10" />
+                    <p className="text-[8px] font-black uppercase text-muted-foreground opacity-40 leading-tight">Verification<br/>QR Code</p>
+                  </div>
+                  <div className="text-center space-y-6 w-48">
+                    <div className="h-14 w-full mx-auto bg-primary/5 rounded-xl border-b-2 border-black/40 relative flex items-center justify-center overflow-hidden shadow-inner">
+                       <AdmissionSignature className="w-full h-full text-primary/20 p-2" />
+                    </div>
+                    <p className="text-[10px] font-black uppercase text-primary tracking-widest leading-none">The Principal</p>
+                  </div>
+               </div>
+
+               <div className="text-center pt-6 border-t border-black/5">
+                  <div className="flex items-center justify-center gap-3">
+                    <img src={platformSettings.logo} alt="SaaS" className="w-4 h-4 object-contain opacity-20" />
+                    <p className="text-[8px] font-black uppercase text-muted-foreground opacity-30 tracking-[0.3em]">
+                      Verified Admission Record • Secure Registry Node • {new Date().getFullYear()}
+                    </p>
+                  </div>
+               </div>
+            </div>
+          </div>
+
+          <DialogFooter className="bg-accent/10 p-6 md:p-8 border-t no-print flex flex-col sm:flex-row gap-4 shrink-0">
+            <Button variant="outline" className="flex-1 rounded-2xl h-14 font-black uppercase tracking-widest text-xs" onClick={() => setAdmissionSuccess(null)}>
+              Return to Registry
+            </Button>
+            <div className="flex flex-col sm:flex-row flex-1 gap-2">
+              <Button 
+                variant="secondary" 
+                className="flex-1 rounded-2xl h-14 font-black uppercase tracking-widest text-xs gap-2"
+                onClick={() => toast({ title: "Document Prepared", description: "Admission PDF is being generated for export." })}
+              >
+                <Download className="w-4 h-4" /> Download PDF
+              </Button>
+              <Button 
+                className="flex-1 rounded-2xl h-14 shadow-2xl font-black uppercase tracking-widest text-xs gap-3 bg-primary text-white hover:bg-primary/90 transition-all active:scale-95" 
+                onClick={() => window.print()}
+              >
+                <Printer className="w-4 h-4" /> Print Admission Letter
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* EDIT USER DIALOG */}
+      <Dialog open={!!editingUser} onOpenChange={() => setEditingUser(null)}>
+        <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="bg-primary p-8 text-white relative">
+            <DialogTitle className="text-2xl font-black uppercase tracking-tight">Modify Registry Profile</DialogTitle>
+            <DialogDescription className="text-white/60">Update details for {editingUser?.name}.</DialogDescription>
+            <Button variant="ghost" size="icon" onClick={() => setEditingUser(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+              <X className="w-6 h-6" />
+            </Button>
+          </DialogHeader>
+          <div className="p-8 space-y-6">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Full Identity Name</Label>
+              <Input 
+                value={editingUser?.name} 
+                onChange={(e) => setEditingUser({...editingUser, name: e.target.value})} 
+                className="h-12 bg-accent/30 border-none rounded-xl font-bold" 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Verified Email Address</Label>
+              <Input 
+                value={editingUser?.email} 
+                onChange={(e) => setEditingUser({...editingUser, email: e.target.value})} 
+                className="h-12 bg-accent/30 border-none rounded-xl" 
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Phone</Label>
+                <Input 
+                  value={editingUser?.phone} 
+                  onChange={(e) => setEditingUser({...editingUser, phone: e.target.value})} 
+                  className="h-12 bg-accent/30 border-none rounded-xl font-bold" 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">WhatsApp</Label>
+                <Input 
+                  value={editingUser?.whatsapp} 
+                  onChange={(e) => setEditingUser({...editingUser, whatsapp: e.target.value})} 
+                  className="h-12 bg-accent/30 border-none rounded-xl font-bold text-secondary" 
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+            <Button onClick={handleSaveEdit} className="w-full h-12 rounded-xl shadow-lg font-bold" disabled={isProcessing}>
+              {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Commit Profile Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -850,35 +1070,37 @@ function UserActionMenu({ onEdit, onToggleStatus, onView, onViewLinked, status, 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="rounded-full"><MoreVertical className="w-4 h-4"/></Button>
+        <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 hover:bg-primary/5 transition-colors group">
+          <MoreVertical className="w-4 h-4 text-primary/40 group-hover:text-primary transition-colors"/>
+        </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl border-none">
+      <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl border-none p-2">
         <DropdownMenuLabel className="text-[10px] uppercase font-black opacity-40 px-4 py-2">Registry Context</DropdownMenuLabel>
         
         {onView && (
-          <DropdownMenuItem className="gap-3 px-4 py-2.5 cursor-pointer" onClick={onView}>
+          <DropdownMenuItem className="gap-3 px-4 py-2.5 cursor-pointer rounded-lg" onClick={onView}>
             <Eye className="w-4 h-4 text-primary/60" /> <span className="font-bold text-xs">View Dashboard</span>
           </DropdownMenuItem>
         )}
 
         {onViewLinked && (
-          <DropdownMenuItem className="gap-3 px-4 py-2.5 cursor-pointer" onClick={onViewLinked}>
+          <DropdownMenuItem className="gap-3 px-4 py-2.5 cursor-pointer rounded-lg" onClick={onViewLinked}>
             <UsersRound className="w-4 h-4 text-primary/60" /> 
             <span className="font-bold text-xs">
-              {type === 'student' ? 'View Parent/Siblings' : 'View Linked Children'}
+              {type === 'student' ? 'Linked Guardian' : 'Linked Children'}
             </span>
           </DropdownMenuItem>
         )}
 
         {!isTeacher && (
           <>
-            <DropdownMenuItem className="gap-3 px-4 py-2.5 cursor-pointer" onClick={onEdit}>
+            <DropdownMenuItem className="gap-3 px-4 py-2.5 cursor-pointer rounded-lg" onClick={onEdit}>
               <Pencil className="w-4 h-4 text-primary/60" /> <span className="font-bold text-xs">Edit Dossier Details</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-accent" />
             <DropdownMenuItem 
               className={cn(
-                "gap-3 px-4 py-2.5 cursor-pointer",
+                "gap-3 px-4 py-2.5 cursor-pointer rounded-lg",
                 status === 'active' ? "text-destructive hover:bg-red-50" : "text-green-600 hover:bg-green-50"
               )} 
               onClick={onToggleStatus}
@@ -894,6 +1116,15 @@ function UserActionMenu({ onEdit, onToggleStatus, onView, onViewLinked, status, 
 }
 
 function AdmissionSignature({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M15 30L85 10" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" strokeDasharray="2 2" />
+    </svg>
+  );
+}
+
+function AdmissionSignatureSVG({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
