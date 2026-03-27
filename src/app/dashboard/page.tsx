@@ -35,7 +35,8 @@ import {
   Radio,
   PenTool,
   History,
-  LayoutGrid
+  LayoutGrid,
+  Sparkles
 } from "lucide-react";
 import { 
   AreaChart, 
