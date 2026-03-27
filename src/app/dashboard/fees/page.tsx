@@ -42,7 +42,9 @@ import {
   Save,
   Pencil,
   Network,
-  ArrowLeft
+  ArrowLeft,
+  UserCheck,
+  UserX
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -67,11 +69,11 @@ const INITIAL_FEE_TYPES = [
 
 // Initial Mock Data
 const INITIAL_STUDENTS = [
-  { id: "GBHS26S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", section: "Anglophone Section", balances: { "Tuition Fee": 125000, "Uniform Package": 25000, "PTA Contribution": 10000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, isLicensePaid: true, class: "2nde / Form 5", year: "2023 / 2024" },
-  { id: "GBHS26S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", section: "Anglophone Section", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, isLicensePaid: true, class: "Terminale / Upper Sixth", year: "2023 / 2024" },
-  { id: "GBHS26S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", section: "Francophone Section", balances: { "Tuition Fee": 45000, "Uniform Package": 0, "PTA Contribution": 5000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, isLicensePaid: false, class: "1ère / Lower Sixth", year: "2023 / 2024" },
-  { id: "GBHS26S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100", section: "Anglophone Section", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, isLicensePaid: true, class: "2nde / Form 5", year: "2023 / 2024" },
-  { id: "GBHS26S005", name: "Ethan Hunt", avatar: "https://picsum.photos/seed/s5/100/100", section: "Technical Section", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000 }, isLicensePaid: true, class: "Terminale / Upper Sixth", year: "2023 / 2024" },
+  { id: "GBHS26S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", section: "Anglophone Section", balances: { "Tuition Fee": 125000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, isLicensePaid: true, class: "2nde / Form 5", year: "2023 / 2024" },
+  { id: "GBHS26S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", section: "Anglophone Section", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, isLicensePaid: true, class: "Terminale / Upper Sixth", year: "2023 / 2024" },
+  { id: "GBHS26S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", section: "Francophone Section", balances: { "Tuition Fee": 45000, "Uniform Package": 0, "PTA Contribution": 5000, "Examination Fee": 0 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, isLicensePaid: false, class: "1ère / Lower Sixth", year: "2023 / 2024" },
+  { id: "GBHS26S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100", section: "Anglophone Section", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, isLicensePaid: true, class: "2nde / Form 5", year: "2023 / 2024" },
+  { id: "GBHS26S005", name: "Ethan Hunt", avatar: "https://picsum.photos/seed/s5/100/100", section: "Technical Section", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, isLicensePaid: true, class: "Terminale / Upper Sixth", year: "2023 / 2024" },
 ];
 
 const MOCK_CLASS_STATS = [
@@ -142,6 +144,20 @@ export default function FeesPage() {
       return matchesYear && matchesClass && matchesStatus && matchesSearch;
     });
   }, [reportYear, reportClass, reportStatus, students, activeFeeFilter, dossierSearch]);
+
+  const classDossierStudents = useMemo(() => {
+    if (!selectedClassDetails) return [];
+    return students.filter(s => s.class === selectedClassDetails.name);
+  }, [selectedClassDetails, students]);
+
+  const dossierSummary = useMemo(() => {
+    if (classDossierStudents.length === 0) return { paid: 0, pending: 0 };
+    const paid = classDossierStudents.filter(s => getStatusForFee(s, activeFeeFilter) === 'cleared').length;
+    return {
+      paid,
+      pending: classDossierStudents.length - paid
+    };
+  }, [classDossierStudents, activeFeeFilter]);
 
   const handleProcessPayment = () => {
     if (!paymentForm.amount || parseFloat(paymentForm.amount) <= 0) {
@@ -847,7 +863,7 @@ export default function FeesPage() {
 
       {/* CLASS FEE DOSSIER MODAL */}
       <Dialog open={!!selectedClassDetails} onOpenChange={() => setSelectedClassDetails(null)}>
-        <DialogContent className="sm:max-w-4xl max-h-[90vh] p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col">
+        <DialogContent className="sm:max-w-6xl max-h-[95vh] p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col">
           <DialogHeader className="bg-primary p-8 text-white relative shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -855,8 +871,8 @@ export default function FeesPage() {
                   <Building2 className="w-8 h-8 text-secondary" />
                 </div>
                 <div>
-                  <DialogTitle className="text-2xl font-black uppercase tracking-tighter">{selectedClassDetails?.name} Fee Dossier</DialogTitle>
-                  <DialogDescription className="text-white/60">Institutional oversight for financial compliance.</DialogDescription>
+                  <DialogTitle className="text-2xl font-black uppercase tracking-tighter">{selectedClassDetails?.name} Strategic Fee Dossier</DialogTitle>
+                  <DialogDescription className="text-white/60">Comprehensive audit of student financial compliance for this node.</DialogDescription>
                 </div>
               </div>
               <Button variant="ghost" size="icon" onClick={() => setSelectedClassDetails(null)} className="text-white hover:bg-white/10">
@@ -865,22 +881,51 @@ export default function FeesPage() {
             </div>
           </DialogHeader>
 
+          <div className="bg-accent/10 border-b p-6 grid grid-cols-1 md:grid-cols-3 gap-6 shrink-0">
+             <Card className="border-none shadow-sm bg-white p-4 rounded-2xl flex items-center gap-4">
+                <div className="p-2 bg-green-50 rounded-xl text-green-600"><UserCheck className="w-6 h-6"/></div>
+                <div>
+                   <p className="text-[10px] font-black uppercase text-muted-foreground">Students Paid</p>
+                   <p className="text-xl font-black text-primary">{dossierSummary.paid} <span className="text-xs opacity-40">/ {classDossierStudents.length}</span></p>
+                </div>
+             </Card>
+             <Card className="border-none shadow-sm bg-white p-4 rounded-2xl flex items-center gap-4">
+                <div className="p-2 bg-amber-50 rounded-xl text-amber-600"><UserX className="w-6 h-6"/></div>
+                <div>
+                   <p className="text-[10px] font-black uppercase text-muted-foreground">In Arrears</p>
+                   <p className="text-xl font-black text-primary">{dossierSummary.pending}</p>
+                </div>
+             </Card>
+             <Card className="border-none shadow-sm bg-white p-4 rounded-2xl flex items-center gap-4">
+                <div className="p-2 bg-blue-50 rounded-xl text-blue-600"><ShieldCheck className="w-6 h-6"/></div>
+                <div>
+                   <p className="text-[10px] font-black uppercase text-muted-foreground">Target Velocity</p>
+                   <p className="text-xl font-black text-primary">{Math.round((dossierSummary.paid / classDossierStudents.length) * 100)}%</p>
+                </div>
+             </Card>
+          </div>
+
           <div className="flex-1 overflow-y-auto">
             <Table>
-              <TableHeader className="bg-accent/10 uppercase text-[10px] font-black tracking-widest sticky top-0 z-10">
+              <TableHeader className="bg-white uppercase text-[10px] font-black tracking-widest sticky top-0 z-10 border-b">
                 <TableRow>
                   <TableHead className="pl-8 py-4">Student Profile</TableHead>
-                  <TableHead>Matricule</TableHead>
-                  <TableHead className="text-center">Paid Amount</TableHead>
-                  <TableHead className="text-right pr-8">Status</TableHead>
+                  {feeTypes.map(t => (
+                    <TableHead key={t.id} className="text-center">{t.name}</TableHead>
+                  ))}
+                  <TableHead className="text-right pr-8">Total Progress</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {students.filter(s => s.class === selectedClassDetails?.name).map((s) => {
-                  const paid = (s.balances as any)[activeFeeFilter] || 0;
-                  const total = (s.totals as any)[activeFeeFilter] || 150000;
-                  const status = paid >= total ? 'cleared' : 'partial';
-                  
+                {classDossierStudents.map((s) => {
+                  let totalPaid = 0;
+                  let totalMandated = 0;
+                  feeTypes.forEach(t => {
+                    totalPaid += (s.balances as any)[t.name] || 0;
+                    totalMandated += t.amount;
+                  });
+                  const overallPercent = Math.round((totalPaid / totalMandated) * 100);
+
                   return (
                     <TableRow key={s.id} className="hover:bg-accent/5">
                       <TableCell className="pl-8 py-4">
@@ -889,18 +934,32 @@ export default function FeesPage() {
                             <AvatarImage src={s.avatar} alt={s.name} />
                             <AvatarFallback className="bg-primary/5 text-primary text-xs font-black">{s.name.charAt(0)}</AvatarFallback>
                           </Avatar>
-                          <p className="font-bold text-sm text-primary uppercase">{s.name}</p>
+                          <div className="space-y-0.5">
+                            <p className="font-bold text-sm text-primary uppercase leading-none">{s.name}</p>
+                            <p className="text-[9px] font-mono text-muted-foreground">{s.id}</p>
+                          </div>
                         </div>
                       </TableCell>
-                      <TableCell className="font-mono text-xs font-bold text-muted-foreground">{s.id}</TableCell>
-                      <TableCell className="text-center font-black text-primary">{paid.toLocaleString()} XAF</TableCell>
+                      {feeTypes.map(t => {
+                        const status = getStatusForFee(s, t.name);
+                        return (
+                          <TableCell key={t.id} className="text-center">
+                            <Badge className={cn(
+                              "text-[8px] font-black uppercase px-2 h-5 border-none",
+                              status === 'cleared' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                            )}>
+                              {status}
+                            </Badge>
+                          </TableCell>
+                        );
+                      })}
                       <TableCell className="text-right pr-8">
-                        <Badge className={cn(
-                          "text-[9px] font-black uppercase px-2 h-5 border-none",
-                          status === 'cleared' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-                        )}>
-                          {status}
-                        </Badge>
+                        <div className="inline-flex flex-col items-end gap-1">
+                          <span className="text-[10px] font-black text-primary">{overallPercent}%</span>
+                          <div className="w-20 h-1 bg-accent rounded-full overflow-hidden">
+                            <div className="h-full bg-primary" style={{ width: `${overallPercent}%` }} />
+                          </div>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -912,9 +971,12 @@ export default function FeesPage() {
           <DialogFooter className="bg-accent/10 p-6 border-t border-accent flex justify-between items-center shrink-0">
              <div className="flex items-center gap-2 text-muted-foreground italic mr-auto">
                 <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
-                <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Verified Institutional Financial Record</p>
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Verified Institutional Strategic Record</p>
              </div>
-             <Button variant="outline" onClick={() => setSelectedClassDetails(null)} className="rounded-xl px-10 h-11 font-bold text-xs uppercase">Close Dossier</Button>
+             <div className="flex gap-2">
+                <Button variant="outline" className="rounded-xl h-11 px-6 font-bold text-xs uppercase" onClick={() => toast({ title: "Exporting Dossier..." })}><Printer className="w-4 h-4 mr-2" /> Print Class Dossier</Button>
+                <Button onClick={() => setSelectedClassDetails(null)} className="rounded-xl px-10 h-11 font-black uppercase text-[10px] bg-primary text-white">Close Audit</Button>
+             </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
