@@ -510,7 +510,7 @@ export default function CoursesPage() {
         {/* PROFESSIONAL PORTFOLIO DIALOG */}
         <Dialog open={!!viewingPortfolio} onOpenChange={() => setViewingPortfolio(null)}>
           <DialogContent className="sm:max-w-4xl max-h-[90vh] p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col">
-            <DialogHeader className="bg-primary p-8 text-white relative shrink-0">
+            <DialogHeader className="bg-primary p-8 text-white shrink-0 relative">
               <div className="flex items-center gap-6">
                 <Avatar className="h-24 w-24 border-4 border-white shadow-2xl shrink-0">
                   <AvatarImage src={viewingPortfolio?.instructorAvatar} />
@@ -608,7 +608,7 @@ export default function CoursesPage() {
                   </div>
                   <div className="text-center space-y-2 w-32">
                     <div className="h-10 w-full border-b-2 border-black/20 flex items-center justify-center">
-                       <Signature className="w-full h-full text-primary/20 p-2" />
+                       <SignatureSVG className="w-full h-full text-primary/20 p-2" />
                     </div>
                     <p className="text-[8px] font-black uppercase text-primary">Registrar</p>
                   </div>
@@ -865,7 +865,7 @@ function CourseCard({ course, isAdmin, onDelete, onViewMaterials }: { course: an
   );
 }
 
-function Signature({ className }: { className?: string }) {
+function SignatureSVG({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
