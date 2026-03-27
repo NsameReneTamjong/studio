@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -270,7 +269,6 @@ export default function LoginPage() {
                         className="h-12 bg-accent/30 border-none rounded-xl focus-visible:ring-primary font-bold"
                         value={authData.email}
                         onChange={(e) => setAuthData({...authData, email: e.target.value})}
-                        placeholder="e.g. user@school.edu"
                       />
                     </div>
                   )}
@@ -285,7 +283,6 @@ export default function LoginPage() {
                           maxLength={6}
                           value={authData.otp}
                           onChange={(e) => setAuthData({...authData, otp: e.target.value})}
-                          placeholder="000000"
                         />
                       </div>
                       <p className="text-[10px] text-center text-muted-foreground font-bold">Code expires in 5 minutes.</p>
