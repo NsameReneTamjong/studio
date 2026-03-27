@@ -77,7 +77,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 const ACADEMIC_YEARS = ["2023 / 2024", "2022 / 2023"];
 const TERMS = ["Term 1", "Term 2", "Term 3"];
 const SECTIONS = ["Anglophone Section", "Francophone Section", "Technical Section"];
-const CLASSES = ["Form 1", "Form 2", "Form 3", "Form 4", "Form 5", "Lower Sixth", "Upper Sixth"];
 
 const PERFORMANCE_BY_CLASS = [
   { name: 'Form 1', average: 14.2, students: 45, passRate: 88, revenue: "1.2M", arrears: "450k", attendance: 92 },
@@ -145,7 +144,7 @@ export default function StatisticsPage() {
     topClass: "Form 5",
     bottomClass: "Form 2",
     growthIndex: "+4.2%"
-  }), [filters]);
+  }), []);
 
   const handleGenerateReport = (scope: string) => {
     setPreviewReport({
@@ -314,7 +313,7 @@ export default function StatisticsPage() {
                    <FileDown className="w-3.5 h-3.5" /> Download Detail
                  </Button>
               </CardFooter>
-            </div>
+            </Card>
           </div>
 
           <Card className="border-none shadow-xl rounded-[2.5rem] bg-white overflow-hidden">
@@ -531,8 +530,8 @@ export default function StatisticsPage() {
                     </div>
                   ))}
                 </div>
-                <Button className="w-full h-11 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold gap-2" onClick={() => handleGenerateReport('Intervention List')}>
-                  <FileText className="w-4 h-4" /> Download Details
+                <Button className="w-full h-11 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold gap-2">
+                  <Smartphone className="w-4 h-4" /> Notify Guardians
                 </Button>
               </Card>
             </div>
