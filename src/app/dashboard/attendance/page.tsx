@@ -19,7 +19,6 @@ import {
   History,
   User,
   ShieldCheck,
-  AlertCircle,
   TrendingUp,
   ArrowRight,
   Download,
@@ -565,11 +564,11 @@ export default function AttendancePage() {
             <Table>
               <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest sticky top-0 z-10 border-b">
                 <TableRow>
-                  <TableHead className="pl-8 py-4">Student Identity</TableHead>
+                  <TableHead className="pl-4 sm:pl-8 py-4">Student Identity</TableHead>
                   <TableHead className="hidden sm:table-cell">Matricule</TableHead>
                   <TableHead className="text-center">Present</TableHead>
                   <TableHead className="text-center">Absent</TableHead>
-                  <TableHead className="text-right pr-8">Mean Rate %</TableHead>
+                  <TableHead className="text-right pr-4 sm:pr-8">Mean Rate %</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -578,7 +577,7 @@ export default function AttendancePage() {
                   const rate = total > 0 ? Math.round((s.presentCount / total) * 100) : 0;
                   return (
                     <TableRow key={s.id} className="hover:bg-accent/5 transition-colors h-16 border-b border-accent/10">
-                      <TableCell className="pl-8">
+                      <TableCell className="pl-4 sm:pl-8">
                         <div className="flex items-center gap-3">
                           <Avatar className="h-9 w-9 md:h-10 md:w-10 border-2 border-white shadow-sm shrink-0">
                             <AvatarImage src={s.avatar} />
@@ -593,7 +592,7 @@ export default function AttendancePage() {
                       <TableCell className="hidden sm:table-cell font-mono text-[10px] font-bold text-muted-foreground uppercase">{s.matricule}</TableCell>
                       <TableCell className="text-center font-black text-green-600 text-xs md:text-sm">{s.presentCount}</TableCell>
                       <TableCell className="text-center font-black text-red-600 text-xs md:text-sm">{s.absentCount}</TableCell>
-                      <TableCell className="text-right pr-8">
+                      <TableCell className="text-right pr-4 sm:pr-8">
                         <div className="inline-flex flex-col items-end gap-1">
                           <span className={cn("text-[9px] md:text-[10px] font-black", rate >= 90 ? "text-primary" : "text-amber-600")}>{rate}%</span>
                           <div className="w-16 md:w-20 h-1 bg-accent rounded-full overflow-hidden">
