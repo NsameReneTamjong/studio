@@ -27,7 +27,8 @@ import {
   Monitor,
   Mail,
   ArrowLeft,
-  CheckCircle2
+  CheckCircle2,
+  ShieldAlert
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -125,17 +126,20 @@ export default function LoginPage() {
         setIsProcessing(false);
       }
     } else if (mode === "forgot") {
+      // Step 1: Identity Check
       setTimeout(() => {
         setIsProcessing(false);
         setAuthMode("otp");
         toast({ title: t("otpSent"), description: "Check your email for the 6-digit code." });
       }, 1000);
     } else if (mode === "otp") {
+      // Step 2: Code Verification
       setTimeout(() => {
         setIsProcessing(false);
         setAuthMode("reset");
       }, 800);
     } else if (mode === "reset") {
+      // Step 3: Password Reset
       if (authData.newPassword !== authData.resetConfirmPassword) {
         toast({ variant: "destructive", title: "Error", description: t("confirmPassword") });
         setIsProcessing(false);
@@ -211,46 +215,77 @@ export default function LoginPage() {
               </CardHeader>
               <CardContent className="px-10">
                 <form onSubmit={handleAuth} className="space-y-6">
-                  {(mode === "login" || mode === "activate" || mode === "forgot") && (
-                    <div className="space-y-3">
-                      <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-[0.2em] ml-1 flex items-center gap-2">
-                        <Fingerprint className="w-3.5 h-3.5 text-primary/40"/> {t("matricule")}
-                      </Label>
-                      <Input 
-                        required
-                        autoComplete="off"
-                        className="h-14 bg-accent/30 border-none rounded-2xl focus-visible:ring-primary font-black uppercase text-center text-xl shadow-inner transition-all focus:bg-white"
-                        value={authData.matricule}
-                        onChange={(e) => setAuthData({...authData, matricule: e.target.value})}
-                      />
+                  {/* FORGOT PASSWORD INITIAL STEP: MATRICULE + EMAIL */}
+                  {mode === "forgot" && (
+                    <div className="space-y-6 animate-in slide-in-from-top-2">
+                      <div className="space-y-3">
+                        <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-[0.2em] ml-1 flex items-center gap-2">
+                          <Fingerprint className="w-3.5 h-3.5 text-primary/40"/> {t("matricule")}
+                        </Label>
+                        <Input 
+                          required
+                          autoComplete="off"
+                          className="h-14 bg-accent/30 border-none rounded-2xl focus-visible:ring-primary font-black uppercase text-center text-xl shadow-inner transition-all focus:bg-white"
+                          value={authData.matricule}
+                          onChange={(e) => setAuthData({...authData, matricule: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-3">
+                        <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-[0.2em] ml-1 flex items-center gap-2">
+                          <Mail className="w-3.5 h-3.5 text-primary/40"/> Verified Corporate Email
+                        </Label>
+                        <Input 
+                          required
+                          autoComplete="off"
+                          type="email"
+                          className="h-14 bg-accent/30 border-none rounded-2xl focus-visible:ring-primary font-bold text-center text-lg shadow-inner transition-all focus:bg-white px-6"
+                          value={authData.email}
+                          onChange={(e) => setAuthData({...authData, email: e.target.value})}
+                        />
+                      </div>
                     </div>
                   )}
 
+                  {/* STANDARD LOGIN / ACTIVATE FIELDS */}
                   {(mode === "login" || mode === "activate") && (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between px-1">
-                        <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-[0.2em] flex items-center gap-2">
-                          <Lock className="w-3.5 h-3.5 text-primary/40"/> {t("password")}
+                    <>
+                      <div className="space-y-3">
+                        <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-[0.2em] ml-1 flex items-center gap-2">
+                          <Fingerprint className="w-3.5 h-3.5 text-primary/40"/> {t("matricule")}
                         </Label>
-                        {mode === "login" && (
-                          <button 
-                            type="button" 
-                            className="text-[10px] font-black uppercase text-primary/40 hover:text-primary transition-colors tracking-widest"
-                            onClick={() => switchMode("forgot")}
-                          >
-                            {t("forgotPassword")}
-                          </button>
-                        )}
+                        <Input 
+                          required
+                          autoComplete="off"
+                          className="h-14 bg-accent/30 border-none rounded-2xl focus-visible:ring-primary font-black uppercase text-center text-xl shadow-inner transition-all focus:bg-white"
+                          value={authData.matricule}
+                          onChange={(e) => setAuthData({...authData, matricule: e.target.value})}
+                        />
                       </div>
-                      <Input 
-                        required
-                        autoComplete="new-password"
-                        type="password" 
-                        className="h-14 bg-accent/30 border-none rounded-2xl focus-visible:ring-primary font-bold text-center text-lg shadow-inner transition-all focus:bg-white"
-                        value={authData.password}
-                        onChange={(e) => setAuthData({...authData, password: e.target.value})}
-                      />
-                    </div>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between px-1">
+                          <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-[0.2em] flex items-center gap-2">
+                            <Lock className="w-3.5 h-3.5 text-primary/40"/> {t("password")}
+                          </Label>
+                          {mode === "login" && (
+                            <button 
+                              type="button" 
+                              className="text-[10px] font-black uppercase text-primary/40 hover:text-primary transition-colors tracking-widest"
+                              onClick={() => switchMode("forgot")}
+                            >
+                              {t("forgotPassword")}
+                            </button>
+                          )}
+                        </div>
+                        <Input 
+                          required
+                          autoComplete="new-password"
+                          type="password" 
+                          className="h-14 bg-accent/30 border-none rounded-2xl focus-visible:ring-primary font-bold text-center text-lg shadow-inner transition-all focus:bg-white"
+                          value={authData.password}
+                          onChange={(e) => setAuthData({...authData, password: e.target.value})}
+                        />
+                      </div>
+                    </>
                   )}
 
                   {mode === "activate" && (
@@ -269,22 +304,7 @@ export default function LoginPage() {
                     </div>
                   )}
 
-                  {mode === "forgot" && (
-                    <div className="space-y-3 animate-in slide-in-from-top-2">
-                      <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-[0.2em] ml-1 flex items-center gap-2">
-                        <Mail className="w-3.5 h-3.5 text-primary/40"/> Verified Email Address
-                      </Label>
-                      <Input 
-                        required
-                        autoComplete="off"
-                        type="email"
-                        className="h-14 bg-accent/30 border-none rounded-2xl focus-visible:ring-primary font-bold shadow-inner transition-all focus:bg-white px-6"
-                        value={authData.email}
-                        onChange={(e) => setAuthData({...authData, email: e.target.value})}
-                      />
-                    </div>
-                  )}
-
+                  {/* OTP STEP */}
                   {mode === "otp" && (
                     <div className="space-y-6 animate-in zoom-in-95">
                       <div className="space-y-3">
@@ -302,29 +322,40 @@ export default function LoginPage() {
                     </div>
                   )}
 
+                  {/* RESET STEP: CONGRAT MESSAGE + NEW FIELDS */}
                   {mode === "reset" && (
-                    <div className="space-y-6 animate-in slide-in-from-bottom-2">
-                      <div className="space-y-3">
-                        <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-[0.2em] ml-1">New Secure Password</Label>
-                        <Input 
-                          required
-                          autoComplete="new-password"
-                          type="password"
-                          className="h-14 bg-accent/30 border-none rounded-2xl shadow-inner focus:bg-white px-6 font-bold"
-                          value={authData.newPassword}
-                          onChange={(e) => setAuthData({...authData, newPassword: e.target.value})}
-                        />
+                    <div className="space-y-8 animate-in slide-in-from-bottom-2">
+                      <div className="bg-green-50 p-6 rounded-3xl border border-green-100 flex flex-col items-center gap-2 text-center">
+                        <div className="p-2 bg-green-100 rounded-full text-green-600 mb-1">
+                          <CheckCircle2 className="w-6 h-6" />
+                        </div>
+                        <h4 className="text-sm font-black text-green-900 uppercase tracking-tight">Identity Verified</h4>
+                        <p className="text-[11px] text-green-800 font-medium">Your account has been identified. Please define your new secure credentials below.</p>
                       </div>
-                      <div className="space-y-3">
-                        <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-[0.2em] ml-1">Confirm New Password</Label>
-                        <Input 
-                          required
-                          autoComplete="new-password"
-                          type="password"
-                          className="h-14 bg-accent/30 border-none rounded-2xl shadow-inner focus:bg-white px-6 font-bold"
-                          value={authData.resetConfirmPassword}
-                          onChange={(e) => setAuthData({...authData, resetConfirmPassword: e.target.value})}
-                        />
+
+                      <div className="space-y-6">
+                        <div className="space-y-3">
+                          <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-[0.2em] ml-1">New Secure Password</Label>
+                          <Input 
+                            required
+                            autoComplete="new-password"
+                            type="password"
+                            className="h-14 bg-accent/30 border-none rounded-2xl shadow-inner focus:bg-white px-6 font-bold text-center text-lg"
+                            value={authData.newPassword}
+                            onChange={(e) => setAuthData({...authData, newPassword: e.target.value})}
+                          />
+                        </div>
+                        <div className="space-y-3">
+                          <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-[0.2em] ml-1">Confirm New Password</Label>
+                          <Input 
+                            required
+                            autoComplete="new-password"
+                            type="password"
+                            className="h-14 bg-accent/30 border-none rounded-2xl shadow-inner focus:bg-white px-6 font-bold text-center text-lg"
+                            value={authData.resetConfirmPassword}
+                            onChange={(e) => setAuthData({...authData, resetConfirmPassword: e.target.value})}
+                          />
+                        </div>
                       </div>
                     </div>
                   )}
