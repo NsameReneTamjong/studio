@@ -39,7 +39,9 @@ import {
   Printer,
   Search,
   Award,
-  BarChart3
+  BarChart3,
+  Info,
+  FileText
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -70,6 +72,14 @@ const MOCK_STUDENTS = [
   { id: "S005", name: "Ethan Hunt", avatar: "https://picsum.photos/seed/s5/100/100", presentCount: 20, absentCount: 4 },
 ];
 
+const MOCK_STUDENT_LOGS = [
+  { date: "May 24, 2024", subject: "Mathematics", time: "08:00 AM", status: "Present", teacher: "Prof. Sarah Smith" },
+  { date: "May 24, 2024", subject: "Advanced Physics", time: "10:30 AM", status: "Present", teacher: "Dr. Aris Tesla" },
+  { date: "May 23, 2024", subject: "History", time: "01:00 PM", status: "Absent", teacher: "Mr. Tabi" },
+  { date: "May 22, 2024", subject: "English Literature", time: "09:00 AM", status: "Present", teacher: "Ms. Bennet" },
+  { date: "May 21, 2024", subject: "Organic Chemistry", time: "11:00 AM", status: "Present", teacher: "Dr. White" },
+];
+
 const MOCK_STUDENT_TODAY = [
   { subject: "Mathematics", start: "08:00 AM", end: "10:00 AM", status: "Present", teacher: "Prof. Sarah Smith" },
   { subject: "Advanced Physics", start: "10:30 AM", end: "12:30 PM", status: "Present", teacher: "Dr. Aris Tesla" },
@@ -93,6 +103,7 @@ export default function AttendancePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [date, setDate] = useState<Date>(new Date());
   const [selectedClassDetails, setSelectedClassDetails] = useState<any>(null);
+  const [selectedStudentLogs, setSelectedStudentLogs] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -121,6 +132,7 @@ export default function AttendancePage() {
   };
 
   const handleSubmitRegistry = () => {
+    if (isAdmin) return;
     setIsProcessing(true);
     setTimeout(() => {
       setIsProcessing(false);
@@ -141,6 +153,13 @@ export default function AttendancePage() {
         description: `Attendance data for ${selectedClassDetails?.name} has been generated.`,
       });
     }, 1000);
+  };
+
+  const handleExportStudentLogs = (student: any) => {
+    toast({
+      title: "Log Export Started",
+      description: `Generating presence statement for ${student.name}.`
+    });
   };
 
   if (isLoading) return <LoadingState message="Fetching institutional presence records..." />;
@@ -478,13 +497,13 @@ export default function AttendancePage() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto scrollbar-thin">
             <Table>
               <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest sticky top-0 z-10 border-b">
                 <TableRow>
                   <TableHead className="pl-8 py-4">Student Profile</TableHead>
                   <TableHead className="text-center">Mean %</TableHead>
-                  <TableHead className="text-right pr-8">{isAdmin ? "Current Status" : "Daily Entry"}</TableHead>
+                  <TableHead className="text-right pr-8">{isAdmin ? "Actions" : "Daily Entry"}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -512,12 +531,24 @@ export default function AttendancePage() {
                     </TableCell>
                     <TableCell className="text-right pr-8">
                       {isAdmin ? (
-                        <Badge className={cn(
-                          "text-[8px] font-black uppercase px-2 h-5 border-none",
-                          registryState[s.id] === 'present' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                        )}>
-                          {registryState[s.id]}
-                        </Badge>
+                        <div className="flex justify-end gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-[10px] font-black uppercase gap-2 hover:bg-primary hover:text-white"
+                            onClick={() => setSelectedStudentLogs(s)}
+                          >
+                            <Eye className="w-3.5 h-3.5" /> Details
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 text-primary/40"
+                            onClick={() => handleExportStudentLogs(s)}
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
                       ) : (
                         <div className="flex justify-end gap-1">
                           <Button size="icon" variant={registryState[s.id] === 'present' ? 'default' : 'outline'} className="h-8 w-8 rounded-lg" onClick={() => setStatus(s.id, 'present')}>
@@ -539,6 +570,70 @@ export default function AttendancePage() {
              <div className="flex items-center gap-2 text-muted-foreground italic">
                 <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
                 <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Administrative Presence Audit Record</p>
+             </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* STUDENT DETAILED ATTENDANCE DOSSIER */}
+      <Dialog open={!!selectedStudentLogs} onOpenChange={() => setSelectedStudentLogs(null)}>
+        <DialogContent className="sm:max-w-2xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="bg-primary p-8 text-white relative">
+            <div className="flex items-center gap-6">
+              <Avatar className="h-16 w-16 border-4 border-white shadow-2xl shrink-0">
+                <AvatarImage src={selectedStudentLogs?.avatar} />
+                <AvatarFallback className="text-2xl font-black text-primary bg-white">{selectedStudentLogs?.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div>
+                <DialogTitle className="text-2xl font-black uppercase tracking-tighter">Attendance Dossier</DialogTitle>
+                <DialogDescription className="text-white/60">
+                  Detailed logs for {selectedStudentLogs?.name} in {selectedClassDetails?.name}
+                </DialogDescription>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setSelectedStudentLogs(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+              <X className="w-6 h-6" />
+            </Button>
+          </DialogHeader>
+          <div className="p-0 max-h-[60vh] overflow-y-auto scrollbar-thin">
+            <Table>
+              <TableHeader className="bg-accent/10 uppercase text-[9px] font-black sticky top-0 z-10 border-b">
+                <TableRow>
+                  <TableHead className="pl-8 py-4">Session Date</TableHead>
+                  <TableHead>Subject</TableHead>
+                  <TableHead className="text-center">Status</TableHead>
+                  <TableHead className="text-right pr-8">Teacher</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {MOCK_STUDENT_LOGS.map((log, i) => (
+                  <TableRow key={i} className="hover:bg-accent/5 border-b last:border-0 h-14">
+                    <TableCell className="pl-8 text-xs font-bold text-muted-foreground">{log.date}</TableCell>
+                    <TableCell className="font-black text-primary text-[10px] uppercase">{log.subject}</TableCell>
+                    <TableCell className="text-center">
+                      <Badge className={cn(
+                        "text-[8px] font-black uppercase px-2 h-5 border-none",
+                        log.status === 'Present' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                      )}>
+                        {log.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right pr-8 text-[10px] font-bold opacity-60 italic">{log.teacher}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          <DialogFooter className="bg-accent/10 p-6 border-t flex flex-col sm:flex-row gap-3">
+             <div className="flex-1 flex items-center gap-2 text-muted-foreground italic">
+                <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Verified Registry Record</p>
+             </div>
+             <div className="flex gap-2 w-full sm:w-auto">
+                <Button variant="outline" className="flex-1 sm:flex-none gap-2 rounded-xl h-11" onClick={() => handleExportStudentLogs(selectedStudentLogs)}>
+                  <Download className="w-4 h-4" /> Download Statement
+                </Button>
+                <Button onClick={() => setSelectedStudentLogs(null)} className="flex-1 sm:flex-none rounded-xl h-11 px-8 font-black uppercase text-xs">Close</Button>
              </div>
           </DialogFooter>
         </DialogContent>
