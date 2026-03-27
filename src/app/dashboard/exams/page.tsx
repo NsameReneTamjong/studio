@@ -41,7 +41,7 @@ import {
   X
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -62,7 +62,14 @@ const FRANCOPHONE_CLASSES = ["6ème", "5ème", "4ème", "3ème", "2nde", "1ère"
 const TECHNICAL_CLASSES = ["1ère Year", "2nd Year", "3rd Year", "4th Year", "5th Year", "6th Year", "7th Year"];
 
 const ALL_CLASSES = [...ANGLOPHONE_CLASSES, ...FRANCOPHONE_CLASSES, ...TECHNICAL_CLASSES];
-const ROOMS = ["Hall A", "Hall B", "Science Lab 1", "Room 402", "Library Wing"];
+
+const ROOM_CATEGORIES = [
+  { label: "Main Halls", rooms: ["Hall A", "Hall B", "Grand Auditorium"] },
+  { label: "Laboratories", rooms: ["Science Lab 1", "Chemistry Wing", "Tech Workshop"] },
+  { label: "Standard Classrooms", rooms: ["Room 402", "Room 305", "Library Wing"] },
+];
+
+const EXAM_TYPES = ["Sequence Assessment", "Mid-Term Evaluation", "End of Term Examination", "Mock Exam"];
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const TIME_SLOTS = ["08:00 AM", "09:30 AM", "11:00 AM", "01:00 PM", "02:30 PM"];
 
@@ -167,6 +174,7 @@ export default function ExamsPage() {
 
   const [onsiteFormData, setOnsiteFormData] = useState({
     title: "",
+    type: "Sequence Assessment",
     subject: "",
     class: "",
     room: "",
@@ -309,7 +317,14 @@ export default function ExamsPage() {
                         <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Venue</Label>
                         <Select onValueChange={(v) => setTimetableFormData({...timetableFormData, room: v})}>
                           <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue placeholder="Select Room" /></SelectTrigger>
-                          <SelectContent>{ROOMS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
+                          <SelectContent>
+                            {ROOM_CATEGORIES.map(cat => (
+                              <SelectGroup key={cat.label}>
+                                <SelectLabel className="text-[10px] uppercase font-black opacity-40 px-2 py-1.5">{cat.label}</SelectLabel>
+                                {cat.rooms.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                              </SelectGroup>
+                            ))}
+                          </SelectContent>
                         </Select>
                       </div>
                     </div>
@@ -351,6 +366,15 @@ export default function ExamsPage() {
                       <Input placeholder="e.g. End of Term Paper" className="h-12 bg-accent/30 border-none rounded-xl font-bold" onChange={(e) => setOnsiteFormData({...onsiteFormData, title: e.target.value})} />
                     </div>
                     <div className="space-y-2">
+                      <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Exam Type</Label>
+                      <Select onValueChange={(v) => setOnsiteFormData({...onsiteFormData, type: v})} value={onsiteFormData.type}>
+                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {EXAM_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
                       <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Subject</Label>
                       <Select onValueChange={(v) => setOnsiteFormData({...onsiteFormData, subject: v})}>
                         <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue placeholder="Choose Subject" /></SelectTrigger>
@@ -367,8 +391,15 @@ export default function ExamsPage() {
                     <div className="space-y-2">
                       <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Venue</Label>
                       <Select onValueChange={(v) => setOnsiteFormData({...onsiteFormData, room: v})}>
-                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue placeholder="Room..." /></SelectTrigger>
-                        <SelectContent>{ROOMS.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
+                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue placeholder="Select Venue" /></SelectTrigger>
+                        <SelectContent>
+                          {ROOM_CATEGORIES.map(cat => (
+                            <SelectGroup key={cat.label}>
+                              <SelectLabel className="text-[10px] uppercase font-black opacity-40 px-2 py-1.5">{cat.label}</SelectLabel>
+                              {cat.rooms.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                            </SelectGroup>
+                          ))}
+                        </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
