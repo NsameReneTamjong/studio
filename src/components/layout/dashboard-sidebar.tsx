@@ -66,6 +66,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
   const isDesigner = user?.role === "DESIGNER";
   const isInvestor = user?.role === "INV";
   const isBursar = user?.role === "BURSAR";
+  const isSchoolAdmin = user?.role === "SCHOOL_ADMIN" || user?.role === "SUB_ADMIN";
 
   const routes = [
     {
@@ -185,7 +186,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       roles: ["PARENT"],
     },
     {
-      label: t("courses"),
+      label: isSchoolAdmin ? (language === 'en' ? "Institutional Subjects" : "Matières Institutionnelles") : t("courses"),
       icon: BookOpen,
       href: "/dashboard/courses",
       roles: ["SCHOOL_ADMIN", "SUB_ADMIN", "STUDENT", "TEACHER"],

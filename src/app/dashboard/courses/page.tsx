@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -51,10 +51,10 @@ import { cn } from "@/lib/utils";
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
 
 const INITIAL_COURSES = [
-  { id: "PHY101", name: "Advanced Physics", instructorName: "Dr. Aris Tesla", instructorAvatar: "https://picsum.photos/seed/t1/200/200", targetClass: "2nde / Form 5", type: "mandatory", color: "bg-blue-500", stats: { liveClasses: 24, exams: 8, attendance: 92 } },
-  { id: "MAT101", name: "Mathematics", instructorName: "Prof. Sarah Smith", instructorAvatar: "https://picsum.photos/seed/t2/200/200", targetClass: "2nde / Form 5", type: "mandatory", color: "bg-emerald-500", stats: { liveClasses: 32, exams: 12, attendance: 95 } },
-  { id: "LIT105", name: "Modern Literature", instructorName: "Ms. Bennet", instructorAvatar: "https://picsum.photos/seed/t3/200/200", targetClass: "2nde / Form 5", type: "optional", color: "bg-purple-500", stats: { liveClasses: 18, exams: 4, attendance: 88 } },
-  { id: "ART202", name: "Fine Arts & Design", instructorName: "Mr. Abena", instructorAvatar: "https://picsum.photos/seed/t4/200/200", targetClass: "2nde / Form 5", type: "optional", color: "bg-rose-500", stats: { liveClasses: 12, exams: 2, attendance: 90 } },
+  { id: "PHY101", name: "Advanced Physics", instructorName: "Dr. Aris Tesla", instructorAvatar: "https://picsum.photos/seed/t1/200/200", targetClass: "2nde / Form 5", section: "Anglophone Section", type: "mandatory", color: "bg-blue-500", stats: { liveClasses: 24, exams: 8, attendance: 92 } },
+  { id: "MAT101", name: "Mathematics", instructorName: "Prof. Sarah Smith", instructorAvatar: "https://picsum.photos/seed/t2/200/200", targetClass: "2nde / Form 5", section: "Anglophone Section", type: "mandatory", color: "bg-emerald-500", stats: { liveClasses: 32, exams: 12, attendance: 95 } },
+  { id: "LIT105", name: "Modern Literature", instructorName: "Ms. Bennet", instructorAvatar: "https://picsum.photos/seed/t3/200/200", targetClass: "2nde / Form 5", section: "Anglophone Section", type: "optional", color: "bg-purple-500", stats: { liveClasses: 18, exams: 4, attendance: 88 } },
+  { id: "ART202", name: "Fine Arts & Design", instructorName: "Mr. Abena", instructorAvatar: "https://picsum.photos/seed/t4/200/200", targetClass: "2nde / Form 5", section: "Francophone Section", type: "optional", color: "bg-rose-500", stats: { liveClasses: 12, exams: 2, attendance: 90 } },
 ];
 
 const INITIAL_MATERIALS = [
@@ -135,12 +135,15 @@ export default function CoursesPage() {
     id: "",
     instructorName: "Dr. Jean Dupont",
     targetClass: "2nde / Form 5",
+    section: "Anglophone Section",
     type: "mandatory",
     color: "bg-blue-500"
   });
 
   const isTeacher = user?.role === "TEACHER";
-  const isAdmin = user?.role === "SCHOOL_ADMIN";
+  const isSchoolAdmin = user?.role === "SCHOOL_ADMIN";
+  const isSubAdmin = user?.role === "SUB_ADMIN";
+  const isAdmin = isSchoolAdmin || isSubAdmin;
   const isStudent = user?.role === "STUDENT";
 
   useEffect(() => {
@@ -157,7 +160,7 @@ export default function CoursesPage() {
       setSubjects([...subjects, { ...newSubject, stats: { liveClasses: 0, exams: 0, attendance: 0 } }]);
       setIsProcessing(false);
       setIsAddingSubject(false);
-      setNewSubject({ name: "", id: "", instructorName: "Dr. Jean Dupont", targetClass: "2nde / Form 5", type: "mandatory", color: "bg-blue-500" });
+      setNewSubject({ name: "", id: "", instructorName: "Dr. Jean Dupont", targetClass: "2nde / Form 5", section: "Anglophone Section", type: "mandatory", color: "bg-blue-500" });
       toast({ title: "Subject Registered", description: `${newSubject.name} added to curriculum.` });
     }, 800);
   };
@@ -185,7 +188,6 @@ export default function CoursesPage() {
         return;
       }
       setSelectedFile(file);
-      // Auto-populate title if empty
       if (!newMaterialData.title) {
         setNewMaterialData({ ...newMaterialData, title: file.name.split('.')[0] });
       }
@@ -251,6 +253,16 @@ export default function CoursesPage() {
     
     toast({ title: "Download Started", description: `Preparing ${material.title} for offline access.` });
   };
+
+  const visibleSubjects = useMemo(() => {
+    if (isSchoolAdmin) return subjects;
+    if (isSubAdmin) {
+      // Mock sub-admin section assignment (usually comes from user profile)
+      const subAdminSection = "Anglophone Section";
+      return subjects.filter(s => s.section === subAdminSection);
+    }
+    return subjects;
+  }, [subjects, isSchoolAdmin, isSubAdmin]);
 
   if (viewingMaterialsFor) {
     const subjectMaterials = materials.filter(m => m.subjectId === viewingMaterialsFor.id);
@@ -402,7 +414,7 @@ export default function CoursesPage() {
           )}
         </div>
 
-        {(isAdmin || isTeacher) && (
+        {isAdmin && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <Card className="lg:col-span-4 border-none shadow-sm overflow-hidden bg-white">
               <CardHeader className="bg-primary p-6 text-white text-center pb-8 relative">
@@ -528,17 +540,6 @@ export default function CoursesPage() {
                 </CardFooter>
               </Card>
             ))}
-            {subjectMaterials.length === 0 && (
-              <div className="col-span-full py-20 text-center border-2 border-dashed rounded-[2rem] bg-accent/5 space-y-4">
-                <div className="p-4 bg-white rounded-full w-fit mx-auto shadow-sm">
-                  <BookMarked className="w-10 h-10 text-primary/20" />
-                </div>
-                <div className="space-y-1">
-                  <p className="font-black text-primary uppercase tracking-tighter">No materials found</p>
-                  <p className="text-xs text-muted-foreground">This course repository is currently empty.</p>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
@@ -592,7 +593,6 @@ export default function CoursesPage() {
           </DialogContent>
         </Dialog>
 
-        {/* PROFESSIONAL PORTFOLIO DIALOG */}
         <Dialog open={!!viewingPortfolio} onOpenChange={() => setViewingPortfolio(null)}>
           <DialogContent className="sm:max-w-4xl max-h-[90vh] p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col">
             <DialogHeader className="bg-primary p-8 text-white shrink-0 relative">
@@ -615,7 +615,6 @@ export default function CoursesPage() {
             </DialogHeader>
 
             <div className="flex-1 overflow-y-auto bg-white p-8 md:p-12 space-y-12 no-scrollbar">
-               {/* Cameroon National Header (Small) */}
                <div className="grid grid-cols-3 gap-2 text-center border-b pb-6 opacity-40">
                   <div className="text-[7px] font-black uppercase">Republic of Cameroon</div>
                   <div className="flex justify-center"><Building2 className="w-4 h-4" /></div>
@@ -637,24 +636,7 @@ export default function CoursesPage() {
                           </div>
                           <Badge variant="outline" className="text-[9px] font-bold">CERTIFIED</Badge>
                         </div>
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-black text-primary text-base">MSc. Applied Mathematics</p>
-                            <p className="text-xs text-muted-foreground">National Polytechnic School • 2014</p>
-                          </div>
-                          <Badge variant="outline" className="text-[9px] font-bold">CERTIFIED</Badge>
-                        </div>
                       </div>
-                    </section>
-
-                    <section className="space-y-4">
-                      <div className="flex items-center gap-3 border-b border-accent pb-2">
-                        <History className="w-5 h-5 text-primary" />
-                        <h3 className="text-sm font-black uppercase text-primary tracking-widest">Professional Trajectory</h3>
-                      </div>
-                      <p className="text-sm leading-relaxed text-muted-foreground font-medium italic">
-                        "With over 10 years of classroom and research experience, I specialize in simplifying complex scientific concepts for secondary level students. My pedagogy focuses on inquiry-based learning and the practical application of STEM principles."
-                      </p>
                     </section>
                   </div>
 
@@ -668,43 +650,13 @@ export default function CoursesPage() {
                           <span className="text-[10px] font-bold uppercase opacity-60">Pass Rate</span>
                           <span className="text-lg font-black text-green-600">94%</span>
                         </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-bold uppercase opacity-60">Experience</span>
-                          <span className="text-lg font-black text-primary">12 Yrs</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-bold uppercase opacity-60">Verified Records</span>
-                          <CheckCircle2 className="w-5 h-5 text-green-500" />
-                        </div>
                       </CardContent>
                     </Card>
-
-                    <div className="text-center space-y-4">
-                       <QrCode className="w-24 h-24 mx-auto opacity-10" />
-                       <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Registry Authentication Code</p>
-                    </div>
-                  </div>
-               </div>
-
-               <div className="pt-8 border-t flex justify-between items-end">
-                  <div className="space-y-1">
-                    <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Verified by</p>
-                    <p className="font-black text-xs uppercase tracking-tighter">Institutional Academic Council</p>
-                  </div>
-                  <div className="text-center space-y-2 w-32">
-                    <div className="h-10 w-full border-b-2 border-black/20 flex items-center justify-center">
-                       <SignatureSVG className="w-full h-full text-primary/20 p-2" />
-                    </div>
-                    <p className="text-[8px] font-black uppercase text-primary">Registrar</p>
                   </div>
                </div>
             </div>
 
             <DialogFooter className="bg-accent/10 p-6 border-t border-accent shrink-0">
-               <div className="flex items-center gap-2 text-muted-foreground mr-auto italic">
-                  <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
-                  <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Verified Institutional Pedagogical Record</p>
-               </div>
                <Button onClick={() => setViewingPortfolio(null)} className="rounded-xl px-10 h-12 font-black uppercase text-xs">Close Dossier</Button>
             </DialogFooter>
           </DialogContent>
@@ -713,9 +665,9 @@ export default function CoursesPage() {
     );
   }
 
-  const mandatorySubjects = subjects.filter(s => s.type === "mandatory");
-  const enrolledOptional = subjects.filter(s => s.type === "optional" && (isAdmin || isTeacher || myOptionalSubjects.includes(s.id)));
-  const availableOptional = subjects.filter(s => s.type === "optional" && !myOptionalSubjects.includes(s.id));
+  const mandatorySubjects = visibleSubjects.filter(s => s.type === "mandatory");
+  const enrolledOptional = visibleSubjects.filter(s => s.type === "optional" && (isAdmin || isTeacher || myOptionalSubjects.includes(s.id)));
+  const availableOptional = visibleSubjects.filter(s => s.type === "optional" && !myOptionalSubjects.includes(s.id));
 
   return (
     <div className="space-y-8">
@@ -725,7 +677,7 @@ export default function CoursesPage() {
             <div className="p-2 bg-primary rounded-xl shadow-lg">
               <BookOpen className="w-6 h-6 text-secondary" />
             </div>
-            {isAdmin ? "Institutional Subjects" : t("courses")}
+            {isAdmin ? (language === 'en' ? "Institutional Subjects" : "Matières Institutionnelles") : t("courses")}
           </h1>
           <p className="text-muted-foreground mt-1">
             {isAdmin 
@@ -734,7 +686,7 @@ export default function CoursesPage() {
           </p>
         </div>
         
-        {isAdmin && (
+        {isSchoolAdmin && (
           <Dialog open={isAddingSubject} onOpenChange={setIsAddingSubject}>
             <DialogTrigger asChild>
               <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl">
@@ -767,23 +719,11 @@ export default function CoursesPage() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>Lead Instructor</Label>
-                    <Select value={newSubject.instructorName} onValueChange={(v) => setNewSubject({...newSubject, instructorName: v})}>
+                    <Label>Sub-School / Section</Label>
+                    <Select value={newSubject.section} onValueChange={(v) => setNewSubject({...newSubject, section: v})}>
                       <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Dr. Aris Tesla">Dr. Aris Tesla</SelectItem>
-                        <SelectItem value="Prof. Sarah Smith">Prof. Sarah Smith</SelectItem>
-                        <SelectItem value="Ms. Bennet">Ms. Bennet</SelectItem>
-                        <SelectItem value="Mr. Abena">Mr. Abena</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="col-span-2 space-y-2">
-                    <Label>Target Class Level</Label>
-                    <Select value={newSubject.targetClass} onValueChange={(v) => setNewSubject({...newSubject, targetClass: v})}>
-                      <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        {SECTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
@@ -826,16 +766,8 @@ export default function CoursesPage() {
                       </CardContent>
                     </Card>
                   ))}
-                  {availableOptional.length === 0 && (
-                    <div className="col-span-2 py-10 text-center text-muted-foreground italic">
-                      No additional optional subjects available for enrollment.
-                    </div>
-                  )}
                 </div>
               </div>
-              <DialogFooter className="bg-accent/10 p-6 border-t">
-                <Button variant="ghost" onClick={() => setIsEnrollingOptional(false)} className="w-full">Close Catalog</Button>
-              </DialogFooter>
             </DialogContent>
           </Dialog>
         )}
@@ -843,7 +775,7 @@ export default function CoursesPage() {
 
       {isLoading ? (
         <div className="flex justify-center p-20"><Loader2 className="w-12 h-12 animate-spin text-primary opacity-20" /></div>
-      ) : subjects.length > 0 ? (
+      ) : (
         <div className="space-y-12">
           <section className="space-y-6">
             <div className="flex items-center gap-3">
@@ -869,21 +801,9 @@ export default function CoursesPage() {
                 {enrolledOptional.map((course) => (
                   <CourseCard key={course.id} course={course} isAdmin={isAdmin} onDelete={() => handleDeleteSubject(course.id)} onViewMaterials={() => setViewingMaterialsFor(course)} />
                 ))}
-                {isStudent && enrolledOptional.length === 0 && (
-                  <Card className="border-2 border-dashed border-accent bg-accent/5 rounded-3xl p-8 flex flex-col items-center justify-center text-center space-y-4">
-                    <Sparkles className="w-8 h-8 text-primary/20" />
-                    <p className="text-xs text-muted-foreground font-medium">You haven't enrolled in any optional subjects yet.</p>
-                    <Button variant="outline" size="sm" className="rounded-xl font-bold" onClick={() => setIsEnrollingOptional(true)}>Enroll Now</Button>
-                  </Card>
-                )}
               </div>
             </section>
           )}
-        </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 bg-white/50 rounded-3xl border-2 border-dashed">
-          <BookOpen className="w-16 h-16 text-primary/10" />
-          <p className="text-muted-foreground">No subjects found in the curriculum.</p>
         </div>
       )}
     </div>
@@ -908,7 +828,7 @@ function CourseCard({ course, isAdmin, onDelete, onViewMaterials }: { course: an
                 {course.type}
               </Badge>
             </div>
-            <CardTitle className="text-xl text-primary font-black tracking-tight">{course.name}</CardTitle>
+            <CardTitle className="text-xl font-black text-primary tracking-tight">{course.name}</CardTitle>
           </div>
           <div className="p-2 bg-accent/50 rounded-lg"><BookOpen className="w-5 h-5 text-primary" /></div>
         </div>
@@ -928,8 +848,8 @@ function CourseCard({ course, isAdmin, onDelete, onViewMaterials }: { course: an
             </div>
           </div>
           <div className="space-y-2">
-            <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Level</p>
-            <p className="text-xs font-black text-primary/80 pt-1.5">{course.targetClass}</p>
+            <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Section</p>
+            <p className="text-xs font-black text-primary/80 pt-1.5">{course.section}</p>
           </div>
         </div>
       </CardContent>
@@ -947,14 +867,5 @@ function CourseCard({ course, isAdmin, onDelete, onViewMaterials }: { course: an
         )}
       </CardFooter>
     </Card>
-  );
-}
-
-function SignatureSVG({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path d="M15 30L85 10" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" strokeDasharray="2 2" />
-    </svg>
   );
 }
