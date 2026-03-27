@@ -30,7 +30,8 @@ import {
   AlertCircle,
   QrCode,
   Users,
-  PenTool
+  PenTool,
+  Info
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -298,7 +299,7 @@ export default function GradeBookPage() {
               <Info className="w-5 h-5 text-primary opacity-40" />
               <p className="text-[10px] font-black uppercase tracking-widest opacity-40">System calculates Moy/20 and Remarks automatically based on Ministry standards.</p>
            </div>
-           <Button onClick={handleCommitGrades} disabled={isProcessing} className="h-14 px-12 rounded-2xl shadow-2xl font-black uppercase tracking-widest text-sm gap-3">
+           <Button onClick={handleCommitGrades} disabled={isProcessing} className="h-14 px-12 rounded-2xl shadow-xl font-black uppercase tracking-widest text-sm gap-3">
               {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
               Save & Commit Term Registry
            </Button>
