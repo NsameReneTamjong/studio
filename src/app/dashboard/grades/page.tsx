@@ -35,7 +35,8 @@ import {
   Save,
   ChevronRight,
   Search,
-  AlertCircle
+  AlertCircle,
+  QrCode
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -159,8 +160,8 @@ export default function GradeBookPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-none shadow-sm bg-primary text-white overflow-hidden relative">
-          <div className="absolute top-0 right-0 p-4 opacity-10"><TrendingUp className="w-12 h-12" /></div>
+        <Card className="border-none shadow-sm bg-primary text-white overflow-hidden relative group">
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform"><TrendingUp className="w-12 h-12" /></div>
           <CardHeader className="pb-2">
             <CardTitle className="text-[10px] font-black opacity-60 uppercase tracking-widest">Class Subject Average</CardTitle>
           </CardHeader>
@@ -168,8 +169,8 @@ export default function GradeBookPage() {
             <div className="text-3xl font-black text-secondary">{stats.average} / 20</div>
           </CardContent>
         </Card>
-        <Card className="border-none shadow-sm bg-secondary text-primary overflow-hidden relative">
-          <div className="absolute top-0 right-0 p-4 opacity-10"><CheckCircle2 className="w-12 h-12" /></div>
+        <Card className="border-none shadow-sm bg-secondary text-primary overflow-hidden relative group">
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform"><CheckCircle2 className="w-12 h-12" /></div>
           <CardHeader className="pb-2">
             <CardTitle className="text-[10px] font-black opacity-60 uppercase tracking-widest">Success Rate</CardTitle>
           </CardHeader>
@@ -177,13 +178,13 @@ export default function GradeBookPage() {
             <div className="text-3xl font-black">{stats.passRate}%</div>
           </CardContent>
         </Card>
-        <Card className="border-none shadow-sm bg-white border">
+        <Card className="border-none shadow-sm bg-white border group">
           <CardHeader className="pb-2">
             <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Verified Nodes</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-xl font-black flex items-center gap-2 text-primary">
-              <ShieldCheck className="w-5 h-5 text-secondary" /> ALL SECURE
+              <ShieldCheck className="w-5 h-5 text-secondary group-hover:rotate-12 transition-transform" /> ALL SECURE
             </div>
           </CardContent>
         </Card>
