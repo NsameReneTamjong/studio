@@ -53,7 +53,8 @@ import {
   FileDown,
   Briefcase,
   Fingerprint,
-  Heart
+  Heart,
+  CalendarDays
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -92,7 +93,7 @@ const MOCK_GRADES = [
   { subject: "Physics", seq1: 14.5, seq2: 16.0, teacher: "Dr. Tesla", status: "Passed", coeff: 4 },
   { subject: "Mathematics", seq1: 18.0, seq2: 17.5, teacher: "Prof. Smith", status: "Passed", coeff: 5 },
   { subject: "English Literature", seq1: 8.0, seq2: 13.0, teacher: "Ms. Bennet", status: "Passed", coeff: 3 },
-  { subject: "Chemistry", seq1: 9.5, seq2: 11.5, teacher: "Dr. White", status: "Passed", coeff: 4 },
+  { subject: "Chemistry", seq1: 10.5, seq2: 11.5, teacher: "Dr. White", status: "Passed", coeff: 4 },
   { subject: "History", seq1: 7.0, seq2: 8.5, teacher: "Mr. Tabi", status: "Failed", coeff: 2 },
 ];
 
@@ -102,6 +103,15 @@ const MOCK_ATTENDANCE = [
   { date: "May 23, 2024", subject: "History", time: "01:00 PM", status: "Absent", teacher: "Mr. Tabi" },
   { date: "May 22, 2024", subject: "English", time: "09:00 AM", status: "Present", teacher: "Ms. Bennet" },
   { date: "May 21, 2024", subject: "Chemistry", time: "11:00 AM", status: "Present", teacher: "Dr. White" },
+];
+
+const MOCK_ATTENDANCE_HISTORY = [
+  { year: "2023 / 2024", term: "Term 1", subject: "Advanced Physics", present: 22, absent: 2, rate: 92 },
+  { year: "2023 / 2024", term: "Term 1", subject: "Mathematics", present: 24, absent: 0, rate: 100 },
+  { year: "2022 / 2023", term: "Term 3", subject: "Advanced Physics", present: 20, absent: 4, rate: 83 },
+  { year: "2022 / 2023", term: "Term 3", subject: "Mathematics", present: 23, absent: 1, rate: 96 },
+  { year: "2022 / 2023", term: "Term 2", subject: "Advanced Physics", present: 18, absent: 6, rate: 75 },
+  { year: "2022 / 2023", term: "Term 2", subject: "Mathematics", present: 24, absent: 0, rate: 100 },
 ];
 
 const MOCK_DOCUMENTS = [
@@ -423,6 +433,73 @@ export default function StudentDetailsPage() {
                 </TableBody>
               </Table>
             </CardContent>
+          </Card>
+
+          {/* COMPREHENSIVE ATTENDANCE HISTORY */}
+          <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+            <CardHeader className="bg-primary/5 p-8 border-b flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-primary rounded-2xl text-white shadow-xl">
+                  <CalendarDays className="w-8 h-8 text-secondary" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl font-black text-primary uppercase tracking-tight">Attendance Records History</CardTitle>
+                  <CardDescription>Verified subject-wise participation analytics across sessions.</CardDescription>
+                </div>
+              </div>
+              <Button variant="outline" className="rounded-xl h-11 gap-2 font-bold bg-white" onClick={() => toast({ title: "History Exported" })}>
+                <FileDown className="w-4 h-4 text-primary" /> Export Records
+              </Button>
+            </CardHeader>
+            <CardContent className="p-0 overflow-x-auto scrollbar-thin">
+              <Table>
+                <TableHeader className="bg-accent/10">
+                  <TableRow className="uppercase text-[9px] font-black tracking-widest border-b">
+                    <TableHead className="pl-8 py-4">Academic Year</TableHead>
+                    <TableHead>Term</TableHead>
+                    <TableHead>Pedagogical Subject</TableHead>
+                    <TableHead className="text-center">Present</TableHead>
+                    <TableHead className="text-center">Absent</TableHead>
+                    <TableHead className="text-right pr-8">Rate (%)</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {MOCK_ATTENDANCE_HISTORY.map((hist, i) => (
+                    <TableRow key={i} className="hover:bg-accent/5 h-16 border-b last:border-0">
+                      <TableCell className="pl-8 font-bold text-xs text-muted-foreground">{hist.year}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-[9px] font-black uppercase text-primary border-primary/10">{hist.term}</Badge>
+                      </TableCell>
+                      <TableCell className="font-black text-primary uppercase text-sm">{hist.subject}</TableCell>
+                      <TableCell className="text-center font-black text-green-600">{hist.present}</TableCell>
+                      <TableCell className="text-center font-black text-red-600">{hist.absent}</TableCell>
+                      <TableCell className="text-right pr-8">
+                        <div className="inline-flex flex-col items-end gap-1.5 min-w-[80px]">
+                          <div className="flex items-center gap-2">
+                            <span className={cn("text-xs font-black", hist.rate >= 90 ? "text-green-600" : "text-amber-600")}>
+                              {hist.rate}%
+                            </span>
+                            {hist.rate >= 95 && <Zap className="w-3 h-3 text-secondary fill-current" />}
+                          </div>
+                          <div className="w-20 h-1.5 bg-accent rounded-full overflow-hidden">
+                            <div 
+                              className={cn("h-full transition-all duration-1000", hist.rate >= 90 ? "bg-green-500" : "bg-amber-500")} 
+                              style={{ width: `${hist.rate}%` }} 
+                            />
+                          </div>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+            <CardFooter className="bg-accent/10 p-6 flex justify-center">
+               <div className="flex items-center gap-2 text-muted-foreground italic">
+                  <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-40">End-to-End Encrypted Presence Data Verified</p>
+               </div>
+            </CardFooter>
           </Card>
         </TabsContent>
 
