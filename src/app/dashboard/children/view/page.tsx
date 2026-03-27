@@ -48,7 +48,8 @@ import {
   Scale,
   Signature,
   Activity,
-  Lock
+  Lock,
+  FileBadge
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -143,6 +144,7 @@ export default function StudentDetailsPage() {
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
   const [messageText, setMessageText] = useState("");
   const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const [isExportingTranscript, setIsExportingTranscript] = useState(false);
 
   useEffect(() => {
     const found = MOCK_CHILDREN.find(c => c.id === studentId) || MOCK_CHILDREN[0];
@@ -153,6 +155,10 @@ export default function StudentDetailsPage() {
   }, [studentId]);
 
   const isTeacher = currentUser?.role === "TEACHER";
+  const isSchoolAdmin = currentUser?.role === "SCHOOL_ADMIN";
+  const isSubAdmin = currentUser?.role === "SUB_ADMIN";
+  const isParent = currentUser?.role === "PARENT";
+
   const mySubjects = useMemo(() => {
     if (!isTeacher || !currentUser?.id) return [];
     return TEACHER_ASSIGNMENTS["GBHS26T001"] || [];
@@ -210,6 +216,17 @@ export default function StudentDetailsPage() {
     }, 1000);
   };
 
+  const handleDownloadTranscript = () => {
+    setIsExportingTranscript(true);
+    setTimeout(() => {
+      setIsExportingTranscript(false);
+      toast({
+        title: "Official Transcript Prepared",
+        description: `Transcript for ${student.name} has been generated as PDF.`,
+      });
+    }, 2000);
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] space-y-4">
@@ -247,9 +264,11 @@ export default function StudentDetailsPage() {
         </div>
         {!isTeacher && (
           <div className="flex gap-2 w-full sm:w-auto">
-            <Button variant="outline" className="flex-1 sm:flex-none gap-2" onClick={() => setIsMessageModalOpen(true)}>
-              <Mail className="w-4 h-4" /> {language === 'en' ? 'Contact Teacher' : 'Contacter Enseignant'}
-            </Button>
+            {isParent && (
+              <Button variant="outline" className="flex-1 sm:flex-none gap-2" onClick={() => setIsMessageModalOpen(true)}>
+                <Mail className="w-4 h-4" /> {language === 'en' ? 'Contact Teacher' : 'Contacter Enseignant'}
+              </Button>
+            )}
             <Button className="flex-1 sm:flex-none gap-2 shadow-lg" onClick={() => setPreviewDoc({ type: 'report', data: MOCK_REPORT_HISTORY[0] })}>
               <Printer className="w-4 h-4" /> {t("print")} {t("reportCard")}
             </Button>
@@ -295,7 +314,10 @@ export default function StudentDetailsPage() {
       </div>
 
       <Tabs defaultValue="grades" className="w-full">
-        <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full bg-white border shadow-sm h-auto p-1 rounded-xl">
+        <TabsList className={cn(
+          "grid w-full bg-white border shadow-sm h-auto p-1 rounded-xl",
+          isTeacher ? "grid-cols-3" : "grid-cols-6"
+        )}>
           {!isTeacher && (
             <TabsTrigger value="profile" className="gap-2 py-2">
               <User className="w-4 h-4" /> {t("profile")}
@@ -311,9 +333,14 @@ export default function StudentDetailsPage() {
             <Activity className="w-4 h-4" /> Activities
           </TabsTrigger>
           {!isTeacher && (
-            <TabsTrigger value="documents" className="gap-2 py-2">
-              <FileText className="w-4 h-4" /> {t("documents")}
-            </TabsTrigger>
+            <>
+              <TabsTrigger value="documents" className="gap-2 py-2">
+                <FileText className="w-4 h-4" /> {t("documents")}
+              </TabsTrigger>
+              <TabsTrigger value="transcript" className="gap-2 py-2">
+                <FileBadge className="w-4 h-4" /> {t("draftTranscript")}
+              </TabsTrigger>
+            </>
           )}
         </TabsList>
 
@@ -675,6 +702,168 @@ export default function StudentDetailsPage() {
             </div>
           </TabsContent>
         )}
+
+        {!isTeacher && (
+          <TabsContent value="transcript" className="mt-6 space-y-8">
+            <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+              <CardHeader className="bg-primary p-8 text-white">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-white/10 rounded-2xl text-secondary">
+                      <FileBadge className="w-8 h-8" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-2xl font-black uppercase tracking-tight">{t("draftTranscript")}</CardTitle>
+                      <CardDescription className="text-white/60">Official academic performance consolidation dossier.</CardDescription>
+                    </div>
+                  </div>
+                  {isSchoolAdmin ? (
+                    <Button 
+                      className="bg-secondary text-primary hover:bg-secondary/90 h-12 px-8 rounded-xl font-black uppercase tracking-widest text-xs gap-3 shadow-lg"
+                      onClick={handleDownloadTranscript}
+                      disabled={isExportingTranscript}
+                    >
+                      {isExportingTranscript ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                      Download Official Transcript
+                    </Button>
+                  ) : (
+                    <div className="bg-white/10 px-4 py-2 rounded-xl backdrop-blur-md border border-white/10 flex items-center gap-3">
+                      <ShieldCheck className="w-5 h-5 text-secondary" />
+                      <p className="text-[10px] font-black uppercase tracking-widest text-white">Verified Profile Link</p>
+                    </div>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="p-10">
+                <div className="max-w-4xl mx-auto bg-white p-8 md:p-12 border shadow-sm relative overflow-hidden font-serif text-black min-w-[800px]">
+                  {/* Cameroon Header */}
+                  <div className="grid grid-cols-3 gap-2 items-start text-center border-b-2 border-black pb-6">
+                    <div className="space-y-0.5 text-[8px] uppercase font-bold">
+                      <p>Republic of Cameroon</p>
+                      <p>Peace - Work - Fatherland</p>
+                      <div className="h-px bg-black w-10 mx-auto my-1" />
+                      <p>Ministry of Secondary Education</p>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <img src={currentUser?.school?.logo || platformSettings.logo} alt="Logo" className="w-16 h-16 object-contain" />
+                    </div>
+                    <div className="space-y-0.5 text-[8px] uppercase font-bold">
+                      <p>République du Cameroun</p>
+                      <p>Paix - Travail - Patrie</p>
+                      <div className="h-px bg-black w-10 mx-auto my-1" />
+                      <p>Min. des Enseignements Secondaires</p>
+                    </div>
+                  </div>
+
+                  <div className="text-center space-y-4 my-10">
+                    <h1 className="text-3xl font-black uppercase underline decoration-double underline-offset-4 tracking-tighter">Academic Transcript</h1>
+                    <p className="text-xs font-bold opacity-60">Verified Pedagogical Record • Session 2023 - 2024</p>
+                  </div>
+
+                  {/* Student Details */}
+                  <div className="grid grid-cols-12 gap-8 bg-accent/5 p-6 border border-black/10 rounded-2xl items-center mb-10 shadow-inner">
+                    <div className="col-span-2">
+                       <Avatar className="w-28 h-28 border-4 border-white rounded-2xl shadow-lg">
+                          <AvatarImage src={student.avatar} className="object-cover" />
+                          <AvatarFallback className="text-3xl font-black">{student.name.charAt(0)}</AvatarFallback>
+                       </Avatar>
+                    </div>
+                    <div className="col-span-10 grid grid-cols-2 gap-x-12 gap-y-3 text-sm">
+                      <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Identity:</span><span className="font-black uppercase">{student.name}</span></div>
+                      <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Matricule:</span><span className="font-mono font-bold text-primary">{student.id}</span></div>
+                      <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Grade Level:</span><span className="font-bold">{student.class}</span></div>
+                      <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Born On:</span><span className="font-bold">{student.dob}</span></div>
+                    </div>
+                  </div>
+
+                  {/* Transcript Content */}
+                  <div className="space-y-10">
+                    <div className="space-y-4">
+                      <h3 className="text-xs font-black uppercase border-b-2 border-black pb-1">Current Academic Session Performance</h3>
+                      <Table className="border-collapse border border-black/20">
+                        <TableHeader className="bg-black/5">
+                          <TableRow className="border-b border-black/20 h-10">
+                            <TableHead className="text-[10px] font-black text-black">Pedagogical Subject</TableHead>
+                            <TableHead className="text-center text-[10px] font-black text-black">Coeff</TableHead>
+                            <TableHead className="text-center text-[10px] font-black text-black">Mean Score</TableHead>
+                            <TableHead className="text-right text-[10px] font-black text-black pr-4">Appreciation</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {MOCK_GRADES.map((g, i) => {
+                            const avg = (g.seq1 + g.seq2) / 2;
+                            return (
+                              <TableRow key={i} className="border-b border-black/10 h-10">
+                                <TableCell className="font-bold text-xs uppercase">{g.subject}</TableCell>
+                                <TableCell className="text-center text-xs font-mono">{g.coeff}</TableCell>
+                                <TableCell className={cn("text-center text-xs font-black", avg < 10 ? "text-red-600" : "text-primary")}>{avg.toFixed(2)}</TableCell>
+                                <TableCell className="text-right text-[9px] font-black uppercase italic pr-4">{getAppreciation(avg).text}</TableCell>
+                              </TableRow>
+                            )
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="text-xs font-black uppercase border-b-2 border-black pb-1">Historical Performance Audit</h3>
+                      <Table className="border-collapse border border-black/20">
+                        <TableHeader className="bg-black/5">
+                          <TableRow className="border-b border-black/20 h-10">
+                            <TableHead className="text-[10px] font-black text-black">Session</TableHead>
+                            <TableHead className="text-[10px] font-black text-black">Evaluation Cycle</TableHead>
+                            <TableHead className="text-center text-[10px] font-black text-black">Aggregate Avg</TableHead>
+                            <TableHead className="text-right text-[10px] font-black text-black pr-4">Rank/Status</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {MOCK_REPORT_HISTORY.map((a, i) => (
+                            <TableRow key={i} className="border-b border-black/10 h-10">
+                              <TableCell className="font-bold text-xs">{a.year}</TableCell>
+                              <TableCell className="text-xs uppercase font-black text-primary/60">{a.term}</TableCell>
+                              <TableCell className={cn("text-center text-xs font-black", parseFloat(a.average) < 10 ? "text-red-600" : "text-primary")}>{a.average} / 20</TableCell>
+                              <TableCell className="text-right text-[9px] font-black uppercase pr-4">{a.position}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-20 pt-16 mt-16 border-t-2 border-black/5">
+                    <div className="text-center space-y-6">
+                      <div className="h-14 w-full bg-accent/10 border-b-2 border-black/40 flex items-center justify-center">
+                         <QrCode className="w-10 h-10 opacity-10" />
+                      </div>
+                      <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Institutional Verification</p>
+                    </div>
+                    <div className="text-center space-y-6">
+                      <div className="h-14 w-full bg-accent/10 border-b-2 border-black/40 flex items-center justify-center">
+                         <SignatureSVGInternal className="w-full h-full text-primary/10 p-2" />
+                      </div>
+                      <p className="text-[10px] font-black uppercase text-primary tracking-widest leading-none">The Registrar</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-12 text-center pt-8 border-t border-black/5 opacity-30">
+                    <div className="flex items-center justify-center gap-3">
+                       <img src={platformSettings.logo} alt="SaaS" className="w-4 h-4 object-contain rounded-sm" />
+                       <p className="text-[8px] uppercase font-black tracking-[0.4em]">
+                         Verified Institutional Record • Secure Node Infrastructure • {new Date().getFullYear()}
+                       </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="bg-accent/10 p-6 border-t border-accent flex justify-center">
+                 <div className="flex items-center gap-3 text-muted-foreground italic">
+                    <ShieldCheck className="w-5 h-5 text-primary opacity-40" />
+                    <p className="text-[10px] font-black uppercase tracking-widest opacity-40">This provisional transcript is subject to final pedagogical council approval.</p>
+                 </div>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+        )}
       </Tabs>
 
       {/* Official Report Card Preview Modal */}
@@ -908,5 +1097,23 @@ export default function StudentDetailsPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function SignatureSVG({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M15 30L85 10" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" strokeDasharray="2 2" />
+    </svg>
+  );
+}
+
+function SignatureSVGInternal({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M15 30L85 10" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" strokeDasharray="2 2" />
+    </svg>
   );
 }

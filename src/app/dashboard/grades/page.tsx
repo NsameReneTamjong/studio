@@ -45,7 +45,8 @@ import {
   Printer,
   TrendingDown,
   Scale,
-  Building2
+  Building2,
+  FileBadge
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -274,12 +275,15 @@ export default function GradeBookPage() {
         </div>
 
         <Tabs defaultValue="current" className="w-full">
-          <TabsList className="grid grid-cols-2 w-full md:w-[400px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl">
+          <TabsList className="grid grid-cols-3 w-full md:w-[600px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl">
             <TabsTrigger value="current" className="gap-2 py-3 rounded-xl transition-all font-bold">
               <BookMarked className="w-4 h-4" /> Current Term
             </TabsTrigger>
             <TabsTrigger value="archive" className="gap-2 py-3 rounded-xl transition-all font-bold">
               <History className="w-4 h-4" /> Full Archive
+            </TabsTrigger>
+            <TabsTrigger value="transcript" className="gap-2 py-3 rounded-xl transition-all font-bold">
+              <FileBadge className="w-4 h-4" /> {t("draftTranscript")}
             </TabsTrigger>
           </TabsList>
 
@@ -397,6 +401,37 @@ export default function GradeBookPage() {
                   </TableBody>
                 </Table>
               </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="transcript" className="animate-in fade-in slide-in-from-bottom-2">
+            <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+              <CardHeader className="bg-primary p-8 text-white">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-white/10 rounded-2xl">
+                      <FileBadge className="w-8 h-8 text-secondary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-2xl font-black uppercase tracking-tight">{t("draftTranscript")}</CardTitle>
+                      <CardDescription className="text-white/60">Consolidated Academic Record • Institutional Provisional Copy</CardDescription>
+                    </div>
+                  </div>
+                  <div className="bg-white/10 px-4 py-2 rounded-xl backdrop-blur-md border border-white/10 flex items-center gap-3">
+                    <ShieldCheck className="w-5 h-5 text-secondary" />
+                    <p className="text-[10px] font-black uppercase tracking-widest text-white">View Mode Only</p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-8">
+                <TranscriptPreview student={user} grades={MOCK_PERSONAL_GRADES} archive={MOCK_PERSONAL_ARCHIVE} platform={platformSettings} />
+              </CardContent>
+              <CardFooter className="bg-accent/10 p-6 border-t border-accent flex justify-center">
+                 <div className="flex items-center gap-3 text-muted-foreground">
+                    <Info className="w-5 h-5 text-primary opacity-40" />
+                    <p className="text-[10px] font-black uppercase tracking-widest italic opacity-40">Only the School Admin can download and issue official signed transcripts.</p>
+                 </div>
+              </CardFooter>
             </Card>
           </TabsContent>
         </Tabs>
@@ -979,7 +1014,131 @@ export default function GradeBookPage() {
   );
 }
 
-function SignatureSVG({ className }: { className?: string }) {
+function TranscriptPreview({ student, grades, archive, platform }: { student: any, grades: any[], archive: any[], platform: any }) {
+  return (
+    <div className="max-w-4xl mx-auto bg-white p-8 md:p-12 border shadow-sm relative overflow-hidden font-serif text-black min-w-[800px]">
+      <div className="grid grid-cols-3 gap-4 items-start text-center border-b-2 border-black pb-6">
+        <div className="space-y-1 text-[9px] uppercase font-black">
+          <p>Republic of Cameroon</p>
+          <p>Peace - Work - Fatherland</p>
+          <div className="h-px bg-black w-8 mx-auto my-1" />
+          <p>Ministry of Secondary Education</p>
+        </div>
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-20 h-20 bg-white flex items-center justify-center p-2 border-2 border-primary/10">
+             <img src={student?.school?.logo || platform.logo} alt="Logo" className="w-14 h-14 object-contain" />
+          </div>
+          <p className="text-[9px] font-black uppercase text-primary tracking-tighter">{student?.school?.name || platform.name}</p>
+        </div>
+        <div className="space-y-1 text-[9px] uppercase font-black">
+          <p>République du Cameroun</p>
+          <p>Paix - Travail - Patrie</p>
+          <div className="h-px bg-black w-8 mx-auto my-1" />
+          <p>Min. des Enseignements Secondaires</p>
+        </div>
+      </div>
+
+      <div className="text-center space-y-4 my-8">
+        <h1 className="text-3xl font-black uppercase tracking-widest underline decoration-double underline-offset-4">Academic Transcript</h1>
+        <p className="text-sm font-bold opacity-60">Provisional Document • Draft Version</p>
+      </div>
+
+      <div className="grid grid-cols-12 gap-8 bg-accent/5 p-6 border border-black/10 rounded-2xl items-center mb-10">
+        <div className="col-span-2">
+           <Avatar className="w-28 h-28 border-4 border-white rounded-2xl shadow-lg">
+              <AvatarImage src={student?.avatar} />
+              <AvatarFallback className="text-3xl font-black">{student?.name?.charAt(0)}</AvatarFallback>
+           </Avatar>
+        </div>
+        <div className="col-span-10 grid grid-cols-2 gap-x-12 gap-y-3 text-sm">
+          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Student Name:</span><span className="font-black uppercase">{student?.name}</span></div>
+          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Matricule / ID:</span><span className="font-mono font-bold text-primary">{student?.id}</span></div>
+          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Current Grade:</span><span className="font-bold">2nde / Form 5</span></div>
+          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Session Start:</span><span className="font-bold">2023 / 2024</span></div>
+        </div>
+      </div>
+
+      <div className="space-y-10">
+        <div className="space-y-4">
+          <h3 className="text-sm font-black uppercase border-b-2 border-black pb-1">I. Current Term Performance Summary</h3>
+          <Table className="border-collapse border border-black/20">
+            <TableHeader className="bg-black/5">
+              <TableRow className="border-b border-black/20">
+                <TableHead className="text-[10px] font-black text-black">Pedagogical Subject</TableHead>
+                <TableHead className="text-center text-[10px] font-black text-black">Coefficient</TableHead>
+                <TableHead className="text-center text-[10px] font-black text-black">Weighted Mean</TableHead>
+                <TableHead className="text-right text-[10px] font-black text-black pr-4">Appreciation</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {grades.map((g, i) => {
+                const avg = (g.seq1 + g.seq2) / 2;
+                return (
+                  <TableRow key={i} className="border-b border-black/10 h-10">
+                    <TableCell className="font-bold text-xs uppercase">{g.subject}</TableCell>
+                    <TableCell className="text-center text-xs font-mono">{g.coeff}</TableCell>
+                    <TableCell className={cn("text-center text-xs font-black", avg < 10 ? "text-red-600" : "text-primary")}>{avg.toFixed(2)}</TableCell>
+                    <TableCell className="text-right text-[9px] font-black uppercase italic pr-4">{getAppreciation(avg).text}</TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-sm font-black uppercase border-b-2 border-black pb-1">II. Historical Institutional Records</h3>
+          <Table className="border-collapse border border-black/20">
+            <TableHeader className="bg-black/5">
+              <TableRow className="border-b border-black/20">
+                <TableHead className="text-[10px] font-black text-black">Academic Session</TableHead>
+                <TableHead className="text-[10px] font-black text-black">Evaluation Cycle</TableHead>
+                <TableHead className="text-center text-[10px] font-black text-black">Aggregate Average</TableHead>
+                <TableHead className="text-right text-[10px] font-black text-black pr-4">Rank/Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {archive.map((a, i) => (
+                <TableRow key={i} className="border-b border-black/10 h-10">
+                  <TableCell className="font-bold text-xs">{a.year}</TableCell>
+                  <TableCell className="text-xs uppercase font-black text-primary/60">{a.term}</TableCell>
+                  <TableCell className={cn("text-center text-xs font-black", parseFloat(a.average) < 10 ? "text-red-600" : "text-primary")}>{a.average} / 20</TableCell>
+                  <TableCell className="text-right text-[9px] font-black uppercase pr-4">{a.position}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-20 pt-16 mt-16 border-t-2 border-black/5">
+        <div className="text-center space-y-6">
+          <div className="h-14 w-full bg-accent/10 border-b-2 border-black/40 flex items-center justify-center">
+             <QrCode className="w-10 h-10 opacity-10" />
+          </div>
+          <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Provisional Registry Scan</p>
+        </div>
+        <div className="text-center space-y-6">
+          <div className="h-14 w-full bg-accent/10 border-b-2 border-black/40 flex items-center justify-center">
+             <TranscriptSignatureSVG className="w-full h-full text-primary/5 p-2" />
+          </div>
+          <p className="text-[10px] font-black uppercase text-primary tracking-widest leading-none">The Registrar</p>
+        </div>
+      </div>
+
+      <div className="mt-12 text-center pt-8 border-t border-black/5 opacity-30">
+        <div className="flex items-center justify-center gap-3">
+           <img src={platform.logo} alt="EduIgnite" className="w-4 h-4 object-contain rounded-sm" />
+           <p className="text-[8px] uppercase font-black tracking-[0.4em]">
+             Verified Educational Record • {platform.name} Secure Node • {new Date().getFullYear()}
+           </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function TranscriptSignatureSVG({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
