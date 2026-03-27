@@ -431,7 +431,7 @@ export default function FoundersManagementPage() {
                   <TableCell className="text-right pr-8">
                     <div className="flex flex-col items-end">
                       <Badge variant="secondary" className="bg-secondary/20 text-primary border-none text-[8px] font-black uppercase tracking-widest">{log.impact}</Badge>
-                      <span className="text-[9px] text-muted-foreground mt-1 font-bold italic">{log.time}</span>
+                      <span className="text-[9px] text-muted-foreground mt-1 font-bold italic">{log.time} • {log.date}</span>
                     </div>
                   </TableCell>
                 </TableRow>

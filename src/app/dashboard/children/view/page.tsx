@@ -572,14 +572,11 @@ export default function StudentDetailsPage() {
           </Card>
         </TabsContent>
       </Tabs>
-
-      {/* RE-USE PREVIEW DIALOGS FROM GRADES PAGE IF NEEDED */}
     </div>
   );
 }
 
 function LandscapeTranscript({ student, platform }: { student: any, platform: any }) {
-  // Identify grade levels to show
   const currentGrade = student?.class || "2nde / Form 5";
   const classIndex = CLASSES.indexOf(currentGrade);
   const visibleClasses = CLASSES.slice(0, classIndex + 1);
@@ -592,7 +589,6 @@ function LandscapeTranscript({ student, platform }: { student: any, platform: an
         }
       `}</style>
       
-      {/* Cameroon Header */}
       <div className="grid grid-cols-3 gap-4 items-start text-center border-b-2 border-black pb-6">
         <div className="space-y-1 text-[9px] uppercase font-black text-left">
           <p>Republic of Cameroon</p>
@@ -621,7 +617,6 @@ function LandscapeTranscript({ student, platform }: { student: any, platform: an
         <p className="text-sm font-bold opacity-60">Relevé de Notes Provisoire • Valid for Session 2023 / 2024</p>
       </div>
 
-      {/* Student Identity */}
       <div className="grid grid-cols-12 gap-8 bg-accent/5 p-6 border border-black/10 rounded-2xl items-center mb-10">
         <div className="col-span-2">
            <Avatar className="w-28 h-28 border-4 border-white rounded-[2rem] shadow-xl">
@@ -637,7 +632,6 @@ function LandscapeTranscript({ student, platform }: { student: any, platform: an
         </div>
       </div>
 
-      {/* THE CAMEROONIAN LANDSCAPE MATRIX */}
       <div className="border-2 border-black overflow-hidden rounded-sm">
         <Table className="border-collapse">
           <TableHeader className="bg-black/5">
@@ -713,12 +707,4 @@ function LandscapeTranscript({ student, platform }: { student: any, platform: an
       </div>
     </div>
   )
-}
-
-function SignatureSVG({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
 }
