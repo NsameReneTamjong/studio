@@ -49,7 +49,8 @@ import {
   TrendingDown,
   Activity,
   ChevronRight,
-  Eye
+  Eye,
+  Gavel
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -77,7 +78,6 @@ const INITIAL_STUDENTS = [
   { id: "GBHS26S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", section: "Anglophone Section", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, isLicensePaid: true, class: "Terminale / Upper Sixth", year: "2023 / 2024" },
   { id: "GBHS26S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", section: "Francophone Section", balances: { "Tuition Fee": 45000, "Uniform Package": 0, "PTA Contribution": 5000, "Examination Fee": 0 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, isLicensePaid: false, class: "1ère / Lower Sixth", year: "2023 / 2024" },
   { id: "GBHS26S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100", section: "Anglophone Section", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, isLicensePaid: true, class: "2nde / Form 5", year: "2023 / 2024" },
-  // Extra students for Form 2 demo
   { id: "GBHS26S005", name: "Ethan Hunt", avatar: "https://picsum.photos/seed/s5/100/100", section: "Anglophone Section", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, isLicensePaid: true, class: "5ème / Form 2", year: "2023 / 2024" },
   { id: "GBHS26S006", name: "Frank Castle", avatar: "https://picsum.photos/seed/s6/100/100", section: "Anglophone Section", balances: { "Tuition Fee": 75000, "Uniform Package": 0, "PTA Contribution": 0, "Examination Fee": 0 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, isLicensePaid: true, class: "5ème / Form 2", year: "2023 / 2024" },
   { id: "GBHS26S007", name: "Grace Hopper", avatar: "https://picsum.photos/seed/s7/100/100", section: "Anglophone Section", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, isLicensePaid: true, class: "5ème / Form 2", year: "2023 / 2024" },
@@ -108,6 +108,11 @@ export default function FeesPage() {
   const [issuedReceipt, setIssuedReceipt] = useState<any>(null);
   const [paymentForm, setPaymentForm] = useState({ type: INITIAL_FEE_TYPES[0].name, amount: "" });
   
+  // Fee Type Management
+  const [isAddingFeeType, setIsAddingFeeType] = useState(false);
+  const [editingFeeType, setEditingFeeType] = useState<any>(null);
+  const [newFeeTypeData, setNewFeeTypeData] = useState({ name: "", amount: "", description: "", status: "mandatory" });
+
   const [reportYear, setReportYear] = useState(ACADEMIC_YEARS[0]);
   const [students, setStudents] = useState(INITIAL_STUDENTS);
   const [transactions, setTransactions] = useState<any[]>([
@@ -119,7 +124,6 @@ export default function FeesPage() {
   const isSubAdmin = user?.role === "SUB_ADMIN";
   const isAdmin = isSchoolAdmin || isSubAdmin;
 
-  // HELPER: Defined before useMemo
   const getStatusForFee = (student: any, feeType: string) => {
     const paid = (student.balances as any)[feeType] || 0;
     const total = (student.totals as any)[feeType] || 150000;
@@ -189,17 +193,28 @@ export default function FeesPage() {
     }, 1500);
   };
 
-  const handleViewReceipt = (student: any) => {
-    setIssuedReceipt({
-      id: `TX-AUDIT-${student.id.split('S')[1]}`,
-      studentName: student.name,
-      studentId: student.id,
-      class: student.class,
-      feeType: activeFeeFilter,
-      amount: (student.balances[activeFeeFilter] || 0).toLocaleString(),
-      date: "May 2024",
-      bursar: "System Verified"
-    });
+  const handleAddFeeType = () => {
+    if (!newFeeTypeData.name || !newFeeTypeData.amount) return;
+    setIsProcessing(true);
+    setTimeout(() => {
+      const created = {
+        id: `ft-${Math.random().toString(36).substr(2, 5)}`,
+        name: newFeeTypeData.name,
+        amount: parseFloat(newFeeTypeData.amount),
+        description: newFeeTypeData.description,
+        status: newFeeTypeData.status
+      };
+      setFeeTypes([...feeTypes, created]);
+      setIsProcessing(false);
+      setIsAddingFeeType(false);
+      setNewFeeTypeData({ name: "", amount: "", description: "", status: "mandatory" });
+      toast({ title: "Fee Type Created", description: `${created.name} added to structure.` });
+    }, 800);
+  };
+
+  const handleDeleteFeeType = (id: string) => {
+    setFeeTypes(feeTypes.filter(f => f.id !== id));
+    toast({ variant: "destructive", title: "Fee Type Removed" });
   };
 
   return (
@@ -237,11 +252,15 @@ export default function FeesPage() {
       </div>
 
       <Tabs defaultValue={isAdmin ? "oversight" : "pay"} className="w-full">
-        <TabsList className="grid w-full mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl grid-cols-4 md:w-[800px] overflow-x-auto no-scrollbar">
+        <TabsList className={cn(
+          "grid w-full mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl overflow-x-auto no-scrollbar",
+          isBursar ? "grid-cols-5 md:w-[900px]" : "grid-cols-4 md:w-[800px]"
+        )}>
           {isAdmin && <TabsTrigger value="oversight" className="gap-2 py-3 rounded-xl transition-all font-bold text-xs sm:text-sm whitespace-nowrap"><Building2 className="w-4 h-4"/> Oversight</TabsTrigger>}
           {isBursar && <TabsTrigger value="pay" className="gap-2 py-3 rounded-xl transition-all font-bold text-xs sm:text-sm whitespace-nowrap"><Wallet className="w-4 h-4"/> Collection</TabsTrigger>}
           <TabsTrigger value="ledger" className="gap-2 py-3 rounded-xl transition-all font-bold text-xs sm:text-sm whitespace-nowrap"><History className="w-4 h-4"/> Ledger</TabsTrigger>
           <TabsTrigger value="tracker" className="gap-2 py-3 rounded-xl transition-all font-bold text-xs sm:text-sm whitespace-nowrap"><FileSpreadsheet className="w-4 h-4"/> Tracker</TabsTrigger>
+          {isBursar && <TabsTrigger value="settings" className="gap-2 py-3 rounded-xl transition-all font-bold text-xs sm:text-sm whitespace-nowrap"><Settings2 className="w-4 h-4"/> Fee Policy</TabsTrigger>}
         </TabsList>
 
         {isAdmin && (
@@ -471,6 +490,81 @@ export default function FeesPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {isBursar && (
+          <TabsContent value="settings" className="animate-in fade-in slide-in-from-bottom-2 mt-0 space-y-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <h3 className="text-xl font-black text-primary uppercase tracking-tight">Institutional Fee Structure</h3>
+              <Dialog open={isAddingFeeType} onOpenChange={setIsAddingFeeType}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2 rounded-xl h-11 px-6 shadow-lg">
+                    <Plus className="w-4 h-4" /> Define New Fee
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+                  <DialogHeader className="bg-primary p-8 text-white relative">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-white/10 rounded-2xl text-secondary"><Gavel className="w-8 h-8" /></div>
+                      <div>
+                        <DialogTitle className="text-2xl font-black uppercase tracking-tight">New Fee Type</DialogTitle>
+                        <DialogDescription className="text-white/60">Initialize a mandatory or optional institutional charge.</DialogDescription>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => setIsAddingFeeType(false)} className="absolute top-4 right-4 text-white hover:bg-white/10"><X className="w-6 h-6"/></Button>
+                  </DialogHeader>
+                  <div className="p-8 space-y-6">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest ml-1">Fee Label</Label>
+                      <Input value={newFeeTypeData.name} onChange={(e) => setNewFeeTypeData({...newFeeTypeData, name: e.target.value})} placeholder="e.g. Laboratory Fee" className="h-12 bg-accent/30 border-none rounded-xl font-bold" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest ml-1">Standard Amount (XAF)</Label>
+                      <Input type="number" value={newFeeTypeData.amount} onChange={(e) => setNewFeeTypeData({...newFeeTypeData, amount: e.target.value})} placeholder="0" className="h-12 bg-accent/30 border-none rounded-xl font-black" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest ml-1">Requirement Status</Label>
+                      <Select value={newFeeTypeData.status} onValueChange={(v) => setNewFeeTypeData({...newFeeTypeData, status: v})}>
+                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="mandatory">Mandatory (Required)</SelectItem>
+                          <SelectItem value="optional">Optional / Elective</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+                    <Button onClick={handleAddFeeType} disabled={isProcessing || !newFeeTypeData.name} className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3">
+                      {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                      Commit Fee Policy
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {feeTypes.map(f => (
+                <Card key={f.id} className="border-none shadow-sm overflow-hidden bg-white group hover:shadow-md transition-all">
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start mb-2">
+                      <Badge variant="secondary" className="bg-primary/5 text-primary border-none text-[8px] font-black uppercase">{f.status}</Badge>
+                      <div className="p-2 bg-accent rounded-lg"><Coins className="w-4 h-4 text-primary" /></div>
+                    </div>
+                    <CardTitle className="text-lg font-black text-primary uppercase leading-tight">{f.name}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="text-2xl font-black text-primary">{f.amount.toLocaleString()} <span className="text-xs font-bold opacity-40">XAF</span></div>
+                    <p className="text-[10px] text-muted-foreground line-clamp-2 italic">"{f.description || 'Institutional pedagogical charge.'}"</p>
+                  </CardContent>
+                  <CardFooter className="bg-accent/10 border-t p-3 flex justify-end gap-2">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-white text-primary/40 hover:text-primary"><Pencil className="w-3.5 h-3.5"/></Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-white text-destructive/40 hover:text-destructive" onClick={() => handleDeleteFeeType(f.id)}><Trash2 className="w-3.5 h-3.5"/></Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+        )}
       </Tabs>
 
       {/* ADMIN CLASS DETAILS DIALOG - STUDENT DRILL DOWN */}
@@ -658,7 +752,7 @@ export default function FeesPage() {
                   </div>
                   <div className="text-left md:text-right">
                     <div className="p-4 bg-primary text-white rounded-2xl shadow-xl">
-                      <p className="text-[8px] font-black uppercase opacity-60 tracking-widest mb-1">Amount Received</p>
+                      <p className="text-[8px] md:text-[9px] font-black uppercase opacity-60 tracking-widest mb-1">Amount Received</p>
                       <p className="font-black text-xl md:text-2xl text-secondary underline decoration-double">{issuedReceipt?.amount} XAF</p>
                     </div>
                   </div>
