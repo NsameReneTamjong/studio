@@ -81,13 +81,13 @@ const INITIAL_STUDENTS = [
 ];
 
 const MOCK_CLASS_STATS = [
-  { name: "6ème / Form 1", totalStudents: 45, paidCount: 38, percentage: 84, arrears: "1.2M", status: "good" },
-  { name: "5ème / Form 2", totalStudents: 40, paidCount: 22, percentage: 55, arrears: "2.8M", status: "critical" },
-  { name: "4ème / Form 3", totalStudents: 38, paidCount: 35, percentage: 92, arrears: "450k", status: "optimal" },
-  { name: "3ème / Form 4", totalStudents: 42, paidCount: 30, percentage: 71, arrears: "1.8M", status: "warning" },
-  { name: "2nde / Form 5", totalStudents: 42, paidCount: 40, percentage: 95, arrears: "200k", status: "optimal" },
-  { name: "1ère / Lower Sixth", totalStudents: 35, paidCount: 20, percentage: 57, arrears: "3.1M", status: "critical" },
-  { name: "Terminale / Upper Sixth", totalStudents: 30, paidCount: 28, percentage: 93, arrears: "350k", status: "optimal" },
+  { name: "6ème / Form 1", totalStudents: 45, paidCount: 38, percentage: 84, arrears: "1.2M", status: "good", revenue: "5.4M" },
+  { name: "5ème / Form 2", totalStudents: 40, paidCount: 22, percentage: 55, arrears: "2.8M", status: "critical", revenue: "3.2M" },
+  { name: "4ème / Form 3", totalStudents: 38, paidCount: 35, percentage: 92, arrears: "450k", status: "optimal", revenue: "6.1M" },
+  { name: "3ème / Form 4", totalStudents: 42, paidCount: 30, percentage: 71, arrears: "1.8M", status: "warning", revenue: "4.5M" },
+  { name: "2nde / Form 5", totalStudents: 42, paidCount: 40, percentage: 95, arrears: "200k", status: "optimal", revenue: "6.8M" },
+  { name: "1ère / Lower Sixth", totalStudents: 35, paidCount: 20, percentage: 57, arrears: "3.1M", status: "critical", revenue: "2.9M" },
+  { name: "Terminale / Upper Sixth", totalStudents: 30, paidCount: 28, percentage: 93, arrears: "350k", status: "optimal", revenue: "5.8M" },
 ];
 
 export default function FeesPage() {
@@ -125,6 +125,13 @@ export default function FeesPage() {
 
   const isBursar = user?.role === "BURSAR";
   const isAdmin = user?.role === "SCHOOL_ADMIN" || user?.role === "SUB_ADMIN";
+
+  // DEFINITION OF HELPER ABOVE ITS USE IN MEMO
+  const getStatusForFee = (student: any, feeType: string) => {
+    const paid = (student.balances as any)[feeType] || 0;
+    const total = (student.totals as any)[feeType] || 150000;
+    return paid >= total ? 'cleared' : 'partial';
+  };
 
   const filteredStudents = useMemo(() => {
     return students.filter(s => {
@@ -271,12 +278,6 @@ export default function FeesPage() {
         description: `Institutional list for ${reportYear} generated.`,
       });
     }, 2000);
-  };
-
-  const getStatusForFee = (student: any, feeType: string) => {
-    const paid = (student.balances as any)[feeType] || 0;
-    const total = (student.totals as any)[feeType] || 150000;
-    return paid >= total ? 'cleared' : 'partial';
   };
 
   return (
@@ -770,7 +771,7 @@ export default function FeesPage() {
                 <div className="rounded-2xl border border-accent overflow-hidden shadow-inner bg-white overflow-x-auto">
                   <Table>
                     <TableHeader className="bg-accent/10">
-                      <TableRow className="uppercase text-[10px] font-black tracking-widest border-b">
+                      <TableRow className="uppercase text-[10px] font-black tracking-widest border-b last:border-0">
                         <TableHead className="pl-8 py-4">Student Profile</TableHead>
                         <TableHead>Matricule</TableHead>
                         <TableHead className="text-center">Collection Status</TableHead>
@@ -1254,10 +1255,14 @@ export default function FeesPage() {
                     <p className="font-black text-xs md:text-base uppercase leading-tight">{issuedReceipt?.studentName}</p>
                     <p className="text-[9px] font-mono font-bold text-primary mt-1">{issuedReceipt?.studentId} • {issuedReceipt?.class}</p>
                   </div>
-                  <div className="text-left md:text-right">
+                  <div className="text-left md:text-right flex flex-col justify-between">
                     <div className="p-4 bg-primary text-white rounded-2xl shadow-xl">
                       <p className="text-[8px] md:text-[9px] font-black uppercase opacity-60 tracking-widest mb-1">Net Amount Received</p>
                       <p className="font-black text-xl md:text-2xl text-secondary underline underline-offset-4 decoration-double">{issuedReceipt?.amount} XAF</p>
+                    </div>
+                    <div className="mt-4">
+                       <p className="text-[8px] font-black uppercase text-muted-foreground">Transaction Reference</p>
+                       <p className="text-[10px] font-mono font-bold">{issuedReceipt?.ref}</p>
                     </div>
                   </div>
                </div>
@@ -1290,9 +1295,18 @@ export default function FeesPage() {
             <Button variant="outline" className="flex-1 rounded-xl h-12 md:h-14 font-black uppercase tracking-widest text-xs" onClick={() => setIssuedReceipt(null)}>
               Close & Return
             </Button>
-            <Button className="flex-1 rounded-xl h-12 md:h-14 shadow-2xl font-black uppercase tracking-widest text-xs gap-2 bg-primary text-white" onClick={() => window.print()}>
-              <Printer className="w-4 h-4" /> Print Receipt
-            </Button>
+            <div className="flex flex-1 gap-2">
+              <Button 
+                variant="secondary" 
+                className="flex-1 rounded-xl h-12 md:h-14 font-black uppercase tracking-widest text-xs gap-2"
+                onClick={() => toast({ title: "Receipt Prepared", description: "Document PDF is being generated for download." })}
+              >
+                <Download className="w-4 h-4" /> Download
+              </Button>
+              <Button className="flex-1 rounded-xl h-12 md:h-14 shadow-2xl font-black uppercase tracking-widest text-xs gap-2 bg-primary text-white" onClick={() => window.print()}>
+                <Printer className="w-4 h-4" /> Print Receipt
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
