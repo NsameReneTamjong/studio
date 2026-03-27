@@ -41,7 +41,8 @@ import {
   Quote,
   Network,
   Star,
-  BarChart3
+  BarChart3,
+  FileBadge
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -165,6 +166,12 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: t("idCards"),
       icon: CreditCard,
       href: "/dashboard/id-cards",
+      roles: ["SCHOOL_ADMIN", "SUB_ADMIN"],
+    },
+    {
+      label: language === 'en' ? 'Transcripts' : 'Relevés de Notes',
+      icon: FileBadge,
+      href: "/dashboard/transcripts",
       roles: ["SCHOOL_ADMIN", "SUB_ADMIN"],
     },
     {
