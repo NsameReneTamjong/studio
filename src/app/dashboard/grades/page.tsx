@@ -70,7 +70,7 @@ const MOCK_GRADE_HISTORY = [
       { name: "Diana Prince", mark: 12.5, status: "pass" },
       { name: "Charlie Davis", mark: 8.5, status: "fail" },
       { name: "Ethan Hunt", mark: 11.0, status: "pass" },
-      { name: "Sarah Connor", mark: 07.5, status: "fail" },
+      { name: "Sarah Connor", mark: 7.5, status: "fail" },
     ]
   },
   { 
@@ -84,7 +84,7 @@ const MOCK_GRADE_HISTORY = [
     percentPass: 76.2,
     students: [
       { name: "John Smith", mark: 18.0, status: "pass" },
-      { name: "Jane Doe", mark: 09.0, status: "fail" },
+      { name: "Jane Doe", mark: 9.0, status: "fail" },
     ]
   }
 ];
@@ -342,7 +342,7 @@ export default function GradeBookPage() {
               <p className="text-[10px] font-black uppercase tracking-widest opacity-40">System calculates Moy/20 and Remarks automatically based on Ministry standards.</p>
            </div>
            <Button onClick={handleCommitGrades} disabled={isProcessing} className="h-14 px-12 rounded-2xl shadow-xl font-black uppercase tracking-widest text-sm gap-3">
-              {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+              {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-4 h-4" />}
               Save & Commit Term Registry
            </Button>
         </CardFooter>
@@ -472,7 +472,7 @@ export default function GradeBookPage() {
               <div className="bg-red-50 p-6 rounded-3xl border border-red-100 flex items-center justify-between">
                 <div>
                   <p className="text-[10px] font-black uppercase text-red-600 tracking-widest">Underperforming</p>
-                  <p className="text-3xl font-black text-red-700">{selectedHistory?.numFail}</p>
+                  <p className="text-3xl font-black text-green-700">{selectedHistory?.numFail}</p>
                 </div>
                 <UserRoundX className="w-10 h-10 text-red-200" />
               </div>
@@ -531,7 +531,7 @@ export default function GradeBookPage() {
                       {selectedHistory?.students.filter((s: any) => s.status === 'fail').map((s: any, i: number) => (
                         <TableRow key={i} className="hover:bg-red-50/30">
                           <TableCell className="font-bold text-sm text-primary py-3">{s.name}</TableCell>
-                          <TableCell className="text-right pr-6 font-black text-red-600">{s.mark.toFixed(2)}</TableCell>
+                          <TableCell className="text-right pr-6 font-black text-green-600">{s.mark.toFixed(2)}</TableCell>
                         </TableRow>
                       ))}
                       {selectedHistory?.students.filter((s: any) => s.status === 'fail').length === 0 && (
