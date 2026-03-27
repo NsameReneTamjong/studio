@@ -79,7 +79,7 @@ interface SchoolAdmin {
 interface InstitutionalClass {
   id: string;
   name: string;
-  baseLevel: string;
+  classMaster: string;
   section: string;
   students: number;
 }
@@ -113,9 +113,9 @@ const INITIAL_ADMINS: SchoolAdmin[] = [
 ];
 
 const INITIAL_CLASSES: InstitutionalClass[] = [
-  { id: "CLS-01", name: "Form 1A", baseLevel: "6ème / Form 1", section: "Anglophone Section", students: 42 },
-  { id: "CLS-02", name: "Form 1B", baseLevel: "6ème / Form 1", section: "Anglophone Section", students: 40 },
-  { id: "CLS-03", name: "2nde C", baseLevel: "2nde / Form 5", section: "Francophone Section", students: 38 },
+  { id: "CLS-01", name: "Form 1A", classMaster: "Dr. Aris Tesla", section: "Anglophone Section", students: 42 },
+  { id: "CLS-02", name: "Form 1B", classMaster: "Prof. Sarah Smith", section: "Anglophone Section", students: 40 },
+  { id: "CLS-03", name: "2nde C", classMaster: "Mme. Celine Njoh", section: "Francophone Section", students: 38 },
 ];
 
 const GOVERNANCE_LOGS = [
@@ -127,11 +127,10 @@ const GOVERNANCE_LOGS = [
 
 const STAFF_MEMBERS = [
   { id: "GBHS26T001", name: "Dr. Aris Tesla", role: "TEACHER" },
+  { id: "GBHS26T002", name: "Prof. Sarah Smith", role: "TEACHER" },
   { id: "GBHS26B001", name: "Mme. Celine Njoh", role: "BURSAR" },
   { id: "GBHS26L001", name: "Mr. Ebong", role: "LIBRARIAN" },
 ];
-
-const BASE_LEVELS = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
 
 export default function CommunityPage() {
   const { language } = useI18n();
@@ -149,7 +148,7 @@ export default function CommunityPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   
   const [newSectionData, setNewSectionData] = useState({ name: "", type: "General" });
-  const [newClassData, setNewClassData] = useState({ name: "", baseLevel: BASE_LEVELS[0], section: INITIAL_SUB_SCHOOLS[0].name });
+  const [newClassData, setNewClassData] = useState({ name: "", classMaster: "", section: "" });
   
   const [newAdminData, setNewAdminData] = useState({
     name: "",
@@ -187,7 +186,10 @@ export default function CommunityPage() {
   };
 
   const handleAddClass = () => {
-    if (!newClassData.name) return;
+    if (!newClassData.name || !newClassData.classMaster || !newClassData.section) {
+      toast({ variant: "destructive", title: "Missing Fields", description: "Class, Class Master, and Sub-school are required." });
+      return;
+    }
     setIsProcessing(true);
     setTimeout(() => {
       const created = {
@@ -198,7 +200,7 @@ export default function CommunityPage() {
       setClasses([...classes, created]);
       setIsProcessing(false);
       setIsAddingClass(false);
-      setNewClassData({ name: "", baseLevel: BASE_LEVELS[0], section: INITIAL_SUB_SCHOOLS[0].name });
+      setNewClassData({ name: "", classMaster: "", section: "" });
       toast({ title: "Class Registry Updated", description: `${created.name} is now active.` });
     }, 1000);
   };
@@ -391,16 +393,18 @@ export default function CommunityPage() {
                     <Input value={newClassData.name} onChange={(e) => setNewClassData({...newClassData, name: e.target.value})} placeholder="e.g. Form 1B or Terminale C" className="h-12 bg-accent/30 border-none rounded-xl font-bold" />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Academic Base Level</Label>
-                    <Select value={newClassData.baseLevel} onValueChange={(v) => setNewClassData({...newClassData, baseLevel: v})}>
-                      <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
-                      <SelectContent>{BASE_LEVELS.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Class Master</Label>
+                    <Select value={newClassData.classMaster} onValueChange={(v) => setNewClassData({...newClassData, classMaster: v})}>
+                      <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue placeholder="Select Teacher" /></SelectTrigger>
+                      <SelectContent>
+                        {STAFF_MEMBERS.filter(s => s.role === 'TEACHER').map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
+                      </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Institutional Section</Label>
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Sub-school / Section</Label>
                     <Select value={newClassData.section} onValueChange={(v) => setNewClassData({...newClassData, section: v})}>
-                      <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue placeholder="Select Section" /></SelectTrigger>
                       <SelectContent>{subSchools.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
@@ -424,7 +428,9 @@ export default function CommunityPage() {
                     <div className="p-2 bg-accent rounded-lg"><LayoutGrid className="w-4 h-4 text-primary" /></div>
                   </div>
                   <CardTitle className="text-xl font-black text-primary leading-none uppercase">{cls.name}</CardTitle>
-                  <CardDescription className="text-[10px] font-bold mt-1">{cls.baseLevel}</CardDescription>
+                  <CardDescription className="text-[10px] font-bold mt-1 flex items-center gap-1.5">
+                    <User className="w-3 h-3 text-secondary" /> Master: {cls.classMaster}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="px-6 pb-6">
                    <div className="flex items-center justify-between p-3 bg-accent/20 rounded-xl border border-accent">
