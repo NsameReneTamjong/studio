@@ -40,7 +40,8 @@ import {
   Info,
   Quote,
   Network,
-  Star
+  Star,
+  BarChart3
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -114,6 +115,12 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: language === 'en' ? 'Hierarchy & Sections' : 'Hiérarchie & Sections',
       icon: Network,
       href: "/dashboard/community",
+      roles: ["SCHOOL_ADMIN"],
+    },
+    {
+      label: language === 'en' ? 'Strategic Insights' : 'Statistiques Stratégiques',
+      icon: BarChart3,
+      href: "/dashboard/statistics",
       roles: ["SCHOOL_ADMIN"],
     },
     // GENERAL DASHBOARD LINKS
