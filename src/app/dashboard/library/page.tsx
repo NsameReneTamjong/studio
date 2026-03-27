@@ -77,7 +77,7 @@ const INITIAL_BOOKS = [
 ];
 
 const INITIAL_LOANS = [
-  { id: "LOAN-101", bookTitle: "Organic Chemistry", author: "Marie Curie", borrowerName: "Alice Thompson", borrowerId: "S001", borrowDate: "May 15, 2024", returnDate: "May 29, 2024", status: "Active", collectionCode: "IGN-882-X" }
+  { id: "LOAN-101", bookTitle: "Organic Chemistry", author: "Marie Curie", borrowerName: "Alice Thompson", borrowerId: "GBHS26S001", borrowDate: "May 15, 2024", returnDate: "May 29, 2024", status: "Active", collectionCode: "IGN-882-X" }
 ];
 
 const MOCK_PERSONAL_HISTORY = [
@@ -149,6 +149,57 @@ export default function LibraryPage() {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleBorrowBook = (book: any) => {
+    if (book.available === 0) {
+      toast({ variant: "destructive", title: "Out of Stock", description: "No volumes available for loan." });
+      return;
+    }
+
+    setIsProcessing(true);
+    // Simulate borrowing process
+    setTimeout(() => {
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + parseInt(policyData.loanDuration));
+
+      const receipt = {
+        id: `IGN-L-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+        userName: user?.name,
+        userId: user?.id,
+        userRole: user?.role,
+        bookTitle: book.title,
+        bookAuthor: book.author,
+        collectionCode: `IGN-${Math.floor(100 + Math.random() * 899)}-P`,
+        issueDate: new Date().toLocaleDateString(),
+        dueDate: dueDate.toLocaleDateString(),
+      };
+
+      setIssuedReceipt(receipt);
+      
+      // Update books count locally
+      setBooks(prev => prev.map(b => b.id === book.id ? { ...b, available: b.available - 1 } : b));
+      
+      // Add to personal loans list (simulation)
+      const newLoan = {
+        id: `LOAN-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
+        bookTitle: book.title,
+        author: book.author,
+        borrowerName: user?.name,
+        borrowerId: user?.id,
+        borrowDate: new Date().toLocaleDateString(),
+        returnDate: dueDate.toLocaleDateString(),
+        status: "Active",
+        collectionCode: receipt.collectionCode
+      };
+      setLoans([newLoan, ...loans]);
+
+      setIsProcessing(false);
+      toast({
+        title: "Borrowing Successful",
+        description: "Your official collection receipt has been generated.",
+      });
+    }, 1500);
   };
 
   const handleIssueBook = (req: any) => {
@@ -466,7 +517,12 @@ export default function LibraryPage() {
                       </Button>
                     </div>
                   ) : (
-                    <Button className="w-full h-11 text-xs uppercase font-black tracking-widest bg-primary hover:bg-primary/90 shadow-sm" disabled={book.available === 0}>
+                    <Button 
+                      className="w-full h-11 text-xs uppercase font-black tracking-widest bg-primary hover:bg-primary/90 shadow-sm" 
+                      disabled={book.available === 0 || isProcessing}
+                      onClick={() => handleBorrowBook(book)}
+                    >
+                      {isProcessing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                       {book.available > 0 ? "Borrow This Book" : "Notify When Back"}
                     </Button>
                   )}
@@ -572,7 +628,7 @@ export default function LibraryPage() {
                             Mark Returned
                           </Button>
                         ) : (
-                          <Button variant="ghost" size="sm" className="text-[10px] font-black uppercase" onClick={() => setSelectedLoanDetails({ ...loan, cover: INITIAL_BOOKS.find(b => b.title === loan.bookTitle)?.cover || INITIAL_BOOKS[0].cover })}>
+                          <Button variant="ghost" size="sm" className="text-[10px] font-black uppercase" onClick={() => setSelectedLoanDetails({ ...loan, cover: books.find(b => b.title === loan.bookTitle)?.cover || books[0].cover })}>
                             View Dossier
                           </Button>
                         )}
@@ -854,9 +910,9 @@ export default function LibraryPage() {
                {/* Receipt Header */}
                <div className="flex justify-between items-start border-b-2 border-black pb-4">
                   <div className="flex items-center gap-3">
-                    <img src={user?.school?.logo} alt="School" className="w-12 h-12 object-contain" />
+                    <img src={user?.school?.logo || platformSettings.logo} alt="School" className="w-12 h-12 object-contain" />
                     <div className="space-y-0.5">
-                      <h2 className="font-black text-xs uppercase text-primary leading-tight">{user?.school?.name}</h2>
+                      <h2 className="font-black text-xs uppercase text-primary leading-tight">{user?.school?.name || platformSettings.name}</h2>
                       <p className="text-[8px] font-bold uppercase opacity-60">Library Services Registry</p>
                     </div>
                   </div>
@@ -900,7 +956,7 @@ export default function LibraryPage() {
                   </div>
                   <div className="text-center space-y-4">
                     <div className="h-10 w-24 mx-auto bg-primary/5 rounded border-b border-black/20" />
-                    <p className="text-[8px] font-black uppercase text-primary">Librarian Signature</p>
+                    <p className="text-[8px] font-black uppercase text-primary">Authorized Validation</p>
                   </div>
                </div>
 
@@ -924,9 +980,18 @@ export default function LibraryPage() {
             <Button variant="outline" className="flex-1 rounded-xl h-12 font-black uppercase tracking-widest text-xs" onClick={() => setIssuedReceipt(null)}>
               Dismiss
             </Button>
-            <Button className="flex-1 rounded-xl h-12 shadow-lg font-bold gap-2 bg-primary text-white" onClick={() => window.print()}>
-              <Printer className="w-4 h-4" /> Print Receipt
-            </Button>
+            <div className="flex flex-1 gap-2">
+              <Button 
+                variant="secondary" 
+                className="flex-1 rounded-xl h-12 font-black uppercase tracking-widest text-xs gap-2"
+                onClick={() => toast({ title: "Receipt Prepared", description: "Document PDF is being generated for download." })}
+              >
+                <Download className="w-4 h-4" /> Download
+              </Button>
+              <Button className="flex-1 rounded-xl h-12 shadow-lg font-bold gap-2 bg-primary text-white" onClick={() => window.print()}>
+                <Printer className="w-4 h-4" /> Print Receipt
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1018,7 +1083,7 @@ export default function LibraryPage() {
                             <TableCell className="text-center font-bold text-xs">{count as number}</TableCell>
                             <TableCell className="text-center font-bold text-xs">{(count as number) * 2} Units</TableCell>
                             <TableCell className="text-right pr-6 font-black text-sm text-primary">
-                              {Math.round(((count as number) / books.length) * 100)}%
+                              {Math.round(((count as number) / (books.length || 1)) * 100)}%
                             </TableCell>
                          </TableRow>
                        ))}
