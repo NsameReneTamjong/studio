@@ -38,7 +38,10 @@ import {
   Award,
   BarChart3,
   LayoutGrid,
-  Pencil
+  Pencil,
+  Zap,
+  Building2,
+  FileText
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -71,6 +74,13 @@ const MOCK_STUDENTS = [
 const MOCK_CLASSES_ADMIN = [
   { id: "C1", name: "6ème / Form 1", percentage: 94, totalStudents: 45, presentToday: 42, status: "high", teacher: "Mr. Abena" },
   { id: "C2", name: "2nde / Form 5", percentage: 91, totalStudents: 42, presentToday: 38, status: "medium", teacher: "Dr. Tesla" },
+];
+
+const MOCK_STUDENT_HISTORY = [
+  { year: "2023 / 2024", term: "Term 1", subject: "Advanced Physics", present: 22, absent: 2, rate: 92 },
+  { year: "2023 / 2024", term: "Term 1", subject: "Mathematics", present: 24, absent: 0, rate: 100 },
+  { year: "2023 / 2024", term: "Term 1", subject: "English Literature", present: 18, absent: 2, rate: 90 },
+  { year: "2022 / 2023", term: "Term 3", subject: "General Science", present: 18, absent: 4, rate: 81 },
 ];
 
 export default function AttendancePage() {
@@ -424,31 +434,100 @@ export default function AttendancePage() {
   // --- STUDENT VIEW ---
   return (
     <div className="space-y-8 pb-20 animate-in slide-in-from-bottom-4">
-      <h1 className="text-3xl font-bold text-primary font-headline">My Participation</h1>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
+            <div className="p-2 bg-primary rounded-xl shadow-lg">
+              <CheckCircle2 className="w-6 h-6 text-secondary" />
+            </div>
+            My Participation
+          </h1>
+          <p className="text-muted-foreground mt-1 text-sm">Detailed chronological record of your pedagogical presence.</p>
+        </div>
+        <Button variant="outline" className="rounded-xl h-11 px-6 font-bold bg-white border-primary/10 gap-2" onClick={() => toast({ title: "History Exported" })}>
+          <FileDown className="w-4 h-4 text-primary" /> Download Record
+        </Button>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-         <Card className="border-none shadow-sm bg-white p-6 rounded-3xl flex items-center gap-4">
-            <div className="p-3 bg-green-50 rounded-2xl text-green-600"><CheckCircle2 className="w-6 h-6" /></div>
+         <Card className="border-none shadow-sm bg-white p-6 rounded-3xl flex items-center gap-4 group hover:shadow-md transition-all">
+            <div className="p-3 bg-green-50 rounded-2xl text-green-600 group-hover:scale-110 transition-transform"><CheckCircle2 className="w-6 h-6" /></div>
             <div>
-               <p className="text-[10px] font-black uppercase text-muted-foreground">Attendance Rate</p>
+               <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Attendance Rate</p>
                <p className="text-2xl font-black text-primary">94.5%</p>
             </div>
          </Card>
-         <Card className="border-none shadow-sm bg-white p-6 rounded-3xl flex items-center gap-4">
-            <div className="p-3 bg-secondary/20 rounded-2xl text-primary"><Award className="w-6 h-6" /></div>
+         <Card className="border-none shadow-sm bg-white p-6 rounded-3xl flex items-center gap-4 group hover:shadow-md transition-all">
+            <div className="p-3 bg-secondary/20 rounded-2xl text-primary group-hover:scale-110 transition-transform"><Award className="w-6 h-6" /></div>
             <div>
-               <p className="text-[10px] font-black uppercase text-muted-foreground">Status</p>
+               <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Integrity Status</p>
                <p className="text-2xl font-black text-secondary">EXCELLENT</p>
             </div>
          </Card>
+         <Card className="border-none shadow-sm bg-white p-6 rounded-3xl flex items-center gap-4 group hover:shadow-md transition-all">
+            <div className="p-3 bg-primary/5 rounded-2xl text-primary group-hover:scale-110 transition-transform"><History className="w-6 h-6" /></div>
+            <div>
+               <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Total Sessions</p>
+               <p className="text-2xl font-black text-primary">142</p>
+            </div>
+         </Card>
       </div>
-    </div>
-  );
-}
 
-function SignatureSVG({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
+      <Card className="border-none shadow-xl rounded-[2.5rem] overflow-hidden bg-white">
+        <CardHeader className="bg-primary/5 p-8 border-b">
+          <CardTitle className="text-xl font-black text-primary uppercase flex items-center gap-2">
+            <CalendarDays className="w-5 h-5 text-secondary" /> Attendance Records History
+          </CardTitle>
+          <CardDescription>Verified subject-wise participation ledger for current and previous terms.</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0 overflow-x-auto">
+          <Table>
+            <TableHeader className="bg-accent/10 uppercase text-[10px] font-black tracking-widest border-b">
+              <TableRow>
+                <TableHead className="pl-8 py-4">Year</TableHead>
+                <TableHead>Term</TableHead>
+                <TableHead>Subject</TableHead>
+                <TableHead className="text-center">Present</TableHead>
+                <TableHead className="text-center">Absent</TableHead>
+                <TableHead className="text-right pr-8">Rate (%)</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {MOCK_STUDENT_HISTORY.map((hist, i) => (
+                <TableRow key={i} className="hover:bg-accent/5 h-16 border-b last:border-0">
+                  <TableCell className="pl-8 font-bold text-xs text-muted-foreground">{hist.year}</TableCell>
+                  <TableCell><Badge variant="outline" className="text-[9px] font-black uppercase text-primary border-primary/20">{hist.term}</Badge></TableCell>
+                  <TableCell className="font-black text-primary uppercase text-xs">{hist.subject}</TableCell>
+                  <TableCell className="text-center font-black text-green-600">{hist.present}</TableCell>
+                  <TableCell className="text-center font-black text-red-600">{hist.absent}</TableCell>
+                  <TableCell className="text-right pr-8">
+                    <div className="inline-flex flex-col items-end gap-1.5 min-w-[80px]">
+                      <div className="flex items-center gap-2">
+                        <span className={cn("text-xs font-black", hist.rate >= 90 ? "text-green-600" : "text-amber-600")}>
+                          {hist.rate}%
+                        </span>
+                        {hist.rate >= 95 && <Zap className="w-3 h-3 text-secondary fill-current" />}
+                      </div>
+                      <div className="w-24 h-1.5 bg-accent rounded-full overflow-hidden">
+                        <div 
+                          className={cn("h-full transition-all duration-1000", hist.rate >= 90 ? "bg-green-500" : "bg-amber-500")} 
+                          style={{ width: `${hist.rate}%` }} 
+                        />
+                      </div>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+        <CardFooter className="bg-accent/10 p-6 border-t flex justify-center">
+           <div className="flex items-center gap-2 text-muted-foreground italic">
+              <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+              <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Verified Institutional Pedagogical Record</p>
+           </div>
+        </CardFooter>
+      </Card>
+    </div>
   );
 }
