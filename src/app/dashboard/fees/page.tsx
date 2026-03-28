@@ -642,9 +642,11 @@ export default function FeesPage() {
       <Dialog open={!!issuedReceipt} onOpenChange={() => setIssuedReceipt(null)}>
         <DialogContent className="sm:max-w-2xl p-0 border-none shadow-2xl rounded-[2rem] overflow-hidden">
           <DialogHeader className="bg-primary p-8 text-white relative no-print">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-white/10 rounded-2xl text-secondary"><Receipt className="w-8 h-8" /></div>
-              <DialogTitle className="text-2xl font-black">Official Receipt Issued</DialogTitle>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-2xl text-secondary"><Receipt className="w-8 h-8" /></div>
+                <DialogTitle className="text-xl md:text-2xl font-black">Official Receipt Issued</DialogTitle>
+              </div>
             </div>
             <Button variant="ghost" size="icon" onClick={() => setIssuedReceipt(null)} className="absolute top-4 right-4 text-white/40 hover:text-white"><X className="w-6 h-6" /></Button>
           </DialogHeader>

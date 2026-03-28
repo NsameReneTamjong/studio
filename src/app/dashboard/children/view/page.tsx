@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n-context";
 import { useAuth } from "@/lib/auth-context";
@@ -61,7 +61,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import React from "react";
 
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
 

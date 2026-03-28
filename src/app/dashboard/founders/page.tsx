@@ -548,11 +548,11 @@ export default function FoundersManagementPage() {
             </div>
           </div>
 
-          <DialogFooter className="bg-accent/10 p-8 border-t no-print flex flex-col sm:flex-row gap-4">
+          <DialogFooter className="bg-accent/10 p-8 border-t no-print flex flex-col sm:flex-row gap-4 shrink-0">
             <Button variant="outline" className="flex-1 rounded-2xl h-14 font-black uppercase tracking-widest text-xs" onClick={() => setOnboardingSuccess(null)}>
               Return to Registry
             </Button>
-            <div className="flex flex-1 gap-2">
+            <div className="flex flex-col sm:flex-row flex-1 gap-2">
               <Button 
                 variant="secondary" 
                 className="flex-1 rounded-2xl h-14 font-black uppercase tracking-widest text-xs gap-2"

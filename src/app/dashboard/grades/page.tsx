@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { LoadingState } from "@/components/shared/loading-state";
@@ -353,7 +353,7 @@ export default function GradeBookPage() {
                           </TableCell>
                           <TableCell className="text-right pr-8">
                             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-100 font-bold text-[8px] uppercase">
-                              <CheckCircle2 className="w-3 h-3" /> Signed
+                              <CheckCircle2 className="w-3 3" /> Signed
                             </div>
                           </TableCell>
                         </TableRow>

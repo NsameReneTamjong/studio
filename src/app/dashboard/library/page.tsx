@@ -182,34 +182,61 @@ export default function LibraryPage() {
               <DialogHeader className="bg-primary p-6 md:p-8 text-white relative shrink-0">
                 <div className="flex items-center gap-4">
                   <div className="p-3 bg-white/10 rounded-2xl"><BookMarked className="w-8 h-8 text-secondary" /></div>
-                  <DialogTitle className="text-xl md:text-2xl font-black uppercase">Catalog Entry</DialogTitle>
+                  <DialogTitle className="text-xl md:text-2xl font-black uppercase tracking-tight leading-tight">Catalog Entry</DialogTitle>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => setIsAddingBook(false)} className="absolute top-4 right-4 text-white/40 hover:text-white"><X className="w-6 h-6" /></Button>
+                <Button variant="ghost" size="icon" onClick={() => setIsAddingBook(false)} className="absolute top-4 right-4 text-white/40 hover:text-white transition-all"><X className="w-6 h-6" /></Button>
               </DialogHeader>
               <div className="p-6 md:p-8 space-y-8 flex-1 overflow-y-auto scrollbar-thin bg-white">
                 <div className="space-y-4">
-                  <div className="group relative w-32 h-48 mx-auto bg-accent/20 rounded-xl border-2 border-dashed border-accent flex items-center justify-center cursor-pointer overflow-hidden shadow-inner" onClick={() => coverInputRef.current?.click()}>
+                  <div className="group relative w-32 h-48 mx-auto bg-accent/20 rounded-xl border-2 border-dashed border-accent flex items-center justify-center cursor-pointer overflow-hidden shadow-inner transition-all hover:border-primary" onClick={() => coverInputRef.current?.click()}>
                     <input type="file" ref={coverInputRef} className="hidden" accept="image/*" onChange={handleCoverChange} />
                     {newBookData.cover ? <img src={newBookData.cover} alt="Preview" className="w-full h-full object-cover" /> : <Upload className="w-8 h-8 text-muted-foreground" />}
+                    <div className="absolute inset-0 bg-primary/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white gap-1 backdrop-blur-sm">
+                      <Upload className="w-5 h-5" />
+                      <span className="text-[8px] font-black uppercase">Change Cover</span>
+                    </div>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="md:col-span-2 space-y-2">
-                    <Label className="text-[10px] font-black uppercase">Book Title</Label>
-                    <Input value={newBookData.title} onChange={(e) => setNewBookData({...newBookData, title: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl" />
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Book Title</Label>
+                    <Input value={newBookData.title} onChange={(e) => setNewBookData({...newBookData, title: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl font-bold" placeholder="e.g. Things Fall Apart" />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase">Author</Label>
-                    <Input value={newBookData.author} onChange={(e) => setNewBookData({...newBookData, author: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl" />
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Author</Label>
+                    <Input value={newBookData.author} onChange={(e) => setNewBookData({...newBookData, author: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl" placeholder="Chinua Achebe" />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase">ISBN</Label>
-                    <Input value={newBookData.isbn} onChange={(e) => setNewBookData({...newBookData, isbn: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl" />
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">ISBN Reference</Label>
+                    <Input value={newBookData.isbn} onChange={(e) => setNewBookData({...newBookData, isbn: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl" placeholder="ISBN-XXX-X" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Category</Label>
+                    <Select value={newBookData.category} onValueChange={(v) => setNewBookData({...newBookData, category: v})}>
+                      <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Literature">Literature</SelectItem>
+                        <SelectItem value="Science">Science & Tech</SelectItem>
+                        <SelectItem value="Mathematics">Mathematics</SelectItem>
+                        <SelectItem value="History">History & Geo</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Total Stock</Label>
+                    <Input type="number" value={newBookData.total} onChange={(e) => setNewBookData({...newBookData, total: parseInt(e.target.value)})} className="h-12 bg-accent/30 border-none rounded-xl font-black" />
+                  </div>
+                  <div className="md:col-span-2 space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Book Synopsis</Label>
+                    <Textarea value={newBookData.description} onChange={(e) => setNewBookData({...newBookData, description: e.target.value})} className="min-h-[100px] bg-accent/30 border-none rounded-xl" placeholder="Brief summary of the volume..." />
                   </div>
                 </div>
               </div>
-              <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
-                <Button onClick={handleAddBook} disabled={isProcessing || !newBookData.title} className="w-full h-14 rounded-2xl shadow-xl font-black uppercase">Archive Volume</Button>
+              <DialogFooter className="bg-accent/20 p-6 border-t border-accent shrink-0 flex flex-col sm:flex-row gap-3">
+                <Button variant="outline" className="flex-1 rounded-xl h-12 font-bold" onClick={() => setIsAddingBook(false)}>Cancel</Button>
+                <Button onClick={handleAddBook} disabled={isProcessing || !newBookData.title} className="flex-1 h-12 rounded-xl shadow-xl font-black uppercase tracking-widest text-[10px] gap-2">
+                  {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Commit to Catalog
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -232,28 +259,40 @@ export default function LibraryPage() {
 
       <Tabs defaultValue="catalog" className="w-full">
         <TabsList className="grid w-full bg-white shadow-sm border h-auto p-1 rounded-2xl grid-cols-3 md:w-[600px]">
-          <TabsTrigger value="catalog" className="gap-2 py-3 rounded-xl transition-all"><BookOpen className="w-4 h-4" /> Catalogue</TabsTrigger>
-          <TabsTrigger value="circulation" className="gap-2 py-3 rounded-xl transition-all"><Clock className="w-4 h-4" /> {t("borrowed")}</TabsTrigger>
-          <TabsTrigger value="history" className="gap-2 py-3 rounded-xl transition-all"><History className="w-4 h-4" /> History</TabsTrigger>
+          <TabsTrigger value="catalog" className="gap-2 py-3 rounded-xl transition-all font-bold text-xs sm:text-sm"><BookOpen className="w-4 h-4" /> Catalogue</TabsTrigger>
+          <TabsTrigger value="circulation" className="gap-2 py-3 rounded-xl transition-all font-bold text-xs sm:text-sm"><Clock className="w-4 h-4" /> {t("borrowed")}</TabsTrigger>
+          <TabsTrigger value="history" className="gap-2 py-3 rounded-xl transition-all font-bold text-xs sm:text-sm"><History className="w-4 h-4" /> Registry</TabsTrigger>
         </TabsList>
 
         <TabsContent value="catalog" className="mt-8 space-y-6">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder="Search catalog..." className="pl-10 h-12 bg-white rounded-xl" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            <Input placeholder="Search catalog by title or author..." className="pl-10 h-12 bg-white border-none rounded-2xl shadow-sm focus-visible:ring-primary" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {filteredBooks.map((book) => (
-              <Card key={book.id} className="border-none shadow-sm overflow-hidden bg-white">
-                <div className="aspect-[3/4] bg-accent/20">
-                  <img src={book.cover} alt={book.title} className="w-full h-full object-cover" />
+              <Card key={book.id} className="border-none shadow-sm overflow-hidden bg-white group hover:shadow-md transition-all rounded-3xl">
+                <div className="aspect-[3/4] bg-accent/20 relative overflow-hidden">
+                  <img src={book.cover} alt={book.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                  <div className="absolute top-3 right-3">
+                    <Badge className="bg-white/90 backdrop-blur-md text-primary font-black text-[9px] border-none px-3">{book.category}</Badge>
+                  </div>
                 </div>
-                <CardHeader className="p-5">
-                  <CardTitle className="text-lg font-black text-primary truncate">{book.title}</CardTitle>
-                  <CardDescription className="text-xs">{book.author}</CardDescription>
+                <CardHeader className="p-5 pb-2">
+                  <CardTitle className="text-lg font-black text-primary truncate leading-tight">{book.title}</CardTitle>
+                  <CardDescription className="text-xs font-bold text-muted-foreground">{book.author}</CardDescription>
                 </CardHeader>
-                <CardFooter className="p-5 pt-0">
-                  <Button className="w-full h-10 text-xs font-black uppercase tracking-widest" disabled={book.available === 0}>Borrow</Button>
+                <CardContent className="px-5 py-2">
+                   <div className="flex items-center justify-between text-[10px] font-black uppercase text-muted-foreground/60">
+                      <span>Available</span>
+                      <span className="text-primary">{book.available} / {book.total}</span>
+                   </div>
+                   <Progress value={(book.available / book.total) * 100} className="h-1 mt-1.5" />
+                </CardContent>
+                <CardFooter className="p-5 pt-2">
+                  <Button className="w-full h-10 text-[10px] font-black uppercase tracking-widest shadow-lg rounded-xl" disabled={book.available === 0}>
+                    <BookMarked className="w-3.5 h-3.5 mr-2" /> Borrow Volume
+                  </Button>
                 </CardFooter>
               </Card>
             ))}
