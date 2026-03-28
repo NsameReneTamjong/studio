@@ -61,7 +61,7 @@ const MOCK_TRANSCRIPT_DATA = {
 
 export default function GradeBookPage() {
   const { user, platformSettings } = useAuth();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { toast } = useToast();
   const router = useRouter();
   
@@ -94,16 +94,33 @@ export default function GradeBookPage() {
       <div className="space-y-8 pb-20">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full shadow-sm"><ArrowLeft className="w-5 h-5" /></Button>
+            <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full shadow-sm">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
             <h1 className="text-3xl font-bold text-primary font-headline uppercase">Results Registry</h1>
           </div>
-          <Button onClick={() => toast({ title: "Bulletin Exported" })} className="h-12 px-8 rounded-2xl shadow-xl font-black uppercase text-[10px] gap-3"><Printer className="w-4 h-4" /> Download Official Bulletin</Button>
+          <Button onClick={() => handleDownload('Official Term Bulletin')} className="h-12 px-8 rounded-2xl shadow-xl font-black uppercase text-[10px] gap-3">
+            <Printer className="w-4 h-4" /> Download Official Bulletin
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card className="border-none shadow-sm bg-primary text-white p-6 rounded-3xl"><p className="text-[10px] font-black opacity-60 uppercase mb-2">Term Average</p><div className="text-3xl font-black text-secondary">16.45 / 20</div></Card>
-          <Card className="border-none shadow-sm bg-secondary text-primary p-6 rounded-3xl"><p className="text-[10px] font-black opacity-60 uppercase mb-2">Status</p><div className="text-xl font-black flex items-center gap-2"><CheckCircle2 className="w-6 h-6" /> ELIGIBLE</div></Card>
-          <Card className="border-none shadow-sm bg-white border p-6 rounded-3xl"><p className="text-[10px] font-black uppercase text-muted-foreground mb-2">Registry</p><div className="text-xl font-black flex items-center gap-2 text-primary"><ShieldCheck className="w-5 h-5 text-secondary" /> VERIFIED</div></Card>
+          <Card className="border-none shadow-sm bg-primary text-white p-6 rounded-3xl">
+            <p className="text-[10px] font-black opacity-60 uppercase mb-2">Term Average</p>
+            <div className="text-3xl font-black text-secondary">16.45 / 20</div>
+          </Card>
+          <Card className="border-none shadow-sm bg-secondary text-primary p-6 rounded-3xl">
+            <p className="text-[10px] font-black opacity-60 uppercase mb-2">Status</p>
+            <div className="text-xl font-black flex items-center gap-2">
+              <CheckCircle2 className="w-6 h-6" /> ELIGIBLE
+            </div>
+          </Card>
+          <Card className="border-none shadow-sm bg-white border p-6 rounded-3xl">
+            <p className="text-[10px] font-black uppercase text-muted-foreground mb-2">Registry</p>
+            <div className="text-xl font-black flex items-center gap-2 text-primary">
+              <ShieldCheck className="w-5 h-5 text-secondary" /> VERIFIED
+            </div>
+          </Card>
         </div>
 
         <Tabs defaultValue="current" className="w-full">
@@ -115,7 +132,9 @@ export default function GradeBookPage() {
           
           <TabsContent value="current" className="animate-in fade-in slide-in-from-bottom-2">
             <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
-              <CardHeader className="bg-primary p-8 text-white"><CardTitle className="text-xl font-black uppercase">Sequence Registry</CardTitle></CardHeader>
+              <CardHeader className="bg-primary p-8 text-white">
+                <CardTitle className="text-xl font-black uppercase">Sequence Registry</CardTitle>
+              </CardHeader>
               <CardContent className="p-0 overflow-x-auto">
                 <Table>
                   <TableHeader className="bg-accent/10 font-black text-[9px] uppercase">
@@ -164,8 +183,12 @@ export default function GradeBookPage() {
                     <CardDescription className="text-[10px] font-bold uppercase tracking-tight">Academic Session 2023 / 2024</CardDescription>
                   </CardHeader>
                   <CardFooter className="pt-0 flex gap-2 p-6">
-                    <Button variant="outline" size="sm" className="flex-1 gap-2 text-[10px] font-black uppercase h-10 rounded-xl border-primary/10 hover:bg-primary/5 transition-colors" onClick={() => setViewingDoc({ title: 'Term 1 Report Card', type: 'report', term: 'First Term', avg: '15.45', rank: '08/42' })}><Eye className="w-3.5 h-3.5" /> View</Button>
-                    <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-primary/10 hover:bg-primary/5" onClick={() => handleDownload('Term 1 Report Card')}><Download className="w-3.5 h-3.5 text-primary/60" /></Button>
+                    <Button variant="outline" size="sm" className="flex-1 gap-2 text-[10px] font-black uppercase h-10 rounded-xl border-primary/10 hover:bg-primary/5 transition-colors" onClick={() => setViewingDoc({ title: 'Term 1 Report Card', type: 'report', term: 'First Term', avg: '15.45', rank: '08/42' })}>
+                      <Eye className="w-3.5 h-3.5" /> View
+                    </Button>
+                    <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-primary/10 hover:bg-primary/5" onClick={() => handleDownload('Term 1 Report Card')}>
+                      <Download className="w-3.5 h-3.5 text-primary/60" />
+                    </Button>
                   </CardFooter>
                </Card>
 
@@ -180,8 +203,12 @@ export default function GradeBookPage() {
                     <CardDescription className="text-[10px] font-bold uppercase tracking-tight">Academic Session 2023 / 2024</CardDescription>
                   </CardHeader>
                   <CardFooter className="pt-0 flex gap-2 p-6">
-                    <Button variant="outline" size="sm" className="flex-1 gap-2 text-[10px] font-black uppercase h-10 rounded-xl border-primary/10 hover:bg-primary/5 transition-colors" onClick={() => setViewingDoc({ title: 'Term 2 Report Card', type: 'report', term: 'Second Term', avg: '16.12', rank: '05/42' })}><Eye className="w-3.5 h-3.5" /> View</Button>
-                    <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-primary/10 hover:bg-primary/5" onClick={() => handleDownload('Term 2 Report Card')}><Download className="w-3.5 h-3.5 text-primary/60" /></Button>
+                    <Button variant="outline" size="sm" className="flex-1 gap-2 text-[10px] font-black uppercase h-10 rounded-xl border-primary/10 hover:bg-primary/5 transition-colors" onClick={() => setViewingDoc({ title: 'Term 2 Report Card', type: 'report', term: 'Second Term', avg: '16.12', rank: '05/42' })}>
+                      <Eye className="w-3.5 h-3.5" /> View
+                    </Button>
+                    <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-primary/10 hover:bg-primary/5" onClick={() => handleDownload('Term 2 Report Card')}>
+                      <Download className="w-3.5 h-3.5 text-primary/60" />
+                    </Button>
                   </CardFooter>
                </Card>
 
@@ -196,8 +223,12 @@ export default function GradeBookPage() {
                     <CardDescription className="text-[10px] font-bold uppercase tracking-tight">Digital PVC Copy • Valid 2024</CardDescription>
                   </CardHeader>
                   <CardFooter className="pt-0 flex gap-2 p-6">
-                    <Button variant="outline" size="sm" className="flex-1 gap-2 text-[10px] font-black uppercase h-10 rounded-xl border-primary/10 hover:bg-primary/5 transition-colors" onClick={() => setViewingDoc({ title: 'Digital ID Card', type: 'id' })}><Eye className="w-3.5 h-3.5" /> Preview</Button>
-                    <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-primary/10 hover:bg-primary/5" onClick={() => handleDownload('Digital ID Card')}><Download className="w-3.5 h-3.5 text-primary/60" /></Button>
+                    <Button variant="outline" size="sm" className="flex-1 gap-2 text-[10px] font-black uppercase h-10 rounded-xl border-primary/10 hover:bg-primary/5 transition-colors" onClick={() => setViewingDoc({ title: 'Digital ID Card', type: 'id' })}>
+                      <Eye className="w-3.5 h-3.5" /> Preview
+                    </Button>
+                    <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-primary/10 hover:bg-primary/5" onClick={() => handleDownload('Digital ID Card')}>
+                      <Download className="w-3.5 h-3.5 text-primary/60" />
+                    </Button>
                   </CardFooter>
                </Card>
             </div>
@@ -230,7 +261,9 @@ export default function GradeBookPage() {
                         <p>Republic of Cameroon</p>
                         <p>Peace - Work - Fatherland</p>
                       </div>
-                      <img src={user?.school?.logo || platformSettings.logo} alt="School" className="w-16 h-16 object-contain" />
+                      <div className="flex flex-col items-center">
+                        <img src={user?.school?.logo || platformSettings.logo} alt="School" className="w-16 h-16 object-contain" />
+                      </div>
                       <div className="space-y-0.5 text-[8px] uppercase font-bold text-right">
                         <p>République du Cameroun</p>
                         <p>Paix - Travail - Patrie</p>
@@ -302,14 +335,14 @@ export default function GradeBookPage() {
                           </div>
                           <div className="space-y-0.5">
                             <p className="text-[6px] uppercase font-black text-muted-foreground">Class</p>
-                            <p className="text-[10px] font-black text-primary uppercase">{user?.class || "Form 5"}</p>
+                            <p className="text-[10px] font-black text-primary uppercase">{user?.class?.split(' / ')[0] || "Form 5"}</p>
                           </div>
                         </div>
                       </div>
                     </div>
                     <div className="bg-primary/5 p-2 px-4 flex justify-between items-center border-t border-accent shrink-0">
                       <span className="text-[8px] font-black text-primary uppercase tracking-widest">STUDENT ID CARD</span>
-                      <Badge className="bg-secondary text-primary border-none text-[8px] font-black h-4 px-2">2023 - 2024</Badge>
+                      <Badge className="bg-secondary text-primary border-none text-[8px] font-black h-5 px-2">2023 - 2024</Badge>
                     </div>
                   </div>
                 </div>
