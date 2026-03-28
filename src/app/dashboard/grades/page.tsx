@@ -48,26 +48,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
 const SUBJECTS = ["Advanced Physics", "Mathematics", "English Literature", "General Chemistry", "Biology", "History", "Geography"];
-const SECTIONS = ["Anglophone Section", "Francophone Section", "Technical Section"];
 const ACADEMIC_YEARS = ["2023 / 2024", "2022 / 2023", "2021 / 2022"];
 const TERMS = ["Term 1", "Term 2", "Term 3"];
 
 const MOCK_STUDENTS_GRADES = [
-  { uid: "S1", id: "GBHS26S001", name: "Alice Thompson", class: "2nde / Form 5", section: "Anglophone Section", avatar: "https://picsum.photos/seed/s1/100/100", seq1: 14.5, seq2: 16.0 },
-  { uid: "S2", id: "GBHS26S002", name: "Bob Richards", class: "2nde / Form 5", section: "Anglophone Section", avatar: "https://picsum.photos/seed/s2/100/100", seq1: 18.0, seq2: 17.5 },
+  { uid: "S1", id: "GBHS26S001", name: "Alice Thompson", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s1/100/100", seq1: 14.5, seq2: 16.0 },
+  { uid: "S2", id: "GBHS26S002", name: "Bob Richards", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s2/100/100", seq1: 18.0, seq2: 17.5 },
 ];
 
 const MOCK_PERSONAL_GRADES = [
   { subject: "Advanced Physics", seq1: 14.5, seq2: 16.0, coeff: 4, teacher: "Dr. Tesla", status: "Passed" },
   { subject: "Mathematics", seq1: 18.0, seq2: 17.5, coeff: 5, teacher: "Prof. Smith", status: "Passed" },
-];
-
-const MOCK_PERSONAL_ARCHIVE = [
-  { id: "R1", year: "2023 / 2024", term: "Term 1", average: "15.45", position: "4th / 45", classMaster: "Mr. Abena", status: "Published" },
-];
-
-const MOCK_FILLING_LOGS = [
-  { subject: "Advanced Physics", class: "2nde / Form 5", teacher: "Dr. Tesla", progress: 100, status: "Filled", lastUpdate: "2h ago" },
 ];
 
 const MOCK_TRANSCRIPT_DATA = {
@@ -82,21 +73,10 @@ export default function GradeBookPage() {
   const router = useRouter();
   
   const [isLoading, setIsLoading] = useState(true);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [selectedClass, setSelectedClass] = useState("2nde / Form 5");
   const [selectedSubject, setSelectedSubject] = useState("Advanced Physics");
   const [activeSequence, setActiveSequence] = useState<"seq1" | "seq2">("seq1");
-  
-  const [adminFilters, setAdminFilters] = useState({
-    year: ACADEMIC_YEARS[0],
-    term: TERMS[0],
-    section: "all",
-    class: "all",
-    search: ""
-  });
-
   const [grades, setGrades] = useState(MOCK_STUDENTS_GRADES);
-  const [previewDoc, setPreviewDoc] = useState<any>(null);
 
   const isTeacher = user?.role === "TEACHER";
   const isStudent = user?.role === "STUDENT";
@@ -160,10 +140,9 @@ export default function GradeBookPage() {
         </div>
 
         <Tabs defaultValue="current" className="w-full">
-          <TabsList className="grid grid-cols-3 w-full md:w-[600px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl">
+          <TabsList className="grid grid-cols-2 w-full md:w-[400px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl">
             <TabsTrigger value="current" className="gap-2 py-3 rounded-xl transition-all font-bold">Current Term</TabsTrigger>
-            <TabsTrigger value="archive" className="gap-2 py-3 rounded-xl transition-all font-bold">Full Archive</TabsTrigger>
-            <TabsTrigger value="transcript" className="gap-2 py-3 rounded-xl transition-all font-bold">Provisional Transcript</TabsTrigger>
+            <TabsTrigger value="transcript" className="gap-2 py-3 rounded-xl transition-all font-bold">Transcript</TabsTrigger>
           </TabsList>
 
           <TabsContent value="current">
@@ -210,7 +189,6 @@ export default function GradeBookPage() {
     );
   }
 
-  // Teacher / Admin Entry View
   return (
     <div className="space-y-8 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -331,7 +309,7 @@ function TranscriptPreview({ student, platform }: { student: any, platform: any 
       </div>
 
       <div className="text-center my-10 space-y-2">
-        <h1 className="text-4xl font-black uppercase tracking-widest underline underline-offset-8 decoration-double">Official Academic Transcript</h1>
+        <h1 className="text-4xl font-black uppercase tracking-widest underline underline-offset-8 decoration-double">Academic Transcript</h1>
         <p className="text-sm font-bold opacity-60">Session 2023 / 2024</p>
       </div>
 

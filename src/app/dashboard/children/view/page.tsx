@@ -74,59 +74,32 @@ const MOCK_CHILDREN = [
     status: "active",
     isLicensePaid: true,
     avatar: "https://picsum.photos/seed/alice/200/200",
-    createdAt: { toDate: () => new Date() },
     dob: "15/05/2008",
     gender: "Female",
-    region: "Littoral",
-    division: "Wouri",
-    subDivision: "Douala 1er",
-    placeOfBirth: "Douala",
     guardian: "Mr. Robert Thompson",
     guardianPhone: "+237 677 00 11 22",
     address: "Bonapriso, Douala",
-    motto: "Discipline - Work - Success"
   }
 ];
 
 const MOCK_GRADES = [
-  { subject: "Physics", seq1: 14.5, seq2: 16.0, teacher: "Dr. Tesla", status: "Passed", coeff: 4 },
+  { subject: "Advanced Physics", seq1: 14.5, seq2: 16.0, teacher: "Dr. Tesla", status: "Passed", coeff: 4 },
   { subject: "Mathematics", seq1: 18.0, seq2: 17.5, teacher: "Prof. Smith", status: "Passed", coeff: 5 },
-  { subject: "English Literature", seq1: 8.0, seq2: 13.0, teacher: "Ms. Bennet", status: "Passed", coeff: 3 },
-  { subject: "Chemistry", seq1: 10.5, seq2: 11.5, teacher: "Dr. White", status: "Passed", coeff: 4 },
-  { subject: "History", seq1: 7.0, seq2: 8.5, teacher: "Mr. Tabi", status: "Failed", coeff: 2 },
 ];
 
 const MOCK_ATTENDANCE = [
   { date: "May 24, 2024", subject: "Mathematics", time: "08:00 AM", status: "Present", teacher: "Prof. Smith" },
-  { date: "May 24, 2024", subject: "Physics", time: "10:30 AM", status: "Present", teacher: "Dr. Tesla" },
-  { date: "May 23, 2024", subject: "History", time: "01:00 PM", status: "Absent", teacher: "Mr. Tabi" },
-  { date: "May 22, 2024", subject: "English", time: "09:00 AM", status: "Present", teacher: "Ms. Bennet" },
-  { date: "May 21, 2024", subject: "Chemistry", time: "11:00 AM", status: "Present", teacher: "Dr. White" },
+  { date: "May 24, 2024", subject: "Advanced Physics", time: "10:30 AM", status: "Present", teacher: "Dr. Tesla" },
 ];
 
 const MOCK_ATTENDANCE_HISTORY = [
   { year: "2023 / 2024", term: "Term 1", subject: "Advanced Physics", present: 22, absent: 2, rate: 92 },
   { year: "2023 / 2024", term: "Term 1", subject: "Mathematics", present: 24, absent: 0, rate: 100 },
-  { year: "2022 / 2023", term: "Term 3", subject: "Advanced Physics", present: 20, absent: 4, rate: 83 },
-  { year: "2022 / 2023", term: "Term 3", subject: "Mathematics", present: 23, absent: 1, rate: 96 },
-];
-
-const MOCK_DOCUMENTS = [
-  { id: "D1", title: "Official Admission Letter", type: "PDF", size: "1.2 MB", date: "Sept 10, 2023", icon: FileText },
-  { id: "D2", title: "Term 1 Fee Receipt", type: "PDF", size: "450 KB", date: "Oct 15, 2023", icon: Receipt },
-  { id: "D3", title: "Institutional ID Card Copy", type: "PNG", size: "800 KB", date: "Sept 12, 2023", icon: CreditCard },
-];
-
-const MOCK_REPORT_HISTORY = [
-  { year: "2023 / 2024", term: "Term 2", average: "16.20", position: "1st / 45", classMaster: "Mr. Abena", isPublished: true },
-  { year: "2023 / 2024", term: "Term 1", average: "14.50", position: "3rd / 45", classMaster: "Mr. Abena", isPublished: true },
 ];
 
 const MOCK_TRANSCRIPT_DATA = {
-  "Physics": { f1: ["12.5", "13.0", "14.2"], f2: ["11.0", "12.5", "13.5"], f3: ["14.0", "15.5", "16.0"] },
+  "Advanced Physics": { f1: ["12.5", "13.0", "14.2"], f2: ["11.0", "12.5", "13.5"], f3: ["14.0", "15.5", "16.0"] },
   "Mathematics": { f1: ["15.0", "16.5", "17.0"], f2: ["14.5", "15.0", "16.0"], f3: ["17.5", "18.0", "17.5"] },
-  "English": { f1: ["10.0", "11.5", "12.0"], f2: ["09.5", "10.0", "11.0"], f3: ["12.5", "13.0", "13.5"] },
-  "History": { f1: ["08.5", "09.0", "10.5"], f2: ["07.5", "08.0", "09.5"], f3: ["09.0", "10.5", "11.0"] }
 };
 
 export default function StudentDetailsPage() {
@@ -139,11 +112,6 @@ export default function StudentDetailsPage() {
   
   const [loading, setLoading] = useState(true);
   const [student, setStudent] = useState<any>(null);
-  const [previewDoc, setPreviewDoc] = useState<{ type: 'report' | 'receipt' | 'id', data?: any } | null>(null);
-  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
-  const [messageText, setMessageText] = useState("");
-  const [isSendingMessage, setIsSendingMessage] = useState(false);
-  const [isExportingTranscript, setIsExportingTranscript] = useState(false);
 
   useEffect(() => {
     const found = MOCK_CHILDREN.find(c => c.id === studentId) || MOCK_CHILDREN[0];
@@ -154,41 +122,7 @@ export default function StudentDetailsPage() {
   }, [studentId]);
 
   const isTeacher = currentUser?.role === "TEACHER";
-  const isSchoolAdmin = currentUser?.role === "SCHOOL_ADMIN";
   const isParent = currentUser?.role === "PARENT";
-
-  const studentStats = useMemo(() => {
-    const totalWeighted = MOCK_GRADES.reduce((acc, curr) => acc + (((curr.seq1 + curr.seq2)/2) * curr.coeff), 0);
-    const totalCoeff = MOCK_GRADES.reduce((acc, curr) => acc + curr.coeff, 0);
-    const avg = totalCoeff > 0 ? totalWeighted / totalCoeff : 0;
-    
-    return {
-      average: avg.toFixed(2),
-      totalCoeff,
-      totalWeighted: totalWeighted.toFixed(2),
-      attendance: 94.5,
-      position: "4th / 45"
-    };
-  }, []);
-
-  const handleSendMessage = () => {
-    if (!messageText.trim()) return;
-    setIsSendingMessage(true);
-    setTimeout(() => {
-      setIsSendingMessage(false);
-      setIsMessageModalOpen(false);
-      setMessageText("");
-      toast({ title: "Message Sent" });
-    }, 1000);
-  };
-
-  const handleDownloadTranscript = () => {
-    setIsExportingTranscript(true);
-    setTimeout(() => {
-      setIsExportingTranscript(false);
-      toast({ title: "Transcript Prepared" });
-    }, 2000);
-  };
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center h-[60vh] space-y-4">
@@ -221,16 +155,9 @@ export default function StudentDetailsPage() {
           </div>
         </div>
         {!isTeacher && (
-          <div className="flex gap-2 w-full sm:w-auto">
-            {isParent && (
-              <Button variant="outline" className="flex-1 sm:flex-none gap-2 rounded-xl" onClick={() => setIsMessageModalOpen(true)}>
-                <Mail className="w-4 h-4" /> Contact Teacher
-              </Button>
-            )}
-            <Button className="flex-1 sm:flex-none gap-2 shadow-lg rounded-xl" onClick={() => setPreviewDoc({ type: 'report', data: MOCK_REPORT_HISTORY[0] })}>
-              <Printer className="w-4 h-4" /> {t("print")} {t("reportCard")}
-            </Button>
-          </div>
+          <Button className="flex-1 sm:flex-none gap-2 shadow-lg rounded-xl h-12 px-8 font-bold" onClick={() => window.print()}>
+            <Printer className="w-4 h-4" /> {t("print")} {t("reportCard")}
+          </Button>
         )}
       </div>
 
@@ -243,57 +170,32 @@ export default function StudentDetailsPage() {
           <TabsTrigger value="transcript" className="gap-2 py-2 whitespace-nowrap"><FileBadge className="w-4 h-4" /> {t("draftTranscript")}</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="profile" className="mt-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-            <Card className="md:col-span-4 border-none shadow-sm overflow-hidden rounded-3xl">
-              <CardHeader className="bg-primary p-6 text-white text-center">
-                <Avatar className="h-24 w-24 border-4 border-white/20 mx-auto shadow-xl mb-2">
-                  <AvatarImage src={student.avatar} />
-                  <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <CardTitle className="text-xl font-black uppercase tracking-tight">{student.name}</CardTitle>
-                <Badge variant="secondary" className="bg-secondary text-primary border-none text-[8px] font-black uppercase mt-2">Verified Identity</Badge>
-              </CardHeader>
-              <CardContent className="p-6 space-y-4">
-                <div className="space-y-1">
-                  <p className="text-[10px] font-black uppercase text-muted-foreground">National Matricule</p>
-                  <p className="font-mono font-bold text-primary">{student.id}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] font-black uppercase text-muted-foreground">Status</p>
-                  <Badge className="bg-green-100 text-green-700 border-none font-black uppercase text-[9px]">Enrolled & Active</Badge>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="md:col-span-8 space-y-6">
-              <Card className="border-none shadow-sm rounded-3xl">
-                <CardHeader className="border-b bg-accent/5">
-                  <CardTitle className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
-                    <Fingerprint className="w-4 h-4" /> Personal Registry
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-1">
-                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Date of Birth</Label>
-                    <p className="font-bold text-primary">{student.dob}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Gender</Label>
-                    <p className="font-bold text-primary">{student.gender}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+        <TabsContent value="profile" className="mt-6">
+          <Card className="border-none shadow-sm rounded-3xl overflow-hidden">
+            <CardHeader className="bg-primary p-8 text-white text-center">
+              <Avatar className="h-24 w-24 border-4 border-white/20 mx-auto shadow-xl mb-4">
+                <AvatarImage src={student.avatar} />
+                <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <CardTitle className="text-2xl font-black">{student.name}</CardTitle>
+              <Badge variant="secondary" className="bg-secondary text-primary border-none font-black mt-2">ID: {student.id}</Badge>
+            </CardHeader>
+            <CardContent className="p-10 grid grid-cols-1 md:grid-cols-2 gap-8">
+               <div className="space-y-4">
+                  <div className="space-y-1"><p className="text-[10px] font-black uppercase opacity-40">Date of Birth</p><p className="font-bold">{student.dob}</p></div>
+                  <div className="space-y-1"><p className="text-[10px] font-black uppercase opacity-40">Section</p><p className="font-bold">{student.section}</p></div>
+               </div>
+               <div className="space-y-4">
+                  <div className="space-y-1"><p className="text-[10px] font-black uppercase opacity-40">Guardian</p><p className="font-bold">{student.guardian}</p></div>
+                  <div className="space-y-1"><p className="text-[10px] font-black uppercase opacity-40">Contact</p><p className="font-bold text-secondary">{student.guardianPhone}</p></div>
+               </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="grades" className="mt-6">
           <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
-            <CardHeader className="bg-primary p-8 text-white">
-              <CardTitle className="text-2xl font-black">Performance Registry</CardTitle>
-              <CardDescription className="text-white/60">Verified marks for current evaluation cycle.</CardDescription>
-            </CardHeader>
+            <CardHeader className="bg-primary p-8 text-white"><CardTitle className="text-xl font-black uppercase">Performance Ledger</CardTitle></CardHeader>
             <CardContent className="p-0 overflow-x-auto">
               <Table>
                 <TableHeader className="bg-accent/10">
@@ -306,90 +208,34 @@ export default function StudentDetailsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {MOCK_GRADES.map((g, idx) => {
-                    const avg = (g.seq1 + g.seq2) / 2;
-                    return (
-                      <TableRow key={idx} className="hover:bg-accent/5 border-b last:border-0 h-16">
-                        <TableCell className="pl-8 font-black text-primary uppercase text-sm py-4">{g.subject}</TableCell>
-                        <TableCell className={cn("text-center font-bold", g.seq1 < 10 ? "text-red-600" : "")}>{g.seq1.toFixed(2)}</TableCell>
-                        <TableCell className={cn("text-center font-bold", g.seq2 < 10 ? "text-red-600" : "")}>{g.seq2.toFixed(2)}</TableCell>
-                        <TableCell className="text-center font-mono font-bold text-muted-foreground italic">{g.coeff}</TableCell>
-                        <TableCell className="text-right pr-8">
-                          <Badge className={cn("text-[9px] font-black uppercase border-none px-3", avg >= 10 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}>
-                            {avg >= 10 ? "Passed" : "Failed"}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="attendance" className="mt-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="border-none shadow-sm bg-green-50 p-6 rounded-3xl flex items-center gap-4">
-              <div className="p-3 bg-white rounded-2xl text-green-600 shadow-sm"><CheckCircle2 className="w-6 h-6" /></div>
-              <div>
-                <p className="text-[10px] font-black uppercase text-green-600">Presence</p>
-                <p className="text-2xl font-black text-green-700">94.5%</p>
-              </div>
-            </Card>
-          </div>
-
-          <Card className="border-none shadow-xl overflow-hidden rounded-3xl bg-white">
-            <CardHeader className="bg-primary p-8 text-white">
-              <CardTitle className="text-2xl font-black uppercase tracking-tight">Presence Ledger</CardTitle>
-              <CardDescription className="text-white/60">Chronological record of daily attendance.</CardDescription>
-            </CardHeader>
-            <CardContent className="p-0 overflow-x-auto">
-              <Table>
-                <TableHeader className="bg-accent/10">
-                  <TableRow className="uppercase text-[10px] font-black border-b">
-                    <TableHead className="pl-8 py-4">Date</TableHead>
-                    <TableHead>Subject</TableHead>
-                    <TableHead>Time</TableHead>
-                    <TableHead className="text-right pr-8">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {MOCK_ATTENDANCE.map((att, idx) => (
-                    <TableRow key={idx} className="hover:bg-accent/5 border-b last:border-0 h-16">
-                      <TableCell className="pl-8 font-bold text-xs text-muted-foreground">{att.date}</TableCell>
-                      <TableCell className="font-black text-primary uppercase text-sm">{att.subject}</TableCell>
-                      <TableCell className="font-mono text-xs font-bold">{att.time}</TableCell>
-                      <TableCell className="text-right pr-8">
-                        <Badge className={cn("text-[9px] font-black uppercase border-none px-3", att.status === 'Present' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}>{att.status}</Badge>
-                      </TableCell>
+                  {MOCK_GRADES.map((g, idx) => (
+                    <TableRow key={idx} className="h-16 border-b last:border-0 hover:bg-accent/5">
+                      <TableCell className="pl-8 font-black uppercase text-xs">{g.subject}</TableCell>
+                      <TableCell className="text-center font-bold">{g.seq1.toFixed(2)}</TableCell>
+                      <TableCell className="text-center font-bold">{g.seq2.toFixed(2)}</TableCell>
+                      <TableCell className="text-center font-mono font-bold italic">{g.coeff}</TableCell>
+                      <TableCell className="text-right pr-8"><Badge className="bg-green-100 text-green-700">PASSED</Badge></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </CardContent>
           </Card>
+        </TabsContent>
 
-          {/* ATTENDANCE RECORDS HISTORY */}
+        <TabsContent value="attendance" className="mt-6 space-y-8">
           <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
             <CardHeader className="bg-primary/5 p-8 border-b flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-primary rounded-2xl text-white shadow-xl">
-                  <CalendarDays className="w-8 h-8 text-secondary" />
-                </div>
-                <div>
-                  <CardTitle className="text-xl font-black text-primary uppercase tracking-tight">Attendance Records History</CardTitle>
-                  <CardDescription>Verified subject-wise participation analytics across sessions.</CardDescription>
-                </div>
+                <div className="p-3 bg-primary rounded-2xl text-white shadow-xl"><CalendarDays className="w-8 h-8 text-secondary" /></div>
+                <div><CardTitle className="text-xl font-black text-primary uppercase">Attendance Records History</CardTitle><CardDescription>Subject-wise participation analytics across sessions.</CardDescription></div>
               </div>
-              <Button variant="outline" className="rounded-xl h-11 gap-2 font-bold bg-white" onClick={() => toast({ title: "History Exported" })}>
-                <FileDown className="w-4 h-4 text-primary" /> Export Records
-              </Button>
+              <Button variant="outline" className="rounded-xl h-11 gap-2 font-bold bg-white" onClick={() => toast({ title: "History Exported" })}><FileDown className="w-4 h-4 text-primary" /> Export Records</Button>
             </CardHeader>
-            <CardContent className="p-0 overflow-x-auto scrollbar-thin">
+            <CardContent className="p-0 overflow-x-auto">
               <Table>
-                <TableHeader className="bg-accent/10">
-                  <TableRow className="uppercase text-[10px] font-black tracking-widest border-b">
+                <TableHeader className="bg-accent/10 uppercase text-[10px] font-black tracking-widest border-b">
+                  <TableRow>
                     <TableHead className="pl-8 py-4">Academic Year</TableHead>
                     <TableHead>Term</TableHead>
                     <TableHead>Pedagogical Subject</TableHead>
@@ -402,18 +248,14 @@ export default function StudentDetailsPage() {
                   {MOCK_ATTENDANCE_HISTORY.map((hist, i) => (
                     <TableRow key={i} className="hover:bg-accent/5 h-16 border-b last:border-0">
                       <TableCell className="pl-8 font-bold text-xs text-muted-foreground">{hist.year}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-[9px] font-black uppercase text-primary border-primary/10">{hist.term}</Badge>
-                      </TableCell>
+                      <TableCell><Badge variant="outline" className="text-[9px] font-black uppercase text-primary">{hist.term}</Badge></TableCell>
                       <TableCell className="font-black text-primary uppercase text-sm">{hist.subject}</TableCell>
                       <TableCell className="text-center font-black text-green-600">{hist.present}</TableCell>
                       <TableCell className="text-center font-black text-red-600">{hist.absent}</TableCell>
                       <TableCell className="text-right pr-8">
                         <div className="inline-flex flex-col items-end gap-1.5 min-w-[80px]">
                           <div className="flex items-center gap-2">
-                            <span className={cn("text-xs font-black", hist.rate >= 90 ? "text-green-600" : "text-amber-600")}>
-                              {hist.rate}%
-                            </span>
+                            <span className={cn("text-xs font-black", hist.rate >= 90 ? "text-green-600" : "text-amber-600")}>{hist.rate}%</span>
                             {hist.rate >= 95 && <Zap className="w-3 h-3 text-secondary fill-current" />}
                           </div>
                           <div className="w-20 h-1.5 bg-accent rounded-full overflow-hidden">
@@ -427,30 +269,6 @@ export default function StudentDetailsPage() {
               </Table>
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="documents" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {MOCK_DOCUMENTS.map((doc) => (
-              <Card key={doc.id} className="border-none shadow-sm overflow-hidden bg-white group hover:shadow-md transition-all rounded-3xl">
-                <CardHeader className="p-6 pb-4">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="p-3 bg-primary/5 rounded-2xl text-primary group-hover:scale-110 transition-transform">
-                      <doc.icon className="w-6 h-6" />
-                    </div>
-                    <Badge variant="outline" className="text-[10px] font-black border-primary/10 text-primary">{doc.type}</Badge>
-                  </div>
-                  <CardTitle className="text-base font-black text-primary uppercase leading-tight line-clamp-2">{doc.title}</CardTitle>
-                  <CardDescription className="text-[10px] font-bold mt-1">Issued on: {doc.date}</CardDescription>
-                </CardHeader>
-                <CardFooter className="bg-accent/10 p-4 border-t">
-                   <Button className="w-full h-10 rounded-xl font-black uppercase text-[10px] tracking-widest gap-2 shadow-sm" onClick={() => toast({ title: "Download Started" })}>
-                     <FileDown className="w-4 h-4" /> {t("download")}
-                   </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
         </TabsContent>
 
         <TabsContent value="transcript" className="mt-6">
@@ -483,10 +301,7 @@ function LandscapeTranscript({ student, platform }: { student: any, platform: an
           <img src={platform.logo} alt="Logo" className="w-14 h-14 object-contain" />
           <p className="text-[9px] font-black uppercase text-primary tracking-tighter">Verified Node Record</p>
         </div>
-        <div className="space-y-1 text-[9px] uppercase font-black text-right">
-          <p>République du Cameroun</p>
-          <p>Paix - Travail - Patrie</p>
-        </div>
+        <div className="space-y-1 text-[9px] uppercase font-black text-right"><p>République du Cameroun</p><p>Paix - Travail - Patrie</p></div>
       </div>
 
       <div className="text-center my-10 space-y-2">
@@ -533,8 +348,7 @@ function LandscapeTranscript({ student, platform }: { student: any, platform: an
               <TableRow key={idx} className="border-b border-black last:border-0 h-10">
                 <TableCell className="border-r-2 border-black font-black text-[10px] uppercase py-2 pl-4">{subject}</TableCell>
                 {visibleClasses.map((_, i) => {
-                  const key = `f${i + 1}`;
-                  const data = years[key] || ["---", "---", "---"];
+                  const data = years[`f${i + 1}`] || ["---", "---", "---"];
                   return (
                     <React.Fragment key={i}>
                       <TableCell className="border-r border-black text-center text-[10px] font-mono">{data[0]}</TableCell>
