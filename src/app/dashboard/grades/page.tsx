@@ -29,12 +29,17 @@ import {
   FileDown,
   Download,
   Eye,
-  CreditCard
+  CreditCard,
+  QrCode,
+  X,
+  Building2,
+  CalendarDays
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRouter } from "next/navigation";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
 const SUBJECTS = ["Advanced Physics", "Mathematics", "English Literature", "General Chemistry", "Biology", "History", "Geography"];
@@ -65,6 +70,7 @@ export default function GradeBookPage() {
   const [selectedSubject, setSelectedSubject] = useState("Advanced Physics");
   const [activeSequence, setActiveSequence] = useState<"seq1" | "seq2">("seq1");
   const [grades] = useState(MOCK_STUDENTS_GRADES);
+  const [viewingDoc, setViewingDoc] = useState<any>(null);
 
   const isTeacher = user?.role === "TEACHER";
   const isStudent = user?.role === "STUDENT";
@@ -74,12 +80,19 @@ export default function GradeBookPage() {
     return () => clearTimeout(timer);
   }, []);
 
+  const handleDownload = (title: string) => {
+    toast({ title: "Preparation Started", description: `Generating high-fidelity PDF for ${title}...` });
+    setTimeout(() => {
+      toast({ title: "Download Successful", description: `${title} has been saved to your device.` });
+    }, 2000);
+  };
+
   if (isLoading) return <LoadingState message="Fetching pedagogical records..." />;
 
   if (isStudent) {
     return (
       <div className="space-y-8 pb-20">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full shadow-sm"><ArrowLeft className="w-5 h-5" /></Button>
             <h1 className="text-3xl font-bold text-primary font-headline uppercase">Results Registry</h1>
@@ -151,8 +164,8 @@ export default function GradeBookPage() {
                     <CardDescription className="text-[10px] font-bold uppercase tracking-tight">Academic Session 2023 / 2024</CardDescription>
                   </CardHeader>
                   <CardFooter className="pt-0 flex gap-2 p-6">
-                    <Button variant="outline" size="sm" className="flex-1 gap-2 text-[10px] font-black uppercase h-10 rounded-xl border-primary/10 hover:bg-primary/5 transition-colors"><Eye className="w-3.5 h-3.5" /> View</Button>
-                    <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-primary/10 hover:bg-primary/5"><Download className="w-3.5 h-3.5 text-primary/60" /></Button>
+                    <Button variant="outline" size="sm" className="flex-1 gap-2 text-[10px] font-black uppercase h-10 rounded-xl border-primary/10 hover:bg-primary/5 transition-colors" onClick={() => setViewingDoc({ title: 'Term 1 Report Card', type: 'report', term: 'First Term', avg: '15.45', rank: '08/42' })}><Eye className="w-3.5 h-3.5" /> View</Button>
+                    <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-primary/10 hover:bg-primary/5" onClick={() => handleDownload('Term 1 Report Card')}><Download className="w-3.5 h-3.5 text-primary/60" /></Button>
                   </CardFooter>
                </Card>
 
@@ -167,8 +180,8 @@ export default function GradeBookPage() {
                     <CardDescription className="text-[10px] font-bold uppercase tracking-tight">Academic Session 2023 / 2024</CardDescription>
                   </CardHeader>
                   <CardFooter className="pt-0 flex gap-2 p-6">
-                    <Button variant="outline" size="sm" className="flex-1 gap-2 text-[10px] font-black uppercase h-10 rounded-xl border-primary/10 hover:bg-primary/5 transition-colors"><Eye className="w-3.5 h-3.5" /> View</Button>
-                    <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-primary/10 hover:bg-primary/5"><Download className="w-3.5 h-3.5 text-primary/60" /></Button>
+                    <Button variant="outline" size="sm" className="flex-1 gap-2 text-[10px] font-black uppercase h-10 rounded-xl border-primary/10 hover:bg-primary/5 transition-colors" onClick={() => setViewingDoc({ title: 'Term 2 Report Card', type: 'report', term: 'Second Term', avg: '16.12', rank: '05/42' })}><Eye className="w-3.5 h-3.5" /> View</Button>
+                    <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-primary/10 hover:bg-primary/5" onClick={() => handleDownload('Term 2 Report Card')}><Download className="w-3.5 h-3.5 text-primary/60" /></Button>
                   </CardFooter>
                </Card>
 
@@ -183,13 +196,134 @@ export default function GradeBookPage() {
                     <CardDescription className="text-[10px] font-bold uppercase tracking-tight">Digital PVC Copy • Valid 2024</CardDescription>
                   </CardHeader>
                   <CardFooter className="pt-0 flex gap-2 p-6">
-                    <Button variant="outline" size="sm" className="flex-1 gap-2 text-[10px] font-black uppercase h-10 rounded-xl border-primary/10 hover:bg-primary/5 transition-colors"><Eye className="w-3.5 h-3.5" /> Preview</Button>
-                    <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-primary/10 hover:bg-primary/5"><Download className="w-3.5 h-3.5 text-primary/60" /></Button>
+                    <Button variant="outline" size="sm" className="flex-1 gap-2 text-[10px] font-black uppercase h-10 rounded-xl border-primary/10 hover:bg-primary/5 transition-colors" onClick={() => setViewingDoc({ title: 'Digital ID Card', type: 'id' })}><Eye className="w-3.5 h-3.5" /> Preview</Button>
+                    <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-primary/10 hover:bg-primary/5" onClick={() => handleDownload('Digital ID Card')}><Download className="w-3.5 h-3.5 text-primary/60" /></Button>
                   </CardFooter>
                </Card>
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* DOCUMENT PREVIEW DIALOG */}
+        <Dialog open={!!viewingDoc} onOpenChange={() => setViewingDoc(null)}>
+          <DialogContent className="sm:max-w-3xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white flex flex-col max-h-[90vh]">
+            <DialogHeader className="bg-primary p-8 text-white relative shrink-0">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-2xl">
+                  <FileText className="w-8 h-8 text-secondary" />
+                </div>
+                <div>
+                  <DialogTitle className="text-2xl font-black uppercase tracking-tight">{viewingDoc?.title}</DialogTitle>
+                  <DialogDescription className="text-white/60">Verified institutional record preview.</DialogDescription>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setViewingDoc(null)} className="absolute top-4 right-4 text-white hover:bg-white/10">
+                <X className="w-6 h-6" />
+              </Button>
+            </DialogHeader>
+            
+            <div className="flex-1 overflow-y-auto p-6 md:p-10 bg-muted">
+              {viewingDoc?.type === 'report' ? (
+                <div className="bg-white p-8 border-2 border-black/10 shadow-sm relative flex flex-col space-y-8 font-serif text-black min-w-[600px] mx-auto">
+                   <div className="flex justify-between items-start border-b-2 border-black pb-4">
+                      <div className="space-y-0.5 text-[8px] uppercase font-bold">
+                        <p>Republic of Cameroon</p>
+                        <p>Peace - Work - Fatherland</p>
+                      </div>
+                      <img src={user?.school?.logo || platformSettings.logo} alt="School" className="w-16 h-16 object-contain" />
+                      <div className="space-y-0.5 text-[8px] uppercase font-bold text-right">
+                        <p>République du Cameroun</p>
+                        <p>Paix - Travail - Patrie</p>
+                      </div>
+                   </div>
+                   <div className="text-center space-y-1">
+                      <h2 className="font-black text-xl uppercase text-primary">{user?.school?.name || "GOVERNMENT HIGH SCHOOL"}</h2>
+                      <p className="text-[10px] font-bold uppercase tracking-widest underline decoration-double">{viewingDoc.term} Report Record</p>
+                   </div>
+                   <div className="grid grid-cols-2 gap-8 py-4">
+                      <div className="space-y-4">
+                        <div className="space-y-1">
+                          <p className="text-[9px] font-black uppercase text-muted-foreground border-b pb-1">Student Identity</p>
+                          <p className="font-black text-sm uppercase">{user?.name}</p>
+                          <p className="text-[10px] font-mono font-bold text-primary">Matricule: {user?.id}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-[9px] font-black uppercase text-muted-foreground border-b pb-1">Class Stream</p>
+                          <p className="font-bold text-xs uppercase">{user?.class || "2nde / Form 5"}</p>
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        <div className="p-4 bg-primary text-white rounded-2xl shadow-xl text-center">
+                           <p className="text-[9px] font-black uppercase opacity-60 tracking-widest mb-1">Term Average</p>
+                           <p className="font-black text-2xl text-secondary">{viewingDoc.avg} / 20</p>
+                        </div>
+                        <div className="flex justify-between items-center text-xs font-bold px-2">
+                           <span className="opacity-60 uppercase">Class Rank:</span>
+                           <span className="font-black text-primary">{viewingDoc.rank}</span>
+                        </div>
+                      </div>
+                   </div>
+                   <div className="pt-8 border-t border-black/5 flex justify-between items-end">
+                      <QrCode className="w-14 h-14 text-primary opacity-20" />
+                      <div className="text-center space-y-4 w-32">
+                        <div className="h-10 w-full bg-primary/5 rounded border-b-2 border-black/40 flex items-center justify-center">
+                           <SignatureSVG className="w-full h-full text-primary/10 p-2" />
+                        </div>
+                        <p className="text-[8px] font-black uppercase text-primary">The Principal</p>
+                      </div>
+                   </div>
+                </div>
+              ) : (
+                <div className="flex justify-center py-10">
+                  <div className="w-[400px] h-[250px] bg-white rounded-2xl shadow-2xl border-2 border-primary/10 overflow-hidden relative flex flex-col">
+                    <div className="bg-primary h-1.5 w-full shrink-0" />
+                    <div className="p-4 border-b flex items-center gap-3 bg-accent/5 shrink-0">
+                      <div className="w-10 h-10 bg-white rounded-lg p-1 border shadow-sm flex items-center justify-center shrink-0">
+                        <img src={user?.school?.logo || platformSettings.logo} alt="School" className="w-full h-full object-contain" />
+                      </div>
+                      <div className="flex-1 overflow-hidden">
+                        <h3 className="text-[10px] font-black uppercase text-primary leading-tight truncate">{user?.school?.name || "GOVERNMENT HIGH SCHOOL"}</h3>
+                        <p className="text-[7px] font-bold text-muted-foreground uppercase">Ministry of Secondary Education</p>
+                      </div>
+                    </div>
+                    <div className="flex-1 p-4 flex gap-4">
+                      <div className="w-24 h-24 rounded-lg border-2 border-primary/10 overflow-hidden shrink-0 bg-accent/5">
+                        <img src={user?.avatar} alt={user?.name} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-1 flex flex-col justify-center gap-2">
+                        <div className="space-y-0.5">
+                          <p className="text-[6px] uppercase font-black text-muted-foreground">Full Name</p>
+                          <p className="text-xs font-black text-primary uppercase leading-none">{user?.name}</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="space-y-0.5">
+                            <p className="text-[6px] uppercase font-black text-muted-foreground">Matricule</p>
+                            <p className="text-[10px] font-mono font-black text-secondary">{user?.id}</p>
+                          </div>
+                          <div className="space-y-0.5">
+                            <p className="text-[6px] uppercase font-black text-muted-foreground">Class</p>
+                            <p className="text-[10px] font-black text-primary uppercase">{user?.class || "Form 5"}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-primary/5 p-2 px-4 flex justify-between items-center border-t border-accent shrink-0">
+                      <span className="text-[8px] font-black text-primary uppercase tracking-widest">STUDENT ID CARD</span>
+                      <Badge className="bg-secondary text-primary border-none text-[8px] font-black h-4 px-2">2023 - 2024</Badge>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <DialogFooter className="bg-accent/10 p-6 border-t border-accent flex flex-col sm:flex-row gap-3 shrink-0">
+              <Button variant="outline" className="flex-1 rounded-xl font-bold h-12" onClick={() => setViewingDoc(null)}>Close Preview</Button>
+              <Button className="flex-1 rounded-xl font-black uppercase text-xs h-12 shadow-lg gap-2" onClick={() => handleDownload(viewingDoc.title)}>
+                <Download className="w-4 h-4" /> Download Official Copy
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
