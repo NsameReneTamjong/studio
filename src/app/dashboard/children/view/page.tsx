@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n-context";
 import { useAuth } from "@/lib/auth-context";
@@ -10,8 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { 
   ArrowLeft, 
   Award, 
@@ -57,7 +55,6 @@ import {
   Zap
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -85,11 +82,6 @@ const MOCK_CHILDREN = [
 const MOCK_GRADES = [
   { subject: "Advanced Physics", seq1: 14.5, seq2: 16.0, teacher: "Dr. Tesla", status: "Passed", coeff: 4 },
   { subject: "Mathematics", seq1: 18.0, seq2: 17.5, teacher: "Prof. Smith", status: "Passed", coeff: 5 },
-];
-
-const MOCK_ATTENDANCE = [
-  { date: "May 24, 2024", subject: "Mathematics", time: "08:00 AM", status: "Present", teacher: "Prof. Smith" },
-  { date: "May 24, 2024", subject: "Advanced Physics", time: "10:30 AM", status: "Present", teacher: "Dr. Tesla" },
 ];
 
 const MOCK_ATTENDANCE_HISTORY = [
@@ -122,7 +114,6 @@ export default function StudentDetailsPage() {
   }, [studentId]);
 
   const isTeacher = currentUser?.role === "TEACHER";
-  const isParent = currentUser?.role === "PARENT";
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center h-[60vh] space-y-4">
@@ -146,7 +137,7 @@ export default function StudentDetailsPage() {
               <AvatarFallback className="bg-primary/5 text-primary text-2xl font-bold">{student.name?.charAt(0)}</AvatarFallback>
             </Avatar>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline flex items-center gap-2">
+              <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline flex items-center gap-2 uppercase tracking-tight">
                 {student.name}
                 <Badge className="bg-green-100 text-green-700 uppercase hidden md:inline-flex">ACTIVE</Badge>
               </h1>
@@ -167,11 +158,11 @@ export default function StudentDetailsPage() {
           <TabsTrigger value="grades" className="gap-2 py-2 whitespace-nowrap"><Award className="w-4 h-4" /> {t("grades")}</TabsTrigger>
           <TabsTrigger value="attendance" className="gap-2 py-2 whitespace-nowrap"><ClipboardCheck className="w-4 h-4" /> {t("presence")}</TabsTrigger>
           <TabsTrigger value="documents" className="gap-2 py-2 whitespace-nowrap"><FileText className="w-4 h-4" /> {t("documents")}</TabsTrigger>
-          <TabsTrigger value="transcript" className="gap-2 py-2 whitespace-nowrap"><FileBadge className="w-4 h-4" /> {t("draftTranscript")}</TabsTrigger>
+          <TabsTrigger value="transcript" className="gap-2 py-2 whitespace-nowrap"><FileBadge className="w-4 h-4" /> {t("transcript")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile" className="mt-6">
-          <Card className="border-none shadow-sm rounded-3xl overflow-hidden">
+          <Card className="border-none shadow-sm rounded-3xl overflow-hidden bg-white">
             <CardHeader className="bg-primary p-8 text-white text-center">
               <Avatar className="h-24 w-24 border-4 border-white/20 mx-auto shadow-xl mb-4">
                 <AvatarImage src={student.avatar} />
@@ -194,8 +185,8 @@ export default function StudentDetailsPage() {
         </TabsContent>
 
         <TabsContent value="grades" className="mt-6">
-          <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
-            <CardHeader className="bg-primary p-8 text-white"><CardTitle className="text-xl font-black uppercase">Performance Ledger</CardTitle></CardHeader>
+          <Card className="border-none shadow-xl overflow-hidden rounded-3xl bg-white">
+            <CardHeader className="bg-primary p-8 text-white"><CardTitle className="text-xl font-black uppercase">Academic Performance Ledger</CardTitle></CardHeader>
             <CardContent className="p-0 overflow-x-auto">
               <Table>
                 <TableHeader className="bg-accent/10">
@@ -214,7 +205,7 @@ export default function StudentDetailsPage() {
                       <TableCell className="text-center font-bold">{g.seq1.toFixed(2)}</TableCell>
                       <TableCell className="text-center font-bold">{g.seq2.toFixed(2)}</TableCell>
                       <TableCell className="text-center font-mono font-bold italic">{g.coeff}</TableCell>
-                      <TableCell className="text-right pr-8"><Badge className="bg-green-100 text-green-700">PASSED</Badge></TableCell>
+                      <TableCell className="text-right pr-8"><Badge className="bg-green-100 text-green-700 font-black">PASSED</Badge></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -228,7 +219,7 @@ export default function StudentDetailsPage() {
             <CardHeader className="bg-primary/5 p-8 border-b flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-primary rounded-2xl text-white shadow-xl"><CalendarDays className="w-8 h-8 text-secondary" /></div>
-                <div><CardTitle className="text-xl font-black text-primary uppercase">Attendance Records History</CardTitle><CardDescription>Subject-wise participation analytics across sessions.</CardDescription></div>
+                <div><CardTitle className="text-xl font-black text-primary uppercase">Attendance History</CardTitle><CardDescription>Session participation breakdown across all subjects.</CardDescription></div>
               </div>
               <Button variant="outline" className="rounded-xl h-11 gap-2 font-bold bg-white" onClick={() => toast({ title: "History Exported" })}><FileDown className="w-4 h-4 text-primary" /> Export Records</Button>
             </CardHeader>
@@ -236,9 +227,9 @@ export default function StudentDetailsPage() {
               <Table>
                 <TableHeader className="bg-accent/10 uppercase text-[10px] font-black tracking-widest border-b">
                   <TableRow>
-                    <TableHead className="pl-8 py-4">Academic Year</TableHead>
+                    <TableHead className="pl-8 py-4">Year</TableHead>
                     <TableHead>Term</TableHead>
-                    <TableHead>Pedagogical Subject</TableHead>
+                    <TableHead>Subject</TableHead>
                     <TableHead className="text-center">Present</TableHead>
                     <TableHead className="text-center">Absent</TableHead>
                     <TableHead className="text-right pr-8">Rate (%)</TableHead>
@@ -306,17 +297,17 @@ function LandscapeTranscript({ student, platform }: { student: any, platform: an
 
       <div className="text-center my-10 space-y-2">
         <h1 className="text-4xl font-black uppercase tracking-widest underline underline-offset-8 decoration-double">Academic Transcript</h1>
-        <p className="text-sm font-bold opacity-60">Relevé de Notes Provisoire • Valid for Session 2023 / 2024</p>
+        <p className="text-sm font-bold opacity-60">Official Record • Valid for Session 2023 / 2024</p>
       </div>
 
       <div className="grid grid-cols-12 gap-8 bg-accent/5 p-6 border border-black/10 rounded-2xl items-center mb-10">
-        <div className="col-span-2">
-           <Avatar className="w-28 h-28 border-4 border-white rounded-[2rem] shadow-xl">
+        <div className="col-span-2 text-center">
+           <Avatar className="w-28 h-28 border-4 border-white rounded-[2rem] shadow-xl mx-auto">
               <AvatarImage src={student?.avatar} />
               <AvatarFallback className="text-3xl font-black">{student?.name?.charAt(0)}</AvatarFallback>
            </Avatar>
         </div>
-        <div className="col-span-10 grid grid-cols-2 gap-x-12 gap-y-3 text-sm">
+        <div className="col-span-9 grid grid-cols-2 gap-x-12 gap-y-3 text-sm">
           <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Identity:</span><span className="font-black uppercase">{student?.name}</span></div>
           <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Matricule:</span><span className="font-mono font-bold text-primary">{student?.id}</span></div>
         </div>
