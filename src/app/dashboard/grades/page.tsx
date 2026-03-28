@@ -221,7 +221,7 @@ export default function GradeBookPage() {
       const totalWeighted = MOCK_PERSONAL_GRADES.reduce((acc, curr) => acc + (((curr.seq1 + curr.seq2)/2) * curr.coeff), 0);
       const totalCoeff = MOCK_PERSONAL_GRADES.reduce((acc, curr) => acc + curr.coeff, 0);
       return {
-        average: (totalWeighted / totalCoeff).toFixed(2),
+        average: (totalWeighted / (totalCoeff || 1)).toFixed(2),
         passRate: "100"
       };
     }
@@ -566,7 +566,7 @@ export default function GradeBookPage() {
               </CardHeader>
               <CardContent className="p-0 overflow-x-auto">
                 <Table>
-                  <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest border-b">
+                  <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest border-b border-accent/20">
                     <TableRow>
                       <TableHead className="pl-8 py-4">Matricule</TableHead>
                       <TableHead>Student Identity</TableHead>
@@ -755,7 +755,7 @@ export default function GradeBookPage() {
               <ShieldCheck className="w-5 h-5 text-secondary" /> VERIFIED
             </div>
           </CardContent>
-        </div>
+        </Card>
       </div>
 
       <div className="bg-white p-4 md:p-6 rounded-[2rem] border shadow-sm flex flex-col md:flex-row gap-4 items-end">

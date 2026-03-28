@@ -454,7 +454,7 @@ export default function StudentDetailsPage() {
             <CardContent className="p-0 overflow-x-auto scrollbar-thin">
               <Table>
                 <TableHeader className="bg-accent/10">
-                  <TableRow className="uppercase text-[9px] font-black tracking-widest border-b">
+                  <TableRow className="uppercase text-[10px] font-black tracking-widest border-b">
                     <TableHead className="pl-8 py-4">Academic Year</TableHead>
                     <TableHead>Term</TableHead>
                     <TableHead>Pedagogical Subject</TableHead>
