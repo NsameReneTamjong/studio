@@ -46,7 +46,6 @@ import {
   Users,
   Send,
   Scale,
-  Signature,
   Activity,
   Lock,
   FileBadge,
@@ -110,15 +109,12 @@ const MOCK_ATTENDANCE_HISTORY = [
   { year: "2023 / 2024", term: "Term 1", subject: "Mathematics", present: 24, absent: 0, rate: 100 },
   { year: "2022 / 2023", term: "Term 3", subject: "Advanced Physics", present: 20, absent: 4, rate: 83 },
   { year: "2022 / 2023", term: "Term 3", subject: "Mathematics", present: 23, absent: 1, rate: 96 },
-  { year: "2022 / 2023", term: "Term 2", subject: "Advanced Physics", present: 18, absent: 6, rate: 75 },
-  { year: "2022 / 2023", term: "Term 2", subject: "Mathematics", present: 24, absent: 0, rate: 100 },
 ];
 
 const MOCK_DOCUMENTS = [
   { id: "D1", title: "Official Admission Letter", type: "PDF", size: "1.2 MB", date: "Sept 10, 2023", icon: FileText },
   { id: "D2", title: "Term 1 Fee Receipt", type: "PDF", size: "450 KB", date: "Oct 15, 2023", icon: Receipt },
   { id: "D3", title: "Institutional ID Card Copy", type: "PNG", size: "800 KB", date: "Sept 12, 2023", icon: CreditCard },
-  { id: "D4", title: "Sequence 1 Performance Slip", type: "PDF", size: "1.1 MB", date: "Nov 20, 2023", icon: Award },
 ];
 
 const MOCK_REPORT_HISTORY = [
@@ -182,10 +178,7 @@ export default function StudentDetailsPage() {
       setIsSendingMessage(false);
       setIsMessageModalOpen(false);
       setMessageText("");
-      toast({
-        title: t("messageSent"),
-        description: t("messageSentDesc"),
-      });
+      toast({ title: "Message Sent" });
     }, 1000);
   };
 
@@ -193,10 +186,7 @@ export default function StudentDetailsPage() {
     setIsExportingTranscript(true);
     setTimeout(() => {
       setIsExportingTranscript(false);
-      toast({
-        title: "Official Transcript Prepared",
-        description: `Landscape transcript for ${student.name} generated.`,
-      });
+      toast({ title: "Transcript Prepared" });
     }, 2000);
   };
 
@@ -234,7 +224,7 @@ export default function StudentDetailsPage() {
           <div className="flex gap-2 w-full sm:w-auto">
             {isParent && (
               <Button variant="outline" className="flex-1 sm:flex-none gap-2 rounded-xl" onClick={() => setIsMessageModalOpen(true)}>
-                <Mail className="w-4 h-4" /> {language === 'en' ? 'Contact Teacher' : 'Contacter Enseignant'}
+                <Mail className="w-4 h-4" /> Contact Teacher
               </Button>
             )}
             <Button className="flex-1 sm:flex-none gap-2 shadow-lg rounded-xl" onClick={() => setPreviewDoc({ type: 'report', data: MOCK_REPORT_HISTORY[0] })}>
@@ -270,10 +260,6 @@ export default function StudentDetailsPage() {
                   <p className="font-mono font-bold text-primary">{student.id}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[10px] font-black uppercase text-muted-foreground">Institutional Section</p>
-                  <p className="font-bold text-primary">{student.section}</p>
-                </div>
-                <div className="space-y-1">
                   <p className="text-[10px] font-black uppercase text-muted-foreground">Status</p>
                   <Badge className="bg-green-100 text-green-700 border-none font-black uppercase text-[9px]">Enrolled & Active</Badge>
                 </div>
@@ -293,38 +279,8 @@ export default function StudentDetailsPage() {
                     <p className="font-bold text-primary">{student.dob}</p>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Place of Origin</Label>
-                    <p className="font-bold text-primary">{student.placeOfBirth}, {student.region}</p>
-                  </div>
-                  <div className="space-y-1">
                     <Label className="text-[10px] font-black uppercase text-muted-foreground">Gender</Label>
                     <p className="font-bold text-primary">{student.gender}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Academic Node</Label>
-                    <p className="font-bold text-primary">{student.section}</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-none shadow-sm rounded-3xl">
-                <CardHeader className="border-b bg-accent/5">
-                  <CardTitle className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
-                    <Heart className="w-4 h-4" /> Guardian Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-1">
-                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Primary Guardian</Label>
-                    <p className="font-bold text-primary">{student.guardian}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Emergency Contact</Label>
-                    <p className="font-bold text-primary">{student.guardianPhone}</p>
-                  </div>
-                  <div className="col-span-full">
-                    <Label className="text-[10px] font-black uppercase text-muted-foreground">Residential Address</Label>
-                    <p className="font-bold text-primary">{student.address}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -335,25 +291,25 @@ export default function StudentDetailsPage() {
         <TabsContent value="grades" className="mt-6">
           <Card className="border-none shadow-xl overflow-hidden rounded-3xl">
             <CardHeader className="bg-primary p-8 text-white">
-              <CardTitle className="text-2xl font-black">Term Performance Registry</CardTitle>
+              <CardTitle className="text-2xl font-black">Performance Registry</CardTitle>
               <CardDescription className="text-white/60">Verified marks for current evaluation cycle.</CardDescription>
             </CardHeader>
             <CardContent className="p-0 overflow-x-auto">
               <Table>
                 <TableHeader className="bg-accent/10">
                   <TableRow className="uppercase text-[10px] font-black tracking-widest border-b">
-                    <TableHead className="pl-8 py-4">{t("subjects")}</TableHead>
+                    <TableHead className="pl-8 py-4">Subject</TableHead>
                     <TableHead className="text-center">Seq 1</TableHead>
                     <TableHead className="text-center">Seq 2</TableHead>
                     <TableHead className="text-center">Coeff</TableHead>
-                    <TableHead className="text-right pr-8">{t("status")}</TableHead>
+                    <TableHead className="text-right pr-8">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {MOCK_GRADES.map((g, idx) => {
                     const avg = (g.seq1 + g.seq2) / 2;
                     return (
-                      <TableRow key={idx} className="hover:bg-accent/5 border-b last:border-0">
+                      <TableRow key={idx} className="hover:bg-accent/5 border-b last:border-0 h-16">
                         <TableCell className="pl-8 font-black text-primary uppercase text-sm py-4">{g.subject}</TableCell>
                         <TableCell className={cn("text-center font-bold", g.seq1 < 10 ? "text-red-600" : "")}>{g.seq1.toFixed(2)}</TableCell>
                         <TableCell className={cn("text-center font-bold", g.seq2 < 10 ? "text-red-600" : "")}>{g.seq2.toFixed(2)}</TableCell>
@@ -377,22 +333,8 @@ export default function StudentDetailsPage() {
             <Card className="border-none shadow-sm bg-green-50 p-6 rounded-3xl flex items-center gap-4">
               <div className="p-3 bg-white rounded-2xl text-green-600 shadow-sm"><CheckCircle2 className="w-6 h-6" /></div>
               <div>
-                <p className="text-[10px] font-black uppercase text-green-600">Session Presence</p>
+                <p className="text-[10px] font-black uppercase text-green-600">Presence</p>
                 <p className="text-2xl font-black text-green-700">94.5%</p>
-              </div>
-            </Card>
-            <Card className="border-none shadow-sm bg-blue-50 p-6 rounded-3xl flex items-center gap-4">
-              <div className="p-3 bg-white rounded-2xl text-blue-600 shadow-sm"><Activity className="w-6 h-6" /></div>
-              <div>
-                <p className="text-[10px] font-black uppercase text-blue-600">Active Sessions</p>
-                <p className="text-2xl font-black text-blue-700">142</p>
-              </div>
-            </Card>
-            <Card className="border-none shadow-sm bg-primary p-6 rounded-3xl flex items-center gap-4 text-white">
-              <div className="p-3 bg-white/10 rounded-2xl text-secondary"><Scale className="w-6 h-6" /></div>
-              <div>
-                <p className="text-[10px] font-black uppercase text-white/60">Conduct Rating</p>
-                <p className="text-2xl font-black text-secondary">EXCELLENT</p>
               </div>
             </Card>
           </div>
@@ -400,16 +342,15 @@ export default function StudentDetailsPage() {
           <Card className="border-none shadow-xl overflow-hidden rounded-3xl bg-white">
             <CardHeader className="bg-primary p-8 text-white">
               <CardTitle className="text-2xl font-black uppercase tracking-tight">Presence Ledger</CardTitle>
-              <CardDescription className="text-white/60">Chronological record of subject-wise attendance logs.</CardDescription>
+              <CardDescription className="text-white/60">Chronological record of daily attendance.</CardDescription>
             </CardHeader>
             <CardContent className="p-0 overflow-x-auto">
               <Table>
                 <TableHeader className="bg-accent/10">
                   <TableRow className="uppercase text-[10px] font-black border-b">
-                    <TableHead className="pl-8 py-4">Session Date</TableHead>
-                    <TableHead>Pedagogical Subject</TableHead>
-                    <TableHead>Start Time</TableHead>
-                    <TableHead>Instructor</TableHead>
+                    <TableHead className="pl-8 py-4">Date</TableHead>
+                    <TableHead>Subject</TableHead>
+                    <TableHead>Time</TableHead>
                     <TableHead className="text-right pr-8">Status</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -419,14 +360,8 @@ export default function StudentDetailsPage() {
                       <TableCell className="pl-8 font-bold text-xs text-muted-foreground">{att.date}</TableCell>
                       <TableCell className="font-black text-primary uppercase text-sm">{att.subject}</TableCell>
                       <TableCell className="font-mono text-xs font-bold">{att.time}</TableCell>
-                      <TableCell className="text-xs font-medium text-muted-foreground">{att.teacher}</TableCell>
                       <TableCell className="text-right pr-8">
-                        <Badge className={cn(
-                          "text-[9px] font-black uppercase border-none px-3",
-                          att.status === 'Present' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                        )}>
-                          {att.status}
-                        </Badge>
+                        <Badge className={cn("text-[9px] font-black uppercase border-none px-3", att.status === 'Present' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}>{att.status}</Badge>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -435,7 +370,7 @@ export default function StudentDetailsPage() {
             </CardContent>
           </Card>
 
-          {/* COMPREHENSIVE ATTENDANCE HISTORY */}
+          {/* ATTENDANCE RECORDS HISTORY */}
           <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
             <CardHeader className="bg-primary/5 p-8 border-b flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-4">
@@ -482,10 +417,7 @@ export default function StudentDetailsPage() {
                             {hist.rate >= 95 && <Zap className="w-3 h-3 text-secondary fill-current" />}
                           </div>
                           <div className="w-20 h-1.5 bg-accent rounded-full overflow-hidden">
-                            <div 
-                              className={cn("h-full transition-all duration-1000", hist.rate >= 90 ? "bg-green-500" : "bg-amber-500")} 
-                              style={{ width: `${hist.rate}%` }} 
-                            />
+                            <div className={cn("h-full transition-all duration-1000", hist.rate >= 90 ? "bg-green-500" : "bg-amber-500")} style={{ width: `${hist.rate}%` }} />
                           </div>
                         </div>
                       </TableCell>
@@ -494,12 +426,6 @@ export default function StudentDetailsPage() {
                 </TableBody>
               </Table>
             </CardContent>
-            <CardFooter className="bg-accent/10 p-6 flex justify-center">
-               <div className="flex items-center gap-2 text-muted-foreground italic">
-                  <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
-                  <p className="text-[10px] font-black uppercase tracking-widest opacity-40">End-to-End Encrypted Presence Data Verified</p>
-               </div>
-            </CardFooter>
           </Card>
         </TabsContent>
 
@@ -517,12 +443,6 @@ export default function StudentDetailsPage() {
                   <CardTitle className="text-base font-black text-primary uppercase leading-tight line-clamp-2">{doc.title}</CardTitle>
                   <CardDescription className="text-[10px] font-bold mt-1">Issued on: {doc.date}</CardDescription>
                 </CardHeader>
-                <CardContent className="px-6 pb-6 pt-2">
-                   <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground bg-accent/20 p-2 rounded-lg w-fit">
-                      <Info className="w-3 h-3" />
-                      {doc.size}
-                   </div>
-                </CardContent>
                 <CardFooter className="bg-accent/10 p-4 border-t">
                    <Button className="w-full h-10 rounded-xl font-black uppercase text-[10px] tracking-widest gap-2 shadow-sm" onClick={() => toast({ title: "Download Started" })}>
                      <FileDown className="w-4 h-4" /> {t("download")}
@@ -533,41 +453,11 @@ export default function StudentDetailsPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="transcript" className="mt-6 space-y-8">
-          <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
-            <CardHeader className="bg-primary p-8 text-white">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-white/10 rounded-2xl text-secondary">
-                    <FileBadge className="w-8 h-8 text-secondary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-2xl font-black uppercase tracking-tight">{t("draftTranscript")}</CardTitle>
-                    <CardDescription className="text-white/60">Official Landscape Academic Record • Session 2023 - 2024</CardDescription>
-                  </div>
-                </div>
-                {isSchoolAdmin ? (
-                  <Button 
-                    className="bg-secondary text-primary hover:bg-secondary/90 h-12 px-8 rounded-xl font-black uppercase tracking-widest text-xs gap-3 shadow-lg"
-                    onClick={handleDownloadTranscript}
-                    disabled={isExportingTranscript}
-                  >
-                    {isExportingTranscript ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                    Download Official Transcript
-                  </Button>
-                ) : (
-                  <div className="bg-white/10 px-4 py-2 rounded-xl backdrop-blur-md border border-white/10 flex items-center gap-3">
-                    <ShieldCheck className="w-5 h-5 text-secondary" />
-                    <p className="text-[10px] font-black uppercase tracking-widest text-white">Verified Record</p>
-                  </div>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent className="p-8">
-              <div className="overflow-x-auto scrollbar-thin">
-                <LandscapeTranscript student={student} platform={platformSettings} />
-              </div>
-            </CardContent>
+        <TabsContent value="transcript" className="mt-6">
+          <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white p-8">
+            <div className="overflow-x-auto scrollbar-thin">
+              <LandscapeTranscript student={student} platform={platformSettings} />
+            </div>
           </Card>
         </TabsContent>
       </Tabs>
@@ -581,38 +471,26 @@ function LandscapeTranscript({ student, platform }: { student: any, platform: an
   const visibleClasses = CLASSES.slice(0, classIndex + 1);
 
   return (
-    <div className="max-w-[1200px] mx-auto bg-white p-8 md:p-12 border shadow-sm relative overflow-hidden font-serif text-black min-w-[1100px]">
-      <style jsx global>{`
-        @media print {
-          @page { size: landscape; margin: 10mm; }
-        }
-      `}</style>
-      
+    <div className="bg-white p-8 border shadow-sm font-serif text-black min-w-[1100px]">
       <div className="grid grid-cols-3 gap-4 items-start text-center border-b-2 border-black pb-6">
         <div className="space-y-1 text-[9px] uppercase font-black text-left">
           <p>Republic of Cameroon</p>
           <p>Peace - Work - Fatherland</p>
           <div className="h-px bg-black w-8 my-1" />
           <p>Ministry of Secondary Education</p>
-          <p>{student?.school?.name || "INSTITUTIONAL NODE"}</p>
         </div>
         <div className="flex flex-col items-center gap-2">
-          <div className="w-20 h-20 bg-white flex items-center justify-center p-2 border-2 border-primary/10">
-             <img src={student?.school?.logo || platform.logo} alt="Logo" className="w-14 h-14 object-contain" />
-          </div>
-          <p className="text-[9px] font-black uppercase text-primary tracking-tighter">Official Digital Node</p>
+          <img src={platform.logo} alt="Logo" className="w-14 h-14 object-contain" />
+          <p className="text-[9px] font-black uppercase text-primary tracking-tighter">Verified Node Record</p>
         </div>
         <div className="space-y-1 text-[9px] uppercase font-black text-right">
           <p>République du Cameroun</p>
           <p>Paix - Travail - Patrie</p>
-          <div className="h-px bg-black w-8 ml-auto my-1" />
-          <p>Min. des Enseignements Secondaires</p>
-          <p>Délégation Régionale Littoral</p>
         </div>
       </div>
 
       <div className="text-center my-10 space-y-2">
-        <h1 className="text-4xl font-black uppercase tracking-widest underline underline-offset-8 decoration-double leading-none">Academic Transcript</h1>
+        <h1 className="text-4xl font-black uppercase tracking-widest underline underline-offset-8 decoration-double">Academic Transcript</h1>
         <p className="text-sm font-bold opacity-60">Relevé de Notes Provisoire • Valid for Session 2023 / 2024</p>
       </div>
 
@@ -626,8 +504,6 @@ function LandscapeTranscript({ student, platform }: { student: any, platform: an
         <div className="col-span-10 grid grid-cols-2 gap-x-12 gap-y-3 text-sm">
           <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Identity:</span><span className="font-black uppercase">{student?.name}</span></div>
           <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Matricule:</span><span className="font-mono font-bold text-primary">{student?.id}</span></div>
-          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Grade Level:</span><span className="font-bold">{student?.class}</span></div>
-          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Born On:</span><span className="font-bold">{student?.dob || "15/05/2008"}</span></div>
         </div>
       </div>
 
@@ -635,7 +511,7 @@ function LandscapeTranscript({ student, platform }: { student: any, platform: an
         <Table className="border-collapse">
           <TableHeader className="bg-black/5">
             <TableRow className="border-b-2 border-black h-12">
-              <TableHead rowSpan={2} className="border-r-2 border-black font-black text-black uppercase text-[10px] text-center w-48">Pedagogical Subject</TableHead>
+              <TableHead rowSpan={2} className="border-r-2 border-black font-black text-black uppercase text-[10px] text-center w-48">Subject</TableHead>
               {visibleClasses.map((cls, i) => (
                 <TableHead key={i} colSpan={3} className={cn("border-r-2 border-black font-black text-black uppercase text-[10px] text-center h-8", i === visibleClasses.length - 1 ? "border-r-0" : "")}>
                   {cls.split(' / ')[1] || cls}
@@ -661,9 +537,9 @@ function LandscapeTranscript({ student, platform }: { student: any, platform: an
                   const data = years[key] || ["---", "---", "---"];
                   return (
                     <React.Fragment key={i}>
-                      <TableCell className={cn("border-r border-black text-center text-[10px] font-mono", parseFloat(data[0]) < 10 ? "text-red-600" : "")}>{data[0]}</TableCell>
-                      <TableCell className={cn("border-r border-black text-center text-[10px] font-mono", parseFloat(data[1]) < 10 ? "text-red-600" : "")}>{data[1]}</TableCell>
-                      <TableCell className={cn("border-r-2 border-black text-center text-[10px] font-mono bg-accent/5", i === visibleClasses.length - 1 ? "border-r-0" : "", parseFloat(data[2]) < 10 ? "text-red-600" : "")}>{data[2]}</TableCell>
+                      <TableCell className="border-r border-black text-center text-[10px] font-mono">{data[0]}</TableCell>
+                      <TableCell className="border-r border-black text-center text-[10px] font-mono">{data[1]}</TableCell>
+                      <TableCell className={cn("border-r-2 border-black text-center text-[10px] font-mono bg-accent/5", i === visibleClasses.length - 1 ? "border-r-0" : "")}>{data[2]}</TableCell>
                     </React.Fragment>
                   );
                 })}
@@ -671,38 +547,6 @@ function LandscapeTranscript({ student, platform }: { student: any, platform: an
             ))}
           </TableBody>
         </Table>
-      </div>
-
-      <div className="grid grid-cols-3 gap-10 mt-16 pt-10 border-t-2 border-black/5">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <QrCode className="w-20 h-20 opacity-10" />
-          <p className="text-[8px] font-black uppercase text-muted-foreground opacity-40">Provisional Registry Scan</p>
-        </div>
-        <div className="text-center space-y-6">
-          <div className="h-14 w-full bg-accent/10 border-b-2 border-black/40 flex items-center justify-center">
-             <div className="w-full h-full opacity-10 p-2">
-                <svg viewBox="0 0 100 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-             </div>
-          </div>
-          <p className="text-[10px] font-black uppercase text-primary tracking-widest leading-none">The Registrar</p>
-        </div>
-        <div className="text-center space-y-6">
-          <div className="h-14 w-full bg-accent/10 border-b-2 border-black/40 flex items-center justify-center">
-             <Badge variant="outline" className="border-black text-[8px] font-black uppercase px-4 py-1">OFFICIAL SEAL</Badge>
-          </div>
-          <p className="text-[10px] font-black uppercase text-primary tracking-widest leading-none">Institutional Head</p>
-        </div>
-      </div>
-
-      <div className="mt-12 text-center pt-8 border-t border-black/5 opacity-30">
-        <div className="flex items-center justify-center gap-3">
-           <img src={platform.logo} alt="EduIgnite" className="w-4 h-4 object-contain rounded-sm" />
-           <p className="text-[8px] font-black uppercase text-muted-foreground opacity-30 tracking-[0.4em]">
-             Verified Educational Record • {platform.name} Academic SaaS Node • {new Date().getFullYear()}
-           </p>
-        </div>
       </div>
     </div>
   )
