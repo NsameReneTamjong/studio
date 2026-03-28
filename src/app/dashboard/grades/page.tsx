@@ -755,7 +755,7 @@ export default function GradeBookPage() {
               <ShieldCheck className="w-5 h-5 text-secondary" /> VERIFIED
             </div>
           </CardContent>
-        </Card>
+        </div>
       </div>
 
       <div className="bg-white p-4 md:p-6 rounded-[2rem] border shadow-sm flex flex-col md:flex-row gap-4 items-end">
