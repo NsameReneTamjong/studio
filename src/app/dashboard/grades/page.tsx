@@ -26,7 +26,10 @@ import {
   XCircle,
   FileBadge,
   Printer,
-  FileDown
+  FileDown,
+  Download,
+  Eye,
+  CreditCard
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -91,11 +94,13 @@ export default function GradeBookPage() {
         </div>
 
         <Tabs defaultValue="current" className="w-full">
-          <TabsList className="grid grid-cols-2 w-full md:w-[400px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl">
+          <TabsList className="grid grid-cols-3 w-full md:w-[600px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl">
             <TabsTrigger value="current" className="gap-2 py-3 rounded-xl font-bold">Current Term</TabsTrigger>
             <TabsTrigger value="transcript" className="gap-2 py-3 rounded-xl font-bold">Transcript</TabsTrigger>
+            <TabsTrigger value="documents" className="gap-2 py-3 rounded-xl font-bold">Documents</TabsTrigger>
           </TabsList>
-          <TabsContent value="current">
+          
+          <TabsContent value="current" className="animate-in fade-in slide-in-from-bottom-2">
             <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
               <CardHeader className="bg-primary p-8 text-white"><CardTitle className="text-xl font-black uppercase">Sequence Registry</CardTitle></CardHeader>
               <CardContent className="p-0 overflow-x-auto">
@@ -124,12 +129,65 @@ export default function GradeBookPage() {
               </CardContent>
             </Card>
           </TabsContent>
-          <TabsContent value="transcript">
+
+          <TabsContent value="transcript" className="animate-in fade-in slide-in-from-bottom-2">
             <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white p-8">
               <div className="overflow-x-auto scrollbar-thin">
                 <TranscriptPreview student={user} platform={platformSettings} />
               </div>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="documents" className="animate-in fade-in slide-in-from-bottom-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+               <Card className="border-none shadow-sm overflow-hidden bg-white group hover:shadow-md transition-all rounded-3xl">
+                  <div className="h-1.5 w-full bg-blue-500" />
+                  <CardHeader className="pb-4">
+                    <div className="flex justify-between items-start">
+                      <div className="p-3 bg-blue-50 rounded-2xl text-blue-600"><FileText className="w-6 h-6" /></div>
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-none text-[8px] font-black uppercase tracking-widest px-2 h-5">Report Card</Badge>
+                    </div>
+                    <CardTitle className="text-lg font-black mt-4 uppercase text-primary">Term 1 Record</CardTitle>
+                    <CardDescription className="text-[10px] font-bold uppercase tracking-tight">Academic Session 2023 / 2024</CardDescription>
+                  </CardHeader>
+                  <CardFooter className="pt-0 flex gap-2 p-6">
+                    <Button variant="outline" size="sm" className="flex-1 gap-2 text-[10px] font-black uppercase h-10 rounded-xl border-primary/10 hover:bg-primary/5 transition-colors"><Eye className="w-3.5 h-3.5" /> View</Button>
+                    <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-primary/10 hover:bg-primary/5"><Download className="w-3.5 h-3.5 text-primary/60" /></Button>
+                  </CardFooter>
+               </Card>
+
+               <Card className="border-none shadow-sm overflow-hidden bg-white group hover:shadow-md transition-all rounded-3xl">
+                  <div className="h-1.5 w-full bg-amber-500" />
+                  <CardHeader className="pb-4">
+                    <div className="flex justify-between items-start">
+                      <div className="p-3 bg-amber-50 rounded-2xl text-amber-600"><FileText className="w-6 h-6" /></div>
+                      <Badge variant="secondary" className="bg-amber-100 text-amber-700 border-none text-[8px] font-black uppercase tracking-widest px-2 h-5">Report Card</Badge>
+                    </div>
+                    <CardTitle className="text-lg font-black mt-4 uppercase text-primary">Term 2 Record</CardTitle>
+                    <CardDescription className="text-[10px] font-bold uppercase tracking-tight">Academic Session 2023 / 2024</CardDescription>
+                  </CardHeader>
+                  <CardFooter className="pt-0 flex gap-2 p-6">
+                    <Button variant="outline" size="sm" className="flex-1 gap-2 text-[10px] font-black uppercase h-10 rounded-xl border-primary/10 hover:bg-primary/5 transition-colors"><Eye className="w-3.5 h-3.5" /> View</Button>
+                    <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-primary/10 hover:bg-primary/5"><Download className="w-3.5 h-3.5 text-primary/60" /></Button>
+                  </CardFooter>
+               </Card>
+
+               <Card className="border-none shadow-sm overflow-hidden bg-white group hover:shadow-md transition-all rounded-3xl">
+                  <div className="h-1.5 w-full bg-secondary" />
+                  <CardHeader className="pb-4">
+                    <div className="flex justify-between items-start">
+                      <div className="p-3 bg-secondary/20 rounded-2xl text-primary"><CreditCard className="w-6 h-6" /></div>
+                      <Badge variant="secondary" className="bg-secondary/20 text-primary border-none text-[8px] font-black uppercase tracking-widest px-2 h-5">Identification</Badge>
+                    </div>
+                    <CardTitle className="text-lg font-black mt-4 uppercase text-primary">Student ID Card</CardTitle>
+                    <CardDescription className="text-[10px] font-bold uppercase tracking-tight">Digital PVC Copy • Valid 2024</CardDescription>
+                  </CardHeader>
+                  <CardFooter className="pt-0 flex gap-2 p-6">
+                    <Button variant="outline" size="sm" className="flex-1 gap-2 text-[10px] font-black uppercase h-10 rounded-xl border-primary/10 hover:bg-primary/5 transition-colors"><Eye className="w-3.5 h-3.5" /> Preview</Button>
+                    <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-primary/10 hover:bg-primary/5"><Download className="w-3.5 h-3.5 text-primary/60" /></Button>
+                  </CardFooter>
+               </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
@@ -241,5 +299,13 @@ function TranscriptPreview({ student, platform }: { student: any, platform: any 
         </Table>
       </div>
     </div>
+  );
+}
+
+function SignatureSVG({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
   );
 }
