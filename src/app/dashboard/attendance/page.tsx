@@ -1,47 +1,31 @@
 
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
-import { useOnlineStatus } from "@/hooks/use-online-status";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { LoadingState } from "@/components/shared/loading-state";
 import { 
   CalendarIcon, 
   CheckCircle2, 
-  XCircle, 
   Clock, 
-  Users, 
-  History,
-  User,
-  ShieldCheck,
-  TrendingUp,
-  ArrowRight,
-  Download,
-  Filter,
-  BookOpen,
-  ChevronRight,
-  FileDown,
-  Eye,
-  ListChecks,
-  CalendarDays,
-  ArrowLeft,
-  Loader2,
-  Save,
-  Check,
-  X,
-  Search,
-  Award,
-  BarChart3,
-  LayoutGrid,
-  Pencil,
-  Zap,
-  Building2,
-  FileText
+  History, 
+  ShieldCheck, 
+  ArrowRight, 
+  FileDown, 
+  Eye, 
+  CalendarDays, 
+  ArrowLeft, 
+  Loader2, 
+  Save, 
+  Check, 
+  X, 
+  Award, 
+  Zap, 
+  Pencil
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -50,10 +34,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-// Mock Data
+// Mock Data for Teacher & Admin Views (Kept for functional integrity of the shared route)
 const MOCK_TEACHER_SUBJECTS = [
   { id: "TS1", name: "Advanced Physics", class: "2nde / Form 5", students: 42, period: "08:00 AM - 10:00 AM" },
   { id: "TS2", name: "General Chemistry", class: "1ère / Lower Sixth", students: 38, period: "10:30 AM - 12:30 PM" },
@@ -76,6 +59,7 @@ const MOCK_CLASSES_ADMIN = [
   { id: "C2", name: "2nde / Form 5", percentage: 91, totalStudents: 42, presentToday: 38, status: "medium", teacher: "Dr. Tesla" },
 ];
 
+// --- STUDENT SPECIFIC HISTORY DATA ---
 const MOCK_STUDENT_HISTORY = [
   { year: "2023 / 2024", term: "Term 1", subject: "Advanced Physics", present: 22, absent: 2, rate: 92 },
   { year: "2023 / 2024", term: "Term 1", subject: "Mathematics", present: 24, absent: 0, rate: 100 },
@@ -88,14 +72,12 @@ export default function AttendancePage() {
   const { t, language } = useI18n();
   const { toast } = useToast();
   const router = useRouter();
-  const isOnline = useOnlineStatus();
   
   const [isLoading, setIsLoading] = useState(true);
   const [teacherMode, setTeacherMode] = useState<"select" | "register">("select");
   const [activeSession, setActiveSession] = useState<any>(null);
   const [viewingHistorySession, setViewingHistorySession] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [selectedClassAdmin, setSelectedClassAdmin] = useState<any>(null);
 
   const [registryState, setRegistryState] = useState<Record<string, 'present' | 'absent'>>(
     MOCK_STUDENTS.reduce((acc, s) => ({ ...acc, [s.id]: 'present' }), {})
@@ -106,14 +88,13 @@ export default function AttendancePage() {
   const isStudent = user?.role === "STUDENT";
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1500);
+    const timer = setTimeout(() => setIsLoading(false), 1200);
     return () => clearTimeout(timer);
   }, []);
 
   const handleOpenRegister = (session: any) => {
     setActiveSession(session);
     setTeacherMode("register");
-    toast({ title: "Register Initialized", description: `Taking attendance for ${session.name}` });
   };
 
   const handleEditHistory = (historyItem: any) => {
@@ -124,7 +105,6 @@ export default function AttendancePage() {
     });
     setViewingHistorySession(null);
     setTeacherMode("register");
-    toast({ title: "Editing Record", description: `Modifying attendance for ${historyItem.date}` });
   };
 
   const handleSubmitRegistry = () => {
@@ -133,19 +113,16 @@ export default function AttendancePage() {
       setIsProcessing(false);
       setTeacherMode("select");
       setActiveSession(null);
-      toast({
-        title: "Registry Synchronized",
-        description: "Pedagogical presence records have been committed to the node.",
-      });
+      toast({ title: "Registry Synchronized" });
     }, 1200);
   };
 
-  if (isLoading) return <LoadingState message="Connecting to institutional node..." />;
+  if (isLoading) return <LoadingState message="Connecting to node..." />;
 
   // --- TEACHER VIEW ---
   if (isTeacher) {
     return (
-      <div className="space-y-8 pb-20 animate-in slide-in-from-bottom-4">
+      <div className="space-y-8 pb-20">
         {teacherMode === "select" ? (
           <>
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -233,7 +210,6 @@ export default function AttendancePage() {
               </TabsContent>
             </Tabs>
 
-            {/* TEACHER HISTORY VIEW DIALOG */}
             <Dialog open={!!viewingHistorySession} onOpenChange={() => setViewingHistorySession(null)}>
               <DialogContent className="sm:max-w-2xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
                 <DialogHeader className="bg-primary p-8 text-white relative">
@@ -318,17 +294,10 @@ export default function AttendancePage() {
                     <CardTitle className="text-2xl font-black uppercase">Active Class Register</CardTitle>
                     <CardDescription className="text-white/60">Toggle presence status for each student.</CardDescription>
                   </div>
-                  <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-md flex items-center gap-6">
-                    <div className="text-center">
-                      <p className="text-[8px] font-black uppercase opacity-60">Enrolled</p>
-                      <p className="text-xl font-black">{MOCK_STUDENTS.length}</p>
-                    </div>
-                    <div className="w-px h-8 bg-white/20" />
-                    <Button variant="ghost" className="text-white hover:bg-white/10 text-[9px] font-black uppercase" onClick={() => {
-                      const allPresent = MOCK_STUDENTS.reduce((acc, s) => ({ ...acc, [s.id]: 'present' }), {});
-                      setRegistryState(allPresent);
-                    }}>Mark All Present</Button>
-                  </div>
+                  <Button variant="ghost" className="text-white hover:bg-white/10 text-[9px] font-black uppercase" onClick={() => {
+                    const allPresent = MOCK_STUDENTS.reduce((acc, s) => ({ ...acc, [s.id]: 'present' }), {});
+                    setRegistryState(allPresent);
+                  }}>Mark All Present</Button>
                 </div>
               </CardHeader>
               <CardContent className="p-0 overflow-x-auto">
@@ -384,7 +353,7 @@ export default function AttendancePage() {
   // --- ADMIN VIEW (OVERSIGHT) ---
   if (isAdmin) {
     return (
-      <div className="space-y-8 pb-20 animate-in slide-in-from-bottom-4">
+      <div className="space-y-8 pb-20">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
@@ -393,9 +362,6 @@ export default function AttendancePage() {
             </h1>
             <p className="text-muted-foreground mt-1 text-sm">Strategic institutional oversight of session participation.</p>
           </div>
-          <Button variant="outline" className="rounded-xl h-11 px-6 font-bold bg-white border-primary/10 gap-2" onClick={() => toast({ title: "Global Report Exported" })}>
-            <FileDown className="w-4 h-4 text-primary" /> Export Summary
-          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -406,21 +372,13 @@ export default function AttendancePage() {
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle className="text-xl font-black text-primary uppercase">{cls.name}</CardTitle>
-                    <CardDescription className="text-[9px] font-bold uppercase tracking-widest flex items-center gap-1 mt-1 truncate">
-                      <User className="w-3.5 h-3.5 text-secondary" /> {cls.teacher}
-                    </CardDescription>
+                    <CardDescription className="text-[9px] font-bold uppercase tracking-widest mt-1">{cls.teacher}</CardDescription>
                   </div>
                   <Badge className="bg-accent text-primary border-none h-8 font-black">{cls.percentage}%</Badge>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-1.5 pt-2">
-                  <div className="flex justify-between text-[9px] font-black uppercase text-muted-foreground"><span>Today's Intake</span><span>{cls.presentToday} / {cls.totalStudents}</span></div>
-                  <Progress value={cls.percentage} className="h-1.5" />
-                </div>
-              </CardContent>
               <CardFooter className="bg-accent/10 border-t p-3">
-                <Button variant="ghost" className="flex-1 justify-between hover:bg-white text-primary font-bold text-[10px] uppercase w-full rounded-xl" onClick={() => setSelectedClassAdmin(cls)}>
+                <Button variant="ghost" className="flex-1 justify-between hover:bg-white text-primary font-bold text-[10px] uppercase w-full rounded-xl">
                   Inspect Subjects <ArrowRight className="w-3.5 h-3.5" />
                 </Button>
               </CardFooter>
@@ -431,7 +389,7 @@ export default function AttendancePage() {
     );
   }
 
-  // --- STUDENT VIEW ---
+  // --- STUDENT VIEW (PORTAL) ---
   return (
     <div className="space-y-8 pb-20 animate-in slide-in-from-bottom-4">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
