@@ -83,6 +83,7 @@ export default function AttendancePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [teacherMode, setTeacherMode] = useState<"select" | "register">("select");
   const [activeSession, setActiveSession] = useState<any>(null);
+  const [viewingHistorySession, setViewingHistorySession] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedClassAdmin, setSelectedClassAdmin] = useState<any>(null);
 
@@ -107,10 +108,11 @@ export default function AttendancePage() {
 
   const handleEditHistory = (historyItem: any) => {
     setActiveSession({
-      name: historyItem.subject,
+      name: historyItem.subject || historyItem.name,
       class: historyItem.class,
       date: historyItem.date
     });
+    setViewingHistorySession(null);
     setTeacherMode("register");
     toast({ title: "Editing Record", description: `Modifying attendance for ${historyItem.date}` });
   };
@@ -208,8 +210,8 @@ export default function AttendancePage() {
                             <TableCell className="text-center font-black text-green-600">{hist.present}</TableCell>
                             <TableCell className="text-center font-black text-red-600">{hist.absent}</TableCell>
                             <TableCell className="text-right pr-8">
-                              <Button variant="ghost" size="sm" className="gap-2 text-[10px] font-black uppercase hover:bg-primary hover:text-white" onClick={() => handleEditHistory(hist)}>
-                                <Pencil className="w-3 h-3" /> Edit
+                              <Button variant="ghost" size="sm" className="gap-2 text-[10px] font-black uppercase hover:bg-primary hover:text-white" onClick={() => setViewingHistorySession(hist)}>
+                                <Eye className="w-3.5 h-3.5" /> View Details
                               </Button>
                             </TableCell>
                           </TableRow>
@@ -220,6 +222,72 @@ export default function AttendancePage() {
                 </Card>
               </TabsContent>
             </Tabs>
+
+            {/* TEACHER HISTORY VIEW DIALOG */}
+            <Dialog open={!!viewingHistorySession} onOpenChange={() => setViewingHistorySession(null)}>
+              <DialogContent className="sm:max-w-2xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
+                <DialogHeader className="bg-primary p-8 text-white relative">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-white/10 rounded-2xl">
+                      <History className="w-8 h-8 text-secondary" />
+                    </div>
+                    <div>
+                      <DialogTitle className="text-2xl font-black uppercase">Session Detail</DialogTitle>
+                      <DialogDescription className="text-white/60">
+                        {viewingHistorySession?.subject} • {viewingHistorySession?.date}
+                      </DialogDescription>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => setViewingHistorySession(null)} className="absolute top-4 right-4 text-white hover:bg-white/10">
+                    <X className="w-6 h-6" />
+                  </Button>
+                </DialogHeader>
+                <div className="p-0 max-h-[60vh] overflow-y-auto">
+                  <Table>
+                    <TableHeader className="bg-accent/30 uppercase text-[9px] font-black tracking-widest sticky top-0 z-10 border-b">
+                      <TableRow>
+                        <TableHead className="pl-8 py-4">Student Profile</TableHead>
+                        <TableHead>Matricule</TableHead>
+                        <TableHead className="text-right pr-8">Presence Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {MOCK_STUDENTS.map((s, idx) => (
+                        <TableRow key={s.id} className="hover:bg-accent/5 border-b border-accent/10 h-14">
+                          <TableCell className="pl-8">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-8 w-8 border shadow-sm">
+                                <AvatarImage src={s.avatar} />
+                                <AvatarFallback className="text-[10px] font-bold">{s.name.charAt(0)}</AvatarFallback>
+                              </Avatar>
+                              <span className="font-bold text-xs text-primary uppercase">{s.name}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-mono text-[10px] font-bold opacity-60 uppercase">{s.id}</TableCell>
+                          <TableCell className="text-right pr-8">
+                            <Badge className={cn(
+                              "text-[8px] font-black uppercase border-none px-2",
+                              idx % 4 === 0 ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
+                            )}>
+                              {idx % 4 === 0 ? "ABSENT" : "PRESENT"}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                <DialogFooter className="bg-accent/10 p-6 border-t border-accent flex justify-between items-center">
+                   <div className="flex items-center gap-2 text-muted-foreground">
+                      <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                      <p className="text-[10px] font-black uppercase italic opacity-40">Verified Institutional Record</p>
+                   </div>
+                   <Button className="gap-2 rounded-xl font-bold text-xs uppercase h-10 px-6 shadow-lg" onClick={() => handleEditHistory(viewingHistorySession)}>
+                     <Pencil className="w-3.5 h-3.5" /> Modify Record
+                   </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </>
         ) : (
           <div className="space-y-8">
@@ -261,7 +329,10 @@ export default function AttendancePage() {
                         <TableCell className="pl-8">
                           <div className="flex items-center gap-3">
                             <Avatar className="h-10 w-10 border shadow-sm"><AvatarImage src={s.avatar} /><AvatarFallback>{s.name.charAt(0)}</AvatarFallback></Avatar>
-                            <span className="font-bold text-sm text-primary uppercase">{s.name}</span>
+                            <div className="flex flex-col">
+                              <span className="font-bold text-sm text-primary uppercase">{s.name}</span>
+                              <span className="text-[10px] font-mono text-muted-foreground opacity-60 uppercase">{s.id}</span>
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell className="text-right pr-8">
@@ -371,5 +442,13 @@ export default function AttendancePage() {
          </Card>
       </div>
     </div>
+  );
+}
+
+function SignatureSVG({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
   );
 }
