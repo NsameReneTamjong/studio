@@ -71,11 +71,6 @@ export default function GradeBookPage() {
     return () => clearTimeout(timer);
   }, []);
 
-  const stats = useMemo(() => {
-    if (isStudent) return { average: "16.45", passRate: "100" };
-    return { average: "14.25", passRate: "84" };
-  }, [isStudent]);
-
   if (isLoading) return <LoadingState message="Fetching pedagogical records..." />;
 
   if (isStudent) {
@@ -90,15 +85,52 @@ export default function GradeBookPage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card className="border-none shadow-sm bg-primary text-white p-6 rounded-3xl"><p className="text-[10px] font-black opacity-60 uppercase mb-2">Term Average</p><div className="text-3xl font-black text-secondary">{stats.average} / 20</div></Card>
+          <Card className="border-none shadow-sm bg-primary text-white p-6 rounded-3xl"><p className="text-[10px] font-black opacity-60 uppercase mb-2">Term Average</p><div className="text-3xl font-black text-secondary">16.45 / 20</div></Card>
           <Card className="border-none shadow-sm bg-secondary text-primary p-6 rounded-3xl"><p className="text-[10px] font-black opacity-60 uppercase mb-2">Status</p><div className="text-xl font-black flex items-center gap-2"><CheckCircle2 className="w-6 h-6" /> ELIGIBLE</div></Card>
           <Card className="border-none shadow-sm bg-white border p-6 rounded-3xl"><p className="text-[10px] font-black uppercase text-muted-foreground mb-2">Registry</p><div className="text-xl font-black flex items-center gap-2 text-primary"><ShieldCheck className="w-5 h-5 text-secondary" /> VERIFIED</div></Card>
         </div>
 
         <Tabs defaultValue="current" className="w-full">
-          <TabsList className="grid grid-cols-2 w-full md:w-[400px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl"><TabsTrigger value="current" className="gap-2 py-3 rounded-xl font-bold">Current Term</TabsTrigger><TabsTrigger value="transcript" className="gap-2 py-3 rounded-xl font-bold">Transcript</TabsTrigger></TabsList>
-          <TabsContent value="current"><Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white"><CardHeader className="bg-primary p-8 text-white"><CardTitle className="text-xl font-black uppercase">Sequence Registry</CardTitle></CardHeader><CardContent className="p-0 overflow-x-auto"><Table><TableHeader className="bg-accent/10 font-black text-[9px] uppercase"><TableRow><TableHead className="pl-8 py-4">Subject</TableHead><TableHead className="text-center">Coeff</TableHead><TableHead className="text-center">Seq 1</TableHead><TableHead className="text-center">Seq 2</TableHead><TableHead className="text-right pr-8">Status</TableHead></TableRow></TableHeader><TableBody>{MOCK_PERSONAL_GRADES.map((g, idx) => (<TableRow key={idx} className="h-16 border-b last:border-0 hover:bg-accent/5"><TableCell className="pl-8 font-black uppercase text-xs">{g.subject}</TableCell><TableCell className="text-center font-bold">{g.coeff}</TableCell><TableCell className="text-center font-bold">{g.seq1}</TableCell><TableCell className="text-center font-bold">{g.seq2}</TableCell><TableCell className="text-right pr-8"><Badge className="bg-green-100 text-green-700">PASSED</Badge></TableCell></TableRow>))}</TableBody></Table></CardContent></Card></TabsContent>
-          <TabsContent value="transcript"><Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white p-8"><div className="overflow-x-auto scrollbar-thin"><TranscriptPreview student={user} platform={platformSettings} /></div></Card></TabsContent>
+          <TabsList className="grid grid-cols-2 w-full md:w-[400px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl">
+            <TabsTrigger value="current" className="gap-2 py-3 rounded-xl font-bold">Current Term</TabsTrigger>
+            <TabsTrigger value="transcript" className="gap-2 py-3 rounded-xl font-bold">Transcript</TabsTrigger>
+          </TabsList>
+          <TabsContent value="current">
+            <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+              <CardHeader className="bg-primary p-8 text-white"><CardTitle className="text-xl font-black uppercase">Sequence Registry</CardTitle></CardHeader>
+              <CardContent className="p-0 overflow-x-auto">
+                <Table>
+                  <TableHeader className="bg-accent/10 font-black text-[9px] uppercase">
+                    <TableRow>
+                      <TableHead className="pl-8 py-4">Subject</TableHead>
+                      <TableHead className="text-center">Coeff</TableHead>
+                      <TableHead className="text-center">Seq 1</TableHead>
+                      <TableHead className="text-center">Seq 2</TableHead>
+                      <TableHead className="text-right pr-8">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {MOCK_PERSONAL_GRADES.map((g, idx) => (
+                      <TableRow key={idx} className="h-16 border-b last:border-0 hover:bg-accent/5">
+                        <TableCell className="pl-8 font-black uppercase text-xs">{g.subject}</TableCell>
+                        <TableCell className="text-center font-bold">{g.coeff}</TableCell>
+                        <TableCell className="text-center font-bold">{g.seq1}</TableCell>
+                        <TableCell className="text-center font-bold">{g.seq2}</TableCell>
+                        <TableCell className="text-right pr-8"><Badge className="bg-green-100 text-green-700">PASSED</Badge></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="transcript">
+            <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white p-8">
+              <div className="overflow-x-auto scrollbar-thin">
+                <TranscriptPreview student={user} platform={platformSettings} />
+              </div>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
     );
@@ -122,7 +154,24 @@ export default function GradeBookPage() {
 
       <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
         <CardHeader className="bg-primary p-8 text-white"><CardTitle className="text-xl font-black uppercase">Gradebook: {selectedSubject}</CardTitle></CardHeader>
-        <CardContent className="p-0 overflow-x-auto"><Table><TableHeader className="bg-accent/10 font-black text-[9px] uppercase border-b"><TableRow><TableHead className="pl-8 py-4">Student Identity</TableHead><TableHead className="text-center">Seq 1</TableHead><TableHead className="text-center">Seq 2</TableHead><TableHead className="text-right pr-8">Status</TableHead></TableRow></TableHeader><TableBody>{grades.map(s => (<TableRow key={s.uid} className="h-16 border-b last:border-0 hover:bg-accent/5"><TableCell className="pl-8"><div className="flex items-center gap-3"><Avatar className="h-8 w-8 shrink-0"><AvatarImage src={s.avatar} /><AvatarFallback>{s.name.charAt(0)}</AvatarFallback></Avatar><span className="font-bold text-xs uppercase">{s.name}</span></div></TableCell><TableCell className="text-center"><Input className="w-16 mx-auto h-9 text-center font-black border-primary/10" defaultValue={s.seq1} disabled={!isTeacher || activeSequence !== 'seq1'} /></TableCell><TableCell className="text-center"><Input className="w-16 mx-auto h-9 text-center font-black border-primary/10" defaultValue={s.seq2} disabled={!isTeacher || activeSequence !== 'seq2'} /></TableCell><TableCell className="text-right pr-8"><Badge className="bg-green-100 text-green-700">PASS</Badge></TableCell></TableRow>))}</TableBody></Table></CardContent></Card>
+        <CardContent className="p-0 overflow-x-auto">
+          <Table>
+            <TableHeader className="bg-accent/10 font-black text-[9px] uppercase border-b">
+              <TableRow><TableHead className="pl-8 py-4">Student Identity</TableHead><TableHead className="text-center">Seq 1</TableHead><TableHead className="text-center">Seq 2</TableHead><TableHead className="text-right pr-8">Status</TableHead></TableRow>
+            </TableHeader>
+            <TableBody>
+              {grades.map(s => (
+                <TableRow key={s.uid} className="h-16 border-b last:border-0 hover:bg-accent/5">
+                  <TableCell className="pl-8"><div className="flex items-center gap-3"><Avatar className="h-8 w-8 shrink-0"><AvatarImage src={s.avatar} /><AvatarFallback>{s.name.charAt(0)}</AvatarFallback></Avatar><span className="font-bold text-xs uppercase">{s.name}</span></div></TableCell>
+                  <TableCell className="text-center"><Input className="w-16 mx-auto h-9 text-center font-black border-primary/10" defaultValue={s.seq1} disabled={!isTeacher || activeSequence !== 'seq1'} /></TableCell>
+                  <TableCell className="text-center"><Input className="w-16 mx-auto h-9 text-center font-black border-primary/10" defaultValue={s.seq2} disabled={!isTeacher || activeSequence !== 'seq2'} /></TableCell>
+                  <TableCell className="text-right pr-8"><Badge className="bg-green-100 text-green-700">PASS</Badge></TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -135,13 +184,62 @@ function TranscriptPreview({ student, platform }: { student: any, platform: any 
   return (
     <div className="bg-white p-8 md:p-12 border shadow-sm relative overflow-hidden font-serif text-black min-w-[1100px]">
       <div className="grid grid-cols-3 gap-4 items-start text-center border-b-2 border-black pb-6">
-        <div className="space-y-1 text-[9px] uppercase font-black text-left"><p>Republic of Cameroon</p><p>Peace - Work - Fatherland</p><div className="h-px bg-black w-8 my-1" /><p>Ministry of Secondary Education</p></div>
-        <div className="flex flex-col items-center gap-2"><img src={platform.logo} alt="Logo" className="w-14 h-14 object-contain" /><p className="text-[9px] font-black uppercase text-primary tracking-tighter">Verified Node Record</p></div>
+        <div className="space-y-1 text-[9px] uppercase font-black text-left">
+          <p>Republic of Cameroon</p><p>Peace - Work - Fatherland</p><div className="h-px bg-black w-8 my-1" /><p>Ministry of Secondary Education</p>
+        </div>
+        <div className="flex flex-col items-center gap-2">
+          <img src={platform.logo} alt="Logo" className="w-14 h-14 object-contain" /><p className="text-[9px] font-black uppercase text-primary tracking-tighter">Verified Node Record</p>
+        </div>
         <div className="space-y-1 text-[9px] uppercase font-black text-right"><p>République du Cameroun</p><p>Paix - Travail - Patrie</p></div>
       </div>
       <div className="text-center my-10 space-y-2"><h1 className="text-4xl font-black uppercase tracking-widest underline underline-offset-8 decoration-double">Academic Transcript</h1><p className="text-sm font-bold opacity-60">Session 2023 / 2024</p></div>
-      <div className="grid grid-cols-12 gap-8 bg-accent/5 p-6 border border-black/10 rounded-2xl items-center mb-10"><div className="col-span-2"><Avatar className="w-28 h-28 border-4 border-white rounded-[2rem] shadow-xl mx-auto"><AvatarImage src={student?.avatar} /><AvatarFallback className="text-3xl font-black">{student?.name?.charAt(0)}</AvatarFallback></Avatar></div><div className="col-span-10 grid grid-cols-2 gap-x-12 gap-y-3 text-sm"><div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Identity:</span><span className="font-black uppercase">{student?.name}</span></div><div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Matricule:</span><span className="font-mono font-bold text-primary">{student?.id}</span></div></div></div>
-      <div className="border-2 border-black overflow-hidden rounded-sm"><Table className="border-collapse"><TableHeader className="bg-black/5"><TableRow className="border-b-2 border-black h-12"><TableHead rowSpan={2} className="border-r-2 border-black font-black text-black uppercase text-[10px] text-center w-48">Subject</TableHead>{visibleClasses.map((cls, i) => (<TableHead key={i} colSpan={3} className={cn("border-r-2 border-black font-black text-black uppercase text-[10px] text-center h-8", i === visibleClasses.length - 1 ? "border-r-0" : "")}>{cls.split(' / ')[1] || cls}</TableHead>))}</TableRow><TableRow className="border-b-2 border-black h-8">{visibleClasses.map((_, i) => (<React.Fragment key={i}><TableHead className="border-r border-black font-bold text-[8px] text-center">T1</TableHead><TableHead className="border-r border-black font-bold text-[8px] text-center">T2</TableHead><TableHead className={cn("border-r-2 border-black font-bold text-[8px] text-center", i === visibleClasses.length - 1 ? "border-r-0" : "")}>T3</TableHead></React.Fragment>))}</TableRow></TableHeader><TableBody>{Object.entries(MOCK_TRANSCRIPT_DATA).map(([subject, years]: [string, any], idx) => (<TableRow key={idx} className="border-b border-black last:border-0 h-10"><TableCell className="border-r-2 border-black font-black text-[10px] uppercase py-2 pl-4">{subject}</TableCell>{visibleClasses.map((_, i) => { const data = years[`f${i + 1}`] || ["---", "---", "---"]; return (<React.Fragment key={i}><TableCell className="border-r border-black text-center text-[10px] font-mono">{data[0]}</TableCell><TableCell className="border-r border-black text-center text-[10px] font-mono">{data[1]}</TableCell><TableCell className={cn("border-r-2 border-black text-center text-[10px] font-mono bg-accent/5", i === visibleClasses.length - 1 ? "border-r-0" : "")}>{data[2]}</TableCell></React.Fragment>); })}</TableRow>))}</TableBody></Table></div>
+      <div className="grid grid-cols-12 gap-8 bg-accent/5 p-6 border border-black/10 rounded-2xl items-center mb-10">
+        <div className="col-span-2">
+          <Avatar className="w-28 h-28 border-4 border-white rounded-[2rem] shadow-xl mx-auto"><AvatarImage src={student?.avatar} /><AvatarFallback className="text-3xl font-black">{student?.name?.charAt(0)}</AvatarFallback></Avatar>
+        </div>
+        <div className="col-span-10 grid grid-cols-2 gap-x-12 gap-y-3 text-sm">
+          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Identity:</span><span className="font-black uppercase">{student?.name}</span></div>
+          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Matricule:</span><span className="font-mono font-bold text-primary">{student?.id}</span></div>
+        </div>
+      </div>
+      <div className="border-2 border-black overflow-hidden rounded-sm">
+        <Table className="border-collapse">
+          <TableHeader className="bg-black/5">
+            <TableRow className="border-b-2 border-black h-12">
+              <TableHead rowSpan={2} className="border-r-2 border-black font-black text-black uppercase text-[10px] text-center w-48">Subject</TableHead>
+              {visibleClasses.map((cls, i) => (
+                <TableHead key={i} colSpan={3} className={cn("border-r-2 border-black font-black text-black uppercase text-[10px] text-center h-8", i === visibleClasses.length - 1 ? "border-r-0" : "")}>{cls.split(' / ')[1] || cls}</TableHead>
+              ))}
+            </TableRow>
+            <TableRow className="border-b-2 border-black h-8">
+              {visibleClasses.map((_, i) => (
+                <React.Fragment key={i}>
+                  <TableHead className="border-r border-black font-bold text-[8px] text-center">T1</TableHead>
+                  <TableHead className="border-r border-black font-bold text-[8px] text-center">T2</TableHead>
+                  <TableHead className={cn("border-r-2 border-black font-bold text-[8px] text-center", i === visibleClasses.length - 1 ? "border-r-0" : "")}>T3</TableHead>
+                </React.Fragment>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {Object.entries(MOCK_TRANSCRIPT_DATA).map(([subject, years]: [string, any], idx) => (
+              <TableRow key={idx} className="border-b border-black last:border-0 h-10">
+                <TableCell className="border-r-2 border-black font-black text-[10px] uppercase py-2 pl-4">{subject}</TableCell>
+                {visibleClasses.map((_, i) => { 
+                  const data = years[`f${i + 1}`] || ["---", "---", "---"]; 
+                  return (
+                    <React.Fragment key={i}>
+                      <TableCell className="border-r border-black text-center text-[10px] font-mono">{data[0]}</TableCell>
+                      <TableCell className="border-r border-black text-center text-[10px] font-mono">{data[1]}</TableCell>
+                      <TableCell className={cn("border-r-2 border-black text-center text-[10px] font-mono bg-accent/5", i === visibleClasses.length - 1 ? "border-r-0" : "")}>{data[2]}</TableCell>
+                    </React.Fragment>
+                  ); 
+                })}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

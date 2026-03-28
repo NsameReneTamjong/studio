@@ -29,7 +29,8 @@ import {
   BookMarked,
   Loader2,
   ArrowLeft,
-  Download
+  Download,
+  Upload
 } from "lucide-react";
 import { 
   Dialog, 
@@ -45,7 +46,6 @@ import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRouter } from "next/navigation";
 
-// Mock Data
 const INITIAL_BOOKS = [
   { id: "B001", title: "Advanced Physics", author: "Dr. Tesla", category: "Science", available: 5, total: 10, cover: "https://picsum.photos/seed/phys/400/600", description: "In-depth study of thermodynamics.", isbn: "ISBN-922-X" },
   { id: "B002", title: "Calculus II", author: "Prof. Smith", category: "Mathematics", available: 2, total: 5, cover: "https://picsum.photos/seed/math/400/600", description: "Comprehensive guide to integration.", isbn: "ISBN-102-M" },
@@ -57,7 +57,7 @@ const INITIAL_LOANS = [
 
 export default function LibraryPage() {
   const { user } = useAuth();
-  const { t, language } = useI18n();
+  const { language } = useI18n();
   const { toast } = useToast();
   const router = useRouter();
   
@@ -87,7 +87,7 @@ export default function LibraryPage() {
       setBooks([{ ...newBookData, id: `B-${Math.random().toString(36).substr(2, 5)}`, available: newBookData.total }, ...books]);
       setIsProcessing(false);
       setIsAddingBook(false);
-      toast({ title: "Catalog Updated", description: "The new volume is now in the registry." });
+      toast({ title: "Catalog Updated" });
     }, 800);
   };
 
@@ -104,9 +104,9 @@ export default function LibraryPage() {
           <div>
             <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
               <div className="p-2 bg-primary rounded-xl shadow-lg text-white"><Library className="w-6 h-6 text-secondary" /></div>
-              {isManagement ? "Library Management" : t("library")}
+              {isManagement ? "Library Management" : "Institutional Library"}
             </h1>
-            <p className="text-muted-foreground mt-1 text-sm">{isManagement ? "Catalog and circulation audit." : "Institutional resource collection."}</p>
+            <p className="text-muted-foreground mt-1 text-sm">Registry of digital and physical volumes.</p>
           </div>
         </div>
         
@@ -155,7 +155,7 @@ export default function LibraryPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {filteredBooks.map((book) => (
               <Card key={book.id} className="border-none shadow-sm overflow-hidden bg-white rounded-3xl">
-                <div className="aspect-[3/4] bg-accent/20 overflow-hidden"><img src={book.cover} className="w-full h-full object-cover" /></div>
+                <div className="aspect-[3/4] bg-accent/20 overflow-hidden"><img src={book.cover} className="w-full h-full object-cover" alt={book.title} /></div>
                 <CardHeader className="p-5 pb-2"><CardTitle className="text-lg font-black truncate">{book.title}</CardTitle><CardDescription className="text-xs font-bold">{book.author}</CardDescription></CardHeader>
                 <CardContent className="px-5 py-2">
                    <div className="flex items-center justify-between text-[10px] font-black uppercase text-muted-foreground/60"><span>Availability</span><span className="text-primary">{book.available} / {book.total}</span></div>
@@ -167,7 +167,27 @@ export default function LibraryPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="circulation"><Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white"><CardContent className="p-0 overflow-x-auto"><Table><TableHeader className="bg-accent/10 uppercase text-[9px] font-black"><TableRow><TableHead className="pl-8 py-4">Borrower</TableHead><TableHead>Book</TableHead><TableHead className="text-center">Due Date</TableHead><TableHead className="text-right pr-8">Status</TableHead></TableRow></TableHeader><TableBody>{loans.map(loan => (<TableRow key={loan.id} className="h-16 border-b"><TableCell className="pl-8"><div className="flex items-center gap-3"><Avatar className="h-8 w-8"><AvatarImage src={loan.avatar} /></Avatar><span className="font-bold text-xs uppercase">{loan.borrowerName}</span></div></TableCell><TableCell className="font-black text-xs uppercase text-primary">{loan.bookTitle}</TableCell><TableCell className="text-center font-mono text-[10px] font-bold">{loan.returnDate}</TableCell><TableCell className="text-right pr-8"><Badge className="text-[8px] font-black uppercase px-2.5 h-5">{loan.status}</Badge></TableCell></TableRow>))}</TableBody></Table></CardContent></Card></TabsContent>
+        <TabsContent value="circulation">
+          <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+            <CardContent className="p-0 overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-accent/10 uppercase text-[9px] font-black">
+                  <TableRow><TableHead className="pl-8 py-4">Borrower</TableHead><TableHead>Book</TableHead><TableHead className="text-center">Due Date</TableHead><TableHead className="text-right pr-8">Status</TableHead></TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loans.map(loan => (
+                    <TableRow key={loan.id} className="h-16 border-b">
+                      <TableCell className="pl-8"><div className="flex items-center gap-3"><Avatar className="h-8 w-8"><AvatarImage src={loan.avatar} /></Avatar><span className="font-bold text-xs uppercase">{loan.borrowerName}</span></div></TableCell>
+                      <TableCell className="font-black text-xs uppercase text-primary">{loan.bookTitle}</TableCell>
+                      <TableCell className="text-center font-mono text-[10px] font-bold">{loan.returnDate}</TableCell>
+                      <TableCell className="text-right pr-8"><Badge className="text-[8px] font-black uppercase px-2.5 h-5">{loan.status}</Badge></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   );

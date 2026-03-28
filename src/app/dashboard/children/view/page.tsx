@@ -295,10 +295,7 @@ function LandscapeTranscript({ student, platform }: { student: any, platform: an
         <div className="space-y-1 text-[9px] uppercase font-black text-right"><p>République du Cameroun</p><p>Paix - Travail - Patrie</p></div>
       </div>
 
-      <div className="text-center my-10 space-y-2">
-        <h1 className="text-4xl font-black uppercase tracking-widest underline underline-offset-8 decoration-double">Academic Transcript</h1>
-        <p className="text-sm font-bold opacity-60">Official Record • Valid for Session 2023 / 2024</p>
-      </div>
+      <div className="text-center my-10 space-y-2"><h1 className="text-4xl font-black uppercase tracking-widest underline underline-offset-8 decoration-double">Academic Transcript</h1><p className="text-sm font-bold opacity-60">Official Record • Valid for Session 2023 / 2024</p></div>
 
       <div className="grid grid-cols-12 gap-8 bg-accent/5 p-6 border border-black/10 rounded-2xl items-center mb-10">
         <div className="col-span-2 text-center">
