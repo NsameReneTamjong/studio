@@ -87,6 +87,7 @@ const MOCK_GRADES = [
 const MOCK_ATTENDANCE_HISTORY = [
   { year: "2023 / 2024", term: "Term 1", subject: "Advanced Physics", present: 22, absent: 2, rate: 92 },
   { year: "2023 / 2024", term: "Term 1", subject: "Mathematics", present: 24, absent: 0, rate: 100 },
+  { year: "2022 / 2023", term: "Term 3", subject: "General Science", present: 18, absent: 4, rate: 81 },
 ];
 
 const MOCK_TRANSCRIPT_DATA = {
@@ -134,7 +135,7 @@ export default function StudentDetailsPage() {
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16 border-2 border-primary shadow-lg shrink-0">
               <AvatarImage src={student.avatar} />
-              <AvatarFallback className="bg-primary/5 text-primary text-2xl font-bold">{student.name?.charAt(0)}</AvatarFallback>
+              <AvatarFallback className="bg-primary/5 text-primary text-2xl font-black">{student.name?.charAt(0)}</AvatarFallback>
             </Avatar>
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline flex items-center gap-2 uppercase tracking-tight">
@@ -246,7 +247,9 @@ export default function StudentDetailsPage() {
                       <TableCell className="text-right pr-8">
                         <div className="inline-flex flex-col items-end gap-1.5 min-w-[80px]">
                           <div className="flex items-center gap-2">
-                            <span className={cn("text-xs font-black", hist.rate >= 90 ? "text-green-600" : "text-amber-600")}>{hist.rate}%</span>
+                            <span className={cn("text-xs font-black", hist.rate >= 90 ? "text-green-600" : "text-amber-600")}>
+                              {hist.rate}%
+                            </span>
                             {hist.rate >= 95 && <Zap className="w-3 h-3 text-secondary fill-current" />}
                           </div>
                           <div className="w-20 h-1.5 bg-accent rounded-full overflow-hidden">

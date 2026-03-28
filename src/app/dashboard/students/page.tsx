@@ -141,6 +141,8 @@ export default function StudentsPage() {
     return matchesSearch && matchesClass && matchesSection && matchesStatus && matchesSubject;
   }), [studentList, searchTerm, classFilter, sectionFilter, statusFilter, subjectFilter]);
 
+  const promotionEligible = useMemo(() => studentList.filter(s => s.status === 'active'), [studentList]);
+
   const handlePromoteStudents = () => {
     setIsPromotionProcessing(true);
     setTimeout(() => {
@@ -463,6 +465,33 @@ export default function StudentsPage() {
           <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
             <Button className="w-full h-14 rounded-2xl shadow-xl font-black uppercase text-[10px] gap-2 bg-primary text-white" onClick={handleFinalizeAdmission} disabled={isProcessing}>
               {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />} Finalize Admission
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* EDIT DIALOG */}
+      <Dialog open={!!editingUser} onOpenChange={() => setEditingUser(null)}>
+        <DialogContent className="sm:max-w-md rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="bg-primary p-8 text-white">
+            <DialogTitle>Edit Student Identity</DialogTitle>
+          </DialogHeader>
+          <div className="p-8 space-y-4">
+            <div className="space-y-2">
+              <Label>Full Name</Label>
+              <Input value={editingUser?.name} onChange={(e) => setEditingUser({...editingUser, name: e.target.value})} className="h-12 rounded-xl" />
+            </div>
+            <div className="space-y-2">
+              <Label>Class Level</Label>
+              <Select value={editingUser?.class} onValueChange={(v) => setEditingUser({...editingUser, class: v})}>
+                <SelectTrigger className="h-12 rounded-xl"><SelectValue /></SelectTrigger>
+                <SelectContent>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter className="p-6 bg-accent/10 border-t">
+            <Button onClick={handleSaveEdit} className="w-full h-12 rounded-xl font-bold" disabled={isProcessing}>
+              {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Identity Changes"}
             </Button>
           </DialogFooter>
         </DialogContent>

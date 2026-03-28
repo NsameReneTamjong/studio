@@ -185,7 +185,7 @@ function TranscriptPreview({ student, platform }: { student: any, platform: any 
     <div className="bg-white p-8 md:p-12 border shadow-sm relative overflow-hidden font-serif text-black min-w-[1100px]">
       <div className="grid grid-cols-3 gap-4 items-start text-center border-b-2 border-black pb-6">
         <div className="space-y-1 text-[9px] uppercase font-black text-left">
-          <p>Republic of Cameroon</p><p>Peace - Work - Fatherland</p><div className="h-px bg-black w-8 my-1" /><p>Ministry of Secondary Education</p>
+          <p>Republic of Cameroon</p><p>Peace - Work - Fatherland</p><div className="h-px bg-black w-10 mx-auto my-1" /><p>Ministry of Secondary Education</p>
         </div>
         <div className="flex flex-col items-center gap-2">
           <img src={platform.logo} alt="Logo" className="w-14 h-14 object-contain" /><p className="text-[9px] font-black uppercase text-primary tracking-tighter">Verified Node Record</p>

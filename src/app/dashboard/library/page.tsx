@@ -30,7 +30,10 @@ import {
   Loader2,
   ArrowLeft,
   Download,
-  Upload
+  Upload,
+  Coins,
+  ShieldCheck,
+  Building2
 } from "lucide-react";
 import { 
   Dialog, 
@@ -144,10 +147,11 @@ export default function LibraryPage() {
       </div>
 
       <Tabs defaultValue="catalog" className="w-full">
-        <TabsList className="grid grid-cols-3 w-full md:w-[600px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl">
+        <TabsList className={cn("grid w-full mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl", isManagement ? "grid-cols-3 md:w-[600px]" : "grid-cols-2 md:w-[400px]")}>
           <TabsTrigger value="catalog" className="gap-2 py-3 rounded-xl transition-all font-bold"><BookOpen className="w-4 h-4" /> Catalog</TabsTrigger>
-          <TabsTrigger value="circulation" className="gap-2 py-3 rounded-xl transition-all font-bold"><Clock className="w-4 h-4" /> Circulation</TabsTrigger>
-          <TabsTrigger value="history" className="gap-2 py-3 rounded-xl transition-all font-bold"><History className="w-4 h-4" /> Registry</TabsTrigger>
+          {isManagement && <TabsTrigger value="circulation" className="gap-2 py-3 rounded-xl transition-all font-bold"><Clock className="w-4 h-4" /> Circulation</TabsTrigger>}
+          {isManagement && <TabsTrigger value="history" className="gap-2 py-3 rounded-xl transition-all font-bold"><History className="w-4 h-4" /> Registry</TabsTrigger>}
+          {!isManagement && <TabsTrigger value="my-loans" className="gap-2 py-3 rounded-xl transition-all font-bold"><BookMarked className="w-4 h-4" /> My Loans</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="catalog" className="space-y-6">
@@ -161,33 +165,71 @@ export default function LibraryPage() {
                    <div className="flex items-center justify-between text-[10px] font-black uppercase text-muted-foreground/60"><span>Availability</span><span className="text-primary">{book.available} / {book.total}</span></div>
                    <Progress value={(book.available / book.total) * 100} className="h-1 mt-1.5" />
                 </CardContent>
-                <CardFooter className="p-5 pt-2"><Button className="w-full h-10 text-[10px] font-black uppercase tracking-widest shadow-lg rounded-xl" disabled={book.available === 0}><BookMarked className="w-3.5 h-3.5 mr-2" /> Borrow</Button></CardFooter>
+                <CardFooter className="p-5 pt-2">
+                  <Button className="w-full h-10 text-[10px] font-black uppercase tracking-widest shadow-lg rounded-xl" disabled={book.available === 0}>
+                    <BookMarked className="w-3.5 h-3.5 mr-2" /> Borrow
+                  </Button>
+                </CardFooter>
               </Card>
             ))}
           </div>
         </TabsContent>
 
-        <TabsContent value="circulation">
-          <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
-            <CardContent className="p-0 overflow-x-auto">
-              <Table>
-                <TableHeader className="bg-accent/10 uppercase text-[9px] font-black">
-                  <TableRow><TableHead className="pl-8 py-4">Borrower</TableHead><TableHead>Book</TableHead><TableHead className="text-center">Due Date</TableHead><TableHead className="text-right pr-8">Status</TableHead></TableRow>
-                </TableHeader>
-                <TableBody>
-                  {loans.map(loan => (
-                    <TableRow key={loan.id} className="h-16 border-b">
-                      <TableCell className="pl-8"><div className="flex items-center gap-3"><Avatar className="h-8 w-8"><AvatarImage src={loan.avatar} /></Avatar><span className="font-bold text-xs uppercase">{loan.borrowerName}</span></div></TableCell>
-                      <TableCell className="font-black text-xs uppercase text-primary">{loan.bookTitle}</TableCell>
-                      <TableCell className="text-center font-mono text-[10px] font-bold">{loan.returnDate}</TableCell>
-                      <TableCell className="text-right pr-8"><Badge className="text-[8px] font-black uppercase px-2.5 h-5">{loan.status}</Badge></TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
+        {isManagement && (
+          <>
+            <TabsContent value="circulation">
+              <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+                <CardContent className="p-0 overflow-x-auto">
+                  <Table>
+                    <TableHeader className="bg-accent/10 uppercase text-[9px] font-black">
+                      <TableRow><TableHead className="pl-8 py-4">Borrower</TableHead><TableHead>Book</TableHead><TableHead className="text-center">Due Date</TableHead><TableHead className="text-right pr-8">Status</TableHead></TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {loans.map(loan => (
+                        <TableRow key={loan.id} className="h-16 border-b">
+                          <TableCell className="pl-8"><div className="flex items-center gap-3"><Avatar className="h-8 w-8"><AvatarImage src={loan.avatar} /></Avatar><span className="font-bold text-xs uppercase">{loan.borrowerName}</span></div></TableCell>
+                          <TableCell className="font-black text-xs uppercase text-primary">{loan.bookTitle}</TableCell>
+                          <TableCell className="text-center font-mono text-[10px] font-bold">{loan.returnDate}</TableCell>
+                          <TableCell className="text-right pr-8"><Badge className="text-[8px] font-black uppercase px-2.5 h-5">{loan.status}</Badge></TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="history">
+              <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+                <CardHeader className="border-b p-8 flex flex-row items-center justify-between">
+                  <CardTitle className="text-lg font-black text-primary uppercase">Institutional Accession Registry</CardTitle>
+                  {isLibrarian && (
+                    <Button variant="outline" className="rounded-xl h-10 gap-2 border-primary/10">
+                      <Download className="w-4 h-4" /> Export CSV
+                    </Button>
+                  )}
+                </CardHeader>
+                <CardContent className="p-0 overflow-x-auto">
+                  <Table>
+                    <TableHeader className="bg-accent/10 uppercase text-[9px] font-black">
+                      <TableRow><TableHead className="pl-8 py-4">Ref ID</TableHead><TableHead>Title</TableHead><TableHead>Author</TableHead><TableHead className="text-right pr-8">Stock</TableHead></TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {books.map(b => (
+                        <TableRow key={b.id} className="h-14 border-b">
+                          <TableCell className="pl-8 font-mono text-xs font-bold text-primary">{b.id}</TableCell>
+                          <TableCell className="font-black text-xs uppercase">{b.title}</TableCell>
+                          <TableCell className="text-xs font-bold text-muted-foreground">{b.author}</TableCell>
+                          <TableCell className="text-right pr-8 font-black text-primary">{b.available} / {b.total}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </>
+        )}
       </Tabs>
     </div>
   );
