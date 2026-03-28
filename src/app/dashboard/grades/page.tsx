@@ -242,7 +242,7 @@ export default function GradeBookPage() {
         {/* DOCUMENT PREVIEW DIALOG */}
         <Dialog open={!!viewingDoc} onOpenChange={() => setViewingDoc(null)}>
           <DialogContent className="sm:max-w-3xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white flex flex-col max-h-[90vh]">
-            <DialogHeader className="bg-primary p-8 text-white relative shrink-0">
+            <DialogHeader className="bg-primary p-8 text-white relative shrink-0 no-print">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-white/10 rounded-2xl">
                   <FileText className="w-8 h-8 text-secondary" />
@@ -257,56 +257,79 @@ export default function GradeBookPage() {
               </Button>
             </DialogHeader>
             
-            <div className="flex-1 overflow-y-auto p-6 md:p-10 bg-muted">
+            <div className="flex-1 overflow-y-auto p-6 md:p-10 bg-muted scrollbar-thin">
               {viewingDoc?.type === 'report' ? (
-                <div className="bg-white p-8 border-2 border-black/10 shadow-sm relative flex flex-col space-y-8 font-serif text-black min-w-[600px] mx-auto">
-                   <div className="flex justify-between items-start border-b-2 border-black pb-4">
-                      <div className="space-y-0.5 text-[8px] uppercase font-bold">
+                <div className="bg-white p-8 md:p-12 border-2 border-black shadow-sm relative flex flex-col space-y-10 font-serif text-black min-w-[600px] mx-auto print:border-none print:shadow-none">
+                   {/* Cameroon National Header (Synced with Parent View) */}
+                   <div className="grid grid-cols-3 gap-2 items-start text-center border-b-2 border-black pb-6">
+                      <div className="space-y-0.5 text-[8px] uppercase font-bold text-left">
                         <p>Republic of Cameroon</p>
                         <p>Peace - Work - Fatherland</p>
+                        <div className="h-px bg-black w-8 my-1" />
+                        <p>Ministry of Secondary Education</p>
                       </div>
                       <div className="flex flex-col items-center">
-                        <img src={user?.school?.logo || platformSettings.logo} alt="School" className="w-16 h-16 object-contain" />
+                        <div className="w-16 h-16 bg-white flex items-center justify-center p-1 border-2 border-primary/10 rounded-xl mb-1">
+                          <img src={user?.school?.logo || platformSettings.logo} alt="School" className="w-full h-full object-contain" />
+                        </div>
+                        <p className="text-[7px] font-black uppercase text-primary tracking-tighter">Verified Node Record</p>
                       </div>
                       <div className="space-y-0.5 text-[8px] uppercase font-bold text-right">
                         <p>République du Cameroun</p>
                         <p>Paix - Travail - Patrie</p>
+                        <div className="h-px bg-black w-8 ml-auto my-1" />
+                        <p>Min. des Enseignements Secondaires</p>
                       </div>
                    </div>
+
                    <div className="text-center space-y-1">
-                      <h2 className="font-black text-xl uppercase text-primary">{user?.school?.name || "GOVERNMENT HIGH SCHOOL"}</h2>
-                      <p className="text-[10px] font-bold uppercase tracking-widest underline decoration-double">{viewingDoc.term} Report Record</p>
+                      <h2 className="font-black text-xl uppercase text-primary tracking-tight leading-none">{user?.school?.name || "GOVERNMENT BILINGUAL HIGH SCHOOL"}</h2>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.3em] underline underline-offset-4 decoration-double decoration-primary/30">{viewingDoc.term} Bulletin Record</p>
                    </div>
-                   <div className="grid grid-cols-2 gap-8 py-4">
+
+                   <div className="grid grid-cols-2 gap-12 py-4 bg-accent/5 p-6 rounded-2xl border border-black/5">
                       <div className="space-y-4">
-                        <div className="space-y-1">
-                          <p className="text-[9px] font-black uppercase text-muted-foreground border-b pb-1">Student Identity</p>
-                          <p className="font-black text-sm uppercase">{user?.name}</p>
-                          <p className="text-[10px] font-mono font-bold text-primary">Matricule: {user?.id}</p>
+                        <div className="space-y-1 border-b border-black/5 pb-2">
+                          <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Student Identity</p>
+                          <p className="font-black text-base uppercase leading-none">{user?.name}</p>
+                          <p className="text-[10px] font-mono font-bold text-primary mt-1">Matricule: {user?.id}</p>
                         </div>
                         <div className="space-y-1">
-                          <p className="text-[9px] font-black uppercase text-muted-foreground border-b pb-1">Class Stream</p>
+                          <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Class Stream</p>
                           <p className="font-bold text-xs uppercase">{user?.class || "2nde / Form 5"}</p>
                         </div>
                       </div>
-                      <div className="space-y-4">
-                        <div className="p-4 bg-primary text-white rounded-2xl shadow-xl text-center">
+                      <div className="space-y-4 text-right flex flex-col justify-center">
+                        <div className="p-4 bg-primary text-white rounded-[1.5rem] shadow-xl text-center border-2 border-white">
                            <p className="text-[9px] font-black uppercase opacity-60 tracking-widest mb-1">Term Average</p>
-                           <p className="font-black text-2xl text-secondary">{viewingDoc.avg} / 20</p>
+                           <p className="font-black text-3xl text-secondary">{viewingDoc.avg} <span className="text-xs opacity-40">/ 20</span></p>
                         </div>
-                        <div className="flex justify-between items-center text-xs font-bold px-2">
-                           <span className="opacity-60 uppercase">Class Rank:</span>
-                           <span className="font-black text-primary">{viewingDoc.rank}</span>
+                        <div className="flex justify-between items-center text-xs font-bold px-2 pt-2 border-t border-black/5 mt-2">
+                           <span className="opacity-60 uppercase text-[9px]">Class Rank:</span>
+                           <span className="font-black text-primary text-base">{viewingDoc.rank}</span>
                         </div>
                       </div>
                    </div>
-                   <div className="pt-8 border-t border-black/5 flex justify-between items-end">
-                      <QrCode className="w-14 h-14 text-primary opacity-20" />
-                      <div className="text-center space-y-4 w-32">
-                        <div className="h-10 w-full bg-primary/5 rounded border-b-2 border-black/40 flex items-center justify-center">
+
+                   <div className="pt-12 border-t border-black/10 flex justify-between items-end">
+                      <div className="flex flex-col items-center gap-2">
+                        <QrCode className="w-16 h-16 text-primary opacity-20" />
+                        <p className="text-[7px] font-black uppercase text-muted-foreground opacity-40">Security Authenticated</p>
+                      </div>
+                      <div className="text-center space-y-6 w-40">
+                        <div className="h-14 w-full bg-primary/5 rounded-xl border-b-2 border-black/40 flex items-center justify-center overflow-hidden">
                            <SignatureSVG className="w-full h-full text-primary/10 p-2" />
                         </div>
-                        <p className="text-[8px] font-black uppercase text-primary">The Principal</p>
+                        <p className="text-[9px] font-black uppercase text-primary tracking-widest leading-none border-t border-black/5 pt-2">The Principal</p>
+                      </div>
+                   </div>
+
+                   <div className="text-center pt-6 border-t border-black/5">
+                      <div className="flex items-center justify-center gap-3">
+                        <img src={platformSettings.logo} alt="SaaS" className="w-4 h-4 object-contain opacity-20" />
+                        <p className="text-[8px] font-black uppercase text-muted-foreground opacity-30 tracking-[0.3em]">
+                          Verified Educational Record • {platformSettings.name} Node • {new Date().getFullYear()}
+                        </p>
                       </div>
                    </div>
                 </div>
@@ -441,10 +464,10 @@ export default function GradeBookPage() {
               )}
             </div>
 
-            <DialogFooter className="bg-accent/10 p-6 border-t border-accent flex flex-col sm:flex-row gap-3 shrink-0">
+            <DialogFooter className="bg-accent/10 p-6 border-t border-accent flex flex-col sm:flex-row gap-3 shrink-0 no-print">
               <Button variant="outline" className="flex-1 rounded-xl font-bold h-12" onClick={() => setViewingDoc(null)}>Close Preview</Button>
-              <Button className="flex-1 rounded-xl font-black uppercase text-xs h-12 shadow-lg gap-2" onClick={() => handleDownload(viewingDoc.title)}>
-                <Download className="w-4 h-4" /> Download Official Copy
+              <Button className="flex-1 rounded-xl font-black uppercase text-xs h-12 shadow-lg gap-2" onClick={() => { window.print(); setViewingDoc(null); }}>
+                <Printer className="w-4 h-4" /> Print Official Copy
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -565,6 +588,7 @@ function SignatureSVG({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M15 30L85 10" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" strokeDasharray="2 2" />
     </svg>
   );
 }
