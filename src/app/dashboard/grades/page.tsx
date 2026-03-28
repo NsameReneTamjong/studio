@@ -35,7 +35,9 @@ import {
   Building2,
   CalendarDays,
   Info,
-  Phone
+  Phone,
+  Smartphone,
+  MapPin
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -309,43 +311,131 @@ export default function GradeBookPage() {
                    </div>
                 </div>
               ) : (
-                <div className="flex justify-center py-10">
-                  <div className="w-[400px] h-[250px] bg-white rounded-2xl shadow-2xl border-2 border-primary/10 overflow-hidden relative flex flex-col">
-                    <div className="bg-primary h-1.5 w-full shrink-0" />
-                    <div className="p-4 border-b flex items-center gap-3 bg-accent/5 shrink-0">
-                      <div className="w-10 h-10 bg-white rounded-lg p-1 border shadow-sm flex items-center justify-center shrink-0">
-                        <img src={user?.school?.logo || platformSettings.logo} alt="School" className="w-full h-full object-contain" />
-                      </div>
-                      <div className="flex-1 overflow-hidden">
-                        <h3 className="text-[10px] font-black uppercase text-primary leading-tight truncate">{user?.school?.name || "GOVERNMENT HIGH SCHOOL"}</h3>
-                        <p className="text-[7px] font-bold text-muted-foreground uppercase">Ministry of Secondary Education</p>
-                      </div>
-                    </div>
-                    <div className="flex-1 p-4 flex gap-4">
-                      <div className="w-24 h-24 rounded-lg border-2 border-primary/10 overflow-hidden shrink-0 bg-accent/5">
-                        <img src={user?.avatar} alt={user?.name} className="w-full h-full object-cover" />
-                      </div>
-                      <div className="flex-1 flex flex-col justify-center gap-2">
-                        <div className="space-y-0.5">
-                          <p className="text-[6px] uppercase font-black text-muted-foreground">Full Name</p>
-                          <p className="text-xs font-black text-primary uppercase leading-none">{user?.name}</p>
+                <div className="flex flex-col gap-12 items-center">
+                  {/* FRONT SIDE */}
+                  <div className="relative group card-container">
+                    <Card className="w-[450px] h-[280px] border shadow-xl bg-white overflow-hidden relative border-primary/20 flex flex-col">
+                      <div className="bg-primary p-2 flex items-center justify-between text-white text-[7px] font-black uppercase tracking-tighter shrink-0 border-b border-white/10">
+                        <div className="text-left leading-none space-y-0.5">
+                          <p>Republic of Cameroon</p>
+                          <p>Peace - Work - Fatherland</p>
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="space-y-0.5">
-                            <p className="text-[6px] uppercase font-black text-muted-foreground">Matricule</p>
-                            <p className="text-[10px] font-mono font-black text-secondary">{user?.id}</p>
-                          </div>
-                          <div className="space-y-0.5">
-                            <p className="text-[6px] uppercase font-black text-muted-foreground">Class</p>
-                            <p className="text-[10px] font-black text-primary uppercase">{user?.class?.split(' / ')[0] || "Form 5"}</p>
-                          </div>
+                        <div className="flex gap-1 h-3">
+                          <div className="w-2 h-full bg-[#007a5e]" />
+                          <div className="w-2 h-full bg-[#ce1126] flex items-center justify-center"><div className="w-0.5 h-0.5 bg-yellow-400 rounded-full" /></div>
+                          <div className="w-2 h-full bg-[#fcd116]" />
+                        </div>
+                        <div className="text-right leading-none space-y-0.5">
+                          <p>République du Cameroun</p>
+                          <p>Paix - Travail - Patrie</p>
                         </div>
                       </div>
-                    </div>
-                    <div className="bg-primary/5 p-2 px-4 flex justify-between items-center border-t border-accent shrink-0">
-                      <span className="text-[8px] font-black text-primary uppercase tracking-widest">STUDENT ID CARD</span>
-                      <Badge className="bg-secondary text-primary border-none text-[8px] font-black h-5 px-2">2023 - 2024</Badge>
-                    </div>
+
+                      <div className="p-3 border-b border-accent flex items-center gap-3 bg-accent/5 shrink-0">
+                        <div className="w-12 h-12 bg-white rounded-lg p-1 border shadow-sm flex items-center justify-center shrink-0 overflow-hidden">
+                          <img src={user?.school?.logo || platformSettings.logo} alt="School Logo" className="w-full h-full object-contain" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-[8px] font-black uppercase text-muted-foreground leading-none mb-0.5">Ministry of Secondary Education</p>
+                          <h3 className="text-xs font-black uppercase text-primary leading-tight truncate">
+                            {user?.school?.name || "GOVERNMENT BILINGUAL HIGH SCHOOL"}
+                          </h3>
+                          <p className="text-[7px] font-bold text-muted-foreground italic">"{user?.school?.motto || "Discipline - Work - Success"}"</p>
+                        </div>
+                      </div>
+
+                      <div className="flex-1 p-4 flex gap-6 relative">
+                        <div className="w-28 h-28 rounded-xl border-2 border-primary/10 overflow-hidden shadow-lg shrink-0 bg-accent/5">
+                          <img src={user?.avatar} alt={user?.name} className="w-full h-full object-cover" />
+                        </div>
+                        <div className="flex-1 flex flex-col justify-center gap-3">
+                          <div className="space-y-0.5">
+                            <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Full Name / Nom Complet</p>
+                            <p className="text-sm font-black text-primary uppercase leading-tight">{user?.name}</p>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-0.5">
+                              <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Matricule</p>
+                              <p className="text-sm font-mono font-black text-secondary">{user?.id}</p>
+                            </div>
+                            <div className="space-y-0.5">
+                              <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Class / Classe</p>
+                              <p className="text-xs font-black text-primary">{user?.class || "N/A"}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-primary/5 p-2 flex justify-between items-center border-t border-accent shrink-0">
+                        <div className="px-3 py-1 bg-primary text-white rounded-md text-[9px] font-black tracking-widest">
+                          STUDENT ID CARD
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[8px] font-black text-muted-foreground uppercase">Academic Year</span>
+                          <Badge className="bg-secondary text-primary border-none text-[9px] font-black h-5">2023 - 2024</Badge>
+                        </div>
+                      </div>
+                    </Card>
+                    <p className="text-center text-[10px] font-black uppercase text-muted-foreground mt-2 tracking-[0.2em]">Front / Recto</p>
+                  </div>
+
+                  {/* BACK SIDE */}
+                  <div className="relative card-container">
+                    <Card className="w-[450px] h-[280px] border shadow-xl bg-white overflow-hidden relative border-primary/20 flex flex-col">
+                      <div className="bg-primary h-1 w-full shrink-0" />
+                      
+                      <div className="flex-1 p-6 flex flex-col gap-6">
+                        <div className="grid grid-cols-2 gap-8">
+                          <div className="space-y-4">
+                            <div className="space-y-1">
+                              <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Guardian / Tuteur</p>
+                              <p className="text-[10px] font-bold text-primary">Mr. Robert Thompson</p>
+                              <p className="text-[10px] font-black text-secondary flex items-center gap-1"><Phone className="w-2.5 h-2.5" /> +237 677 00 11 22</p>
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Date of Birth / Né(e) le</p>
+                              <p className="text-[10px] font-bold text-primary">15/05/2008</p>
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Residential Address / Adresse</p>
+                              <p className="text-[9px] font-medium text-muted-foreground leading-tight">Bonapriso, Douala</p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex flex-col items-center justify-center gap-4 text-center border-l border-accent pl-8">
+                            <div className="p-2 bg-white border-2 border-accent rounded-xl shadow-inner">
+                              <QrCode className="w-20 h-20 text-primary" />
+                            </div>
+                            <p className="text-[7px] font-black text-muted-foreground uppercase leading-tight tracking-widest">
+                              Scannez pour vérifier l'authenticité<br/>Scan to verify authenticity
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="mt-auto flex justify-between items-end border-t border-accent/50 pt-4">
+                          <div className="text-[8px] max-w-[200px] leading-relaxed text-muted-foreground font-medium">
+                            <p className="font-black text-[7px] uppercase text-primary mb-1">Notice / Avertissement</p>
+                            This card is strictly personal. If found, please return to the school administration.
+                          </div>
+                          <div className="text-center space-y-1 relative">
+                            <div className="h-px bg-primary/20 w-24 mx-auto mb-1" />
+                            <p className="text-[8px] font-black text-primary uppercase">The Principal</p>
+                            <Badge variant="outline" className="text-[7px] border-primary/20 text-primary font-black uppercase">Official Seal</Badge>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-accent/20 p-2 px-4 flex items-center justify-between shrink-0">
+                        <div className="flex items-center gap-2">
+                          <img src={platformSettings.logo} alt="EduIgnite" className="w-4 h-4 object-contain rounded-sm" />
+                          <p className="text-[7px] font-black text-primary uppercase tracking-widest">
+                            Powered by {platformSettings.name} SaaS
+                          </p>
+                        </div>
+                        <span className="text-[6px] text-muted-foreground font-bold italic">Secure Node Registry</span>
+                      </div>
+                    </Card>
+                    <p className="text-center text-[10px] font-black uppercase text-muted-foreground mt-2 tracking-[0.2em]">Back / Verso</p>
                   </div>
                 </div>
               )}
