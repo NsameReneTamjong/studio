@@ -341,8 +341,6 @@ export default function GradeBookPage() {
                         <TableHeader className="bg-[#264D73]">
                           <TableRow className="h-8 border-none hover:bg-[#264D73]">
                             <TableHead className="text-[8px] font-black uppercase text-white pl-2 border-r border-white/20">Subject</TableHead>
-                            <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20">Seq 1</TableHead>
-                            <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20">Seq 2</TableHead>
                             <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20 bg-green-700/40">Sequence 1</TableHead>
                             <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20 bg-green-700/40">Sequence 2</TableHead>
                             <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20 bg-green-700/60">Average</TableHead>
@@ -356,8 +354,6 @@ export default function GradeBookPage() {
                           {MOCK_PERSONAL_GRADES.map((g, idx) => (
                             <TableRow key={idx} className="border-b border-black/10 last:border-0 h-7 hover:bg-accent/5">
                               <TableCell className="pl-2 font-bold text-[8px] uppercase border-r border-black/10">{g.subject}</TableCell>
-                              <TableCell className="text-center text-[8px] border-r border-black/10 font-mono">{g.seq1.toFixed(1)}</TableCell>
-                              <TableCell className="text-center text-[8px] border-r border-black/10 font-mono">{g.seq2.toFixed(1)}</TableCell>
                               <TableCell className="text-center text-[8px] border-r border-black/10 font-mono bg-accent/5"></TableCell>
                               <TableCell className="text-center text-[8px] border-r border-black/10 font-mono bg-accent/5"></TableCell>
                               <TableCell className="text-center text-[8px] border-r border-black/10 font-black text-[#264D73]">{g.average.toFixed(2)}</TableCell>
@@ -648,7 +644,7 @@ function TranscriptPreview({ student, platform }: { student: any, platform: any 
                 <React.Fragment key={i}>
                   <TableHead className="border-r border-black font-bold text-[8px] text-center">T1</TableHead>
                   <TableHead className="border-r border-black font-bold text-[8px] text-center">T2</TableHead>
-                  <TableHead className={cn("border-r-2 border-black font-bold text-[8px] text-center", i === penultimateIdx ? "" : "")}>T3</TableHead>
+                  <TableHead className={cn("border-r-2 border-black font-bold text-[8px] text-center", i === visibleClasses.length - 1 ? "border-r-0" : "")}>T3</TableHead>
                 </React.Fragment>
               ))}
             </TableRow>
