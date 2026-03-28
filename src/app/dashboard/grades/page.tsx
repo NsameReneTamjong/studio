@@ -34,7 +34,8 @@ import {
   X,
   Building2,
   CalendarDays,
-  Info
+  Info,
+  Phone
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
