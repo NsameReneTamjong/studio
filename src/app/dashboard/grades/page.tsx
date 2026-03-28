@@ -56,6 +56,9 @@ const MOCK_STUDENTS_GRADES = [
 const MOCK_PERSONAL_GRADES = [
   { subject: "Advanced Physics", seq1: 14.5, seq2: 16.0, coeff: 4, teacher: "Dr. Tesla", status: "Passed" },
   { subject: "Mathematics", seq1: 18.0, seq2: 17.5, coeff: 5, teacher: "Prof. Smith", status: "Passed" },
+  { subject: "English Literature", seq1: 12.5, seq2: 13.0, coeff: 3, teacher: "Ms. Bennet", status: "Passed" },
+  { subject: "General Chemistry", seq1: 15.0, seq2: 14.5, coeff: 4, teacher: "Dr. White", status: "Passed" },
+  { subject: "History", seq1: 11.5, seq2: 12.0, coeff: 2, teacher: "M. Njoh", status: "Passed" },
 ];
 
 const MOCK_TRANSCRIPT_DATA = {
@@ -260,7 +263,7 @@ export default function GradeBookPage() {
             <div className="flex-1 overflow-y-auto p-6 md:p-10 bg-muted scrollbar-thin">
               {viewingDoc?.type === 'report' ? (
                 <div className="bg-white p-8 md:p-12 border-2 border-black shadow-sm relative flex flex-col space-y-10 font-serif text-black min-w-[600px] mx-auto print:border-none print:shadow-none">
-                   {/* Cameroon National Header (Synced with Parent View) */}
+                   {/* Cameroon National Header */}
                    <div className="grid grid-cols-3 gap-2 items-start text-center border-b-2 border-black pb-6">
                       <div className="space-y-0.5 text-[8px] uppercase font-bold text-left">
                         <p>Republic of Cameroon</p>
@@ -308,6 +311,39 @@ export default function GradeBookPage() {
                            <span className="opacity-60 uppercase text-[9px]">Class Rank:</span>
                            <span className="font-black text-primary text-base">{viewingDoc.rank}</span>
                         </div>
+                      </div>
+                   </div>
+
+                   {/* SUBJECT MARKS TABLE */}
+                   <div className="pt-6">
+                      <h4 className="text-[10px] font-black uppercase text-primary border-b border-black/10 pb-1 mb-4 flex items-center gap-2">
+                        <Award className="w-4 h-4" /> Academic Performance Details
+                      </h4>
+                      <div className="border-2 border-black rounded-sm overflow-hidden">
+                        <Table>
+                          <TableHeader className="bg-black/5 border-b-2 border-black">
+                            <TableRow className="h-10">
+                              <TableHead className="text-[9px] font-black uppercase text-black pl-4">Subject</TableHead>
+                              <TableHead className="text-center text-[9px] font-black uppercase text-black">Coeff</TableHead>
+                              <TableHead className="text-center text-[9px] font-black uppercase text-black">Seq 1</TableHead>
+                              <TableHead className="text-center text-[9px] font-black uppercase text-black">Seq 2</TableHead>
+                              <TableHead className="text-right text-[9px] font-black uppercase text-black pr-4">Status</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {MOCK_PERSONAL_GRADES.map((g, idx) => (
+                              <TableRow key={idx} className="border-b border-black/5 last:border-0 h-10">
+                                <TableCell className="pl-4 font-black text-[10px] uppercase">{g.subject}</TableCell>
+                                <TableCell className="text-center font-bold text-xs">{g.coeff}</TableCell>
+                                <TableCell className="text-center font-bold text-xs">{g.seq1.toFixed(1)}</TableCell>
+                                <TableCell className="text-center font-bold text-xs">{g.seq2.toFixed(1)}</TableCell>
+                                <TableCell className="text-right pr-4">
+                                  <span className="text-[9px] font-black text-green-700 uppercase">Passed</span>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
                       </div>
                    </div>
 
@@ -360,7 +396,7 @@ export default function GradeBookPage() {
                         </div>
                         <div className="flex-1">
                           <p className="text-[8px] font-black uppercase text-muted-foreground leading-none mb-0.5">Ministry of Secondary Education</p>
-                          <h3 className="text-xs font-black uppercase text-primary leading-tight truncate">
+                          <h3 className="text-xs font-black uppercase text-primary leading-tight">
                             {user?.school?.name || "GOVERNMENT BILINGUAL HIGH SCHOOL"}
                           </h3>
                           <p className="text-[7px] font-bold text-muted-foreground italic">"{user?.school?.motto || "Discipline - Work - Success"}"</p>
