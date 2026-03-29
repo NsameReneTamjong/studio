@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo } from "react";
@@ -58,7 +57,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
-import { Textarea } from "@/textarea";
+import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";
 
 // Constants
@@ -148,6 +147,11 @@ export default function FeesPage() {
     });
   }, [searchTerm, classFilter, sectionFilter, complianceFilter, activeFeeFilter, students]);
 
+  const classDossierStudents = useMemo(() => {
+    if (!selectedClassDetails) return [];
+    return students.filter(s => s.class === selectedClassDetails.name);
+  }, [students, selectedClassDetails]);
+
   const handleProcessPayment = () => {
     if (!paymentForm.amount) return;
     setIsProcessing(true);
@@ -191,6 +195,25 @@ export default function FeesPage() {
       setIsProcessing(false);
       toast({ title: "Download Ready", description: "The filtered financial report has been saved." });
     }, 2000);
+  };
+
+  const handleAddFeeType = () => {
+    if (!newFeeTypeData.name || !newFeeTypeData.amount) return;
+    setIsProcessing(true);
+    setTimeout(() => {
+      const created = {
+        id: `ft-${Math.random().toString(36).substr(2, 5)}`,
+        name: newFeeTypeData.name,
+        amount: parseFloat(newFeeTypeData.amount),
+        description: newFeeTypeData.description || "Institutional pedagogical charge.",
+        status: newFeeTypeData.status
+      };
+      setFeeTypes([...feeTypes, created]);
+      setIsProcessing(false);
+      setIsAddingFeeType(false);
+      setNewFeeTypeData({ name: "", amount: "", description: "", status: "mandatory" });
+      toast({ title: "Policy Updated", description: "New fee type has been registered." });
+    }, 800);
   };
 
   return (
@@ -524,8 +547,7 @@ export default function FeesPage() {
                 </div>
                 <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
                   <Button onClick={handleAddFeeType} disabled={isProcessing || !newFeeTypeData.name} className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3">
-                    {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                    Commit Fee Policy
+                    {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Commit Fee Policy
                   </Button>
                 </DialogFooter>
               </DialogContent>
