@@ -108,7 +108,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         amount: parseInt(supportData.amount),
         method: supportData.method,
         phone: supportData.phone,
-        message: supportData.message
+        message: supportData.message,
+        schoolName: user.school?.name || "EduIgnite Node",
+        uid: user.uid
       });
       
       setIsSubmittingSupport(false);
@@ -175,8 +177,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
-  const roleForLink = user.role === 'SUB_ADMIN' ? 'SCHOOL_ADMIN' : user.role;
-  const tutorialUrl = platformSettings?.tutorialLinks?.[roleForLink as keyof typeof platformSettings.tutorialLinks] || "https://youtube.com";
+  const tutorialUrl = platformSettings?.tutorialLinks?.[user.role as keyof typeof platformSettings.tutorialLinks] || "https://youtube.com";
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">

@@ -42,6 +42,7 @@ export interface TutorialLinks {
   TEACHER: string;
   PARENT: string;
   SCHOOL_ADMIN: string;
+  SUB_ADMIN: string;
   BURSAR: string;
   LIBRARIAN: string;
 }
@@ -259,6 +260,7 @@ const DEMO_ACCOUNTS: Record<string, any> = {
   "EDUI26CTO001": { name: "Tech Director", role: "CTO", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/cto/150/150", phone: "+237 600 00 00 02", whatsapp: "+237 600 00 00 02" },
   "EDUI26COO001": { name: "Operations Lead", role: "COO", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/coo/150/150", phone: "+237 600 00 00 03", whatsapp: "+237 600 00 00 03" },
   "EDUI26INV001": { name: "Lead Investor", role: "INV", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/inv/150/150", phone: "+237 600 00 00 04", whatsapp: "+237 600 00 00 04" },
+  "EDUI26INV002": { name: "Secondary Investor", role: "INV", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/inv2/150/150", phone: "+237 600 00 00 06", whatsapp: "+237 600 00 00 06" },
   "EDUI26DES001": { name: "Creative Lead", role: "DESIGNER", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/designer/150/150", phone: "+237 600 00 00 05", whatsapp: "+237 600 00 00 05" },
   "GBHS26": { name: "Principal Fonka", role: "SCHOOL_ADMIN", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/p1/150/150", phone: "+237 600 11 11 11", whatsapp: "+237 600 11 11 11" },
   "GBHS26A001": { name: "VP Academics", role: "SUB_ADMIN", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/subadmin/150/150", phone: "+237 600 22 22 22", whatsapp: "+237 600 22 22 22" },
@@ -284,6 +286,7 @@ const DEFAULT_TUTORIALS: TutorialLinks = {
   TEACHER: "https://youtube.com/watch?v=eduignite-teacher",
   PARENT: "https://youtube.com/watch?v=eduignite-parent",
   SCHOOL_ADMIN: "https://youtube.com/watch?v=eduignite-admin",
+  SUB_ADMIN: "https://youtube.com/watch?v=eduignite-subadmin",
   BURSAR: "https://youtube.com/watch?v=eduignite-bursar",
   LIBRARIAN: "https://youtube.com/watch?v=eduignite-librarian",
 };
@@ -497,7 +500,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }));
   };
   const deleteSupport = (id: string) => {
-    setSupportContributions(prev => prev.filter(c => i.id !== id));
+    setSupportContributions(prev => prev.filter(c => c.id !== id));
   };
 
   const addPublicEvent = (e: Omit<PublicEvent, "id">) => {

@@ -380,6 +380,7 @@ export default function PlatformSettingsPage() {
                     <TrainingLinkInput id="tr-teacher" label="Teacher" value={formData.tutorialLinks.TEACHER} onChange={(v: string) => handleTutorialChange('TEACHER', v)} icon={Users} />
                     <TrainingLinkInput id="tr-parent" label="Parent" value={formData.tutorialLinks.PARENT} onChange={(v: string) => handleTutorialChange('PARENT', v)} icon={Heart} />
                     <TrainingLinkInput id="tr-admin" label="School Admin" value={formData.tutorialLinks.SCHOOL_ADMIN} onChange={(v: string) => handleTutorialChange('SCHOOL_ADMIN', v)} icon={Building2} />
+                    <TrainingLinkInput id="tr-subadmin" label="Sub-Admin" value={formData.tutorialLinks.SUB_ADMIN} onChange={(v: string) => handleTutorialChange('SUB_ADMIN', v)} icon={ShieldCheck} />
                     <TrainingLinkInput id="tr-bursar" label="Bursar" value={formData.tutorialLinks.BURSAR} onChange={(v: string) => handleTutorialChange('BURSAR', v)} icon={Wallet} />
                     <TrainingLinkInput id="tr-librarian" label="Librarian" value={formData.tutorialLinks.LIBRARIAN} onChange={(v: string) => handleTutorialChange('LIBRARIAN', v)} icon={BookOpen} />
                   </div>
