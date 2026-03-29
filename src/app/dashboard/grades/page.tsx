@@ -37,7 +37,11 @@ import {
   Info,
   Phone,
   Smartphone,
-  MapPin
+  MapPin,
+  Users,
+  LayoutGrid,
+  TrendingUp,
+  Activity
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -47,6 +51,49 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
 const SUBJECTS = ["Advanced Physics", "Mathematics", "English Literature", "General Chemistry", "Biology", "History", "Geography"];
+
+const MOCK_ADMIN_CLASSES = [
+  { 
+    id: "CLS-01", 
+    name: "2nde / Form 5A", 
+    teachers: 12, 
+    masterName: "Dr. Aris Tesla", 
+    masterAvatar: "https://picsum.photos/seed/t1/100/100", 
+    students: 42, 
+    attendance: 94, 
+    performance: 88 
+  },
+  { 
+    id: "CLS-02", 
+    name: "Terminale / Upper Sixth", 
+    teachers: 10, 
+    masterName: "Prof. Sarah Smith", 
+    masterAvatar: "https://picsum.photos/seed/t2/100/100", 
+    students: 38, 
+    attendance: 91, 
+    performance: 85 
+  },
+  { 
+    id: "CLS-03", 
+    name: "3ème / Form 4", 
+    teachers: 14, 
+    masterName: "Ms. Bennet", 
+    masterAvatar: "https://picsum.photos/seed/t3/100/100", 
+    students: 45, 
+    attendance: 88, 
+    performance: 72 
+  },
+  { 
+    id: "CLS-04", 
+    name: "1ère / Lower Sixth", 
+    teachers: 11, 
+    masterName: "Mr. Abena", 
+    masterAvatar: "https://picsum.photos/seed/t4/100/100", 
+    students: 40, 
+    attendance: 95, 
+    performance: 92 
+  }
+];
 
 const MOCK_STUDENTS_GRADES = [
   { uid: "S1", id: "GBHS26S001", name: "Alice Thompson", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s1/100/100", seq1: 14.5, seq2: 16.0 },
@@ -59,10 +106,6 @@ const MOCK_PERSONAL_GRADES = [
   { subject: "French", teacher: "M. Nguema", seq1: 12.0, seq2: 13.0, average: 12.50, coef: 3, total: 37.50, rank: "12th", initials: "MN" },
   { subject: "Physics", teacher: "Dr. Aris Tesla", seq1: 16.5, seq2: 17.0, average: 16.75, coef: 4, total: 67.00, rank: "1st", initials: "AT" },
   { subject: "Chemistry", teacher: "Dr. White", seq1: 13.5, seq2: 14.5, average: 14.00, coef: 4, total: 56.00, rank: "8th", initials: "DW" },
-  { subject: "Biology", teacher: "Ms. Ebong", seq1: 15.0, seq2: 14.0, average: 14.50, coef: 4, total: 58.00, rank: "4th", initials: "EB" },
-  { subject: "ICT", teacher: "Mr. Chris", seq1: 18.0, seq2: 19.0, average: 18.50, coef: 2, total: 37.00, rank: "1st", initials: "CT" },
-  { subject: "History", teacher: "Mr. Paul", seq1: 11.0, seq2: 12.5, average: 11.75, coef: 2, total: 23.50, rank: "15th", initials: "PH" },
-  { subject: "Geography", teacher: "Ms. Grace", seq1: 12.5, seq2: 11.0, average: 11.75, coef: 2, total: 23.50, rank: "14th", initials: "GE" },
 ];
 
 const MOCK_TRANSCRIPT_DATA = {
@@ -83,8 +126,13 @@ export default function GradeBookPage() {
   const [grades] = useState(MOCK_STUDENTS_GRADES);
   const [viewingDoc, setViewingDoc] = useState<any>(null);
 
+  // Admin Specific State
+  const [adminView, setAdminView] = useState<"list" | "details">("list");
+  const [inspectedClass, setInspectedClass] = useState<any>(null);
+
   const isTeacher = user?.role === "TEACHER";
   const isStudent = user?.role === "STUDENT";
+  const isAdmin = user?.role === "SCHOOL_ADMIN" || user?.role === "SUB_ADMIN";
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 1200);
@@ -100,6 +148,159 @@ export default function GradeBookPage() {
 
   if (isLoading) return <LoadingState message="Fetching pedagogical records..." />;
 
+  // --- ADMIN VIEW ---
+  if (isAdmin) {
+    if (adminView === "list") {
+      return (
+        <div className="space-y-8 pb-20 animate-in fade-in duration-500">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-primary font-headline uppercase tracking-tighter">Academic Governance</h1>
+              <p className="text-muted-foreground mt-1 text-sm">Audit class-level report cards and pedagogical performance.</p>
+            </div>
+            <Button variant="outline" className="rounded-xl h-11 px-6 font-bold bg-white" onClick={() => handleDownload('Global Performance Audit')}>
+              <FileDown className="w-4 h-4 mr-2" /> Global Audit
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {MOCK_ADMIN_CLASSES.map((cls) => (
+              <Card key={cls.id} className="border-none shadow-sm overflow-hidden bg-white group hover:shadow-xl transition-all duration-500 rounded-[2rem]">
+                <div className="h-1.5 w-full bg-primary" />
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-start">
+                    <Badge variant="secondary" className="bg-primary/5 text-primary border-none text-[8px] font-black uppercase mb-2">Class Stream</Badge>
+                    <div className="p-2 bg-accent rounded-xl"><LayoutGrid className="w-4 h-4 text-primary" /></div>
+                  </div>
+                  <CardTitle className="text-xl font-black text-primary uppercase leading-tight">{cls.name}</CardTitle>
+                  <div className="flex items-center gap-3 mt-3 pt-3 border-t border-accent/50">
+                    <Avatar className="h-8 w-8 border-2 border-white shadow-sm ring-1 ring-accent">
+                      <AvatarImage src={cls.masterAvatar} />
+                      <AvatarFallback>{cls.masterName.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="overflow-hidden">
+                      <p className="text-[9px] font-black uppercase text-muted-foreground leading-none">Class Master</p>
+                      <p className="text-xs font-bold text-primary truncate">{cls.masterName}</p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4 pt-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-accent/30 p-2.5 rounded-xl border border-accent text-center">
+                      <p className="text-[8px] font-black uppercase text-muted-foreground mb-0.5">Students</p>
+                      <p className="text-sm font-black text-primary">{cls.students}</p>
+                    </div>
+                    <div className="bg-accent/30 p-2.5 rounded-xl border border-accent text-center">
+                      <p className="text-[8px] font-black uppercase text-muted-foreground mb-0.5">Teachers</p>
+                      <p className="text-sm font-black text-primary">{cls.teachers}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3 pt-2">
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center text-[9px] font-black uppercase">
+                        <span className="text-muted-foreground flex items-center gap-1"><Activity className="w-3 h-3"/> Attendance</span>
+                        <span className="text-primary">{cls.attendance}%</span>
+                      </div>
+                      <Progress value={cls.attendance} className="h-1 rounded-full [&>div]:bg-primary" />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center text-[9px] font-black uppercase">
+                        <span className="text-muted-foreground flex items-center gap-1"><TrendingUp className="w-3 h-3"/> Performance</span>
+                        <span className="text-secondary">{cls.performance}%</span>
+                      </div>
+                      <Progress value={cls.performance} className="h-1 rounded-full [&>div]:bg-secondary" />
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter className="bg-accent/10 border-t p-3">
+                  <Button 
+                    className="w-full h-10 rounded-xl bg-white border-primary/10 text-primary hover:bg-primary hover:text-white font-black uppercase text-[10px] tracking-widest shadow-sm group/btn transition-all"
+                    onClick={() => { setInspectedClass(cls); setAdminView("details"); }}
+                  >
+                    <Eye className="w-4 h-4 mr-2 transition-transform group-hover/btn:scale-110" /> Inspect Dossier
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (adminView === "details") {
+      return (
+        <div className="space-y-8 pb-20 animate-in slide-in-from-right-4 duration-500">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => setAdminView("list")} className="rounded-full hover:bg-white shadow-sm">
+              <ArrowLeft className="w-6 h-6" />
+            </Button>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline uppercase">{inspectedClass?.name}</h1>
+              <p className="text-muted-foreground text-sm font-bold uppercase tracking-widest">Academic Records Selection</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl">
+            <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white group hover:shadow-2xl transition-all duration-500">
+              <div className="h-2 w-full bg-primary" />
+              <CardHeader className="p-10 text-center space-y-4">
+                <div className="w-20 h-20 bg-primary/5 rounded-[2rem] flex items-center justify-center mx-auto text-primary group-hover:scale-110 transition-transform">
+                  <CalendarDays className="w-10 h-10" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl font-black text-primary uppercase">Current Year</CardTitle>
+                  <CardDescription className="text-sm font-medium mt-2">Active session pedagogical records and sequence fillings.</CardDescription>
+                </div>
+              </CardHeader>
+              <CardFooter className="bg-accent/10 p-6 border-t flex justify-center">
+                <Button 
+                  className="h-12 px-10 rounded-2xl font-black uppercase text-xs tracking-widest gap-2 shadow-lg"
+                  onClick={() => toast({ title: "Opening Current Ledger" })}
+                >
+                  <Eye className="w-4 h-4" /> Open Registry
+                </Button>
+              </CardFooter>
+            </Card>
+
+            <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white group hover:shadow-2xl transition-all duration-500">
+              <div className="h-2 w-full bg-secondary" />
+              <CardHeader className="p-10 text-center space-y-4">
+                <div className="w-20 h-20 bg-secondary/10 rounded-[2rem] flex items-center justify-center mx-auto text-primary group-hover:scale-110 transition-transform">
+                  <History className="w-10 h-10" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl font-black text-primary uppercase">Archives & History</CardTitle>
+                  <CardDescription className="text-sm font-medium mt-2">Historical transcripts and verified results from past sessions.</CardDescription>
+                </div>
+              </CardHeader>
+              <CardFooter className="bg-accent/10 p-6 border-t flex justify-center">
+                <Button 
+                  variant="secondary" 
+                  className="h-12 px-10 rounded-2xl font-black uppercase text-xs tracking-widest gap-2 shadow-lg bg-secondary text-primary hover:bg-secondary/90"
+                  onClick={() => toast({ title: "Opening History Archives" })}
+                >
+                  <Eye className="w-4 h-4" /> View Archives
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+
+          <div className="bg-blue-50 p-6 rounded-3xl border border-blue-100 flex items-start gap-4 max-w-2xl">
+            <Info className="w-6 h-6 text-blue-600 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="text-sm font-black text-blue-900 uppercase">Governance Notice</p>
+              <p className="text-xs text-blue-800 leading-relaxed italic font-medium">
+                "As an administrator, your access to class dossiers is audited. Changes to marks are restricted to the assigned subject teachers unless authorized by the pedagogical council."
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  // --- STUDENT VIEW ---
   if (isStudent) {
     return (
       <div className="space-y-8 pb-20">
@@ -246,7 +447,7 @@ export default function GradeBookPage() {
           </TabsContent>
         </Tabs>
 
-        {/* DOCUMENT PREVIEW DIALOG (PORTRAIT REPORT CARD) */}
+        {/* DOCUMENT PREVIEW DIALOG */}
         <Dialog open={!!viewingDoc} onOpenChange={() => setViewingDoc(null)}>
           <DialogContent className="sm:max-w-4xl max-h-[95vh] p-0 overflow-hidden border-none shadow-2xl bg-white flex flex-col">
             <DialogHeader className="bg-primary p-6 text-white relative shrink-0 no-print">
@@ -284,6 +485,7 @@ export default function GradeBookPage() {
     );
   }
 
+  // --- TEACHER VIEW ---
   return (
     <div className="space-y-8 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -327,7 +529,6 @@ export default function GradeBookPage() {
 function PortraitReportCard({ student, platform, term }: { student: any, platform: any, term: string }) {
   return (
     <div className="bg-white p-6 md:p-10 shadow-sm relative flex flex-col space-y-6 font-serif text-black max-w-[800px] mx-auto print:shadow-none print:p-0">
-       {/* Cameroon National Header */}
        <div className="grid grid-cols-12 gap-2 items-start text-center border-b border-black pb-4">
           <div className="col-span-4 space-y-0.5 text-[7px] uppercase font-bold text-left">
             <p className="text-[#264D73] font-black">Republic of Cameroon</p>
@@ -351,7 +552,6 @@ function PortraitReportCard({ student, platform, term }: { student: any, platfor
           <p className="text-[8px] font-bold italic opacity-60">Report Card: {term}</p>
        </div>
 
-       {/* Student Info Box */}
        <div className="grid grid-cols-12 border rounded-xl overflow-hidden mt-4 text-[9px] relative">
           <div className="col-span-9 p-4 grid grid-cols-2 gap-x-8 gap-y-2 border-r bg-accent/5">
             <div className="flex gap-2"><span className="font-bold whitespace-nowrap">Name:</span><span className="border-b border-dotted border-black/40 flex-1 font-black uppercase">{student?.name}</span></div>
@@ -368,7 +568,6 @@ function PortraitReportCard({ student, platform, term }: { student: any, platfor
           </div>
        </div>
 
-       {/* MARKS TABLE */}
        <div className="mt-6 border border-black rounded-sm overflow-hidden">
           <Table>
             <TableHeader className="bg-[#264D73]">
@@ -396,7 +595,6 @@ function PortraitReportCard({ student, platform, term }: { student: any, platfor
           </Table>
        </div>
 
-       {/* Summary Boxes */}
        <div className="grid grid-cols-3 gap-4 mt-6">
           <div className="border border-dotted border-black/40 p-3 rounded-lg space-y-1.5 text-[8px] bg-accent/5">
             <h4 className="font-black text-[#264D73] uppercase border-b border-black/10 mb-1">Statistical Summary</h4>
@@ -445,7 +643,6 @@ function PortraitReportCard({ student, platform, term }: { student: any, platfor
 function IDCardPreview({ student, platform }: { student: any, platform: any }) {
   return (
     <div className="flex flex-col gap-12 items-center">
-      {/* FRONT SIDE */}
       <div className="relative group card-container">
         <Card className="w-[450px] h-[280px] border shadow-xl bg-white overflow-hidden relative border-primary/20 flex flex-col">
           <div className="bg-primary p-2 flex items-center justify-between text-white text-[7px] font-black uppercase tracking-tighter shrink-0 border-b border-white/10">
@@ -512,7 +709,6 @@ function IDCardPreview({ student, platform }: { student: any, platform: any }) {
         <p className="text-center text-[10px] font-black uppercase text-muted-foreground mt-2 tracking-[0.2em]">Front Side</p>
       </div>
 
-      {/* BACK SIDE */}
       <div className="relative card-container">
         <Card className="w-[450px] h-[280px] border shadow-xl bg-white overflow-hidden relative border-primary/20 flex flex-col">
           <div className="bg-primary h-1 w-full shrink-0" />
