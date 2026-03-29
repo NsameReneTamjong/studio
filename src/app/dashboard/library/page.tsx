@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
@@ -39,7 +38,8 @@ import {
   AlertCircle,
   CalendarDays,
   CreditCard,
-  ImageIcon
+  ImageIcon,
+  CheckCircle2
 } from "lucide-react";
 import { 
   Dialog, 
@@ -500,7 +500,7 @@ export default function LibraryPage() {
                       </CardContent>
                       <CardFooter className="bg-accent/20 p-8 border-t flex justify-end">
                         <Button className="h-14 px-12 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3 transition-all active:scale-95" onClick={handleUpdatePolicy} disabled={isProcessing}>
-                          {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <ShieldCheck className="w-5 h-5 text-secondary" />}
+                          {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-5 h-5 text-secondary" />}
                           Commit Policy Registry
                         </Button>
                       </CardFooter>
