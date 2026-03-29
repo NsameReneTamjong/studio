@@ -99,11 +99,56 @@ const MOCK_ADMIN_CLASSES = [
 ];
 
 const MOCK_STUDENTS_GRADES = [
-  { uid: "S1", id: "GBHS26S001", name: "Alice Thompson", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s1/100/100", seq1: 14.5, seq2: 16.0 },
-  { uid: "S2", id: "GBHS26S002", name: "Bob Richards", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s2/100/100", seq1: 18.0, seq2: 17.5 },
-  { uid: "S3", id: "GBHS26S003", name: "Charlie Davis", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s3/100/100", seq1: 8.0, seq2: 9.5 },
-  { uid: "S4", id: "GBHS26S004", name: "Diana Prince", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s4/100/100", seq1: 12.0, seq2: 11.5 },
+  { uid: "S1", id: "GBHS26S001", name: "Alice Thompson", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s1/100/100" },
+  { uid: "S2", id: "GBHS26S002", name: "Bob Richards", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s2/100/100" },
+  { uid: "S3", id: "GBHS26S003", name: "Charlie Davis", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s3/100/100" },
+  { uid: "S4", id: "GBHS26S004", name: "Diana Prince", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s4/100/100" },
 ];
+
+const MOCK_SUBJECT_MARKS: Record<string, Record<string, { seq1: number, seq2: number }>> = {
+  "Advanced Physics": {
+    "S1": { seq1: 14.5, seq2: 16.0 },
+    "S2": { seq1: 18.0, seq2: 17.5 },
+    "S3": { seq1: 8.0, seq2: 9.5 },
+    "S4": { seq1: 12.0, seq2: 11.5 },
+  },
+  "Mathematics": {
+    "S1": { seq1: 17.0, seq2: 18.5 },
+    "S2": { seq1: 15.0, seq2: 14.5 },
+    "S3": { seq1: 10.5, seq2: 11.0 },
+    "S4": { seq1: 14.0, seq2: 13.5 },
+  },
+  "English Literature": {
+    "S1": { seq1: 12.0, seq2: 13.5 },
+    "S2": { seq1: 14.0, seq2: 15.0 },
+    "S3": { seq1: 9.0, seq2: 10.5 },
+    "S4": { seq1: 16.0, seq2: 17.0 },
+  },
+  "General Chemistry": {
+    "S1": { seq1: 13.5, seq2: 12.0 },
+    "S2": { seq1: 16.5, seq2: 18.0 },
+    "S3": { seq1: 7.5, seq2: 8.5 },
+    "S4": { seq1: 11.0, seq2: 12.5 },
+  },
+  "Biology": {
+    "S1": { seq1: 15.0, seq2: 14.0 },
+    "S2": { seq1: 12.5, seq2: 13.5 },
+    "S3": { seq1: 11.0, seq2: 12.0 },
+    "S4": { seq1: 14.5, seq2: 15.5 },
+  },
+  "History": {
+    "S1": { seq1: 10.5, seq2: 11.5 },
+    "S2": { seq1: 13.0, seq2: 14.0 },
+    "S3": { seq1: 12.0, seq2: 13.0 },
+    "S4": { seq1: 9.5, seq2: 10.5 },
+  },
+  "Geography": {
+    "S1": { seq1: 14.0, seq2: 15.0 },
+    "S2": { seq1: 11.5, seq2: 12.5 },
+    "S3": { seq1: 13.0, seq2: 14.0 },
+    "S4": { seq1: 10.0, seq2: 11.0 },
+  }
+};
 
 const MOCK_PERSONAL_GRADES = [
   { subject: "Mathematics", teacher: "Prof. Sarah Smith", seq1: 15.5, seq2: 16.0, average: 15.75, coef: 5, total: 78.75, rank: "2nd", initials: "ST" },
@@ -128,7 +173,6 @@ export default function GradeBookPage() {
   const [selectedClass, setSelectedClass] = useState("2nde / Form 5");
   const [selectedSubject, setSelectedSubject] = useState("Advanced Physics");
   const [activeSequence, setActiveSequence] = useState<"seq1" | "seq2">("seq1");
-  const [grades] = useState(MOCK_STUDENTS_GRADES);
   const [viewingDoc, setViewingDoc] = useState<any>(null);
 
   // Admin Specific State
@@ -381,33 +425,38 @@ export default function GradeBookPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {MOCK_STUDENTS_GRADES.map(s => (
-                    <TableRow key={s.uid} className="h-16 border-b last:border-0 hover:bg-accent/5">
-                      <TableCell className="pl-8 font-mono text-[10px] font-bold text-primary">{s.id}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-9 w-9 shrink-0 border-2 border-white shadow-sm ring-1 ring-accent">
-                            <AvatarImage src={s.avatar} />
-                            <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <span className="font-bold text-xs uppercase text-primary">{s.name}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center font-black">{s.seq1.toFixed(2)}</TableCell>
-                      <TableCell className="text-center font-black">{s.seq2.toFixed(2)}</TableCell>
-                      <TableCell className="text-center">
-                        <Badge className={cn(
-                          "text-[8px] font-black border-none px-3",
-                          getSystemStatus(s.seq1, s.seq2) === 'PASSED' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                        )}>
-                          {getSystemStatus(s.seq1, s.seq2)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right pr-8">
-                        <span className="text-[10px] font-bold text-muted-foreground italic">"{getSystemRemark(s.seq1, s.seq2)}"</span>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {MOCK_STUDENTS_GRADES.map(s => {
+                    const subjectMarks = MOCK_SUBJECT_MARKS[selectedSubject]?.[s.uid] || { seq1: 0, seq2: 0 };
+                    const s1 = subjectMarks.seq1;
+                    const s2 = subjectMarks.seq2;
+                    return (
+                      <TableRow key={s.uid} className="h-16 border-b last:border-0 hover:bg-accent/5">
+                        <TableCell className="pl-8 font-mono text-[10px] font-bold text-primary">{s.id}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-9 w-9 shrink-0 border-2 border-white shadow-sm ring-1 ring-accent">
+                              <AvatarImage src={s.avatar} />
+                              <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <span className="font-bold text-xs uppercase text-primary">{s.name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center font-black">{s1.toFixed(2)}</TableCell>
+                        <TableCell className="text-center font-black">{s2.toFixed(2)}</TableCell>
+                        <TableCell className="text-center">
+                          <Badge className={cn(
+                            "text-[8px] font-black border-none px-3",
+                            getSystemStatus(s1, s2) === 'PASSED' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                          )}>
+                            {getSystemStatus(s1, s2)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right pr-8">
+                          <span className="text-[10px] font-bold text-muted-foreground italic">"{getSystemRemark(s1, s2)}"</span>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </CardContent>
@@ -633,14 +682,17 @@ export default function GradeBookPage() {
               <TableRow><TableHead className="pl-8 py-4">Student Identity</TableHead><TableHead className="text-center">Seq 1</TableHead><TableHead className="text-center">Seq 2</TableHead><TableHead className="text-right pr-8">Status</TableHead></TableRow>
             </TableHeader>
             <TableBody>
-              {grades.map(s => (
-                <TableRow key={s.uid} className="h-16 border-b last:border-0 hover:bg-accent/5">
-                  <TableCell className="pl-8"><div className="flex items-center gap-3"><Avatar className="h-8 w-8 shrink-0"><AvatarImage src={s.avatar} /><AvatarFallback>{s.name.charAt(0)}</AvatarFallback></Avatar><span className="font-bold text-xs uppercase">{s.name}</span></div></TableCell>
-                  <TableCell className="text-center"><Input className="w-16 mx-auto h-9 text-center font-black border-primary/10" defaultValue={s.seq1} disabled={!isTeacher || activeSequence !== 'seq1'} /></TableCell>
-                  <TableCell className="text-center"><Input className="w-16 mx-auto h-9 text-center font-black border-primary/10" defaultValue={s.seq2} disabled={!isTeacher || activeSequence !== 'seq2'} /></TableCell>
-                  <TableCell className="text-right pr-8"><Badge className="bg-green-100 text-green-700">PASS</Badge></TableCell>
-                </TableRow>
-              ))}
+              {grades.map(s => {
+                const subjectMarks = MOCK_SUBJECT_MARKS[selectedSubject]?.[s.uid] || { seq1: 0, seq2: 0 };
+                return (
+                  <TableRow key={s.uid} className="h-16 border-b last:border-0 hover:bg-accent/5">
+                    <TableCell className="pl-8"><div className="flex items-center gap-3"><Avatar className="h-8 w-8 shrink-0"><AvatarImage src={s.avatar} /><AvatarFallback>{s.name.charAt(0)}</AvatarFallback></Avatar><span className="font-bold text-xs uppercase">{s.name}</span></div></TableCell>
+                    <TableCell className="text-center"><Input className="w-16 mx-auto h-9 text-center font-black border-primary/10" defaultValue={subjectMarks.seq1} disabled={!isTeacher || activeSequence !== 'seq1'} /></TableCell>
+                    <TableCell className="text-center"><Input className="w-16 mx-auto h-9 text-center font-black border-primary/10" defaultValue={subjectMarks.seq2} disabled={!isTeacher || activeSequence !== 'seq2'} /></TableCell>
+                    <TableCell className="text-right pr-8"><Badge className="bg-green-100 text-green-700">PASS</Badge></TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
@@ -840,7 +892,7 @@ function IDCardPreview({ student, platform }: { student: any, platform: any }) {
               <div className="space-y-4">
                 <div className="space-y-1">
                   <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Guardian / Tuteur</p>
-                  <p className="text-input h-14 bg-accent/30 border-none rounded-xl font-bold">Mr. Robert Thompson</p>
+                  <div className="h-10 bg-accent/30 border-none rounded-xl font-bold flex items-center px-4 text-sm text-primary">Mr. Robert Thompson</div>
                   <p className="text-[10px] font-black text-secondary flex items-center gap-1"><Phone className="w-2.5 h-2.5" /> +237 6XX XX XX XX</p>
                 </div>
                 <div className="space-y-1">
@@ -905,7 +957,7 @@ function TranscriptPreview({ student, platform }: { student: any, platform: any 
         <div className="space-y-1 text-[9px] uppercase font-black text-right"><p>République du Cameroun</p><p>Paix - Travail - Patrie</p></div>
       </div>
       <div className="text-center my-10 space-y-2"><h1 className="text-4xl font-black uppercase tracking-widest underline underline-offset-8 decoration-double">Academic Transcript</h1><p className="text-sm font-bold opacity-60">Session 2023 / 2024</p></div>
-      <div className="grid grid-cols-12 gap-8 bg-accent/5 p-6 border border-black/10 rounded-2xl items-center mb-10">
+      <div className="grid grid-cols-12 gap-8 bg-accent/5 p-6 border border-black/10 rounded-2xl items-center mb-10 shadow-inner">
         <div className="col-span-2">
           <Avatar className="w-28 h-28 border-4 border-white rounded-[2rem] shadow-xl mx-auto"><AvatarImage src={student?.avatar} /><AvatarFallback className="text-3xl font-black">{student?.name?.charAt(0)}</AvatarFallback></Avatar>
         </div>
