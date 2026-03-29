@@ -26,7 +26,11 @@ import {
   Award, 
   Zap, 
   Pencil,
-  XCircle
+  XCircle,
+  Users,
+  LayoutGrid,
+  Activity,
+  TrendingUp
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -36,8 +40,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 
-// Mock Data for Teacher & Admin Views (Kept for functional integrity of the shared route)
+// Mock Data for Teacher & Admin Views
 const MOCK_TEACHER_SUBJECTS = [
   { id: "TS1", name: "Advanced Physics", class: "2nde / Form 5", students: 42, period: "08:00 AM - 10:00 AM" },
   { id: "TS2", name: "General Chemistry", class: "1ère / Lower Sixth", students: 38, period: "10:30 AM - 12:30 PM" },
@@ -56,8 +61,42 @@ const MOCK_STUDENTS = [
 ];
 
 const MOCK_CLASSES_ADMIN = [
-  { id: "C1", name: "6ème / Form 1", percentage: 94, totalStudents: 45, presentToday: 42, status: "high", teacher: "Mr. Abena" },
-  { id: "C2", name: "2nde / Form 5", percentage: 91, totalStudents: 42, presentToday: 38, status: "medium", teacher: "Dr. Tesla" },
+  { 
+    id: "C1", 
+    name: "6ème / Form 1", 
+    percentage: 94, 
+    totalStudents: 45, 
+    presentToday: 42, 
+    status: "high", 
+    teacher: "Mr. Abena",
+    teachers: 12,
+    performance: 82,
+    masterAvatar: "https://picsum.photos/seed/t4/100/100"
+  },
+  { 
+    id: "C2", 
+    name: "2nde / Form 5", 
+    percentage: 91, 
+    totalStudents: 42, 
+    presentToday: 38, 
+    status: "medium", 
+    teacher: "Dr. Tesla",
+    teachers: 14,
+    performance: 88,
+    masterAvatar: "https://picsum.photos/seed/t1/100/100"
+  },
+  { 
+    id: "C3", 
+    name: "Terminale / Upper Sixth", 
+    percentage: 95, 
+    totalStudents: 38, 
+    presentToday: 36, 
+    status: "high", 
+    teacher: "Prof. Sarah Smith",
+    teachers: 10,
+    performance: 92,
+    masterAvatar: "https://picsum.photos/seed/t2/100/100"
+  },
 ];
 
 // --- STUDENT SPECIFIC DATA ---
@@ -85,6 +124,10 @@ export default function AttendancePage() {
   const [activeSession, setActiveSession] = useState<any>(null);
   const [viewingHistorySession, setViewingHistorySession] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Admin View State
+  const [adminView, setAdminView] = useState<"list" | "details">("list");
+  const [inspectedClass, setInspectedClass] = useState<any>(null);
 
   const [registryState, setRegistryState] = useState<Record<string, 'present' | 'absent'>>(
     MOCK_STUDENTS.reduce((acc, s) => ({ ...acc, [s.id]: 'present' }), {})
@@ -359,41 +402,144 @@ export default function AttendancePage() {
 
   // --- ADMIN VIEW (OVERSIGHT) ---
   if (isAdmin) {
-    return (
-      <div className="space-y-8 pb-20">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-primary font-headline flex items-center gap-3">
-              <div className="p-2 bg-primary rounded-xl shadow-lg"><CheckCircle2 className="w-6 h-6 text-secondary" /></div>
-              Attendance Audit
-            </h1>
-            <p className="text-muted-foreground mt-1 text-sm">Strategic institutional oversight of session participation.</p>
+    if (adminView === "list") {
+      return (
+        <div className="space-y-8 pb-20 animate-in fade-in duration-500">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-primary font-headline uppercase tracking-tighter">Attendance Governance</h1>
+              <p className="text-muted-foreground mt-1 text-sm">Audit institutional participation and session presence registry.</p>
+            </div>
+            <Button variant="outline" className="rounded-xl h-11 px-6 font-bold bg-white" onClick={() => toast({ title: "Global Log Exported" })}>
+              <FileDown className="w-4 h-4 mr-2" /> Global Presence Audit
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {MOCK_CLASSES_ADMIN.map((cls) => (
+              <Card key={cls.id} className="border-none shadow-sm overflow-hidden bg-white group hover:shadow-xl transition-all duration-500 rounded-[2rem]">
+                <div className="h-1.5 w-full bg-primary" />
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-start">
+                    <Badge variant="secondary" className="bg-primary/5 text-primary border-none text-[8px] font-black uppercase mb-2">Presence Cluster</Badge>
+                    <div className="p-2 bg-accent rounded-xl"><LayoutGrid className="w-4 h-4 text-primary" /></div>
+                  </div>
+                  <CardTitle className="text-xl font-black text-primary uppercase leading-tight">{cls.name}</CardTitle>
+                  <div className="flex items-center gap-3 mt-3 pt-3 border-t border-accent/50">
+                    <Avatar className="h-8 w-8 border-2 border-white shadow-sm ring-1 ring-accent">
+                      <AvatarImage src={cls.masterAvatar} />
+                      <AvatarFallback>{cls.teacher.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="overflow-hidden">
+                      <p className="text-[9px] font-black uppercase text-muted-foreground leading-none">Class Master</p>
+                      <p className="text-xs font-bold text-primary truncate">{cls.teacher}</p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4 pt-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-accent/30 p-2.5 rounded-xl border border-accent text-center">
+                      <p className="text-[8px] font-black uppercase text-muted-foreground mb-0.5">Students</p>
+                      <p className="text-sm font-black text-primary">{cls.totalStudents}</p>
+                    </div>
+                    <div className="bg-accent/30 p-2.5 rounded-xl border border-accent text-center">
+                      <p className="text-[8px] font-black uppercase text-muted-foreground mb-0.5">Assigned Teachers</p>
+                      <p className="text-sm font-black text-primary">{cls.teachers}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3 pt-2">
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center text-[9px] font-black uppercase">
+                        <span className="text-muted-foreground flex items-center gap-1"><Activity className="w-3 h-3"/> Session Presence</span>
+                        <span className="text-primary">{cls.percentage}%</span>
+                      </div>
+                      <Progress value={cls.percentage} className="h-1 rounded-full [&>div]:bg-primary" />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center text-[9px] font-black uppercase">
+                        <span className="text-muted-foreground flex items-center gap-1"><TrendingUp className="w-3 h-3"/> Discipline Score</span>
+                        <span className="text-secondary">{cls.performance}%</span>
+                      </div>
+                      <Progress value={cls.performance} className="h-1 rounded-full [&>div]:bg-secondary" />
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter className="bg-accent/10 border-t p-3">
+                  <Button 
+                    className="w-full h-10 rounded-xl bg-white border-primary/10 text-primary hover:bg-primary hover:text-white font-black uppercase text-[10px] tracking-widest shadow-sm group/btn transition-all"
+                    onClick={() => { setInspectedClass(cls); setAdminView("details"); }}
+                  >
+                    <Eye className="w-4 h-4 mr-2 transition-transform group-hover/btn:scale-110" /> Audit Sessions
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
           </div>
         </div>
+      );
+    }
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {MOCK_CLASSES_ADMIN.map((cls) => (
-            <Card key={cls.id} className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-all bg-white rounded-3xl">
-              <div className={cn("h-1.5 w-full", cls.status === 'high' ? "bg-green-500" : "bg-amber-500")} />
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-xl font-black text-primary uppercase">{cls.name}</CardTitle>
-                    <CardDescription className="text-[9px] font-bold uppercase tracking-widest mt-1">{cls.teacher}</CardDescription>
-                  </div>
-                  <Badge className="bg-accent text-primary border-none h-8 font-black">{cls.percentage}%</Badge>
+    if (adminView === "details") {
+      return (
+        <div className="space-y-8 pb-20 animate-in slide-in-from-right-4 duration-500">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => setAdminView("list")} className="rounded-full hover:bg-white shadow-sm">
+              <ArrowLeft className="w-6 h-6" />
+            </Button>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline uppercase">{inspectedClass?.name}</h1>
+              <p className="text-muted-foreground text-sm font-bold uppercase tracking-widest">Attendance Session Dossier</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl">
+            <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white group hover:shadow-2xl transition-all duration-500">
+              <div className="h-2 w-full bg-primary" />
+              <CardHeader className="p-10 text-center space-y-4">
+                <div className="w-20 h-20 bg-primary/5 rounded-[2rem] flex items-center justify-center mx-auto text-primary group-hover:scale-110 transition-transform">
+                  <CalendarDays className="w-10 h-10" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl font-black text-primary uppercase">Daily Subject Register</CardTitle>
+                  <CardDescription className="text-sm font-medium mt-2">Active session pedagogical presence and teacher-led registers.</CardDescription>
                 </div>
               </CardHeader>
-              <CardFooter className="bg-accent/10 border-t p-3">
-                <Button variant="ghost" className="flex-1 justify-between hover:bg-white text-primary font-bold text-[10px] uppercase w-full rounded-xl">
-                  Inspect Subjects <ArrowRight className="w-3.5 h-3.5" />
+              <CardFooter className="bg-accent/10 p-6 border-t flex justify-center">
+                <Button 
+                  className="h-12 px-10 rounded-2xl font-black uppercase text-xs tracking-widest gap-2 shadow-lg"
+                  onClick={() => toast({ title: "Opening Live Ledger..." })}
+                >
+                  <Eye className="w-4 h-4" /> Open Register
                 </Button>
               </CardFooter>
             </Card>
-          ))}
+
+            <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white group hover:shadow-2xl transition-all duration-500">
+              <div className="h-2 w-full bg-secondary" />
+              <CardHeader className="p-10 text-center space-y-4">
+                <div className="w-20 h-20 bg-secondary/10 rounded-[2rem] flex items-center justify-center mx-auto text-primary group-hover:scale-110 transition-transform">
+                  <History className="w-10 h-10" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl font-black text-primary uppercase">Historical Presence Analytics</CardTitle>
+                  <CardDescription className="text-sm font-medium mt-2">Historical participation archives and verified reports from past sessions.</CardDescription>
+                </div>
+              </CardHeader>
+              <CardFooter className="bg-accent/10 p-6 border-t flex justify-center">
+                <Button 
+                  variant="secondary" 
+                  className="h-12 px-10 rounded-2xl font-black uppercase text-xs tracking-widest gap-2 shadow-lg bg-secondary text-primary hover:bg-secondary/90"
+                  onClick={() => toast({ title: "Loading History Archives..." })}
+                >
+                  <Eye className="w-4 h-4" /> View Archives
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
         </div>
-      </div>
-    );
+      );
+    }
   }
 
   // --- STUDENT VIEW (PORTAL) ---
