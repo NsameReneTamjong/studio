@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -30,7 +30,11 @@ import {
   Users,
   LayoutGrid,
   Activity,
-  TrendingUp
+  TrendingUp,
+  Filter,
+  Search,
+  User,
+  Printer
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -41,11 +45,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-// Mock Data for Teacher & Admin Views
+// --- CONSTANTS & MOCK DATA ---
+const SUBJECTS = ["Advanced Physics", "Mathematics", "English Literature", "General Chemistry", "Biology"];
+
 const MOCK_TEACHER_SUBJECTS = [
-  { id: "TS1", name: "Advanced Physics", class: "2nde / Form 5", students: 42, period: "08:00 AM - 10:00 AM" },
-  { id: "TS2", name: "General Chemistry", class: "1ère / Lower Sixth", students: 38, period: "10:30 AM - 12:30 PM" },
+  { id: "TS1", name: "Advanced Physics", class: "2nde / Form 5", students: 42, period: "08:00 AM - 10:00 AM", teacher: "Dr. Aris Tesla", avatar: "https://picsum.photos/seed/t1/100/100" },
+  { id: "TS2", name: "General Chemistry", class: "1ère / Lower Sixth", students: 38, period: "10:30 AM - 12:30 PM", teacher: "Dr. White", avatar: "https://picsum.photos/seed/t4/100/100" },
+  { id: "TS3", name: "Mathematics", class: "2nde / Form 5", students: 42, period: "10:30 AM - 12:30 PM", teacher: "Prof. Sarah Smith", avatar: "https://picsum.photos/seed/t2/100/100" },
 ];
 
 const MOCK_HISTORICAL_SESSIONS = [
@@ -54,10 +62,10 @@ const MOCK_HISTORICAL_SESSIONS = [
 ];
 
 const MOCK_STUDENTS = [
-  { id: "S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100" },
-  { id: "S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100" },
-  { id: "S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100" },
-  { id: "S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100" },
+  { id: "GBHS26S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100" },
+  { id: "GBHS26S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100" },
+  { id: "GBHS26S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100" },
+  { id: "GBHS26S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100" },
 ];
 
 const MOCK_CLASSES_ADMIN = [
@@ -99,7 +107,6 @@ const MOCK_CLASSES_ADMIN = [
   },
 ];
 
-// --- STUDENT SPECIFIC DATA ---
 const MOCK_TODAY_ATTENDANCE = [
   { subject: "Advanced Physics", status: "present", time: "08:00 AM", teacher: "Dr. Aris Tesla" },
   { subject: "Mathematics", status: "present", time: "10:30 AM", teacher: "Prof. Sarah Smith" },
@@ -126,8 +133,9 @@ export default function AttendancePage() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Admin View State
-  const [adminView, setAdminView] = useState<"list" | "details">("list");
+  const [adminView, setAdminView] = useState<"list" | "details" | "registry">("list");
   const [inspectedClass, setInspectedClass] = useState<any>(null);
+  const [selectedSubject, setSelectedSubject] = useState(SUBJECTS[0]);
 
   const [registryState, setRegistryState] = useState<Record<string, 'present' | 'absent'>>(
     MOCK_STUDENTS.reduce((acc, s) => ({ ...acc, [s.id]: 'present' }), {})
@@ -166,6 +174,10 @@ export default function AttendancePage() {
       toast({ title: "Registry Synchronized" });
     }, 1200);
   };
+
+  const activeTeacherInfo = useMemo(() => {
+    return MOCK_TEACHER_SUBJECTS.find(s => s.name === selectedSubject) || MOCK_TEACHER_SUBJECTS[0];
+  }, [selectedSubject]);
 
   if (isLoading) return <LoadingState message="Connecting to node..." />;
 
@@ -485,7 +497,7 @@ export default function AttendancePage() {
         <div className="space-y-8 pb-20 animate-in slide-in-from-right-4 duration-500">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => setAdminView("list")} className="rounded-full hover:bg-white shadow-sm">
-              <ArrowLeft className="w-6 h-6" />
+              <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline uppercase">{inspectedClass?.name}</h1>
@@ -508,7 +520,7 @@ export default function AttendancePage() {
               <CardFooter className="bg-accent/10 p-6 border-t flex justify-center">
                 <Button 
                   className="h-12 px-10 rounded-2xl font-black uppercase text-xs tracking-widest gap-2 shadow-lg"
-                  onClick={() => toast({ title: "Opening Live Ledger..." })}
+                  onClick={() => setAdminView("registry")}
                 >
                   <Eye className="w-4 h-4" /> Open Register
                 </Button>
@@ -537,6 +549,109 @@ export default function AttendancePage() {
               </CardFooter>
             </Card>
           </div>
+        </div>
+      );
+    }
+
+    if (adminView === "registry") {
+      return (
+        <div className="space-y-8 pb-20 animate-in slide-in-from-right-4 duration-500">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="icon" onClick={() => setAdminView("details")} className="rounded-full hover:bg-white shadow-sm">
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline uppercase">{inspectedClass?.name} Register</h1>
+                <p className="text-muted-foreground text-sm font-bold uppercase tracking-widest">Active Presence Audit</p>
+              </div>
+            </div>
+            <Button variant="outline" className="rounded-xl h-11 px-6 font-bold bg-white gap-2" onClick={() => window.print()}>
+              <Printer className="w-4 h-4" /> Print Registry
+            </Button>
+          </div>
+
+          <div className="bg-white p-6 rounded-[2rem] border shadow-sm flex flex-col md:flex-row gap-4 items-end">
+            <div className="flex-1 space-y-2 w-full">
+              <Label className="text-[10px] font-black uppercase text-primary ml-1 flex items-center gap-2">
+                <Filter className="w-3.5 h-3.5" /> Subject Filter
+              </Label>
+              <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+                <SelectTrigger className="h-12 bg-primary/5 border-primary/10 rounded-xl font-bold">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SUBJECTS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="hidden md:flex flex-col items-center justify-center px-8 border-l border-accent">
+               <p className="text-[10px] font-black text-muted-foreground uppercase">Current Date</p>
+               <p className="text-sm font-bold text-primary">{format(new Date(), "PPP")}</p>
+            </div>
+          </div>
+
+          <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+            <CardHeader className="bg-primary p-8 text-white">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xl font-black uppercase tracking-tight">Daily Presence Ledger</CardTitle>
+                <Badge variant="secondary" className="bg-secondary text-primary border-none font-black px-4 py-1 uppercase text-[9px]">READ-ONLY AUDIT</Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0 overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest border-b">
+                  <TableRow>
+                    <TableHead className="pl-8 py-4">Matricule</TableHead>
+                    <TableHead>Student Identity</TableHead>
+                    <TableHead className="text-right pr-8">Presence Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {MOCK_STUDENTS.map((s, idx) => (
+                    <TableRow key={s.id} className="hover:bg-accent/5 h-16 border-b border-accent/10 last:border-0">
+                      <TableCell className="pl-8 font-mono text-[10px] font-bold text-primary uppercase">{s.id}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent">
+                            <AvatarImage src={s.avatar} />
+                            <AvatarFallback className="text-[10px] font-bold">{s.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <span className="font-bold text-xs md:text-sm text-primary uppercase">{s.name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <Badge className={cn(
+                          "text-[8px] font-black uppercase border-none px-3 gap-1.5 h-6",
+                          idx % 5 === 0 ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
+                        )}>
+                          {idx % 5 === 0 ? <XCircle className="w-3 h-3" /> : <CheckCircle2 className="w-3 h-3" />}
+                          {idx % 5 === 0 ? 'ABSENT' : 'PRESENT'}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+            <CardFooter className="bg-accent/30 p-8 border-t flex flex-col md:flex-row items-center justify-between gap-6">
+               <div className="flex items-center gap-4">
+                  <Avatar className="h-14 w-14 border-4 border-white shadow-xl ring-1 ring-primary/10">
+                    <AvatarImage src={activeTeacherInfo.avatar} />
+                    <AvatarFallback className="bg-primary text-white font-bold">{activeTeacherInfo.teacher.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest leading-none mb-1">Subject Teacher</p>
+                    <h4 className="text-base font-black text-primary uppercase leading-tight">{activeTeacherInfo.teacher}</h4>
+                    <p className="text-[10px] font-bold text-secondary uppercase tracking-tighter">Verified Pedagogical Lead</p>
+                  </div>
+               </div>
+               <div className="flex items-center gap-2 text-muted-foreground italic">
+                  <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Records digitally signed by subject lead.</p>
+               </div>
+            </CardFooter>
+          </Card>
         </div>
       );
     }
