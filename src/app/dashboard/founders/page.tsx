@@ -208,29 +208,29 @@ export default function FoundersManagementPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Identity Name</Label>
-                    <Input value={newFounderData.name} onChange={(e) => setNewFounderData({...newFounderData, name: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl font-bold" placeholder="Full Legal Name" />
+                    <Input value={newFounderData.name || ""} onChange={(e) => setNewFounderData({...newFounderData, name: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl font-bold" placeholder="Full Legal Name" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Professional Email</Label>
-                    <Input type="email" value={newFounderData.email} onChange={(e) => setNewFounderData({...newFounderData, email: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl" placeholder="executive@eduignite.io" />
+                    <Input type="email" value={newFounderData.email || ""} onChange={(e) => setNewFounderData({...newFounderData, email: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl" placeholder="executive@eduignite.io" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Contact Number</Label>
                     <div className="relative">
                       <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
-                      <Input value={newFounderData.contact} onChange={(e) => setNewFounderData({...newFounderData, contact: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl pl-10 font-bold" placeholder="+237 ..." />
+                      <Input value={newFounderData.contact || ""} onChange={(e) => setNewFounderData({...newFounderData, contact: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl pl-10 font-bold" placeholder="+237 ..." />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Shares / Equity</Label>
                     <div className="relative">
                       <PieChart className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />
-                      <Input value={newFounderData.shares} onChange={(e) => setNewFounderData({...newFounderData, shares: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl pl-10 font-black" placeholder="e.g. 10% or 5000" />
+                      <Input value={newFounderData.shares || ""} onChange={(e) => setNewFounderData({...newFounderData, shares: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl pl-10 font-black" placeholder="e.g. 10% or 5000" />
                     </div>
                   </div>
                   <div className="col-span-2 space-y-2">
                     <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Strategic Board Role</Label>
-                    <Select value={newFounderData.role} onValueChange={(v) => setNewFounderData({...newFounderData, role: v})}>
+                    <Select value={newFounderData.role || "COO"} onValueChange={(v) => setNewFounderData({...newFounderData, role: v})}>
                       <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-black">
                         <SelectValue />
                       </SelectTrigger>
@@ -298,7 +298,7 @@ export default function FoundersManagementPage() {
               
               <Avatar className="h-28 w-28 border-4 border-white/20 mx-auto shadow-2xl mb-6 group-hover:scale-105 transition-transform duration-500">
                 <AvatarImage src={founder.avatar} />
-                <AvatarFallback className="bg-white text-primary font-black text-2xl">{founder.name.charAt(0)}</AvatarFallback>
+                <AvatarFallback className="bg-white text-primary font-black text-2xl">{founder.name?.charAt(0)}</AvatarFallback>
               </Avatar>
               <CardTitle className="text-xl font-black uppercase tracking-tight">{founder.name}</CardTitle>
               <div className="flex items-center justify-center gap-2 mt-2">
@@ -354,15 +354,15 @@ export default function FoundersManagementPage() {
             <div className="grid grid-cols-2 gap-6">
               <div className="col-span-2 space-y-2">
                 <Label className="text-[10px] font-black uppercase ml-1">Executive Identity</Label>
-                <Input value={editingFounder?.name} onChange={(e) => setEditingFounder({...editingFounder, name: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl font-bold" />
+                <Input value={editingFounder?.name || ""} onChange={(e) => setEditingFounder({...editingFounder, name: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl font-bold" />
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase ml-1">Contact</Label>
-                <Input value={editingFounder?.contact} onChange={(e) => setEditingFounder({...editingFounder, contact: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl font-bold" />
+                <Input value={editingFounder?.contact || ""} onChange={(e) => setEditingFounder({...editingFounder, contact: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl font-bold" />
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase ml-1">Equity</Label>
-                <Input value={editingFounder?.shares} onChange={(e) => setEditingFounder({...editingFounder, shares: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl font-black" />
+                <Input value={editingFounder?.shares || ""} onChange={(e) => setEditingFounder({...editingFounder, shares: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl font-black" />
               </div>
             </div>
           </div>
