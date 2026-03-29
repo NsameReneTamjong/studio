@@ -110,6 +110,13 @@ const MOCK_STUDENTS_GRADES = [
   { uid: "S4", id: "GBHS26S004", name: "Diana Prince", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s4/100/100" },
 ];
 
+const MOCK_TRANSCRIPT_DATA = {
+  "Advanced Physics": { f1: ["12.5", "13.0", "14.2"], f2: ["11.0", "12.5", "13.5"], f3: ["14.0", "15.5", "16.0"] },
+  "Mathematics": { f1: ["15.0", "16.5", "17.0"], f2: ["14.5", "15.0", "16.0"], f3: ["17.5", "18.0", "17.5"] },
+  "English Literature": { f1: ["10.0", "11.5", "12.0"], f2: ["09.5", "10.0", "11.0"], f3: ["12.5", "13.0", "13.5"] },
+  "General Chemistry": { f1: ["13.5", "14.0", "14.5"], f2: ["12.0", "13.5", "14.0"], f3: ["15.0", "16.0", "16.5"] },
+};
+
 const MOCK_SUBJECT_MARKS: Record<string, Record<string, { seq1: number, seq2: number }>> = {
   "Advanced Physics": {
     "S1": { seq1: 14.5, seq2: 16.0 },
@@ -481,7 +488,7 @@ export default function GradeBookPage() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="icon" onClick={() => setAdminView("details")} className="rounded-full hover:bg-white shadow-sm">
-                <ArrowLeft className="w-6 h-6" />
+                <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline uppercase">Historical Archives</h1>
