@@ -34,7 +34,9 @@ import {
   Filter,
   Search,
   User,
-  Printer
+  Printer,
+  QrCode,
+  Fingerprint
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -49,13 +51,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 // --- CONSTANTS & MOCK DATA ---
 const SUBJECTS = ["Advanced Physics", "Mathematics", "English Literature", "General Chemistry", "Biology"];
+const ACADEMIC_YEARS = ["2023 / 2024", "2022 / 2023", "2021 / 2022"];
+const TERMS = ["Term 1", "Term 2", "Term 3"];
 
 const MOCK_TEACHER_SUBJECTS = [
-  { id: "TS1", name: "Advanced Physics", class: "2nde / Form 5", students: 42, period: "08:00 AM - 10:00 AM", teacher: "Dr. Aris Tesla", avatar: "https://picsum.photos/seed/t1/100/100" },
-  { id: "TS2", name: "General Chemistry", class: "1ère / Lower Sixth", students: 38, period: "10:30 AM - 12:30 PM", teacher: "Dr. White", avatar: "https://picsum.photos/seed/t4/100/100" },
-  { id: "TS3", name: "Mathematics", class: "2nde / Form 5", students: 42, period: "10:30 AM - 12:30 PM", teacher: "Prof. Sarah Smith", avatar: "https://picsum.photos/seed/t2/100/100" },
-  { id: "TS4", name: "English Literature", class: "2nde / Form 5", students: 42, period: "01:30 PM - 03:30 PM", teacher: "Ms. Bennet", avatar: "https://picsum.photos/seed/t3/100/100" },
-  { id: "TS5", name: "Biology", class: "2nde / Form 5", students: 42, period: "08:00 AM - 10:00 AM", teacher: "Mr. Abena", avatar: "https://picsum.photos/seed/t5/100/100" },
+  { id: "GBHS26T001", name: "Advanced Physics", class: "2nde / Form 5", students: 42, period: "08:00 AM - 10:00 AM", teacher: "Dr. Aris Tesla", avatar: "https://picsum.photos/seed/t1/100/100" },
+  { id: "GBHS26T004", name: "General Chemistry", class: "1ère / Lower Sixth", students: 38, period: "10:30 AM - 12:30 PM", teacher: "Dr. White", avatar: "https://picsum.photos/seed/t4/100/100" },
+  { id: "GBHS26T002", name: "Mathematics", class: "2nde / Form 5", students: 42, period: "10:30 AM - 12:30 PM", teacher: "Prof. Sarah Smith", avatar: "https://picsum.photos/seed/t2/100/100" },
+  { id: "GBHS26T003", name: "English Literature", class: "2nde / Form 5", students: 42, period: "01:30 PM - 03:30 PM", teacher: "Ms. Bennet", avatar: "https://picsum.photos/seed/t3/100/100" },
+  { id: "GBHS26T005", name: "Biology", class: "2nde / Form 5", students: 42, period: "08:00 AM - 10:00 AM", teacher: "Mr. Abena", avatar: "https://picsum.photos/seed/t5/100/100" },
 ];
 
 const MOCK_HISTORICAL_SESSIONS = [
@@ -125,7 +129,7 @@ const MOCK_STUDENT_HISTORY = [
 ];
 
 export default function AttendancePage() {
-  const { user } = useAuth();
+  const { user, platformSettings } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
   const router = useRouter();
@@ -137,9 +141,14 @@ export default function AttendancePage() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Admin View State
-  const [adminView, setAdminView] = useState<"list" | "details" | "registry">("list");
+  const [adminView, setAdminView] = useState<"list" | "details" | "registry" | "archive">("list");
   const [inspectedClass, setInspectedClass] = useState<any>(null);
   const [selectedSubject, setSelectedSubject] = useState(SUBJECTS[0]);
+
+  // Archive Filter State
+  const [archiveYear, setArchiveYear] = useState(ACADEMIC_YEARS[0]);
+  const [archiveTerm, setArchiveTerm] = useState(TERMS[0]);
+  const [archiveSubject, setArchiveSubject] = useState(SUBJECTS[0]);
 
   const [registryState, setRegistryState] = useState<Record<string, 'present' | 'absent'>>(
     MOCK_STUDENTS.reduce((acc, s) => ({ ...acc, [s.id]: 'present' }), {})
@@ -180,8 +189,9 @@ export default function AttendancePage() {
   };
 
   const activeTeacherInfo = useMemo(() => {
-    return MOCK_TEACHER_SUBJECTS.find(s => s.name === selectedSubject) || MOCK_TEACHER_SUBJECTS[0];
-  }, [selectedSubject]);
+    const sub = adminView === "archive" ? archiveSubject : selectedSubject;
+    return MOCK_TEACHER_SUBJECTS.find(s => s.name === sub) || MOCK_TEACHER_SUBJECTS[0];
+  }, [selectedSubject, archiveSubject, adminView]);
 
   if (isLoading) return <LoadingState message="Connecting to node..." />;
 
@@ -538,7 +548,7 @@ export default function AttendancePage() {
                   <History className="w-10 h-10" />
                 </div>
                 <div>
-                  <CardTitle className="text-2xl font-black text-primary uppercase">Historical Presence Analytics</CardTitle>
+                  <CardTitle className="text-2xl font-black text-primary uppercase">Historical Attendance Analytics</CardTitle>
                   <CardDescription className="text-sm font-medium mt-2">Historical participation archives and verified reports from past sessions.</CardDescription>
                 </div>
               </CardHeader>
@@ -546,7 +556,7 @@ export default function AttendancePage() {
                 <Button 
                   variant="secondary" 
                   className="h-12 px-10 rounded-2xl font-black uppercase text-xs tracking-widest gap-2 shadow-lg bg-secondary text-primary hover:bg-secondary/90"
-                  onClick={() => toast({ title: "Loading History Archives..." })}
+                  onClick={() => setAdminView("archive")}
                 >
                   <Eye className="w-4 h-4" /> View Archives
                 </Button>
@@ -613,7 +623,6 @@ export default function AttendancePage() {
                 </TableHeader>
                 <TableBody>
                   {MOCK_STUDENTS.map((s, idx) => {
-                    // Vary status per subject
                     const isAbsent = (idx + SUBJECTS.indexOf(selectedSubject)) % 6 === 0;
                     return (
                       <TableRow key={s.id} className="hover:bg-accent/5 h-16 border-b border-accent/10 last:border-0">
@@ -657,6 +666,122 @@ export default function AttendancePage() {
                <div className="flex items-center gap-2 text-muted-foreground italic">
                   <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
                   <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Records digitally signed by subject lead.</p>
+               </div>
+            </CardFooter>
+          </Card>
+        </div>
+      );
+    }
+
+    if (adminView === "archive") {
+      return (
+        <div className="space-y-8 pb-20 animate-in slide-in-from-right-4 duration-500">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="icon" onClick={() => setAdminView("details")} className="rounded-full hover:bg-white shadow-sm">
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline uppercase">Attendance Archives</h1>
+                <p className="text-muted-foreground text-sm font-bold uppercase tracking-widest">Multi-Term Participation Dossier</p>
+              </div>
+            </div>
+            <Button variant="outline" className="rounded-xl h-11 px-6 font-bold bg-white gap-2" onClick={() => window.print()}>
+              <FileDown className="w-4 h-4" /> Export Archive (PDF)
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white p-6 rounded-[2rem] border shadow-sm">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-primary ml-1">Academic Year</Label>
+              <Select value={archiveYear} onValueChange={setArchiveYear}>
+                <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                <SelectContent>{ACADEMIC_YEARS.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-primary ml-1">Session Term</Label>
+              <Select value={archiveTerm} onValueChange={setArchiveTerm}>
+                <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                <SelectContent>{TERMS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-primary ml-1">Subject Registry</Label>
+              <Select value={archiveSubject} onValueChange={setArchiveSubject}>
+                <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                <SelectContent>{SUBJECTS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+            <CardHeader className="bg-secondary p-8 text-primary">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl font-black uppercase tracking-tight">Longitudinal Participation Ledger</CardTitle>
+                  <CardDescription className="text-primary/60 font-bold">Audit for {archiveYear} • {archiveTerm}</CardDescription>
+                </div>
+                <Badge variant="outline" className="border-primary/20 text-primary font-black px-4 py-1 uppercase text-[9px]">HISTORICAL AUDIT</Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0 overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest border-b">
+                  <TableRow>
+                    <TableHead className="pl-8 py-4">Student Identity</TableHead>
+                    <TableHead>Matricule</TableHead>
+                    <TableHead className="text-center">Days Present</TableHead>
+                    <TableHead className="text-center">Days Absent</TableHead>
+                    <TableHead className="text-right pr-8">Absence Rate (%)</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {MOCK_STUDENTS.map((s, idx) => {
+                    const present = 20 + (idx % 5);
+                    const absent = 2 + (idx % 3);
+                    const total = present + absent;
+                    const rate = ((absent / total) * 100).toFixed(1);
+                    return (
+                      <TableRow key={s.id} className="hover:bg-accent/5 h-16 border-b border-accent/10 last:border-0">
+                        <TableCell className="pl-8">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-9 w-9 border shadow-sm"><AvatarImage src={s.avatar}/><AvatarFallback>{s.name.charAt(0)}</AvatarFallback></Avatar>
+                            <span className="font-bold text-xs md:text-sm text-primary uppercase">{s.name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-mono text-xs font-bold text-muted-foreground">{s.id}</TableCell>
+                        <TableCell className="text-center font-black text-green-600">{present}</TableCell>
+                        <TableCell className="text-center font-black text-red-600">{absent}</TableCell>
+                        <TableCell className="text-right pr-8">
+                          <div className="inline-flex flex-col items-end gap-1">
+                            <span className={cn("text-[10px] font-black", parseFloat(rate) > 10 ? "text-red-600" : "text-primary")}>{rate}%</span>
+                            <div className="w-20 h-1 bg-accent rounded-full overflow-hidden">
+                              <div className={cn("h-full", parseFloat(rate) > 10 ? "bg-red-500" : "bg-primary")} style={{ width: `${rate}%` }} />
+                            </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+            <CardFooter className="bg-accent/30 p-8 border-t flex flex-col md:flex-row items-center justify-between gap-6">
+               <div className="flex items-center gap-4">
+                  <Avatar className="h-14 w-14 border-4 border-white shadow-xl ring-1 ring-primary/10">
+                    <AvatarImage src={activeTeacherInfo.avatar} />
+                    <AvatarFallback className="bg-primary text-white font-bold">{activeTeacherInfo.teacher.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest leading-none mb-1">Assigned Teacher</p>
+                    <h4 className="text-base font-black text-primary uppercase leading-tight">{activeTeacherInfo.teacher}</h4>
+                    <p className="text-[10px] font-mono font-bold text-primary/40 uppercase tracking-tighter">{activeTeacherInfo.id}</p>
+                  </div>
+               </div>
+               <div className="flex flex-col items-center gap-2 text-center">
+                  <QrCode className="w-12 h-12 opacity-10" />
+                  <p className="text-[8px] font-black uppercase tracking-widest opacity-40 italic leading-none">Institutional<br/>Archive QR</p>
                </div>
             </CardFooter>
           </Card>
@@ -792,7 +917,7 @@ export default function AttendancePage() {
                 <TableRow key={i} className="hover:bg-accent/5 h-16 border-b last:border-0">
                   <TableCell className="pl-8 font-bold text-xs text-muted-foreground">{hist.year}</TableCell>
                   <TableCell><Badge variant="outline" className="text-[9px] font-black uppercase text-primary border-primary/20">{hist.term}</Badge></TableCell>
-                  <TableCell className="font-black text-primary uppercase text-xs">{hist.subject}</TableCell>
+                  <TableCell className="font-black text-primary uppercase text-sm">{hist.subject}</TableCell>
                   <TableCell className="text-center font-black text-green-600">{hist.present}</TableCell>
                   <TableCell className="text-center font-black text-red-600">{hist.absent}</TableCell>
                   <TableCell className="text-right pr-8">
