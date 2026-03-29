@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
@@ -55,6 +56,14 @@ const SECTION_CLASSES: Record<string, string[]> = {
   "Francophone Section": ["6ème", "5ème", "4ème", "3ème", "2nde", "1ère", "Terminale"],
   "Technical Section": ["1ère Year", "2nd Year", "3rd Year", "4th Year", "5th Year", "6th Year", "7th Year"]
 };
+
+const MOCK_TEACHERS = [
+  { name: "Dr. Aris Tesla", avatar: "https://picsum.photos/seed/t1/200/200" },
+  { name: "Prof. Sarah Smith", avatar: "https://picsum.photos/seed/t2/200/200" },
+  { name: "Ms. Bennet", avatar: "https://picsum.photos/seed/t3/200/200" },
+  { name: "Mr. Abena", avatar: "https://picsum.photos/seed/t4/200/200" },
+  { name: "Dr. White", avatar: "https://picsum.photos/seed/t5/200/200" },
+];
 
 const INITIAL_COURSES = [
   { id: "PHY101", name: "Advanced Physics", instructorName: "Dr. Aris Tesla", instructorAvatar: "https://picsum.photos/seed/t1/200/200", targetClass: "2nde / Form 5", section: "Anglophone Section", type: "mandatory", coefficient: 4, color: "bg-blue-500", stats: { liveClasses: 24, exams: 8, attendance: 92 } },
@@ -139,7 +148,8 @@ export default function CoursesPage() {
   const [newSubject, setNewSubject] = useState({
     name: "",
     id: "",
-    instructorName: "Dr. Jean Dupont",
+    instructorName: "",
+    instructorAvatar: "",
     targetClasses: [] as string[],
     section: "Anglophone Section",
     type: "mandatory",
@@ -161,11 +171,11 @@ export default function CoursesPage() {
   }, []);
 
   const handleCreateSubject = async () => {
-    if (!newSubject.name || !newSubject.id || newSubject.targetClasses.length === 0) {
+    if (!newSubject.name || !newSubject.id || !newSubject.instructorName || newSubject.targetClasses.length === 0) {
       toast({ 
         variant: "destructive", 
         title: "Incomplete Form", 
-        description: "Subject Name, ID, and at least one target class are required." 
+        description: "Subject Name, ID, Instructor, and at least one target class are required." 
       });
       return;
     }
@@ -181,7 +191,8 @@ export default function CoursesPage() {
       setNewSubject({ 
         name: "", 
         id: "", 
-        instructorName: "Dr. Jean Dupont", 
+        instructorName: "", 
+        instructorAvatar: "",
         targetClasses: [], 
         section: "Anglophone Section", 
         type: "mandatory", 
@@ -713,7 +724,7 @@ export default function CoursesPage() {
           </p>
         </div>
         
-        {isSchoolAdmin && (
+        {(isSchoolAdmin || isSubAdmin) && (
           <Dialog open={isAddingSubject} onOpenChange={setIsAddingSubject}>
             <DialogTrigger asChild>
               <Button className="gap-2 shadow-lg h-12 px-6 rounded-2xl">
@@ -745,6 +756,22 @@ export default function CoursesPage() {
                       onChange={(e) => setNewSubject({...newSubject, coefficient: parseInt(e.target.value) || 1})} 
                       className="h-11 bg-accent/30 border-none rounded-xl font-black text-primary" 
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Assigned Teacher</Label>
+                    <Select value={newSubject.instructorName} onValueChange={(v) => {
+                      const teacher = MOCK_TEACHERS.find(t => t.name === v);
+                      setNewSubject({...newSubject, instructorName: v, instructorAvatar: teacher?.avatar || ""})
+                    }}>
+                      <SelectTrigger className="h-11 bg-accent/30 border-none rounded-xl font-bold">
+                        <SelectValue placeholder="Select Instructor" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MOCK_TEACHERS.map(t => (
+                          <SelectItem key={t.name} value={t.name}>{t.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Subject Type</Label>
