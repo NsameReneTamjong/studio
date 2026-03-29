@@ -46,6 +46,7 @@ const ROLE_FEES: Record<string, string> = {
   BURSAR: "10000",
   LIBRARIAN: "10000",
   SCHOOL_ADMIN: "25000",
+  SUB_ADMIN: "15000",
 };
 
 export default function SubscriptionPage() {
@@ -356,10 +357,10 @@ export default function SubscriptionPage() {
                   <DialogDescription className="text-white/60">Annual pedagogical dashboard authorization record.</DialogDescription>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setIssuedReceipt(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
-                <X className="w-6 h-6" />
-              </Button>
             </div>
+            <Button variant="ghost" size="icon" onClick={() => setIssuedReceipt(null)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+              <X className="w-6 h-6" />
+            </Button>
           </DialogHeader>
 
           <div className="bg-muted p-6 md:p-10 print:p-0 print:bg-white overflow-hidden overflow-y-auto max-h-[70vh]">
@@ -467,5 +468,14 @@ export default function SubscriptionPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function Signature({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M15 30L85 10" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" strokeDasharray="2 2" />
+    </svg>
   );
 }

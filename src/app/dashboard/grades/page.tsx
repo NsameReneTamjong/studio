@@ -182,11 +182,9 @@ export default function GradeBookPage() {
   const [activeSequence, setActiveSequence] = useState<"seq1" | "seq2">("seq1");
   const [viewingDoc, setViewingDoc] = useState<any>(null);
 
-  // Admin Specific State
   const [adminView, setAdminView] = useState<"list" | "details" | "registry" | "archive">("list");
   const [inspectedClass, setInspectedClass] = useState<any>(null);
   
-  // Archive Filters
   const [archiveYear, setArchiveYear] = useState(ACADEMIC_YEARS[0]);
   const [archiveTerm, setArchiveTerm] = useState(TERMS[0]);
   const [archiveSubject, setArchiveSubject] = useState(SUBJECTS[0]);
@@ -238,7 +236,6 @@ export default function GradeBookPage() {
 
   if (isLoading) return <LoadingState message="Fetching pedagogical records..." />;
 
-  // --- ADMIN VIEW ---
   if (isAdmin) {
     if (adminView === "list") {
       return (
@@ -323,7 +320,7 @@ export default function GradeBookPage() {
         <div className="space-y-8 pb-20 animate-in slide-in-from-right-4 duration-500">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => setAdminView("list")} className="rounded-full hover:bg-white shadow-sm">
-              <ArrowLeft className="w-6 h-6" />
+              <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline uppercase">{inspectedClass?.name}</h1>
@@ -385,7 +382,7 @@ export default function GradeBookPage() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="icon" onClick={() => setAdminView("details")} className="rounded-full hover:bg-white shadow-sm">
-                <ArrowLeft className="w-6 h-6" />
+                <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline uppercase">{inspectedClass?.name} Registry</h1>
@@ -607,7 +604,6 @@ export default function GradeBookPage() {
     }
   }
 
-  // --- STUDENT VIEW ---
   if (isStudent) {
     return (
       <div className="space-y-8 pb-20">
@@ -754,10 +750,9 @@ export default function GradeBookPage() {
           </TabsContent>
         </Tabs>
 
-        {/* DOCUMENT PREVIEW DIALOG */}
         <Dialog open={!!viewingDoc} onOpenChange={() => setViewingDoc(null)}>
           <DialogContent className="sm:max-w-4xl max-h-[95vh] p-0 overflow-hidden border-none shadow-2xl bg-white flex flex-col">
-            <DialogHeader className="bg-primary p-6 text-white relative shrink-0 no-print">
+            <DialogHeader className="bg-primary p-6 md:p-8 text-white relative shrink-0 no-print">
               <div className="flex items-center gap-4">
                 <div className="p-2 bg-white/10 rounded-xl">
                   {viewingDoc?.type === 'report' ? <FileText className="w-6 h-6 text-secondary" /> : <CreditCard className="w-6 h-6 text-secondary" />}
@@ -767,7 +762,7 @@ export default function GradeBookPage() {
                   <DialogDescription className="text-white/60 text-xs">Verified institutional record preview.</DialogDescription>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setViewingDoc(null)} className="absolute top-4 right-4 text-white hover:bg-white/10">
+              <Button variant="ghost" size="icon" onClick={() => setViewingDoc(null)} className="text-white hover:bg-white/10">
                 <X className="w-6 h-6" />
               </Button>
             </DialogHeader>
@@ -792,7 +787,6 @@ export default function GradeBookPage() {
     );
   }
 
-  // --- TEACHER VIEW ---
   return (
     <div className="space-y-8 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
