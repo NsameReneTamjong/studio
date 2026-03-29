@@ -18,7 +18,8 @@ import {
   ShieldCheck,
   Calendar,
   User,
-  PenTool
+  PenTool,
+  Bookmark
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -190,55 +191,65 @@ export default function CommunityTestimonyPage() {
           </div>
         </section>
 
-        {/* 2. EXECUTIVE STRATEGIC LOGS */}
+        {/* 2. EXECUTIVE STRATEGIC LOGS (BLOG SECTION) */}
         {communityBlogs.length > 0 && (
-          <section id="logs" className="space-y-12">
-            <div className="text-center space-y-2">
-              <Badge className="bg-primary/5 text-primary border-primary/10 font-black uppercase text-[10px] tracking-widest px-4">Executive Board</Badge>
-              <h2 className="text-4xl font-black text-primary uppercase tracking-tighter flex items-center justify-center gap-3">
-                <ShieldCheck className="w-8 h-8 text-secondary" />
+          <section id="logs" className="space-y-12 animate-in fade-in slide-in-from-bottom-10 duration-1000">
+            <div className="text-center space-y-4">
+              <div className="inline-flex items-center gap-2 bg-primary/5 px-4 py-1 rounded-full border border-primary/10">
+                <ShieldCheck className="w-4 h-4 text-secondary" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-primary">Founder's Insights</span>
+              </div>
+              <h2 className="text-4xl md:text-5xl font-black text-primary uppercase tracking-tighter">
                 Strategic Platform Logs
               </h2>
-              <p className="text-muted-foreground font-medium">Official updates and insights from the EduIgnite leadership team.</p>
+              <p className="text-muted-foreground font-medium max-w-2xl mx-auto">
+                Direct updates and vision statements from the EduIgnite leadership board.
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               {communityBlogs.map((blog) => (
-                <Card key={blog.id} className="border-none shadow-2xl rounded-[3rem] overflow-hidden bg-white group transition-all duration-500 hover:shadow-primary/5">
+                <Card key={blog.id} className="border-none shadow-2xl rounded-[3rem] overflow-hidden bg-white group transition-all duration-500 hover:shadow-primary/10 flex flex-col">
                   {blog.image && (
                     <div className="aspect-video w-full overflow-hidden relative">
-                      <img src={blog.image} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" alt="Blog" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent" />
+                      <img src={blog.image} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" alt="Strategic update" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent" />
+                      <div className="absolute bottom-6 left-8">
+                        <Badge className="bg-secondary text-primary border-none font-black uppercase text-[10px] h-6 px-3">Official Update</Badge>
+                      </div>
                     </div>
                   )}
                   <CardHeader className="p-8 md:p-10 pb-0">
                     <div className="flex items-center gap-4 mb-6">
-                      <Avatar className="h-14 w-14 border-4 border-white shadow-xl">
+                      <Avatar className="h-16 w-16 border-4 border-white shadow-2xl">
                         <AvatarImage src={blog.senderAvatar} />
                         <AvatarFallback className="bg-primary text-white font-bold">{blog.senderName.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="font-black text-primary text-lg uppercase leading-none">{blog.senderName}</h3>
-                          <Badge className="bg-secondary text-primary border-none text-[8px] h-4 font-black uppercase">{blog.senderRole}</Badge>
+                          <h3 className="font-black text-primary text-xl uppercase leading-none tracking-tight">{blog.senderName}</h3>
+                          <Badge variant="outline" className="text-primary/40 border-primary/10 text-[8px] h-4 font-black uppercase tracking-widest">{blog.senderRole}</Badge>
                         </div>
-                        <p className="text-[10px] text-muted-foreground font-bold flex items-center gap-1 mt-1">
-                          <Calendar className="w-3 h-3" /> {new Date(blog.createdAt).toLocaleDateString()}
+                        <p className="text-[10px] text-muted-foreground font-bold flex items-center gap-1.5 mt-1.5 opacity-60">
+                          <Calendar className="w-3.5 h-3.5" /> {new Date(blog.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
                         </p>
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-8 md:p-10 pt-4 space-y-4">
+                  <CardContent className="p-8 md:p-10 pt-4 space-y-6 flex-1">
                     {blog.paragraphs.map((p, i) => (
-                      <p key={i} className="text-base text-muted-foreground leading-relaxed font-medium">
+                      <p key={i} className="text-base text-muted-foreground leading-relaxed font-medium first-letter:text-2xl first-letter:font-black first-letter:text-primary">
                         {p}
                       </p>
                     ))}
                   </CardContent>
-                  <CardFooter className="bg-accent/10 p-6 border-t border-accent flex justify-center">
+                  <CardFooter className="bg-primary/5 p-8 border-t border-primary/5 flex justify-between items-center">
                      <div className="flex items-center gap-2 text-primary/40 italic">
-                        <ShieldCheck className="w-4 h-4" />
+                        <ShieldCheck className="w-4 h-4 text-secondary" />
                         <span className="text-[10px] font-black uppercase tracking-widest">Verified Strategic Record</span>
+                     </div>
+                     <div className="p-2 bg-white rounded-xl shadow-sm border border-primary/5">
+                        <Bookmark className="w-4 h-4 text-primary/20" />
                      </div>
                   </CardFooter>
                 </Card>
@@ -338,7 +349,7 @@ export default function CommunityTestimonyPage() {
             </p>
           </div>
 
-          <Card className="border-none shadow-2xl rounded-[3rem] overflow-hidden bg-white/80 backdrop-blur-xl border border-white animate-in zoom-in-95 duration-1000">
+          <Card className="border-none shadow-xl rounded-[3rem] overflow-hidden bg-white/80 backdrop-blur-xl border border-white animate-in zoom-in-95 duration-1000">
             <form onSubmit={handleOrderSubmit}>
               <CardContent className="p-8 md:p-12 space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

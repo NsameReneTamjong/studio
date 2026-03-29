@@ -232,6 +232,33 @@ const INITIAL_EVENTS: PublicEvent[] = [
   }
 ];
 
+const INITIAL_BLOGS: CommunityBlog[] = [
+  {
+    id: "BLOG-CEO-1",
+    senderName: "EduIgnite CEO",
+    senderRole: "CEO",
+    senderAvatar: "https://picsum.photos/seed/ceo/150/150",
+    image: "https://images.unsplash.com/photo-1523050335392-9bc56751f11b?q=80&w=2070&auto=format&fit=crop",
+    paragraphs: [
+      "Today marks a significant milestone in our journey. We have successfully deployed our 100th institutional node in the Littoral region.",
+      "Our mission remains clear: to provide secure, high-fidelity pedagogical infrastructure that empowers every teacher and student in the nation. We are committed to digitizing the future of African education."
+    ],
+    createdAt: new Date(Date.now() - 86400000)
+  },
+  {
+    id: "BLOG-CTO-1",
+    senderName: "Tech Director",
+    senderRole: "CTO",
+    senderAvatar: "https://picsum.photos/seed/cto/150/150",
+    image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop",
+    paragraphs: [
+      "The core Node API has been upgraded to version 3.0, introducing real-time synchronization across all dashboards.",
+      "This update ensures that grades, attendance, and financial records are processed with zero-latency, even in low-bandwidth environments. Security remains our top priority."
+    ],
+    createdAt: new Date(Date.now() - 172800000)
+  }
+];
+
 const INITIAL_SCHOOLS: SchoolInfo[] = [
   {
     id: "GBHS-D",
@@ -280,7 +307,7 @@ const DEMO_ACCOUNTS: Record<string, any> = {
   "GBHS26T001": { name: "Dr. Aris Tesla", role: "TEACHER", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/t1/150/150", phone: "+237 600 33 33 33", whatsapp: "+237 600 33 33 33" },
   "GBHS26B001": { name: "Mme. Ngono Celine", role: "BURSAR", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/b1/150/150", phone: "+237 600 44 44 44", whatsapp: "+237 600 44 44 44" },
   "GBHS26L001": { name: "Mr. Ebong", role: "LIBRARIAN", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/l1/150/150", phone: "+237 600 55 55 55", whatsapp: "+237 600 55 55 55" },
-  "GBHS26S001": { name: "Alice Thompson", role: "STUDENT", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/s1/150/150", phone: "+237 600 66 66 66", whatsapp: "+237 600 66 66 66" },
+  "GBHS26S001": { name: "Alice Thompson", role: "STUDENT", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/s1/100/100", phone: "+237 600 66 66 66", whatsapp: "+237 600 66 66 66" },
   "GBHS26P001": { name: "Mr. Robert Thompson", role: "PARENT", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/pa1/150/150", phone: "+237 677 00 11 22", whatsapp: "+237 677 00 11 22" }
 };
 
@@ -301,7 +328,7 @@ const DEFAULT_TUTORIALS: TutorialLinks = {
   SCHOOL_ADMIN: "https://youtube.com/watch?v=eduignite-admin",
   SUB_ADMIN: "https://youtube.com/watch?v=eduignite-subadmin",
   BURSAR: "https://youtube.com/watch?v=eduignite-bursar",
-  LIBRARIAN: "https://youtube.com/watch?v=eduignite-librarian",
+  LIBRARian: "https://youtube.com/watch?v=eduignite-librarian",
 };
 
 const PLATFORM_DEFAULTS: PlatformSettings = {
@@ -351,7 +378,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     setTestimonials(loadRegistry("testimonials", []));
-    setCommunityBlogs(loadRegistry("community_blogs", []));
+    setCommunityBlogs(loadRegistry("community_blogs", INITIAL_BLOGS));
     setFeedbacks(loadRegistry("feedbacks", []));
     setOrders(loadRegistry("orders", []));
     setAnnouncements(loadRegistry("announcements", INITIAL_ANNOUNCEMENTS));
