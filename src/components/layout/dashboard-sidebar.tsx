@@ -37,7 +37,8 @@ import {
   Network,
   Star,
   BarChart3,
-  FileBadge
+  FileBadge,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
