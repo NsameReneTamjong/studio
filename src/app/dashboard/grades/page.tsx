@@ -54,15 +54,15 @@ const MOCK_STUDENTS_GRADES = [
 ];
 
 const MOCK_PERSONAL_GRADES = [
-  { subject: "Mathematics", seq1: 15.5, seq2: 16.0, average: 15.75, coef: 5, total: 78.75, rank: "2nd", initials: "ST" },
-  { subject: "English Language", seq1: 14.0, seq2: 15.5, average: 14.75, coef: 4, total: 59.00, rank: "5th", initials: "JB" },
-  { subject: "French", seq1: 12.0, seq2: 13.0, average: 12.50, coef: 3, total: 37.50, rank: "12th", initials: "MN" },
-  { subject: "Physics", seq1: 16.5, seq2: 17.0, average: 16.75, coef: 4, total: 67.00, rank: "1st", initials: "AT" },
-  { subject: "Chemistry", seq1: 13.5, seq2: 14.5, average: 14.00, coef: 4, total: 56.00, rank: "8th", initials: "DW" },
-  { subject: "Biology", seq1: 15.0, seq2: 14.0, average: 14.50, coef: 4, total: 58.00, rank: "4th", initials: "EB" },
-  { subject: "ICT", seq1: 18.0, seq2: 19.0, average: 18.50, coef: 2, total: 37.00, rank: "1st", initials: "CT" },
-  { subject: "History", seq1: 11.0, seq2: 12.5, average: 11.75, coef: 2, total: 23.50, rank: "15th", initials: "PH" },
-  { subject: "Geography", seq1: 12.5, seq2: 11.0, average: 11.75, coef: 2, total: 23.50, rank: "14th", initials: "GE" },
+  { subject: "Mathematics", teacher: "Prof. Sarah Smith", seq1: 15.5, seq2: 16.0, average: 15.75, coef: 5, total: 78.75, rank: "2nd", initials: "ST" },
+  { subject: "English Language", teacher: "Ms. Bennet", seq1: 14.0, seq2: 15.5, average: 14.75, coef: 4, total: 59.00, rank: "5th", initials: "JB" },
+  { subject: "French", teacher: "M. Nguema", seq1: 12.0, seq2: 13.0, average: 12.50, coef: 3, total: 37.50, rank: "12th", initials: "MN" },
+  { subject: "Physics", teacher: "Dr. Aris Tesla", seq1: 16.5, seq2: 17.0, average: 16.75, coef: 4, total: 67.00, rank: "1st", initials: "AT" },
+  { subject: "Chemistry", teacher: "Dr. White", seq1: 13.5, seq2: 14.5, average: 14.00, coef: 4, total: 56.00, rank: "8th", initials: "DW" },
+  { subject: "Biology", teacher: "Ms. Ebong", seq1: 15.0, seq2: 14.0, average: 14.50, coef: 4, total: 58.00, rank: "4th", initials: "EB" },
+  { subject: "ICT", teacher: "Mr. Chris", seq1: 18.0, seq2: 19.0, average: 18.50, coef: 2, total: 37.00, rank: "1st", initials: "CT" },
+  { subject: "History", teacher: "Mr. Paul", seq1: 11.0, seq2: 12.5, average: 11.75, coef: 2, total: 23.50, rank: "15th", initials: "PH" },
+  { subject: "Geography", teacher: "Ms. Grace", seq1: 12.5, seq2: 11.0, average: 11.75, coef: 2, total: 23.50, rank: "14th", initials: "GE" },
 ];
 
 const MOCK_TRANSCRIPT_DATA = {
@@ -108,9 +108,9 @@ export default function GradeBookPage() {
             <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full shadow-sm">
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-3xl font-bold text-primary font-headline uppercase">Results Registry</h1>
+            <h1 className="text-3xl font-bold text-primary font-headline uppercase tracking-tighter">Results Registry</h1>
           </div>
-          <Button onClick={() => handleDownload('Official Term Bulletin')} className="h-12 px-8 rounded-2xl shadow-xl font-black uppercase text-[10px] gap-3">
+          <Button onClick={() => handleDownload('Official Term Bulletin')} className="h-12 px-8 rounded-2xl shadow-xl font-black uppercase text-[10px] gap-3 bg-primary text-white">
             <Printer className="w-4 h-4" /> Download Official Bulletin
           </Button>
         </div>
@@ -135,7 +135,7 @@ export default function GradeBookPage() {
         </div>
 
         <Tabs defaultValue="current" className="w-full">
-          <TabsList className="grid grid-cols-3 w-full md:w-[600px] mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl">
+          <TabsList className="grid grid-cols-3 w-full md:w-[600px] mb-8 bg-white shadow-sm border h-auto p-1.5 rounded-2xl">
             <TabsTrigger value="current" className="gap-2 py-3 rounded-xl font-bold">Current Term</TabsTrigger>
             <TabsTrigger value="transcript" className="gap-2 py-3 rounded-xl font-bold">Transcript</TabsTrigger>
             <TabsTrigger value="documents" className="gap-2 py-3 rounded-xl font-bold">Documents</TabsTrigger>
@@ -194,7 +194,7 @@ export default function GradeBookPage() {
                     <CardDescription className="text-[10px] font-bold uppercase tracking-tight">Academic Session 2023 / 2024</CardDescription>
                   </CardHeader>
                   <CardFooter className="pt-0 flex gap-2 p-6">
-                    <Button variant="outline" size="sm" className="flex-1 gap-2 text-[10px] font-black uppercase h-10 rounded-xl border-primary/10 hover:bg-primary/5 transition-colors" onClick={() => setViewingDoc({ title: 'Term 1 Report Card', type: 'report', term: 'First Term', avg: '15.45', rank: '08/42' })}>
+                    <Button variant="outline" size="sm" className="flex-1 gap-2 text-[10px] font-black uppercase h-10 rounded-xl border-primary/10 hover:bg-primary/5 transition-colors" onClick={() => setViewingDoc({ title: 'Term 1 Report Card', type: 'report', term: 'First Term' })}>
                       <Eye className="w-3.5 h-3.5" /> View
                     </Button>
                     <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-primary/10 hover:bg-primary/5" onClick={() => handleDownload('Term 1 Report Card')}>
@@ -214,7 +214,7 @@ export default function GradeBookPage() {
                     <CardDescription className="text-[10px] font-bold uppercase tracking-tight">Academic Session 2023 / 2024</CardDescription>
                   </CardHeader>
                   <CardFooter className="pt-0 flex gap-2 p-6">
-                    <Button variant="outline" size="sm" className="flex-1 gap-2 text-[10px] font-black uppercase h-10 rounded-xl border-primary/10 hover:bg-primary/5 transition-colors" onClick={() => setViewingDoc({ title: 'Term 2 Report Card', type: 'report', term: 'Second Term', avg: '16.12', rank: '05/42' })}>
+                    <Button variant="outline" size="sm" className="flex-1 gap-2 text-[10px] font-black uppercase h-10 rounded-xl border-primary/10 hover:bg-primary/5 transition-colors" onClick={() => setViewingDoc({ title: 'Term 2 Report Card', type: 'report', term: 'Second Term' })}>
                       <Eye className="w-3.5 h-3.5" /> View
                     </Button>
                     <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-primary/10 hover:bg-primary/5" onClick={() => handleDownload('Term 2 Report Card')}>
@@ -246,7 +246,7 @@ export default function GradeBookPage() {
           </TabsContent>
         </Tabs>
 
-        {/* DOCUMENT PREVIEW DIALOG */}
+        {/* DOCUMENT PREVIEW DIALOG (PORTRAIT REPORT CARD) */}
         <Dialog open={!!viewingDoc} onOpenChange={() => setViewingDoc(null)}>
           <DialogContent className="sm:max-w-4xl max-h-[95vh] p-0 overflow-hidden border-none shadow-2xl bg-white flex flex-col">
             <DialogHeader className="bg-primary p-6 text-white relative shrink-0 no-print">
@@ -266,289 +266,9 @@ export default function GradeBookPage() {
             
             <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-muted scrollbar-thin">
               {viewingDoc?.type === 'report' ? (
-                <div className="bg-white p-6 md:p-10 shadow-sm relative flex flex-col space-y-6 font-serif text-black max-w-[800px] mx-auto print:shadow-none print:p-0">
-                   {/* Cameroon National Header */}
-                   <div className="grid grid-cols-12 gap-2 items-start text-center border-b border-black pb-4">
-                      <div className="col-span-4 space-y-0.5 text-[7px] uppercase font-bold text-left">
-                        <p className="text-[#264D73] font-black">Republic of Cameroon</p>
-                        <p>Peace - Work - Fatherland</p>
-                      </div>
-                      <div className="col-span-4 flex flex-col items-center">
-                        <div className="w-12 h-12 flex items-center justify-center mb-1">
-                          <img src={user?.school?.logo || platformSettings.logo} alt="School" className="w-full h-full object-contain" />
-                        </div>
-                      </div>
-                      <div className="col-span-4 space-y-0.5 text-[7px] uppercase font-bold text-right">
-                        <p className="text-[#264D73] font-black">République du Cameroun</p>
-                        <p>Paix - Travail - Patrie</p>
-                      </div>
-                   </div>
-
-                   <div className="text-center space-y-1">
-                      <p className="text-[8px] font-black uppercase text-[#264D73]">Ministry of Secondary Education / Ministère de l'Éducation Secondaire</p>
-                      <div className="h-px bg-[#264D73] w-full my-1 opacity-20" />
-                      <h2 className="font-black text-xl uppercase text-[#264D73] tracking-tight">{user?.school?.name || "EDUIGNITE INTERNATIONAL COLLEGE"}</h2>
-                      <p className="text-[8px] font-bold italic opacity-60">Motto: Excellence & Discipline</p>
-                      <p className="text-[7px] font-medium opacity-40">Tel: (237) 6 XX XXX | Email: info@eduignite.cm | P.O. Box XXX, City</p>
-                   </div>
-
-                   {/* Student Info Box */}
-                   <div className="grid grid-cols-12 border rounded-xl overflow-hidden mt-4 text-[9px] relative">
-                      <div className="col-span-9 p-4 grid grid-cols-2 gap-x-8 gap-y-2 border-r bg-accent/5">
-                        <div className="flex gap-2">
-                          <span className="font-bold whitespace-nowrap">Name:</span>
-                          <span className="border-b border-dotted border-black/40 flex-1 font-black uppercase">{user?.name}</span>
-                        </div>
-                        <div className="flex gap-2">
-                          <span className="font-bold whitespace-nowrap">Class:</span>
-                          <span className="border-b border-dotted border-black/40 flex-1 font-bold">{user?.class || "Form 3A"}</span>
-                        </div>
-                        <div className="flex gap-2">
-                          <span className="font-bold whitespace-nowrap">Matricule:</span>
-                          <span className="border-b border-dotted border-black/40 flex-1 font-mono font-bold text-primary">{user?.id}</span>
-                        </div>
-                        <div className="flex gap-2">
-                          <span className="font-bold whitespace-nowrap">Sex:</span>
-                          <span className="border-b border-dotted border-black/40 flex-1">Male</span>
-                        </div>
-                        <div className="flex gap-2">
-                          <span className="font-bold whitespace-nowrap">Class:</span>
-                          <span className="border-b border-dotted border-black/40 flex-1">{user?.class || "Form 3A"}</span>
-                        </div>
-                        <div className="flex gap-2">
-                          <span className="font-bold whitespace-nowrap">Date of Birth:</span>
-                          <span className="border-b border-dotted border-black/40 flex-1">12/05/2007</span>
-                        </div>
-                        <div className="flex gap-2">
-                          <span className="font-bold whitespace-nowrap">Date of Birth:</span>
-                          <span className="border-b border-dotted border-black/40 flex-1">12/05/2007</span>
-                        </div>
-                        <div className="flex gap-2">
-                          <span className="font-bold whitespace-nowrap">Parent Contact:</span>
-                          <span className="border-b border-dotted border-black/40 flex-1">6XX XXX XXX</span>
-                        </div>
-                      </div>
-                      <div className="col-span-3 p-2 flex items-center justify-center bg-white">
-                        <div className="w-20 h-24 border rounded shadow-sm overflow-hidden bg-accent/5">
-                          <img src={user?.avatar || "https://picsum.photos/seed/student/200/200"} alt="Student" className="w-full h-full object-cover" />
-                        </div>
-                      </div>
-                   </div>
-
-                   {/* MARKS TABLE */}
-                   <div className="mt-6 border border-black rounded-sm overflow-hidden">
-                      <Table>
-                        <TableHeader className="bg-[#264D73]">
-                          <TableRow className="h-8 border-none hover:bg-[#264D73]">
-                            <TableHead className="text-[8px] font-black uppercase text-white pl-2 border-r border-white/20">Subject</TableHead>
-                            <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20 bg-green-700/40">Sequence 1</TableHead>
-                            <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20 bg-green-700/40">Sequence 2</TableHead>
-                            <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20 bg-green-700/60">Average</TableHead>
-                            <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20 bg-green-700/80">Coef</TableHead>
-                            <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20 bg-green-700/80">Avg x Coef</TableHead>
-                            <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20 bg-green-700/80">Rank</TableHead>
-                            <TableHead className="text-[8px] font-black uppercase text-white text-center pr-2 bg-green-700/80">Teacher's Initials</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {MOCK_PERSONAL_GRADES.map((g, idx) => (
-                            <TableRow key={idx} className="border-b border-black/10 last:border-0 h-7 hover:bg-accent/5">
-                              <TableCell className="pl-2 font-bold text-[8px] uppercase border-r border-black/10">{g.subject}</TableCell>
-                              <TableCell className="text-center text-[8px] border-r border-black/10 font-mono bg-accent/5"></TableCell>
-                              <TableCell className="text-center text-[8px] border-r border-black/10 font-mono bg-accent/5"></TableCell>
-                              <TableCell className="text-center text-[8px] border-r border-black/10 font-black text-[#264D73]">{g.average.toFixed(2)}</TableCell>
-                              <TableCell className="text-center text-[8px] border-r border-black/10 font-bold">{g.coef}</TableCell>
-                              <TableCell className="text-center text-[8px] border-r border-black/10 font-bold">{g.total.toFixed(2)}</TableCell>
-                              <TableCell className="text-center text-[8px] border-r border-black/10">{g.rank}</TableCell>
-                              <TableCell className="text-center text-[8px] pr-2 opacity-40">{g.initials}</TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                   </div>
-
-                   {/* Summary Boxes */}
-                   <div className="grid grid-cols-3 gap-4 mt-6">
-                      {/* Stats */}
-                      <div className="border border-dotted border-black/40 p-3 rounded-lg space-y-1.5 text-[8px] bg-accent/5">
-                        <div className="flex justify-between border-b border-dotted border-black/20 pb-0.5"><span className="font-bold">Total Coefficient:</span><span className="font-black">29</span></div>
-                        <div className="flex justify-between border-b border-dotted border-black/20 pb-0.5"><span className="font-bold">Total Points:</span><span className="font-black">440.25</span></div>
-                        <div className="flex justify-between border-b border-dotted border-black/20 pb-0.5"><span className="font-bold text-[#264D73]">General Average:</span><span className="font-black text-[#264D73]">15.18</span></div>
-                        <div className="flex justify-between border-b border-dotted border-black/20 pb-0.5"><span className="font-bold">Class Average:</span><span className="font-black">12.45</span></div>
-                        <div className="flex justify-between border-b border-dotted border-black/20 pb-0.5"><span className="font-bold">Highest Average:</span><span className="font-black">18.45</span></div>
-                        <div className="flex justify-between border-b border-dotted border-black/20 pb-0.5"><span className="font-bold">Lowest Average:</span><span className="font-black">06.12</span></div>
-                        <div className="flex justify-between pt-0.5"><span className="font-bold">Position:</span><span className="font-black">05 / 42</span></div>
-                      </div>
-
-                      {/* Discipline */}
-                      <div className="border border-dotted border-black/40 p-3 rounded-lg space-y-1.5 text-[8px] bg-accent/5">
-                        <h4 className="font-black text-[#264D73] uppercase border-b border-black/10 mb-1">Discipline & Attendance</h4>
-                        <div className="flex justify-between border-b border-dotted border-black/20 pb-0.5"><span className="font-bold">Days Present:</span><span className="font-black">42</span></div>
-                        <div className="flex justify-between border-b border-dotted border-black/20 pb-0.5"><span className="font-bold">Days Absent:</span><span className="font-black">0</span></div>
-                        <div className="flex justify-between border-b border-dotted border-black/20 pb-0.5"><span className="font-bold">Times Late:</span><span className="font-black">2</span></div>
-                        <div className="flex justify-between border-b border-dotted border-black/20 pb-0.5"><span className="font-bold">Conduct:</span><span className="font-black">Excellent</span></div>
-                        <div className="flex justify-between border-b border-dotted border-black/20 pb-0.5"><span className="font-bold">Neatness:</span><span className="font-black">Very Good</span></div>
-                        <div className="flex justify-between pt-0.5"><span className="font-bold">Participation:</span><span className="font-black">Active</span></div>
-                      </div>
-
-                      {/* Signatures */}
-                      <div className="space-y-4 flex flex-col">
-                        <div className="space-y-1">
-                          <p className="text-[7px] font-bold">Parent's Signature:</p>
-                          <div className="h-6 border-b border-dotted border-black/40" />
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-[7px] font-bold">Principal's Signature:</p>
-                          <div className="h-10 relative flex items-center justify-center">
-                             <SignatureSVG className="w-full h-full text-primary/10 p-1" />
-                             <div className="absolute inset-0 flex items-center justify-center">
-                               <div className="border-2 border-primary/20 rounded-full w-12 h-12 flex items-center justify-center">
-                                 <span className="text-[6px] font-black uppercase text-primary/40 text-center leading-none">School<br/>Stamp</span>
-                               </div>
-                             </div>
-                          </div>
-                        </div>
-                        <div className="flex justify-between items-end mt-auto">
-                           <span className="text-[7px] font-bold">Date: ...................</span>
-                           <QrCode className="w-8 h-8 opacity-10" />
-                        </div>
-                      </div>
-                   </div>
-
-                   <div className="text-center pt-4 border-t border-black/5">
-                      <p className="text-[6px] font-black uppercase text-muted-foreground opacity-30 tracking-[0.3em]">
-                        Verified Educational Record • {platformSettings.name} Node • Official Digital Transcript
-                      </p>
-                   </div>
-                </div>
+                <PortraitReportCard student={user} platform={platformSettings} term={viewingDoc.term} />
               ) : (
-                <div className="flex flex-col gap-12 items-center">
-                  {/* FRONT SIDE */}
-                  <div className="relative group card-container">
-                    <Card className="w-[450px] h-[280px] border shadow-xl bg-white overflow-hidden relative border-primary/20 flex flex-col">
-                      <div className="bg-primary p-2 flex items-center justify-between text-white text-[7px] font-black uppercase tracking-tighter shrink-0 border-b border-white/10">
-                        <div className="text-left leading-none space-y-0.5">
-                          <p>Republic of Cameroon</p>
-                          <p>Peace - Work - Fatherland</p>
-                        </div>
-                        <div className="flex gap-1 h-3">
-                          <div className="w-2 h-full bg-[#007a5e]" />
-                          <div className="w-2 h-full bg-[#ce1126] flex items-center justify-center"><div className="w-0.5 h-0.5 bg-yellow-400 rounded-full" /></div>
-                          <div className="w-2 h-full bg-[#fcd116]" />
-                        </div>
-                        <div className="text-right leading-none space-y-0.5">
-                          <p>République du Cameroun</p>
-                          <p>Paix - Travail - Patrie</p>
-                        </div>
-                      </div>
-
-                      <div className="p-3 border-b border-accent flex items-center gap-3 bg-accent/5 shrink-0">
-                        <div className="w-12 h-12 bg-white rounded-lg p-1 border shadow-sm flex items-center justify-center shrink-0 overflow-hidden">
-                          <img src={user?.school?.logo || platformSettings.logo} alt="School Logo" className="w-full h-full object-contain" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-[8px] font-black uppercase text-muted-foreground leading-none mb-0.5">Ministry of Secondary Education</p>
-                          <h3 className="text-xs font-black uppercase text-primary leading-tight">
-                            {user?.school?.name || "EDUIGNITE INTERNATIONAL COLLEGE"}
-                          </h3>
-                          <p className="text-[7px] font-bold text-muted-foreground italic">"{user?.school?.motto || "Discipline - Work - Success"}"</p>
-                        </div>
-                      </div>
-
-                      <div className="flex-1 p-4 flex gap-6 relative">
-                        <div className="w-28 h-28 rounded-xl border-2 border-primary/10 overflow-hidden shadow-lg shrink-0 bg-accent/5">
-                          <img src={user?.avatar} alt={user?.name} className="w-full h-full object-cover" />
-                        </div>
-                        <div className="flex-1 flex flex-col justify-center gap-3">
-                          <div className="space-y-0.5">
-                            <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Full Name / Nom Complet</p>
-                            <p className="text-sm font-black text-primary uppercase leading-tight">{user?.name}</p>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-0.5">
-                              <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Matricule</p>
-                              <p className="text-sm font-mono font-black text-secondary">{user?.id}</p>
-                            </div>
-                            <div className="space-y-0.5">
-                              <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Class / Classe</p>
-                              <p className="text-xs font-black text-primary">{user?.class || "N/A"}</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="bg-primary/5 p-2 flex justify-between items-center border-t border-accent shrink-0">
-                        <div className="px-3 py-1 bg-primary text-white rounded-md text-[9px] font-black tracking-widest">
-                          STUDENT ID CARD
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[8px] font-black text-muted-foreground uppercase">Academic Year</span>
-                          <Badge className="bg-secondary text-primary border-none text-[9px] font-black h-5">2023 - 2024</Badge>
-                        </div>
-                      </div>
-                    </Card>
-                    <p className="text-center text-[10px] font-black uppercase text-muted-foreground mt-2 tracking-[0.2em]">Front / Recto</p>
-                  </div>
-
-                  {/* BACK SIDE */}
-                  <div className="relative card-container">
-                    <Card className="w-[450px] h-[280px] border shadow-xl bg-white overflow-hidden relative border-primary/20 flex flex-col">
-                      <div className="bg-primary h-1 w-full shrink-0" />
-                      
-                      <div className="flex-1 p-6 flex flex-col gap-6">
-                        <div className="grid grid-cols-2 gap-8">
-                          <div className="space-y-4">
-                            <div className="space-y-1">
-                              <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Guardian / Tuteur</p>
-                              <p className="text-[10px] font-bold text-primary">Mr. Robert Thompson</p>
-                              <p className="text-[10px] font-black text-secondary flex items-center gap-1"><Phone className="w-2.5 h-2.5" /> +237 677 00 11 22</p>
-                            </div>
-                            <div className="space-y-1">
-                              <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Date of Birth / Né(e) le</p>
-                              <p className="text-[10px] font-bold text-primary">15/05/2008</p>
-                            </div>
-                            <div className="space-y-1">
-                              <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Residential Address / Adresse</p>
-                              <p className="text-[9px] font-medium text-muted-foreground leading-tight">Bonapriso, Douala</p>
-                            </div>
-                          </div>
-                          
-                          <div className="flex flex-col items-center justify-center gap-4 text-center border-l border-accent pl-8">
-                            <div className="p-2 bg-white border-2 border-accent rounded-xl shadow-inner">
-                              <QrCode className="w-20 h-20 text-primary" />
-                            </div>
-                            <p className="text-[7px] font-black text-muted-foreground uppercase leading-tight tracking-widest">
-                              Scannez pour vérifier l'authenticité<br/>Scan to verify authenticity
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="mt-auto flex justify-between items-end border-t border-accent/50 pt-4">
-                          <div className="text-[8px] max-w-[200px] leading-relaxed text-muted-foreground font-medium">
-                            <p className="font-black text-[7px] uppercase text-primary mb-1">Notice / Avertissement</p>
-                            This card is strictly personal. If found, please return to the school administration.
-                          </div>
-                          <div className="text-center space-y-1 relative">
-                            <div className="h-px bg-primary/20 w-24 mx-auto mb-1" />
-                            <p className="text-[8px] font-black text-primary uppercase">The Principal</p>
-                            <Badge variant="outline" className="text-[7px] border-primary/20 text-primary font-black uppercase">Official Seal</Badge>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="bg-accent/20 p-2 px-4 flex items-center justify-between shrink-0">
-                        <div className="flex items-center gap-2">
-                          <img src={platformSettings.logo} alt="EduIgnite" className="w-4 h-4 object-contain rounded-sm" />
-                          <p className="text-[7px] font-black text-primary uppercase tracking-widest">
-                            Powered by {platformSettings.name} SaaS
-                          </p>
-                        </div>
-                        <span className="text-[6px] text-muted-foreground font-bold italic">Secure Node Registry</span>
-                      </div>
-                    </Card>
-                    <p className="text-center text-[10px] font-black uppercase text-muted-foreground mt-2 tracking-[0.2em]">Back / Verso</p>
-                  </div>
-                </div>
+                <IDCardPreview student={user} platform={platformSettings} />
               )}
             </div>
 
@@ -600,6 +320,251 @@ export default function GradeBookPage() {
           </Table>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function PortraitReportCard({ student, platform, term }: { student: any, platform: any, term: string }) {
+  return (
+    <div className="bg-white p-6 md:p-10 shadow-sm relative flex flex-col space-y-6 font-serif text-black max-w-[800px] mx-auto print:shadow-none print:p-0">
+       {/* Cameroon National Header */}
+       <div className="grid grid-cols-12 gap-2 items-start text-center border-b border-black pb-4">
+          <div className="col-span-4 space-y-0.5 text-[7px] uppercase font-bold text-left">
+            <p className="text-[#264D73] font-black">Republic of Cameroon</p>
+            <p>Peace - Work - Fatherland</p>
+          </div>
+          <div className="col-span-4 flex flex-col items-center">
+            <div className="w-12 h-12 flex items-center justify-center mb-1">
+              <img src={student?.school?.logo || platform.logo} alt="School" className="w-full h-full object-contain" />
+            </div>
+          </div>
+          <div className="col-span-4 space-y-0.5 text-[7px] uppercase font-bold text-right">
+            <p className="text-[#264D73] font-black">République du Cameroun</p>
+            <p>Paix - Travail - Patrie</p>
+          </div>
+       </div>
+
+       <div className="text-center space-y-1">
+          <p className="text-[8px] font-black uppercase text-[#264D73]">Ministry of Secondary Education / Ministère de l'Éducation Secondaire</p>
+          <div className="h-px bg-[#264D73] w-full my-1 opacity-20" />
+          <h2 className="font-black text-xl uppercase text-[#264D73] tracking-tight">{student?.school?.name || "EDUIGNITE INTERNATIONAL COLLEGE"}</h2>
+          <p className="text-[8px] font-bold italic opacity-60">Report Card: {term}</p>
+       </div>
+
+       {/* Student Info Box */}
+       <div className="grid grid-cols-12 border rounded-xl overflow-hidden mt-4 text-[9px] relative">
+          <div className="col-span-9 p-4 grid grid-cols-2 gap-x-8 gap-y-2 border-r bg-accent/5">
+            <div className="flex gap-2"><span className="font-bold whitespace-nowrap">Name:</span><span className="border-b border-dotted border-black/40 flex-1 font-black uppercase">{student?.name}</span></div>
+            <div className="flex gap-2"><span className="font-bold whitespace-nowrap">Class:</span><span className="border-b border-dotted border-black/40 flex-1 font-bold">{student?.class || "N/A"}</span></div>
+            <div className="flex gap-2"><span className="font-bold whitespace-nowrap">Matricule:</span><span className="border-b border-dotted border-black/40 flex-1 font-mono font-bold text-primary">{student?.id}</span></div>
+            <div className="flex gap-2"><span className="font-bold whitespace-nowrap">Sex:</span><span className="border-b border-dotted border-black/40 flex-1">Male</span></div>
+            <div className="flex gap-2"><span className="font-bold whitespace-nowrap">Date of Birth:</span><span className="border-b border-dotted border-black/40 flex-1">12/05/2007</span></div>
+            <div className="flex gap-2"><span className="font-bold whitespace-nowrap">Parent Contact:</span><span className="border-b border-dotted border-black/40 flex-1">6XX XXX XXX</span></div>
+          </div>
+          <div className="col-span-3 p-2 flex items-center justify-center bg-white">
+            <div className="w-20 h-24 border rounded shadow-sm overflow-hidden">
+              <img src={student?.avatar} alt="Student" className="w-full h-full object-cover" />
+            </div>
+          </div>
+       </div>
+
+       {/* MARKS TABLE */}
+       <div className="mt-6 border border-black rounded-sm overflow-hidden">
+          <Table>
+            <TableHeader className="bg-[#264D73]">
+              <TableRow className="h-8 border-none hover:bg-[#264D73]">
+                <TableHead className="text-[8px] font-black uppercase text-white pl-2 border-r border-white/20">Subject</TableHead>
+                <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20">Teacher</TableHead>
+                <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20">Average</TableHead>
+                <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20">Coef</TableHead>
+                <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20">Avg x Coef</TableHead>
+                <TableHead className="text-[8px] font-black uppercase text-white text-center pr-2">Rank</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {MOCK_PERSONAL_GRADES.map((g, idx) => (
+                <TableRow key={idx} className="border-b border-black/10 last:border-0 h-7 hover:bg-accent/5">
+                  <TableCell className="pl-2 font-bold text-[8px] uppercase border-r border-black/10">{g.subject}</TableCell>
+                  <TableCell className="text-center text-[8px] border-r border-black/10 italic opacity-60">{g.teacher}</TableCell>
+                  <TableCell className="text-center text-[8px] border-r border-black/10 font-black text-[#264D73]">{g.average.toFixed(2)}</TableCell>
+                  <TableCell className="text-center text-[8px] border-r border-black/10 font-bold">{g.coef}</TableCell>
+                  <TableCell className="text-center text-[8px] border-r border-black/10">{g.total.toFixed(2)}</TableCell>
+                  <TableCell className="text-center text-[8px] pr-2">{g.rank}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+       </div>
+
+       {/* Summary Boxes */}
+       <div className="grid grid-cols-3 gap-4 mt-6">
+          <div className="border border-dotted border-black/40 p-3 rounded-lg space-y-1.5 text-[8px] bg-accent/5">
+            <h4 className="font-black text-[#264D73] uppercase border-b border-black/10 mb-1">Statistical Summary</h4>
+            <div className="flex justify-between border-b border-dotted border-black/20 pb-0.5"><span className="font-bold">Total Coefficient:</span><span className="font-black">29</span></div>
+            <div className="flex justify-between border-b border-dotted border-black/20 pb-0.5"><span className="font-bold text-[#264D73]">General Average:</span><span className="font-black text-[#264D73]">15.18</span></div>
+            <div className="flex justify-between pt-0.5"><span className="font-bold">Position:</span><span className="font-black">05 / 42</span></div>
+          </div>
+
+          <div className="border border-dotted border-black/40 p-3 rounded-lg space-y-1.5 text-[8px] bg-accent/5">
+            <h4 className="font-black text-[#264D73] uppercase border-b border-black/10 mb-1">Discipline & Presence</h4>
+            <div className="flex justify-between border-b border-dotted border-black/20 pb-0.5"><span className="font-bold">Days Present:</span><span className="font-black">42</span></div>
+            <div className="flex justify-between border-b border-dotted border-black/20 pb-0.5"><span className="font-bold">Days Absent:</span><span className="font-black">0</span></div>
+            <div className="flex justify-between pt-0.5"><span className="font-bold">Conduct:</span><span className="font-black">Exemplary</span></div>
+          </div>
+
+          <div className="space-y-4 flex flex-col justify-end">
+            <div className="grid grid-cols-3 gap-2">
+               <div className="text-center space-y-1">
+                  <div className="h-8 border-b border-black/20 relative flex items-center justify-center">
+                    <SignatureSVG className="w-full h-full text-primary/10" />
+                  </div>
+                  <p className="text-[6px] font-black uppercase text-primary">Parent</p>
+               </div>
+               <div className="text-center space-y-1">
+                  <div className="h-8 border-b border-black/20 relative flex items-center justify-center">
+                    <SignatureSVG className="w-full h-full text-primary/10" />
+                  </div>
+                  <p className="text-[6px] font-black uppercase text-primary">Class Master</p>
+               </div>
+               <div className="text-center space-y-1">
+                  <div className="h-8 border-b border-black/20 relative flex items-center justify-center">
+                    <SignatureSVG className="w-full h-full text-primary/10" />
+                  </div>
+                  <p className="text-[6px] font-black uppercase text-primary">Principal</p>
+               </div>
+            </div>
+            <div className="flex justify-center mt-2">
+               <QrCode className="w-8 h-8 opacity-10" />
+            </div>
+          </div>
+       </div>
+    </div>
+  );
+}
+
+function IDCardPreview({ student, platform }: { student: any, platform: any }) {
+  return (
+    <div className="flex flex-col gap-12 items-center">
+      {/* FRONT SIDE */}
+      <div className="relative group card-container">
+        <Card className="w-[450px] h-[280px] border shadow-xl bg-white overflow-hidden relative border-primary/20 flex flex-col">
+          <div className="bg-primary p-2 flex items-center justify-between text-white text-[7px] font-black uppercase tracking-tighter shrink-0 border-b border-white/10">
+            <div className="text-left leading-none space-y-0.5">
+              <p>Republic of Cameroon</p>
+              <p>Peace - Work - Fatherland</p>
+            </div>
+            <div className="flex gap-1 h-3">
+              <div className="w-2 h-full bg-[#007a5e]" />
+              <div className="w-2 h-full bg-[#ce1126] flex items-center justify-center"><div className="w-0.5 h-0.5 bg-yellow-400 rounded-full" /></div>
+              <div className="w-2 h-full bg-[#fcd116]" />
+            </div>
+            <div className="text-right leading-none space-y-0.5">
+              <p>République du Cameroun</p>
+              <p>Paix - Travail - Patrie</p>
+            </div>
+          </div>
+
+          <div className="p-3 border-b border-accent flex items-center gap-3 bg-accent/5 shrink-0">
+            <div className="w-12 h-12 bg-white rounded-lg p-1 border shadow-sm flex items-center justify-center shrink-0 overflow-hidden">
+              <img src={student?.school?.logo || platform.logo} alt="School Logo" className="w-full h-full object-contain" />
+            </div>
+            <div className="flex-1">
+              <p className="text-[8px] font-black uppercase text-muted-foreground leading-none mb-0.5">Ministry of Secondary Education</p>
+              <h3 className="text-xs font-black uppercase text-primary leading-tight">
+                {student?.school?.name || "EDUIGNITE INTERNATIONAL COLLEGE"}
+              </h3>
+              <p className="text-[7px] font-bold text-muted-foreground italic">"Discipline - Work - Success"</p>
+            </div>
+          </div>
+
+          <div className="flex-1 p-4 flex gap-6 relative">
+            <div className="w-28 h-28 rounded-xl border-2 border-primary/10 overflow-hidden shadow-lg shrink-0 bg-accent/5">
+              <img src={student?.avatar} alt={student?.name} className="w-full h-full object-cover" />
+            </div>
+            <div className="flex-1 flex flex-col justify-center gap-3">
+              <div className="space-y-0.5">
+                <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Full Name / Nom Complet</p>
+                <p className="text-sm font-black text-primary uppercase leading-tight">{student?.name}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-0.5">
+                  <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Matricule</p>
+                  <p className="text-sm font-mono font-black text-secondary">{student?.id}</p>
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Class / Classe</p>
+                  <p className="text-xs font-black text-primary">{student?.class || "N/A"}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-primary/5 p-2 flex justify-between items-center border-t border-accent shrink-0">
+            <div className="px-3 py-1 bg-primary text-white rounded-md text-[9px] font-black tracking-widest">
+              STUDENT ID CARD
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[8px] font-black text-muted-foreground uppercase">Academic Year</span>
+              <Badge className="bg-secondary text-primary border-none text-[9px] font-black h-5">2023 - 2024</Badge>
+            </div>
+          </div>
+        </Card>
+        <p className="text-center text-[10px] font-black uppercase text-muted-foreground mt-2 tracking-[0.2em]">Front Side</p>
+      </div>
+
+      {/* BACK SIDE */}
+      <div className="relative card-container">
+        <Card className="w-[450px] h-[280px] border shadow-xl bg-white overflow-hidden relative border-primary/20 flex flex-col">
+          <div className="bg-primary h-1 w-full shrink-0" />
+          <div className="flex-1 p-6 flex flex-col gap-6">
+            <div className="grid grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Guardian / Tuteur</p>
+                  <p className="text-[10px] font-bold text-primary">Mr. Robert Thompson</p>
+                  <p className="text-[10px] font-black text-secondary flex items-center gap-1"><Phone className="w-2.5 h-2.5" /> +237 6XX XX XX XX</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Date of Birth / Né(e) le</p>
+                  <p className="text-[10px] font-bold text-primary">12/05/2007</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Residential Address / Adresse</p>
+                  <p className="text-[9px] font-medium text-muted-foreground leading-tight">Bonapriso, Douala</p>
+                </div>
+              </div>
+              <div className="flex flex-col items-center justify-center gap-4 text-center border-l border-accent pl-8">
+                <div className="p-2 bg-white border-2 border-accent rounded-xl shadow-inner">
+                  <QrCode className="w-20 h-20 text-primary" />
+                </div>
+                <p className="text-[7px] font-black text-muted-foreground uppercase leading-tight tracking-widest">
+                  Secure Scan<br/>Verification
+                </p>
+              </div>
+            </div>
+            <div className="mt-auto flex justify-between items-end border-t border-accent/50 pt-4">
+              <div className="text-[8px] max-w-[200px] leading-relaxed text-muted-foreground font-medium">
+                <p className="font-black text-[7px] uppercase text-primary mb-1">Notice</p>
+                This card is property of the school. If found, return to the administration.
+              </div>
+              <div className="text-center space-y-1 relative">
+                <div className="h-px bg-primary/20 w-24 mx-auto mb-1" />
+                <p className="text-[8px] font-black text-primary uppercase">The Principal</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-accent/20 p-2 px-4 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-2">
+              <img src={platform.logo} alt="EduIgnite" className="w-4 h-4 object-contain rounded-sm" />
+              <p className="text-[7px] font-black text-primary uppercase tracking-widest">
+                Powered by {platform.name} SaaS
+              </p>
+            </div>
+            <span className="text-[6px] text-muted-foreground font-bold italic">Secure Node Registry</span>
+          </div>
+        </Card>
+        <p className="text-center text-[10px] font-black uppercase text-muted-foreground mt-2 tracking-[0.2em]">Back Side</p>
+      </div>
     </div>
   );
 }
@@ -676,7 +641,6 @@ function SignatureSVG({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path d="M15 30L85 10" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" strokeDasharray="2 2" />
     </svg>
   );
 }
