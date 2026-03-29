@@ -23,7 +23,6 @@ import {
   Globe,
   Coins,
   Smartphone,
-  Star,
   X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -34,16 +33,8 @@ import {
   DialogHeader, 
   DialogTitle, 
   DialogDescription, 
-  DialogFooter,
-  DialogTrigger
+  DialogFooter
 } from "@/components/ui/dialog";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -268,14 +259,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       </div>
                       
                       <div className="flex flex-wrap gap-3 md:justify-end">
-                        {/* TESTIMONY MODAL */}
                         <Dialog open={isTestimonyModalOpen} onOpenChange={setIsTestimonyModalOpen}>
-                          <DialogTrigger asChild>
-                            <Button variant="outline" className="rounded-xl border-primary/20 text-primary h-11 px-6 font-bold gap-2 bg-white hover:bg-primary/5">
+                          <Button asChild variant="outline" className="rounded-xl border-primary/20 text-primary h-11 px-6 font-bold gap-2 bg-white hover:bg-primary/5">
+                            <button onClick={() => setIsTestimonyModalOpen(true)}>
                               <Quote className="w-4 h-4" />
                               Give Testimony
-                            </Button>
-                          </DialogTrigger>
+                            </button>
+                          </Button>
                           <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
                             <DialogHeader className="bg-primary p-8 text-white relative">
                               <div className="flex items-center gap-4">
@@ -320,14 +310,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                           </DialogContent>
                         </Dialog>
 
-                        {/* SUPPORT US MODAL */}
                         <Dialog open={isSupportModalOpen} onOpenChange={setIsSupportModalOpen}>
-                          <DialogTrigger asChild>
-                            <Button className="rounded-xl bg-primary text-white h-11 px-8 font-black uppercase tracking-widest text-[10px] gap-2 shadow-lg hover:bg-primary/90">
+                          <Button asChild className="rounded-xl bg-primary text-white h-11 px-8 font-black uppercase tracking-widest text-[10px] gap-2 shadow-lg hover:bg-primary/90">
+                            <button onClick={() => setIsSupportModalOpen(true)}>
                               <Coins className="w-4 h-4 text-secondary" />
                               Support our Vision
-                            </Button>
-                          </DialogTrigger>
+                            </button>
+                          </Button>
                           <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
                             <DialogHeader className="bg-primary p-8 text-white relative">
                               <div className="flex items-center gap-4">

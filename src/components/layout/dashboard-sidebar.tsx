@@ -16,7 +16,6 @@ import {
   Award,
   LogOut,
   Building2,
-  Sparkles,
   Heart,
   Globe,
   Languages,
@@ -29,15 +28,11 @@ import {
   FileEdit,
   Library,
   Coins,
-  Receipt,
-  UsersRound,
   CreditCard,
   Settings2,
   Crown,
-  Lock,
   Wallet,
   Video,
-  Info,
   Quote,
   Network,
   Star,
@@ -51,7 +46,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface SidebarProps {
   onClose?: () => void;
@@ -66,7 +60,6 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
 
   const isSuperAdmin = EXECUTIVE_ROLES.includes(user?.role as UserRole);
   const isDesigner = user?.role === "DESIGNER";
-  const isInvestor = user?.role === "INV";
   const isBursar = user?.role === "BURSAR";
   const isSchoolAdmin = user?.role === "SCHOOL_ADMIN" || user?.role === "SUB_ADMIN";
 
@@ -107,7 +100,6 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       href: "/dashboard/platform-settings",
       roles: ["SUPER_ADMIN", "CEO", "DESIGNER", "CTO", "COO"], 
     },
-    // SCHOOL ADMIN SPECIFIC MANAGEMENT
     {
       label: language === 'en' ? 'Manage Settings' : 'Gérer les Paramètres',
       icon: Settings2,
@@ -126,7 +118,6 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       href: "/dashboard/statistics",
       roles: ["SCHOOL_ADMIN"],
     },
-    // GENERAL DASHBOARD LINKS
     {
       label: t("chat"),
       icon: MessageCircle,
@@ -300,13 +291,13 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
         </div>
       </div>
 
-      <ScrollArea className="flex-1 px-3 min-h-0">
+      <div className="flex-1 px-3 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-white/10">
         <div className="space-y-1 py-2">
           {filteredRoutes.map((route) => (
             <Link
               key={route.href}
               href={route.href}
-              onClick={onClose}
+              onClick={() => onClose?.()}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 hover:bg-white/10 group",
                 pathname === route.href ? "bg-white/20 text-white" : "text-white/60"
@@ -317,10 +308,10 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
             </Link>
           ))}
         </div>
-      </ScrollArea>
+      </div>
 
       <div className="p-4 border-t border-white/10 mt-auto bg-primary shrink-0">
-        <Link href="/dashboard/profile" className="flex items-center gap-3 mb-4 px-2 hover:bg-white/5 py-2 rounded-lg transition-colors group">
+        <Link href="/dashboard/profile" onClick={() => onClose?.()} className="flex items-center gap-3 mb-4 px-2 hover:bg-white/5 py-2 rounded-lg transition-colors group">
           <div className="w-10 h-10 rounded-full bg-secondary overflow-hidden shrink-0 border-2 border-transparent group-hover:border-white/20">
             <img src={user?.avatar} alt={user?.name} className="w-full h-full object-cover" />
           </div>
