@@ -258,7 +258,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
   const filteredRoutes = routes.filter((route) => route.roles.includes(user?.role || ""));
 
   return (
-    <div className="flex flex-col h-full bg-primary text-white w-full border-r border-white/10">
+    <div className="flex flex-col h-full bg-primary text-white w-full border-r border-white/10 overflow-hidden">
       <div className="p-6 shrink-0">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 overflow-hidden">
@@ -300,7 +300,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
         </div>
       </div>
 
-      <ScrollArea className="flex-1 px-3">
+      <ScrollArea className="flex-1 px-3 min-h-0">
         <div className="space-y-1 py-2">
           {filteredRoutes.map((route) => (
             <Link
