@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
@@ -39,7 +40,8 @@ import {
   CalendarDays,
   CreditCard,
   ImageIcon,
-  CheckCircle2
+  CheckCircle2,
+  FileDown
 } from "lucide-react";
 import { 
   Dialog, 
@@ -63,6 +65,12 @@ const INITIAL_BOOKS = [
 
 const INITIAL_LOANS = [
   { id: "LOAN-101", bookTitle: "Organic Chemistry", borrowerName: "Alice Thompson", borrowerId: "GBHS26S001", borrowDate: "May 15, 2024", returnDate: "May 29, 2024", status: "Active", avatar: "https://picsum.photos/seed/s1/100/100" },
+];
+
+const MOCK_STUDENT_HISTORY = [
+  { id: "H-101", title: "Organic Chemistry", author: "Dr. Tesla", borrowDate: "Mar 10, 2024", returnDate: "Mar 17, 2024", status: "Returned", fee: "0" },
+  { id: "H-102", title: "Calculus II", author: "Prof. Smith", borrowDate: "Feb 05, 2024", returnDate: "Feb 15, 2024", status: "Returned", fee: "2,000" },
+  { id: "H-103", title: "Advanced Physics", author: "Dr. Tesla", borrowDate: "Jan 12, 2024", returnDate: "Jan 19, 2024", status: "Returned", fee: "0" },
 ];
 
 export default function LibraryPage() {
@@ -290,13 +298,23 @@ export default function LibraryPage() {
       <Tabs defaultValue="catalog" className="w-full">
         <TabsList className={cn(
           "grid w-full mb-8 bg-white shadow-sm border h-auto p-1.5 rounded-[2rem]", 
-          isLibrarian ? "grid-cols-4 md:w-[800px]" : isManagement ? "grid-cols-3 md:w-[600px]" : "grid-cols-2 md:w-[400px]"
+          isLibrarian ? "grid-cols-4 md:w-[800px]" : 
+          isManagement ? "grid-cols-3 md:w-[600px]" : 
+          "grid-cols-3 md:w-[600px]"
         )}>
           <TabsTrigger value="catalog" className="gap-2 py-3 rounded-2xl transition-all font-bold"><BookOpen className="w-4 h-4" /> Catalog</TabsTrigger>
-          {isManagement && <TabsTrigger value="circulation" className="gap-2 py-3 rounded-2xl transition-all font-bold"><Clock className="w-4 h-4" /> Circulation</TabsTrigger>}
-          {isManagement && <TabsTrigger value="history" className="gap-2 py-3 rounded-2xl transition-all font-bold"><History className="w-4 h-4" /> Registry</TabsTrigger>}
+          {isManagement ? (
+            <>
+              <TabsTrigger value="circulation" className="gap-2 py-3 rounded-2xl transition-all font-bold"><Clock className="w-4 h-4" /> Circulation</TabsTrigger>
+              <TabsTrigger value="history" className="gap-2 py-3 rounded-2xl transition-all font-bold"><History className="w-4 h-4" /> Registry</TabsTrigger>
+            </>
+          ) : (
+            <>
+              <TabsTrigger value="my-loans" className="gap-2 py-3 rounded-2xl transition-all font-bold"><BookMarked className="w-4 h-4" /> My Loans</TabsTrigger>
+              <TabsTrigger value="history" className="gap-2 py-3 rounded-2xl transition-all font-bold"><History className="w-4 h-4" /> My History</TabsTrigger>
+            </>
+          )}
           {isLibrarian && <TabsTrigger value="policy" className="gap-2 py-3 rounded-2xl transition-all font-bold"><Gavel className="w-4 h-4" /> Rules & Policy</TabsTrigger>}
-          {!isManagement && <TabsTrigger value="my-loans" className="gap-2 py-3 rounded-2xl transition-all font-bold"><BookMarked className="w-4 h-4" /> My Loans</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="catalog" className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
@@ -403,150 +421,242 @@ export default function LibraryPage() {
                 </CardContent>
               </Card>
             </TabsContent>
-            
-            <TabsContent value="history" className="animate-in fade-in slide-in-from-bottom-2">
-              <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
-                <CardHeader className="border-b p-8 flex flex-row items-center justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="text-xl font-black text-primary uppercase tracking-tight">Institutional Accession Registry</CardTitle>
-                    <CardDescription>Verified chronological record of volumes in the node library.</CardDescription>
-                  </div>
-                  {isLibrarian && (
-                    <Button variant="outline" className="rounded-[1.5rem] h-11 gap-2 border-primary/10 font-bold bg-white shadow-sm">
-                      <Download className="w-4 h-4 text-primary" /> Export CSV
-                    </Button>
-                  )}
-                </CardHeader>
-                <CardContent className="p-0 overflow-x-auto">
-                  <Table>
-                    <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest">
-                      <TableRow>
-                        <TableHead className="pl-8 py-4">Node Reference</TableHead>
-                        <TableHead>Title & Identity</TableHead>
-                        <TableHead>Author</TableHead>
-                        <TableHead className="text-center">Borrow Rule</TableHead>
-                        <TableHead className="text-right pr-8">Inventory</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {books.map(b => (
-                        <TableRow key={b.id} className="h-16 border-b hover:bg-accent/5 transition-colors">
-                          <TableCell className="pl-8 font-mono text-[10px] font-bold text-primary">{b.id}</TableCell>
-                          <TableCell className="font-black text-xs uppercase text-primary">{b.title}</TableCell>
-                          <TableCell className="text-xs font-bold text-muted-foreground uppercase">{b.author}</TableCell>
-                          <TableCell className="text-center">
-                             <div className="inline-flex items-center gap-2">
-                                <Badge variant="outline" className="text-[8px] font-bold border-primary/10 text-primary">{b.borrowDuration || 7} Days</Badge>
-                                <Badge variant="outline" className="text-[8px] font-bold border-secondary/20 text-secondary">{b.overdueFee || 500} XAF</Badge>
-                             </div>
-                          </TableCell>
-                          <TableCell className="text-right pr-8 font-black text-primary">
-                            <span className={cn(b.available === 0 ? "text-red-500" : "text-emerald-600")}>{b.available}</span>
-                            <span className="opacity-20 mx-1">/</span>
-                            <span className="opacity-40">{b.total}</span>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {isLibrarian && (
-              <TabsContent value="policy" className="animate-in fade-in slide-in-from-bottom-2 mt-0">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                  <div className="lg:col-span-7 space-y-8">
-                    <Card className="border-none shadow-xl rounded-[2.5rem] bg-white overflow-hidden">
-                      <CardHeader className="bg-primary p-10 text-white">
-                        <div className="flex items-center gap-4">
-                          <div className="p-3 bg-white/10 rounded-2xl text-secondary"><Gavel className="w-8 h-8" /></div>
-                          <div>
-                            <CardTitle className="text-2xl font-black uppercase tracking-tight">Institutional Borrowing Policy</CardTitle>
-                            <CardDescription className="text-white/60 text-xs">Define standard node rules for book circulation.</CardDescription>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="p-10 space-y-8">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                          <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Default Duration (Days)</Label>
-                            <Input 
-                              type="number" 
-                              value={libraryPolicy.defaultDuration} 
-                              onChange={(e) => setLibraryPolicy({...libraryPolicy, defaultDuration: parseInt(e.target.value)})}
-                              className="h-12 bg-accent/30 border-none rounded-xl font-black text-primary text-xl"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Default Overdue Fee (XAF/Day)</Label>
-                            <Input 
-                              type="number" 
-                              value={libraryPolicy.defaultOverdueFee} 
-                              onChange={(e) => setLibraryPolicy({...libraryPolicy, defaultOverdueFee: parseInt(e.target.value)})}
-                              className="h-12 bg-accent/30 border-none rounded-xl font-black text-primary text-xl"
-                            />
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Circulation Rules & Guidelines</Label>
-                          <Textarea 
-                            value={libraryPolicy.rules} 
-                            onChange={(e) => setLibraryPolicy({...libraryPolicy, rules: e.target.value})}
-                            className="min-h-[150px] bg-accent/30 border-none rounded-2xl p-6 leading-relaxed italic font-medium"
-                            placeholder="Describe how borrowing works in this node..."
-                          />
-                        </div>
-                      </CardContent>
-                      <CardFooter className="bg-accent/20 p-8 border-t flex justify-end">
-                        <Button className="h-14 px-12 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3 transition-all active:scale-95" onClick={handleUpdatePolicy} disabled={isProcessing}>
-                          {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-5 h-5 text-secondary" />}
-                          Commit Policy Registry
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  </div>
-
-                  <div className="lg:col-span-5 space-y-8">
-                    <Card className="border-none shadow-sm bg-primary text-white p-10 rounded-[3rem] space-y-6 text-center overflow-hidden relative">
-                       <div className="absolute top-0 right-0 p-8 opacity-5 rotate-12"><Library className="w-48 h-48" /></div>
-                       <div className="flex justify-center relative z-10">
-                          <div className="p-5 bg-white/10 rounded-[2.5rem] shadow-2xl border-4 border-white/5 backdrop-blur-sm">
-                             <ShieldCheck className="w-16 h-16 text-secondary" />
-                          </div>
-                       </div>
-                       <div className="space-y-2 relative z-10">
-                          <h4 className="text-2xl font-black uppercase tracking-tighter">Node Integrity</h4>
-                          <p className="text-xs text-white/60 leading-relaxed max-w-xs mx-auto">
-                            The rules defined here are enforced node-wide. All loan timestamps and fee calculations are automatically linked to student financial accounts.
-                          </p>
-                       </div>
-                       <div className="pt-6 border-t border-white/10 flex flex-col items-center gap-4 relative z-10">
-                          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
-                             <CheckCircle2 className="w-4 h-4 text-secondary" /> 
-                             Automated Penalty Sync
-                          </div>
-                          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
-                             <CheckCircle2 className="w-4 h-4 text-secondary" /> 
-                             Parental Notification
-                          </div>
-                       </div>
-                    </Card>
-
-                    <Card className="border-none shadow-sm bg-blue-50 p-8 rounded-[2.5rem] space-y-4">
-                       <div className="flex items-center gap-3">
-                          <AlertCircle className="w-5 h-5 text-blue-600" />
-                          <h4 className="text-xs font-black uppercase text-blue-700 tracking-widest">Librarian Notice</h4>
-                       </div>
-                       <p className="text-[11px] text-blue-800 leading-relaxed font-medium italic">
-                         "Updates to global rules will only apply to new borrowing requests. Ongoing loans will maintain the parameters set at the time of issuance to ensure pedagogical continuity."
-                       </p>
-                    </Card>
-                  </div>
-                </div>
-              </TabsContent>
-            )}
           </>
+        )}
+
+        {/* UNIFIED HISTORY CONTENT */}
+        <TabsContent value="history" className="animate-in fade-in slide-in-from-bottom-2">
+          {isManagement ? (
+            <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+              <CardHeader className="border-b p-8 flex flex-row items-center justify-between">
+                <div className="space-y-1">
+                  <CardTitle className="text-xl font-black text-primary uppercase tracking-tight">Institutional Accession Registry</CardTitle>
+                  <CardDescription>Verified chronological record of volumes in the node library.</CardDescription>
+                </div>
+                {isLibrarian && (
+                  <Button variant="outline" className="rounded-[1.5rem] h-11 gap-2 border-primary/10 font-bold bg-white shadow-sm">
+                    <Download className="w-4 h-4 text-primary" /> Export CSV
+                  </Button>
+                )}
+              </CardHeader>
+              <CardContent className="p-0 overflow-x-auto">
+                <Table>
+                  <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest">
+                    <TableRow>
+                      <TableHead className="pl-8 py-4">Node Reference</TableHead>
+                      <TableHead>Title & Identity</TableHead>
+                      <TableHead>Author</TableHead>
+                      <TableHead className="text-center">Borrow Rule</TableHead>
+                      <TableHead className="text-right pr-8">Inventory</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {books.map(b => (
+                      <TableRow key={b.id} className="h-16 border-b hover:bg-accent/5 transition-colors">
+                        <TableCell className="pl-8 font-mono text-[10px] font-bold text-primary">{b.id}</TableCell>
+                        <TableCell className="font-black text-xs uppercase text-primary">{b.title}</TableCell>
+                        <TableCell className="text-xs font-bold text-muted-foreground uppercase">{b.author}</TableCell>
+                        <TableCell className="text-center">
+                           <div className="inline-flex items-center gap-2">
+                              <Badge variant="outline" className="text-[8px] font-bold border-primary/10 text-primary">{b.borrowDuration || 7} Days</Badge>
+                              <Badge variant="outline" className="text-[8px] font-bold border-secondary/20 text-secondary">{b.overdueFee || 500} XAF</Badge>
+                           </div>
+                        </TableCell>
+                        <TableCell className="text-right pr-8 font-black text-primary">
+                          <span className={cn(b.available === 0 ? "text-red-500" : "text-emerald-600")}>{b.available}</span>
+                          <span className="opacity-20 mx-1">/</span>
+                          <span className="opacity-40">{b.total}</span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+              <CardHeader className="border-b p-8 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <CardTitle className="text-xl font-black text-primary uppercase tracking-tight">My Borrowing Ledger</CardTitle>
+                  <CardDescription>Verified record of your past transactions with the node library.</CardDescription>
+                </div>
+                <Button 
+                  className="rounded-xl h-12 px-8 font-black uppercase text-[10px] tracking-widest gap-2 shadow-lg bg-primary text-white" 
+                  onClick={() => toast({ title: "PDF Generated", description: "Your library history has been downloaded." })}
+                >
+                  <FileDown className="w-4 h-4" /> Download History (PDF)
+                </Button>
+              </CardHeader>
+              <CardContent className="p-0 overflow-x-auto">
+                <Table>
+                  <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest border-b">
+                    <TableRow>
+                      <TableHead className="pl-8 py-4">Transaction ID</TableHead>
+                      <TableHead>Volume Title</TableHead>
+                      <TableHead>Author</TableHead>
+                      <TableHead className="text-center">Borrow Date</TableHead>
+                      <TableHead className="text-center">Return Date</TableHead>
+                      <TableHead className="text-right pr-8">Status / Fee</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {MOCK_STUDENT_HISTORY.map(h => (
+                      <TableRow key={h.id} className="h-16 border-b hover:bg-accent/5">
+                        <TableCell className="pl-8 font-mono text-[10px] font-bold text-primary">{h.id}</TableCell>
+                        <TableCell className="font-black text-xs uppercase text-primary">{h.title}</TableCell>
+                        <TableCell className="text-xs font-bold text-muted-foreground uppercase">{h.author}</TableCell>
+                        <TableCell className="text-center text-[10px] font-bold text-muted-foreground">{h.borrowDate}</TableCell>
+                        <TableCell className="text-center text-[10px] font-bold text-muted-foreground">{h.returnDate}</TableCell>
+                        <TableCell className="text-right pr-8">
+                          <div className="flex flex-col items-end">
+                            <Badge className="text-[8px] font-black uppercase px-2 h-5 bg-green-100 text-green-700 border-none">RETURNED</Badge>
+                            {h.fee !== "0" && <span className="text-[9px] font-black text-red-600 mt-1">{h.fee} XAF Paid</span>}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        {!isManagement && (
+          <TabsContent value="my-loans" className="animate-in fade-in slide-in-from-bottom-2">
+            <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+              <CardContent className="p-0 overflow-x-auto">
+                <Table>
+                  <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest border-b">
+                    <TableRow>
+                      <TableHead className="pl-8 py-4">Ref Code</TableHead>
+                      <TableHead>Volume Title</TableHead>
+                      <TableHead className="text-center">Borrow Date</TableHead>
+                      <TableHead className="text-center">Due Date</TableHead>
+                      <TableHead className="text-right pr-8">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {loans.map(loan => (
+                      <TableRow key={loan.id} className="h-16 border-b group hover:bg-accent/5">
+                        <TableCell className="pl-8 font-mono text-[10px] font-bold text-primary">{loan.id}</TableCell>
+                        <TableCell className="font-black text-xs uppercase text-primary">{loan.bookTitle}</TableCell>
+                        <TableCell className="text-center text-[10px] font-bold text-muted-foreground">{loan.borrowDate}</TableCell>
+                        <TableCell className="text-center text-[10px] font-bold text-muted-foreground">
+                          <div className="flex items-center justify-center gap-2">
+                            <Clock className="w-3.5 h-3.5 text-primary/40" />
+                            {loan.returnDate}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right pr-8">
+                          <Button variant="outline" size="sm" className="h-8 rounded-lg font-bold text-[10px] uppercase">Details</Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {loans.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-10 text-muted-foreground italic">No active loans found.</TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
+
+        {isLibrarian && (
+          <TabsContent value="policy" className="animate-in fade-in slide-in-from-bottom-2 mt-0">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              <div className="lg:col-span-7 space-y-8">
+                <Card className="border-none shadow-xl rounded-[2.5rem] bg-white overflow-hidden">
+                  <CardHeader className="bg-primary p-10 text-white">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-white/10 rounded-2xl text-secondary"><Gavel className="w-8 h-8" /></div>
+                      <div>
+                        <CardTitle className="text-2xl font-black uppercase tracking-tight">Institutional Borrowing Policy</CardTitle>
+                        <CardDescription className="text-white/60 text-xs">Define standard node rules for book circulation.</CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-10 space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Default Duration (Days)</Label>
+                        <Input 
+                          type="number" 
+                          value={libraryPolicy.defaultDuration} 
+                          onChange={(e) => setLibraryPolicy({...libraryPolicy, defaultDuration: parseInt(e.target.value)})}
+                          className="h-12 bg-accent/30 border-none rounded-xl font-black text-primary text-xl"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Default Overdue Fee (XAF/Day)</Label>
+                        <Input 
+                          type="number" 
+                          value={libraryPolicy.defaultOverdueFee} 
+                          onChange={(e) => setLibraryPolicy({...libraryPolicy, defaultOverdueFee: parseInt(e.target.value)})}
+                          className="h-12 bg-accent/30 border-none rounded-xl font-black text-primary text-xl"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Circulation Rules & Guidelines</Label>
+                      <Textarea 
+                        value={libraryPolicy.rules} 
+                        onChange={(e) => setLibraryPolicy({...libraryPolicy, rules: e.target.value})}
+                        className="min-h-[150px] bg-accent/30 border-none rounded-2xl p-6 leading-relaxed italic font-medium"
+                        placeholder="Describe how borrowing works in this node..."
+                      />
+                    </div>
+                  </CardContent>
+                  <CardFooter className="bg-accent/20 p-8 border-t flex justify-end">
+                    <Button className="h-14 px-12 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3 transition-all active:scale-95" onClick={handleUpdatePolicy} disabled={isProcessing}>
+                      {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-5 h-5 text-secondary" />}
+                      Commit Policy Registry
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </div>
+
+              <div className="lg:col-span-5 space-y-8">
+                <Card className="border-none shadow-sm bg-primary text-white p-10 rounded-[3rem] space-y-6 text-center overflow-hidden relative">
+                   <div className="absolute top-0 right-0 p-8 opacity-5 rotate-12"><Library className="w-48 h-48" /></div>
+                   <div className="flex justify-center relative z-10">
+                      <div className="p-5 bg-white/10 rounded-[2.5rem] shadow-2xl border-4 border-white/5 backdrop-blur-sm">
+                         <ShieldCheck className="w-16 h-16 text-secondary" />
+                      </div>
+                   </div>
+                   <div className="space-y-2 relative z-10">
+                      <h4 className="text-2xl font-black uppercase tracking-tighter">Node Integrity</h4>
+                      <p className="text-xs text-white/60 leading-relaxed max-w-xs mx-auto">
+                        The rules defined here are enforced node-wide. All loan timestamps and fee calculations are automatically linked to student financial accounts.
+                      </p>
+                   </div>
+                   <div className="pt-6 border-t border-white/10 flex flex-col items-center gap-4 relative z-10">
+                      <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+                         <CheckCircle2 className="w-4 h-4 text-secondary" /> 
+                         Automated Penalty Sync
+                      </div>
+                      <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+                         <CheckCircle2 className="w-4 h-4 text-secondary" /> 
+                         Parental Notification
+                      </div>
+                   </div>
+                </Card>
+
+                <Card className="border-none shadow-sm bg-blue-50 p-8 rounded-[2.5rem] space-y-4">
+                   <div className="flex items-center gap-3">
+                      <AlertCircle className="w-5 h-5 text-blue-600" />
+                      <h4 className="text-xs font-black uppercase text-blue-700 tracking-widest">Librarian Notice</h4>
+                   </div>
+                   <p className="text-[11px] text-blue-800 leading-relaxed font-medium italic">
+                     "Updates to global rules will only apply to new borrowing requests. Ongoing loans will maintain the parameters set at the time of issuance to ensure pedagogical continuity."
+                   </p>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
         )}
       </Tabs>
     </div>
