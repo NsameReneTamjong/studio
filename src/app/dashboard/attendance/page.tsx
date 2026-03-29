@@ -54,6 +54,8 @@ const MOCK_TEACHER_SUBJECTS = [
   { id: "TS1", name: "Advanced Physics", class: "2nde / Form 5", students: 42, period: "08:00 AM - 10:00 AM", teacher: "Dr. Aris Tesla", avatar: "https://picsum.photos/seed/t1/100/100" },
   { id: "TS2", name: "General Chemistry", class: "1ère / Lower Sixth", students: 38, period: "10:30 AM - 12:30 PM", teacher: "Dr. White", avatar: "https://picsum.photos/seed/t4/100/100" },
   { id: "TS3", name: "Mathematics", class: "2nde / Form 5", students: 42, period: "10:30 AM - 12:30 PM", teacher: "Prof. Sarah Smith", avatar: "https://picsum.photos/seed/t2/100/100" },
+  { id: "TS4", name: "English Literature", class: "2nde / Form 5", students: 42, period: "01:30 PM - 03:30 PM", teacher: "Ms. Bennet", avatar: "https://picsum.photos/seed/t3/100/100" },
+  { id: "TS5", name: "Biology", class: "2nde / Form 5", students: 42, period: "08:00 AM - 10:00 AM", teacher: "Mr. Abena", avatar: "https://picsum.photos/seed/t5/100/100" },
 ];
 
 const MOCK_HISTORICAL_SESSIONS = [
@@ -66,6 +68,8 @@ const MOCK_STUDENTS = [
   { id: "GBHS26S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100" },
   { id: "GBHS26S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100" },
   { id: "GBHS26S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100" },
+  { id: "GBHS26S005", name: "Ethan Hunt", avatar: "https://picsum.photos/seed/s5/100/100" },
+  { id: "GBHS26S006", name: "Fiona Gallagher", avatar: "https://picsum.photos/seed/s6/100/100" },
 ];
 
 const MOCK_CLASSES_ADMIN = [
@@ -608,29 +612,33 @@ export default function AttendancePage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {MOCK_STUDENTS.map((s, idx) => (
-                    <TableRow key={s.id} className="hover:bg-accent/5 h-16 border-b border-accent/10 last:border-0">
-                      <TableCell className="pl-8 font-mono text-[10px] font-bold text-primary uppercase">{s.id}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent">
-                            <AvatarImage src={s.avatar} />
-                            <AvatarFallback className="text-[10px] font-bold">{s.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <span className="font-bold text-xs md:text-sm text-primary uppercase">{s.name}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right pr-8">
-                        <Badge className={cn(
-                          "text-[8px] font-black uppercase border-none px-3 gap-1.5 h-6",
-                          idx % 5 === 0 ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
-                        )}>
-                          {idx % 5 === 0 ? <XCircle className="w-3 h-3" /> : <CheckCircle2 className="w-3 h-3" />}
-                          {idx % 5 === 0 ? 'ABSENT' : 'PRESENT'}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {MOCK_STUDENTS.map((s, idx) => {
+                    // Vary status per subject
+                    const isAbsent = (idx + SUBJECTS.indexOf(selectedSubject)) % 6 === 0;
+                    return (
+                      <TableRow key={s.id} className="hover:bg-accent/5 h-16 border-b border-accent/10 last:border-0">
+                        <TableCell className="pl-8 font-mono text-[10px] font-bold text-primary uppercase">{s.id}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent">
+                              <AvatarImage src={s.avatar} />
+                              <AvatarFallback className="text-[10px] font-bold">{s.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <span className="font-bold text-xs md:text-sm text-primary uppercase">{s.name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right pr-8">
+                          <Badge className={cn(
+                            "text-[8px] font-black uppercase border-none px-3 gap-1.5 h-6",
+                            isAbsent ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
+                          )}>
+                            {isAbsent ? <XCircle className="w-3 h-3" /> : <CheckCircle2 className="w-3 h-3" />}
+                            {isAbsent ? 'ABSENT' : 'PRESENT'}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </CardContent>
@@ -683,11 +691,11 @@ export default function AttendancePage() {
                <p className="text-2xl font-black text-primary">94.5%</p>
             </div>
          </Card>
-         <Card className="border-none shadow-sm bg-white p-6 rounded-3xl flex items-center gap-4 group hover:shadow-md transition-all">
-            <div className="p-3 bg-secondary/20 rounded-2xl text-primary group-hover:scale-110 transition-transform"><Award className="w-6 h-6" /></div>
+         <Card className="border-none shadow-sm bg-secondary/20 p-6 rounded-3xl flex items-center gap-4 group hover:shadow-md transition-all">
+            <div className="p-3 bg-secondary/40 rounded-2xl text-primary group-hover:scale-110 transition-transform"><Award className="w-6 h-6" /></div>
             <div>
                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Integrity Status</p>
-               <p className="text-2xl font-black text-secondary">EXCELLENT</p>
+               <p className="text-2xl font-black text-primary">EXCELLENT</p>
             </div>
          </Card>
          <Card className="border-none shadow-sm bg-white p-6 rounded-3xl flex items-center gap-4 group hover:shadow-md transition-all">
