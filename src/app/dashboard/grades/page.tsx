@@ -101,7 +101,7 @@ const MOCK_ADMIN_CLASSES = [
 const MOCK_STUDENTS_GRADES = [
   { uid: "S1", id: "GBHS26S001", name: "Alice Thompson", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s1/100/100", seq1: 14.5, seq2: 16.0 },
   { uid: "S2", id: "GBHS26S002", name: "Bob Richards", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s2/100/100", seq1: 18.0, seq2: 17.5 },
-  { uid: "S3", id: "GBHS26S003", name: "Charlie Davis", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s3/100/100", seq1: 08.0, seq2: 09.5 },
+  { uid: "S3", id: "GBHS26S003", name: "Charlie Davis", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s3/100/100", seq1: 8.0, seq2: 9.5 },
   { uid: "S4", id: "GBHS26S004", name: "Diana Prince", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s4/100/100", seq1: 12.0, seq2: 11.5 },
 ];
 
@@ -840,7 +840,7 @@ function IDCardPreview({ student, platform }: { student: any, platform: any }) {
               <div className="space-y-4">
                 <div className="space-y-1">
                   <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Guardian / Tuteur</p>
-                  <p className="text-[10px] font-bold text-primary">Mr. Robert Thompson</p>
+                  <p className="text-input h-14 bg-accent/30 border-none rounded-xl font-bold">Mr. Robert Thompson</p>
                   <p className="text-[10px] font-black text-secondary flex items-center gap-1"><Phone className="w-2.5 h-2.5" /> +237 6XX XX XX XX</p>
                 </div>
                 <div className="space-y-1">
