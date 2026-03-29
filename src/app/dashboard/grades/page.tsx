@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Award, 
   CheckCircle2, 
@@ -44,7 +45,9 @@ import {
   TrendingUp,
   Activity,
   Filter,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Zap,
+  Archive
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -54,6 +57,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
 const SUBJECTS = ["Advanced Physics", "Mathematics", "English Literature", "General Chemistry", "Biology", "History", "Geography"];
+const ACADEMIC_YEARS = ["2023 / 2024", "2022 / 2023", "2021 / 2022"];
+const TERMS = ["Term 1", "Term 2", "Term 3"];
 
 const MOCK_ADMIN_CLASSES = [
   { 
@@ -158,11 +163,6 @@ const MOCK_PERSONAL_GRADES = [
   { subject: "Chemistry", teacher: "Dr. White", seq1: 13.5, seq2: 14.5, average: 14.00, coef: 4, total: 56.00, rank: "8th", initials: "DW" },
 ];
 
-const MOCK_TRANSCRIPT_DATA = {
-  "Advanced Physics": { f1: ["12.5", "13.0", "14.2"], f2: ["11.0", "12.5", "13.5"], f3: ["14.0", "15.5", "16.0"] },
-  "Mathematics": { f1: ["15.0", "16.5", "17.0"], f2: ["14.5", "15.0", "16.0"], f3: ["17.5", "18.0", "17.5"] },
-};
-
 export default function GradeBookPage() {
   const { user, platformSettings } = useAuth();
   const { t, language } = useI18n();
@@ -176,8 +176,14 @@ export default function GradeBookPage() {
   const [viewingDoc, setViewingDoc] = useState<any>(null);
 
   // Admin Specific State
-  const [adminView, setAdminView] = useState<"list" | "details" | "registry">("list");
+  const [adminView, setAdminView] = useState<"list" | "details" | "registry" | "archive">("list");
   const [inspectedClass, setInspectedClass] = useState<any>(null);
+  
+  // Archive Filters
+  const [archiveYear, setArchiveYear] = useState(ACADEMIC_YEARS[0]);
+  const [archiveTerm, setArchiveTerm] = useState(TERMS[0]);
+  const [archiveSubject, setArchiveSubject] = useState(SUBJECTS[0]);
+  const [selectedArchiveStudents, setSelectedArchiveStudents] = useState<string[]>([]);
 
   const isTeacher = user?.role === "TEACHER";
   const isStudent = user?.role === "STUDENT";
@@ -207,6 +213,20 @@ export default function GradeBookPage() {
     if (avg >= 12) return "Good Progress";
     if (avg >= 10) return "Fair Effort";
     return "Needs Improvement";
+  };
+
+  const toggleArchiveStudent = (uid: string) => {
+    setSelectedArchiveStudents(prev => 
+      prev.includes(uid) ? prev.filter(id => id !== uid) : [...prev, uid]
+    );
+  };
+
+  const toggleAllArchiveStudents = () => {
+    if (selectedArchiveStudents.length === MOCK_STUDENTS_GRADES.length) {
+      setSelectedArchiveStudents([]);
+    } else {
+      setSelectedArchiveStudents(MOCK_STUDENTS_GRADES.map(s => s.uid));
+    }
   };
 
   if (isLoading) return <LoadingState message="Fetching pedagogical records..." />;
@@ -312,7 +332,7 @@ export default function GradeBookPage() {
                   <CalendarDays className="w-10 h-10" />
                 </div>
                 <div>
-                  <CardTitle className="text-2xl font-black text-primary uppercase">Current Year</CardTitle>
+                  <CardTitle className="text-2xl font-black text-primary uppercase">Current Academic Year</CardTitle>
                   <CardDescription className="text-sm font-medium mt-2">Active session pedagogical records and sequence fillings.</CardDescription>
                 </div>
               </CardHeader>
@@ -333,7 +353,7 @@ export default function GradeBookPage() {
                   <History className="w-10 h-10" />
                 </div>
                 <div>
-                  <CardTitle className="text-2xl font-black text-primary uppercase">Archives & History</CardTitle>
+                  <CardTitle className="text-2xl font-black text-primary uppercase">Academic History Archives</CardTitle>
                   <CardDescription className="text-sm font-medium mt-2">Historical transcripts and verified results from past sessions.</CardDescription>
                 </div>
               </CardHeader>
@@ -341,22 +361,12 @@ export default function GradeBookPage() {
                 <Button 
                   variant="secondary" 
                   className="h-12 px-10 rounded-2xl font-black uppercase text-xs tracking-widest gap-2 shadow-lg bg-secondary text-primary hover:bg-secondary/90"
-                  onClick={() => toast({ title: "Opening History Archives" })}
+                  onClick={() => setAdminView("archive")}
                 >
                   <Eye className="w-4 h-4" /> View Archives
                 </Button>
               </CardFooter>
             </Card>
-          </div>
-
-          <div className="bg-blue-50 p-6 rounded-3xl border border-blue-100 flex items-start gap-4 max-w-2xl">
-            <Info className="w-6 h-6 text-blue-600 shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <p className="text-sm font-black text-blue-900 uppercase">Governance Notice</p>
-              <p className="text-xs text-blue-800 leading-relaxed italic font-medium">
-                "As an administrator, your access to class dossiers is audited. Changes to marks are restricted to the assigned subject teachers unless authorized by the pedagogical council."
-              </p>
-            </div>
           </div>
         </div>
       );
@@ -460,12 +470,130 @@ export default function GradeBookPage() {
                 </TableBody>
               </Table>
             </CardContent>
-            <CardFooter className="bg-accent/10 p-6 border-t flex justify-center">
-               <div className="flex items-center gap-2 text-muted-foreground italic">
-                  <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
-                  <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Verified Institutional Pedagogical Audit Active</p>
-               </div>
-            </CardFooter>
+          </Card>
+        </div>
+      );
+    }
+
+    if (adminView === "archive") {
+      return (
+        <div className="space-y-8 pb-20 animate-in slide-in-from-right-4 duration-500">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="icon" onClick={() => setAdminView("details")} className="rounded-full hover:bg-white shadow-sm">
+                <ArrowLeft className="w-6 h-6" />
+              </Button>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline uppercase">Historical Archives</h1>
+                <p className="text-muted-foreground text-sm font-bold uppercase tracking-widest">Multi-Year Pedagogical Audit</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" className="rounded-xl h-11 px-6 font-bold gap-2 bg-white" onClick={() => handleDownload('Archive Audit Report')}>
+                <FileDown className="w-4 h-4" /> Export Archive (PDF)
+              </Button>
+              <Button 
+                className="rounded-xl h-11 px-8 font-black uppercase text-[10px] gap-2 shadow-lg" 
+                onClick={() => handleDownload('Batch Historical Reports')}
+                disabled={selectedArchiveStudents.length === 0}
+              >
+                <Printer className="w-4 h-4" /> Issue Batch Reports ({selectedArchiveStudents.length})
+              </Button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white p-6 rounded-[2rem] border shadow-sm">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-primary ml-1">Academic Year</Label>
+              <Select value={archiveYear} onValueChange={setArchiveYear}>
+                <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                <SelectContent>{ACADEMIC_YEARS.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-primary ml-1">Session Term</Label>
+              <Select value={archiveTerm} onValueChange={setArchiveTerm}>
+                <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                <SelectContent>{TERMS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-primary ml-1">Curriculum Subject</Label>
+              <Select value={archiveSubject} onValueChange={setArchiveSubject}>
+                <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                <SelectContent>{SUBJECTS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+            <CardHeader className="bg-secondary p-8 text-primary">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xl font-black uppercase tracking-tight">Verified Institutional Archive</CardTitle>
+                <Badge variant="outline" className="border-primary/20 text-primary font-black px-4 py-1">READ-ONLY AUDIT</Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0 overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-accent/10 font-black text-[9px] uppercase border-b">
+                  <TableRow>
+                    <TableHead className="w-12 pl-8">
+                      <Checkbox 
+                        checked={selectedArchiveStudents.length === MOCK_STUDENTS_GRADES.length}
+                        onCheckedChange={toggleAllArchiveStudents}
+                      />
+                    </TableHead>
+                    <TableHead>Student Name</TableHead>
+                    <TableHead className="text-center">Seq 1</TableHead>
+                    <TableHead className="text-center">Seq 2</TableHead>
+                    <TableHead className="text-center">Status</TableHead>
+                    <TableHead className="text-right pr-8">Remark</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {MOCK_STUDENTS_GRADES.map(s => {
+                    const subjectMarks = MOCK_SUBJECT_MARKS[archiveSubject]?.[s.uid] || { seq1: 0, seq2: 0 };
+                    const s1 = subjectMarks.seq1;
+                    const s2 = subjectMarks.seq2;
+                    return (
+                      <TableRow key={s.uid} className="h-16 border-b last:border-0 hover:bg-accent/5">
+                        <TableCell className="pl-8">
+                          <Checkbox 
+                            checked={selectedArchiveStudents.includes(s.uid)}
+                            onCheckedChange={() => toggleArchiveStudent(s.uid)}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-9 w-9 shrink-0 border shadow-sm">
+                              <AvatarImage src={s.avatar} />
+                              <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex flex-col">
+                              <span className="font-bold text-xs uppercase text-primary leading-none">{s.name}</span>
+                              <span className="text-[9px] font-mono text-muted-foreground mt-1">{s.id}</span>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center font-black">{s1.toFixed(2)}</TableCell>
+                        <TableCell className="text-center font-black">{s2.toFixed(2)}</TableCell>
+                        <TableCell className="text-center">
+                          <Badge className={cn(
+                            "text-[8px] font-black border-none px-3",
+                            getSystemStatus(s1, s2) === 'PASSED' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                          )}>
+                            {getSystemStatus(s1, s2)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right pr-8">
+                          <span className="text-[10px] font-bold text-muted-foreground italic">"{getSystemRemark(s1, s2)}"</span>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
           </Card>
         </div>
       );
@@ -682,7 +810,7 @@ export default function GradeBookPage() {
               <TableRow><TableHead className="pl-8 py-4">Student Identity</TableHead><TableHead className="text-center">Seq 1</TableHead><TableHead className="text-center">Seq 2</TableHead><TableHead className="text-right pr-8">Status</TableHead></TableRow>
             </TableHeader>
             <TableBody>
-              {grades.map(s => {
+              {MOCK_STUDENTS_GRADES.map(s => {
                 const subjectMarks = MOCK_SUBJECT_MARKS[selectedSubject]?.[s.uid] || { seq1: 0, seq2: 0 };
                 return (
                   <TableRow key={s.uid} className="h-16 border-b last:border-0 hover:bg-accent/5">
