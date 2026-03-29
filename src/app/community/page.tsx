@@ -14,7 +14,11 @@ import {
   School,
   Star,
   Video,
-  ImageIcon
+  ImageIcon,
+  ShieldCheck,
+  Calendar,
+  User,
+  PenTool
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -80,43 +84,15 @@ const ALL_VOICES = [
     profileImage: "https://picsum.photos/seed/l1/150/150",
     message: "Our catalog is finally organized. Students can check availability and borrow books with a QR scan.",
     stars: 5
-  },
-  {
-    id: "v7",
-    name: "Sarah Richards",
-    role: "PARENT",
-    schoolName: "Lycée de Joss",
-    profileImage: "https://picsum.photos/seed/pa2/150/150",
-    message: "EduIgnite bridges the gap between home and school. I am always updated on my child's performance.",
-    stars: 5
-  },
-  {
-    id: "v8",
-    name: "Bob Richards",
-    role: "STUDENT",
-    schoolName: "Lycée de Joss",
-    profileImage: "https://picsum.photos/seed/s2/150/150",
-    message: "The MCQ exams with timers prepare us for real national examinations. It's challenging and fun.",
-    stars: 5
-  },
-  {
-    id: "v9",
-    name: "VP Academics",
-    role: "SUB_ADMIN",
-    schoolName: "GBHS Deido",
-    profileImage: "https://picsum.photos/seed/sub1/150/150",
-    message: "Distributing announcements to specific sections ensures the right message reaches the right people.",
-    stars: 5
   }
 ];
 
 const Row1 = ALL_VOICES.slice(0, 3);
 const Row2 = ALL_VOICES.slice(3, 6);
-const Row3 = ALL_VOICES.slice(6, 9);
 
 export default function CommunityTestimonyPage() {
   const [mounted, setMounted] = useState(false);
-  const { testimonials, addOrder, publicEvents } = useAuth();
+  const { testimonials, addOrder, publicEvents, communityBlogs } = useAuth();
   const { toast } = useToast();
   
   const [isSubmitting, setIsProcessing] = useState(false);
@@ -162,6 +138,8 @@ export default function CommunityTestimonyPage() {
 
   if (!mounted) return null;
 
+  const approvedTestimonials = testimonials.filter(t => t.status === 'approved');
+
   return (
     <div className="min-h-screen bg-[#F0F2F5] selection:bg-secondary selection:text-primary">
       {/* 1. HEADER */}
@@ -178,11 +156,12 @@ export default function CommunityTestimonyPage() {
 
           <nav className="hidden md:flex items-center gap-8">
             <Link href="/login" className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors">Home</Link>
+            <a href="#logs" className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors">Strategic Logs</a>
             <a href="#events" className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors">Events</a>
             <a href="#testimonies" className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors">Testimonies</a>
-            <a href="#order" className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors">Place Order</a>
-            <Button asChild variant="outline" className="rounded-xl border-primary/20 hover:bg-primary/5 font-bold">
-              <Link href="/login">Get Access</Link>
+            <a href="#order" className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors text-secondary font-black">Join Node</a>
+            <Button asChild className="rounded-xl font-bold bg-primary text-white">
+              <Link href="/login">Secure Login</Link>
             </Button>
           </nav>
 
@@ -196,13 +175,13 @@ export default function CommunityTestimonyPage() {
         {/* HERO SECTION */}
         <section className="text-center space-y-6 max-w-3xl mx-auto animate-in fade-in slide-in-from-top-10 duration-1000">
           <Badge className="bg-secondary/20 text-primary border-none font-black uppercase tracking-[0.2em] px-4 py-1">
-            Global Impact
+            Institutional Network
           </Badge>
           <h1 className="text-5xl md:text-7xl font-black text-primary font-headline tracking-tighter leading-none">
-            Voices from the Future of <span className="text-secondary underline decoration-primary/10 decoration-8 underline-offset-8">Education</span>
+            Fueling the Future of <span className="text-secondary underline decoration-primary/10 decoration-8 underline-offset-8">Education</span>
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground font-medium leading-relaxed">
-            EduIgnite is more than a platform; it's a movement. Explore how our digital nodes are empowering schools, teachers, and students across the nation.
+            Explore high-fidelity pedagogical management. Witness how our digital nodes are empowering schools, teachers, and students across the nation.
           </p>
           <div className="pt-4 flex items-center justify-center gap-4">
             <Button size="lg" className="rounded-2xl h-14 px-8 bg-primary shadow-2xl font-black uppercase tracking-widest text-xs gap-2 group" asChild>
@@ -211,13 +190,70 @@ export default function CommunityTestimonyPage() {
           </div>
         </section>
 
-        {/* 2. EVENT SECTION (DYNAMIC) */}
+        {/* 2. EXECUTIVE STRATEGIC LOGS */}
+        {communityBlogs.length > 0 && (
+          <section id="logs" className="space-y-12">
+            <div className="text-center space-y-2">
+              <Badge className="bg-primary/5 text-primary border-primary/10 font-black uppercase text-[10px] tracking-widest px-4">Executive Board</Badge>
+              <h2 className="text-4xl font-black text-primary uppercase tracking-tighter flex items-center justify-center gap-3">
+                <ShieldCheck className="w-8 h-8 text-secondary" />
+                Strategic Platform Logs
+              </h2>
+              <p className="text-muted-foreground font-medium">Official updates and insights from the EduIgnite leadership team.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+              {communityBlogs.map((blog) => (
+                <Card key={blog.id} className="border-none shadow-2xl rounded-[3rem] overflow-hidden bg-white group transition-all duration-500 hover:shadow-primary/5">
+                  {blog.image && (
+                    <div className="aspect-video w-full overflow-hidden relative">
+                      <img src={blog.image} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" alt="Blog" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent" />
+                    </div>
+                  )}
+                  <CardHeader className="p-8 md:p-10 pb-0">
+                    <div className="flex items-center gap-4 mb-6">
+                      <Avatar className="h-14 w-14 border-4 border-white shadow-xl">
+                        <AvatarImage src={blog.senderAvatar} />
+                        <AvatarFallback className="bg-primary text-white font-bold">{blog.senderName.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-black text-primary text-lg uppercase leading-none">{blog.senderName}</h3>
+                          <Badge className="bg-secondary text-primary border-none text-[8px] h-4 font-black uppercase">{blog.senderRole}</Badge>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground font-bold flex items-center gap-1 mt-1">
+                          <Calendar className="w-3 h-3" /> {new Date(blog.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-8 md:p-10 pt-4 space-y-4">
+                    {blog.paragraphs.map((p, i) => (
+                      <p key={i} className="text-base text-muted-foreground leading-relaxed font-medium">
+                        {p}
+                      </p>
+                    ))}
+                  </CardContent>
+                  <CardFooter className="bg-accent/10 p-6 border-t border-accent flex justify-center">
+                     <div className="flex items-center gap-2 text-primary/40 italic">
+                        <ShieldCheck className="w-4 h-4" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Verified Strategic Record</span>
+                     </div>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* 3. EVENT SECTION */}
         <section id="events" className="space-y-12">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="space-y-2">
               <h2 className="text-3xl font-black text-primary uppercase tracking-tighter flex items-center gap-3">
                 <Sparkles className="w-8 h-8 text-secondary" />
-                Featured Institutional Events
+                Institutional Highlights
               </h2>
               <p className="text-muted-foreground font-medium">Capturing the moments that define our academic evolution.</p>
             </div>
@@ -259,38 +295,27 @@ export default function CommunityTestimonyPage() {
           </div>
         </section>
 
-        {/* 3. TESTIMONY MARQUEE SECTION */}
+        {/* 4. TESTIMONY MARQUEE SECTION */}
         <section id="testimonies" className="space-y-16 overflow-hidden py-10">
           <div className="text-center space-y-4 px-4">
-            <h2 className="text-4xl font-black text-primary uppercase tracking-tighter">What People Say</h2>
+            <h2 className="text-4xl font-black text-primary uppercase tracking-tighter">Community Voices</h2>
             <p className="text-muted-foreground font-medium max-w-xl mx-auto">
               Real stories from the individuals powering our educational ecosystem.
             </p>
           </div>
 
           <div className="flex flex-col gap-8">
-            {/* ROW 1 */}
             <div className="group flex overflow-hidden p-2 [--gap:2rem] [--duration:40s]">
               <div className="flex shrink-0 animate-marquee items-stretch gap-[var(--gap)] group-hover:[animation-play-state:paused]">
-                {[...Row1, ...Row1, ...Row1, ...Row1].map((test, idx) => (
+                {[...Row1, ...approvedTestimonials, ...Row1, ...approvedTestimonials].map((test, idx) => (
                   <TestimonyCard key={`${test.id}-${idx}`} test={test} />
                 ))}
               </div>
             </div>
 
-            {/* ROW 2 - REVERSE */}
             <div className="group flex overflow-hidden p-2 [--gap:2rem] [--duration:50s]">
               <div className="flex shrink-0 animate-marquee-reverse items-stretch gap-[var(--gap)] group-hover:[animation-play-state:paused]">
-                {[...Row2, ...Row2, ...Row2, ...Row2].map((test, idx) => (
-                  <TestimonyCard key={`${test.id}-${idx}`} test={test} />
-                ))}
-              </div>
-            </div>
-
-            {/* ROW 3 */}
-            <div className="group flex overflow-hidden p-2 [--gap:2rem] [--duration:45s]">
-              <div className="flex shrink-0 animate-marquee items-stretch gap-[var(--gap)] group-hover:[animation-play-state:paused]">
-                {[...Row3, ...Row3, ...Row3, ...Row3].map((test, idx) => (
+                {[...Row2, ...approvedTestimonials, ...Row2, ...approvedTestimonials].map((test, idx) => (
                   <TestimonyCard key={`${test.id}-${idx}`} test={test} />
                 ))}
               </div>
@@ -298,7 +323,7 @@ export default function CommunityTestimonyPage() {
           </div>
         </section>
 
-        {/* 4. PLACE ORDER FORM SECTION */}
+        {/* 5. PLACE ORDER FORM SECTION */}
         <section id="order" className="max-w-4xl mx-auto space-y-12">
           <div className="text-center space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-1000">
             <div className="flex items-center justify-center gap-4 mb-4">
@@ -307,9 +332,9 @@ export default function CommunityTestimonyPage() {
               </div>
               <h2 className="text-4xl font-black text-primary uppercase tracking-tighter">EduIgnite</h2>
             </div>
-            <h2 className="text-3xl font-black text-primary uppercase tracking-tighter">Place Your Order</h2>
+            <h2 className="text-3xl font-black text-primary uppercase tracking-tighter">Join the Network</h2>
             <p className="text-muted-foreground font-medium max-w-xl mx-auto italic">
-              "Fueling the digital transformation of education across Africa. Join the network of modern institutions."
+              "Fueling the digital transformation of education across Africa. Register your institution to activate your node."
             </p>
           </div>
 
@@ -371,9 +396,9 @@ export default function CommunityTestimonyPage() {
                 </div>
               </CardContent>
               <CardFooter className="p-8 md:p-12 bg-accent/10 border-t border-accent flex flex-col items-center gap-6">
-                <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto px-16 h-16 rounded-2xl bg-primary shadow-2xl font-black uppercase tracking-widest gap-3 transition-transform active:scale-95">
+                <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto px-16 h-16 rounded-2xl bg-primary shadow-2xl font-black uppercase tracking-widest gap-3 transition-transform active:scale-95 text-white">
                   {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : <Send className="w-6 h-6" />}
-                  Submit My Order
+                  Register Institution
                 </Button>
               </CardFooter>
             </form>
@@ -385,7 +410,7 @@ export default function CommunityTestimonyPage() {
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
           <div className="flex items-center gap-3">
             <Building2 className="w-4 h-4" />
-            <span>EduIgnite SaaS Node</span>
+            <span>EduIgnite Secure Node</span>
           </div>
           <span>© 2024 EDUIGNITE SECURE INFRASTRUCTURE</span>
         </div>

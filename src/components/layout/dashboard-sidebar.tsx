@@ -53,6 +53,7 @@ interface SidebarProps {
 }
 
 const EXECUTIVE_ROLES: UserRole[] = ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV", "DESIGNER"];
+const BLOG_ROLES: UserRole[] = ["SUPER_ADMIN", "CEO", "CTO", "COO", "DESIGNER"];
 
 export function DashboardSidebar({ onClose }: SidebarProps) {
   const pathname = usePathname();
@@ -70,6 +71,12 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       icon: LayoutDashboard,
       href: "/dashboard",
       roles: EXECUTIVE_ROLES,
+    },
+    {
+      label: language === 'en' ? 'Log Post' : 'Poster un Log',
+      icon: PenTool,
+      href: "/dashboard/log-post",
+      roles: BLOG_ROLES,
     },
     {
       label: t("founders"),
@@ -292,7 +299,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
         </div>
       </div>
 
-      <div className="flex-1 px-3 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-white/10">
+      <div className="flex-1 px-3 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10">
         <div className="space-y-1 py-2">
           {filteredRoutes.map((route) => (
             <Link

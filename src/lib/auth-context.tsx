@@ -82,6 +82,16 @@ export interface Testimony {
   createdAt: Date;
 }
 
+export interface CommunityBlog {
+  id: string;
+  senderName: string;
+  senderRole: string;
+  senderAvatar: string;
+  image?: string;
+  paragraphs: string[];
+  createdAt: Date;
+}
+
 export interface Feedback {
   id: string;
   subject: string;
@@ -162,6 +172,7 @@ interface AuthContextType {
   user: User | null;
   platformSettings: PlatformSettings;
   testimonials: Testimony[];
+  communityBlogs: CommunityBlog[];
   feedbacks: Feedback[];
   orders: Order[];
   announcements: Announcement[];
@@ -179,6 +190,8 @@ interface AuthContextType {
   addTestimony: (testimony: Omit<Testimony, "id" | "status" | "createdAt">) => void;
   approveTestimony: (id: string) => void;
   deleteTestimony: (id: string) => void;
+  addCommunityBlog: (blog: Omit<CommunityBlog, "id" | "createdAt">) => void;
+  deleteCommunityBlog: (id: string) => void;
   addFeedback: (feedback: Omit<Feedback, "id" | "status" | "createdAt">) => void;
   resolveFeedback: (id: string) => void;
   deleteFeedback: (id: string) => void;
@@ -304,6 +317,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const [schools, setSchools] = useState<SchoolInfo[]>([]);
   const [testimonials, setTestimonials] = useState<Testimony[]>([]);
+  const [communityBlogs, setCommunityBlogs] = useState<CommunityBlog[]>([]);
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -337,6 +351,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     setTestimonials(loadRegistry("testimonials", []));
+    setCommunityBlogs(loadRegistry("community_blogs", []));
     setFeedbacks(loadRegistry("feedbacks", []));
     setOrders(loadRegistry("orders", []));
     setAnnouncements(loadRegistry("announcements", INITIAL_ANNOUNCEMENTS));
@@ -352,6 +367,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (!isLoading) {
       localStorage.setItem("eduignite_testimonials", JSON.stringify(testimonials));
+      localStorage.setItem("eduignite_community_blogs", JSON.stringify(communityBlogs));
       localStorage.setItem("eduignite_feedbacks", JSON.stringify(feedbacks));
       localStorage.setItem("eduignite_orders", JSON.stringify(orders));
       localStorage.setItem("eduignite_announcements", JSON.stringify(announcements));
@@ -361,7 +377,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem("eduignite_events", JSON.stringify(publicEvents));
       localStorage.setItem("eduignite_platform", JSON.stringify(platformSettings));
     }
-  }, [testimonials, feedbacks, orders, announcements, personalChats, supportContributions, schools, platformSettings, publicEvents, isLoading]);
+  }, [testimonials, communityBlogs, feedbacks, orders, announcements, personalChats, supportContributions, schools, platformSettings, publicEvents, isLoading]);
 
   const login = async (matricule: string) => {
     setIsLoading(true);
@@ -436,6 +452,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
   const deleteTestimony = (id: string) => {
     setTestimonials(prev => prev.filter(t => t.id !== id));
+  };
+
+  const addCommunityBlog = (b: Omit<CommunityBlog, "id" | "createdAt">) => {
+    setCommunityBlogs(prev => [{ ...b, id: `BLOG-${Math.random().toString(36).substr(2, 5).toUpperCase()}`, createdAt: new Date() }, ...prev]);
+  };
+  const deleteCommunityBlog = (id: string) => {
+    setCommunityBlogs(prev => prev.filter(b => b.id !== id));
   };
 
   const addFeedback = (f: Omit<Feedback, "id" | "status" | "createdAt">) => {
@@ -521,6 +544,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       user: userData, 
       platformSettings,
       testimonials,
+      communityBlogs,
       feedbacks,
       orders,
       announcements,
@@ -538,6 +562,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       addTestimony,
       approveTestimony,
       deleteTestimony,
+      addCommunityBlog,
+      deleteCommunityBlog,
       addFeedback,
       resolveFeedback,
       deleteFeedback,
