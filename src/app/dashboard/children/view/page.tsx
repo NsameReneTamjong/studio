@@ -52,11 +52,13 @@ import {
   Fingerprint,
   Heart,
   CalendarDays,
-  Zap
+  Zap,
+  Signature
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
 
@@ -80,8 +82,10 @@ const MOCK_CHILDREN = [
 ];
 
 const MOCK_GRADES = [
-  { subject: "Advanced Physics", seq1: 14.5, seq2: 16.0, teacher: "Dr. Tesla", status: "Passed", coeff: 4 },
-  { subject: "Mathematics", seq1: 18.0, seq2: 17.5, teacher: "Prof. Smith", status: "Passed", coeff: 5 },
+  { subject: "Advanced Physics", coef: 4, seq1: 14.5, seq2: 16.0, average: 15.25, total: 61.0, rank: "2nd", initials: "AT" },
+  { subject: "Mathematics", coef: 5, seq1: 18.0, seq2: 17.5, average: 17.75, total: 88.75, rank: "1st", initials: "SM" },
+  { subject: "English Literature", coef: 3, seq1: 12.0, seq2: 14.0, average: 13.0, total: 39.0, rank: "5th", initials: "MB" },
+  { subject: "Chemistry", coef: 4, seq1: 13.5, seq2: 12.5, average: 13.0, total: 52.0, rank: "8th", initials: "DW" },
 ];
 
 const MOCK_ATTENDANCE_HISTORY = [
@@ -105,6 +109,7 @@ export default function StudentDetailsPage() {
   
   const [loading, setLoading] = useState(true);
   const [student, setStudent] = useState<any>(null);
+  const [viewingDoc, setViewingDoc] = useState<any>(null);
 
   useEffect(() => {
     const found = MOCK_CHILDREN.find(c => c.id === studentId) || MOCK_CHILDREN[0];
@@ -114,12 +119,17 @@ export default function StudentDetailsPage() {
     }, 500);
   }, [studentId]);
 
-  const isTeacher = currentUser?.role === "TEACHER";
+  const handleDownload = (title: string) => {
+    toast({ title: "Processing PDF", description: `Your official copy of ${title} is being prepared for download.` });
+    setTimeout(() => {
+      toast({ title: "Download Ready", description: `${title} has been saved.` });
+    }, 2000);
+  };
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center h-[60vh] space-y-4">
       <Loader2 className="w-12 h-12 animate-spin text-primary opacity-20" />
-      <p className="text-muted-foreground italic">Fetching academic records...</p>
+      <p className="text-muted-foreground italic font-medium">Syncing child academic dossier...</p>
     </div>
   );
 
@@ -129,7 +139,7 @@ export default function StudentDetailsPage() {
     <div className="space-y-6 pb-20">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-4 w-full">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
+          <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard/children')} className="rounded-full shadow-sm hover:bg-white shrink-0">
             <ArrowLeft className="w-6 h-6" />
           </Button>
           <div className="flex items-center gap-4">
@@ -142,76 +152,99 @@ export default function StudentDetailsPage() {
                 {student.name}
                 <Badge className="bg-green-100 text-green-700 uppercase hidden md:inline-flex">ACTIVE</Badge>
               </h1>
-              <p className="text-sm md:text-base text-muted-foreground">{student.class} • ID: {student.id}</p>
+              <p className="text-sm md:text-base text-muted-foreground">{student.class} • Matricule: {student.id}</p>
             </div>
           </div>
         </div>
-        {!isTeacher && (
-          <Button className="flex-1 sm:flex-none gap-2 shadow-lg rounded-xl h-12 px-8 font-bold" onClick={() => window.print()}>
-            <Printer className="w-4 h-4" /> {t("print")} {t("reportCard")}
-          </Button>
-        )}
+        <Button className="flex-1 sm:flex-none gap-2 shadow-xl rounded-xl h-12 px-8 font-black uppercase text-[10px] tracking-widest" onClick={() => window.print()}>
+          <Printer className="w-4 h-4" /> {t("print")} Record
+        </Button>
       </div>
 
       <Tabs defaultValue="grades" className="w-full">
-        <TabsList className="grid w-full bg-white border shadow-sm h-auto p-1 rounded-xl grid-cols-5 overflow-x-auto no-scrollbar">
-          <TabsTrigger value="profile" className="gap-2 py-2 whitespace-nowrap"><User className="w-4 h-4" /> {t("profile")}</TabsTrigger>
-          <TabsTrigger value="grades" className="gap-2 py-2 whitespace-nowrap"><Award className="w-4 h-4" /> {t("grades")}</TabsTrigger>
-          <TabsTrigger value="attendance" className="gap-2 py-2 whitespace-nowrap"><ClipboardCheck className="w-4 h-4" /> {t("presence")}</TabsTrigger>
-          <TabsTrigger value="documents" className="gap-2 py-2 whitespace-nowrap"><FileText className="w-4 h-4" /> {t("documents")}</TabsTrigger>
-          <TabsTrigger value="transcript" className="gap-2 py-2 whitespace-nowrap"><FileBadge className="w-4 h-4" /> {t("transcript")}</TabsTrigger>
+        <TabsList className="grid w-full bg-white border shadow-sm h-auto p-1.5 rounded-2xl grid-cols-5 overflow-x-auto no-scrollbar">
+          <TabsTrigger value="profile" className="gap-2 py-3 font-bold"><User className="w-4 h-4" /> {t("profile")}</TabsTrigger>
+          <TabsTrigger value="grades" className="gap-2 py-3 font-bold"><Award className="w-4 h-4" /> {t("grades")}</TabsTrigger>
+          <TabsTrigger value="attendance" className="gap-2 py-3 font-bold"><ClipboardCheck className="w-4 h-4" /> {t("presence")}</TabsTrigger>
+          <TabsTrigger value="documents" className="gap-2 py-3 font-bold"><FileText className="w-4 h-4" /> {t("documents")}</TabsTrigger>
+          <TabsTrigger value="transcript" className="gap-2 py-3 font-bold"><FileBadge className="w-4 h-4" /> {t("transcript")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile" className="mt-6">
           <Card className="border-none shadow-sm rounded-3xl overflow-hidden bg-white">
-            <CardHeader className="bg-primary p-8 text-white text-center">
-              <Avatar className="h-24 w-24 border-4 border-white/20 mx-auto shadow-xl mb-4">
+            <CardHeader className="bg-primary p-10 text-white text-center">
+              <Avatar className="h-28 w-28 border-4 border-white/20 mx-auto shadow-xl mb-4">
                 <AvatarImage src={student.avatar} />
                 <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
               </Avatar>
-              <CardTitle className="text-2xl font-black">{student.name}</CardTitle>
-              <Badge variant="secondary" className="bg-secondary text-primary border-none font-black mt-2">ID: {student.id}</Badge>
+              <CardTitle className="text-3xl font-black uppercase tracking-tight">{student.name}</CardTitle>
+              <Badge variant="secondary" className="bg-secondary text-primary border-none font-black mt-2 px-4 py-1">ID: {student.id}</Badge>
             </CardHeader>
-            <CardContent className="p-10 grid grid-cols-1 md:grid-cols-2 gap-8">
-               <div className="space-y-4">
-                  <div className="space-y-1"><p className="text-[10px] font-black uppercase opacity-40">Date of Birth</p><p className="font-bold">{student.dob}</p></div>
-                  <div className="space-y-1"><p className="text-[10px] font-black uppercase opacity-40">Section</p><p className="font-bold">{student.section}</p></div>
+            <CardContent className="p-10 grid grid-cols-1 md:grid-cols-2 gap-12">
+               <div className="space-y-6">
+                  <div className="space-y-1"><p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Date of Birth</p><p className="font-bold text-primary">{student.dob}</p></div>
+                  <div className="space-y-1"><p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Section</p><p className="font-bold text-primary">{student.section}</p></div>
+                  <div className="space-y-1"><p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Home Address</p><p className="font-bold text-primary">{student.address}</p></div>
                </div>
-               <div className="space-y-4">
-                  <div className="space-y-1"><p className="text-[10px] font-black uppercase opacity-40">Guardian</p><p className="font-bold">{student.guardian}</p></div>
-                  <div className="space-y-1"><p className="text-[10px] font-black uppercase opacity-40">Contact</p><p className="font-bold text-secondary">{student.guardianPhone}</p></div>
+               <div className="space-y-6">
+                  <div className="space-y-1"><p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Primary Guardian</p><p className="font-bold text-primary">{student.guardian}</p></div>
+                  <div className="space-y-1"><p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Emergency Contact</p><p className="font-bold text-secondary">{student.guardianPhone}</p></div>
+                  <div className="space-y-1"><p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Enrollment Status</p><Badge className="bg-green-100 text-green-700 border-none uppercase font-black text-[9px]">ENROLLED</Badge></div>
                </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="grades" className="mt-6">
-          <Card className="border-none shadow-xl overflow-hidden rounded-3xl bg-white">
-            <CardHeader className="bg-primary p-8 text-white"><CardTitle className="text-xl font-black uppercase">Academic Performance Ledger</CardTitle></CardHeader>
+        <TabsContent value="grades" className="mt-6 space-y-6">
+          <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+            <CardHeader className="bg-primary p-8 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl font-black uppercase tracking-tighter">Current Term Marks Ledger</CardTitle>
+                  <CardDescription className="text-white/60">Verified filling of sequence marks for the active period.</CardDescription>
+                </div>
+                <Badge variant="secondary" className="bg-secondary text-primary font-black px-4 py-1">TERM 3 ACTIVE</Badge>
+              </div>
+            </CardHeader>
             <CardContent className="p-0 overflow-x-auto">
               <Table>
                 <TableHeader className="bg-accent/10">
                   <TableRow className="uppercase text-[10px] font-black tracking-widest border-b">
                     <TableHead className="pl-8 py-4">Subject</TableHead>
-                    <TableHead className="text-center">Seq 1</TableHead>
-                    <TableHead className="text-center">Seq 2</TableHead>
-                    <TableHead className="text-center">Coeff</TableHead>
+                    <TableHead className="text-center">Coefficient</TableHead>
+                    <TableHead className="text-center bg-primary/5">Seq 1</TableHead>
+                    <TableHead className="text-center bg-primary/5">Seq 2</TableHead>
+                    <TableHead className="text-center">Average</TableHead>
                     <TableHead className="text-right pr-8">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {MOCK_GRADES.map((g, idx) => (
-                    <TableRow key={idx} className="h-16 border-b last:border-0 hover:bg-accent/5">
-                      <TableCell className="pl-8 font-black uppercase text-xs">{g.subject}</TableCell>
-                      <TableCell className="text-center font-bold">{g.seq1.toFixed(2)}</TableCell>
-                      <TableCell className="text-center font-bold">{g.seq2.toFixed(2)}</TableCell>
-                      <TableCell className="text-center font-mono font-bold italic">{g.coeff}</TableCell>
-                      <TableCell className="text-right pr-8"><Badge className="bg-green-100 text-green-700 font-black">PASSED</Badge></TableCell>
+                    <TableRow key={idx} className="h-16 border-b last:border-0 hover:bg-accent/5 transition-colors">
+                      <TableCell className="pl-8 font-black uppercase text-xs text-primary">{g.subject}</TableCell>
+                      <TableCell className="text-center font-mono font-bold">{g.coef}</TableCell>
+                      <TableCell className="text-center font-black text-primary bg-primary/5">{g.seq1.toFixed(2)}</TableCell>
+                      <TableCell className="text-center font-black text-primary bg-primary/5">{g.seq2.toFixed(2)}</TableCell>
+                      <TableCell className="text-center font-black text-secondary">{g.average.toFixed(2)}</TableCell>
+                      <TableCell className="text-right pr-8">
+                        <Badge className={cn(
+                          "text-[9px] font-black border-none px-3",
+                          g.average >= 10 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                        )}>
+                          {g.average >= 10 ? 'PASSED' : 'FAILED'}
+                        </Badge>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </CardContent>
+            <CardFooter className="bg-accent/10 p-6 border-t flex justify-center">
+               <div className="flex items-center gap-2 text-muted-foreground italic">
+                  <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Live Node Synchronization Active</p>
+               </div>
+            </CardFooter>
           </Card>
         </TabsContent>
 
@@ -222,7 +255,7 @@ export default function StudentDetailsPage() {
                 <div className="p-3 bg-primary rounded-2xl text-white shadow-xl"><CalendarDays className="w-8 h-8 text-secondary" /></div>
                 <div><CardTitle className="text-xl font-black text-primary uppercase">Attendance History</CardTitle><CardDescription>Session participation breakdown across all subjects.</CardDescription></div>
               </div>
-              <Button variant="outline" className="rounded-xl h-11 gap-2 font-bold bg-white" onClick={() => toast({ title: "History Exported" })}><FileDown className="w-4 h-4 text-primary" /> Export Records</Button>
+              <Button variant="outline" className="rounded-xl h-11 gap-2 font-bold bg-white" onClick={() => handleDownload('Attendance Record')}><FileDown className="w-4 h-4 text-primary" /> Export Records</Button>
             </CardHeader>
             <CardContent className="p-0 overflow-x-auto">
               <Table>
@@ -265,6 +298,73 @@ export default function StudentDetailsPage() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="documents" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Report Card Term 1 */}
+            <Card className="border-none shadow-sm overflow-hidden bg-white group hover:shadow-md transition-all rounded-3xl">
+              <div className="h-1.5 w-full bg-blue-500" />
+              <CardHeader className="pb-4">
+                <div className="flex justify-between items-start">
+                  <div className="p-3 bg-blue-50 rounded-2xl text-blue-600"><FileText className="w-6 h-6" /></div>
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-none text-[8px] font-black uppercase tracking-widest px-2 h-5">Verified Bulletin</Badge>
+                </div>
+                <CardTitle className="text-lg font-black mt-4 uppercase text-primary">Term 1 Report Card</CardTitle>
+                <CardDescription className="text-[10px] font-bold uppercase tracking-tight">Academic Session 2023 / 2024</CardDescription>
+              </CardHeader>
+              <CardFooter className="pt-0 flex gap-2 p-6">
+                <Button variant="outline" size="sm" className="flex-1 gap-2 text-[10px] font-black uppercase h-10 rounded-xl border-primary/10 hover:bg-primary/5" onClick={() => setViewingDoc({ title: 'Term 1 Report Card', type: 'report', term: 'First Term' })}>
+                  <Eye className="w-3.5 h-3.5" /> View
+                </Button>
+                <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-primary/10 hover:bg-primary/5" onClick={() => handleDownload('Term 1 Report Card')}>
+                  <Download className="w-3.5 h-3.5 text-primary/60" />
+                </Button>
+              </CardFooter>
+            </Card>
+
+            {/* Report Card Term 2 */}
+            <Card className="border-none shadow-sm overflow-hidden bg-white group hover:shadow-md transition-all rounded-3xl">
+              <div className="h-1.5 w-full bg-amber-500" />
+              <CardHeader className="pb-4">
+                <div className="flex justify-between items-start">
+                  <div className="p-3 bg-amber-50 rounded-2xl text-amber-600"><FileText className="w-6 h-6" /></div>
+                  <Badge variant="secondary" className="bg-amber-100 text-amber-700 border-none text-[8px] font-black uppercase tracking-widest px-2 h-5">Verified Bulletin</Badge>
+                </div>
+                <CardTitle className="text-lg font-black mt-4 uppercase text-primary">Term 2 Report Card</CardTitle>
+                <CardDescription className="text-[10px] font-bold uppercase tracking-tight">Academic Session 2023 / 2024</CardDescription>
+              </CardHeader>
+              <CardFooter className="pt-0 flex gap-2 p-6">
+                <Button variant="outline" size="sm" className="flex-1 gap-2 text-[10px] font-black uppercase h-10 rounded-xl border-primary/10 hover:bg-primary/5" onClick={() => setViewingDoc({ title: 'Term 2 Report Card', type: 'report', term: 'Second Term' })}>
+                  <Eye className="w-3.5 h-3.5" /> View
+                </Button>
+                <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-primary/10 hover:bg-primary/5" onClick={() => handleDownload('Term 2 Report Card')}>
+                  <Download className="w-3.5 h-3.5 text-primary/60" />
+                </Button>
+              </CardFooter>
+            </Card>
+
+            {/* Digital ID Card */}
+            <Card className="border-none shadow-sm overflow-hidden bg-white group hover:shadow-md transition-all rounded-3xl">
+              <div className="h-1.5 w-full bg-secondary" />
+              <CardHeader className="pb-4">
+                <div className="flex justify-between items-start">
+                  <div className="p-3 bg-secondary/20 rounded-2xl text-primary"><CreditCard className="w-6 h-6" /></div>
+                  <Badge variant="secondary" className="bg-secondary/20 text-primary border-none text-[8px] font-black uppercase tracking-widest px-2 h-5">Digital PVC</Badge>
+                </div>
+                <CardTitle className="text-lg font-black mt-4 uppercase text-primary">Student Identity Card</CardTitle>
+                <CardDescription className="text-[10px] font-bold uppercase tracking-tight">Verified Digital Registry Copy</CardDescription>
+              </CardHeader>
+              <CardFooter className="pt-0 flex gap-2 p-6">
+                <Button variant="outline" size="sm" className="flex-1 gap-2 text-[10px] font-black uppercase h-10 rounded-xl border-primary/10 hover:bg-primary/5" onClick={() => setViewingDoc({ title: 'Digital ID Card', type: 'id' })}>
+                  <Eye className="w-3.5 h-3.5" /> Preview
+                </Button>
+                <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-primary/10 hover:bg-primary/5" onClick={() => handleDownload('Digital ID Card')}>
+                  <Download className="w-3.5 h-3.5 text-primary/60" />
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        </TabsContent>
+
         <TabsContent value="transcript" className="mt-6">
           <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white p-8">
             <div className="overflow-x-auto scrollbar-thin">
@@ -273,6 +373,41 @@ export default function StudentDetailsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* REUSABLE DOCUMENT PREVIEW DIALOG */}
+      <Dialog open={!!viewingDoc} onOpenChange={() => setViewingDoc(null)}>
+        <DialogContent className="sm:max-w-4xl max-h-[95vh] p-0 overflow-hidden border-none shadow-2xl bg-white flex flex-col">
+          <DialogHeader className="bg-primary p-6 text-white relative shrink-0 no-print">
+            <div className="flex items-center gap-4">
+              <div className="p-2 bg-white/10 rounded-xl">
+                {viewingDoc?.type === 'report' ? <FileText className="w-6 h-6 text-secondary" /> : <CreditCard className="w-6 h-6 text-secondary" />}
+              </div>
+              <div>
+                <DialogTitle className="text-xl font-black uppercase tracking-tight">{viewingDoc?.title}</DialogTitle>
+                <DialogDescription className="text-white/60 text-xs">Official Institutional Dossier Preview</DialogDescription>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setViewingDoc(null)} className="absolute top-4 right-4 text-white hover:bg-white/10">
+              <X className="w-6 h-6" />
+            </Button>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-muted scrollbar-thin">
+            {viewingDoc?.type === 'report' ? (
+              <PortraitReportCard student={student} platform={platformSettings} term={viewingDoc.term} />
+            ) : (
+              <IDCardPreview student={student} platform={platformSettings} />
+            )}
+          </div>
+
+          <DialogFooter className="bg-accent/10 p-6 border-t border-accent flex flex-col sm:flex-row gap-3 shrink-0 no-print">
+            <Button variant="outline" className="flex-1 rounded-xl font-bold h-12" onClick={() => setViewingDoc(null)}>Close Preview</Button>
+            <Button className="flex-1 rounded-xl font-black uppercase text-xs h-12 shadow-lg gap-2" onClick={() => { window.print(); setViewingDoc(null); }}>
+              <Printer className="w-4 h-4" /> Print Official Copy
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -355,4 +490,239 @@ function LandscapeTranscript({ student, platform }: { student: any, platform: an
       </div>
     </div>
   )
+}
+
+function PortraitReportCard({ student, platform, term }: { student: any, platform: any, term: string }) {
+  return (
+    <div className="bg-white p-6 md:p-10 shadow-sm relative flex flex-col space-y-6 font-serif text-black max-w-[800px] mx-auto print:shadow-none print:p-0">
+       <div className="grid grid-cols-12 gap-2 items-start text-center border-b border-black pb-4">
+          <div className="col-span-4 space-y-0.5 text-[7px] uppercase font-bold text-left">
+            <p className="text-[#264D73] font-black">Republic of Cameroon</p>
+            <p>Peace - Work - Fatherland</p>
+          </div>
+          <div className="col-span-4 flex flex-col items-center">
+            <div className="w-12 h-12 flex items-center justify-center mb-1">
+              <img src={student?.school?.logo || platform.logo} alt="School" className="w-full h-full object-contain" />
+            </div>
+          </div>
+          <div className="col-span-4 space-y-0.5 text-[7px] uppercase font-bold text-right">
+            <p className="text-[#264D73] font-black">République du Cameroun</p>
+            <p>Paix - Travail - Patrie</p>
+          </div>
+       </div>
+
+       <div className="text-center space-y-1">
+          <p className="text-[8px] font-black uppercase text-[#264D73]">Ministry of Secondary Education / Ministère de l'Éducation Secondaire</p>
+          <div className="h-px bg-[#264D73] w-full my-1 opacity-20" />
+          <h2 className="font-black text-xl uppercase text-[#264D73] tracking-tight">{student?.school?.name || platform.name + " International College"}</h2>
+          <p className="text-[8px] font-bold italic opacity-60">Report Card: {term}</p>
+       </div>
+
+       <div className="grid grid-cols-12 border rounded-xl overflow-hidden mt-4 text-[9px] relative">
+          <div className="col-span-9 p-4 grid grid-cols-2 gap-x-8 gap-y-2 border-r bg-accent/5">
+            <div className="flex gap-2"><span className="font-bold whitespace-nowrap">Name:</span><span className="border-b border-dotted border-black/40 flex-1 font-black uppercase">{student?.name}</span></div>
+            <div className="flex gap-2"><span className="font-bold whitespace-nowrap">Class:</span><span className="border-b border-dotted border-black/40 flex-1 font-bold">{student?.class}</span></div>
+            <div className="flex gap-2"><span className="font-bold whitespace-nowrap">Matricule:</span><span className="border-b border-dotted border-black/40 flex-1 font-mono font-bold text-primary">{student?.id}</span></div>
+            <div className="flex gap-2"><span className="font-bold whitespace-nowrap">Sex:</span><span className="border-b border-dotted border-black/40 flex-1">{student?.gender || "Female"}</span></div>
+            <div className="flex gap-2"><span className="font-bold whitespace-nowrap">Date of Birth:</span><span className="border-b border-dotted border-black/40 flex-1">{student?.dob}</span></div>
+            <div className="flex gap-2"><span className="font-bold whitespace-nowrap">Guardian:</span><span className="border-b border-dotted border-black/40 flex-1">{student?.guardian}</span></div>
+          </div>
+          <div className="col-span-3 p-2 flex items-center justify-center bg-white">
+            <div className="w-20 h-24 border rounded shadow-sm overflow-hidden">
+              <img src={student?.avatar} alt="Student" className="w-full h-full object-cover" />
+            </div>
+          </div>
+       </div>
+
+       <div className="mt-6 border border-black rounded-sm overflow-hidden">
+          <Table>
+            <TableHeader className="bg-[#264D73]">
+              <TableRow className="h-8 border-none hover:bg-[#264D73]">
+                <TableHead className="text-[8px] font-black uppercase text-white pl-2 border-r border-white/20">Subject</TableHead>
+                <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20">Sequence 1</TableHead>
+                <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20">Sequence 2</TableHead>
+                <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20">Average</TableHead>
+                <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20">Coef</TableHead>
+                <TableHead className="text-[8px] font-black uppercase text-white text-center pr-2">Rank</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {MOCK_GRADES.map((g, idx) => (
+                <TableRow key={idx} className="border-b border-black/10 last:border-0 h-7 hover:bg-accent/5">
+                  <TableCell className="pl-2 font-bold text-[8px] uppercase border-r border-black/10">{g.subject}</TableCell>
+                  <TableCell className="text-center text-[8px] border-r border-black/10">{g.seq1.toFixed(2)}</TableCell>
+                  <TableCell className="text-center text-[8px] border-r border-black/10">{g.seq2.toFixed(2)}</TableCell>
+                  <TableCell className="text-center text-[8px] border-r border-black/10 font-black text-[#264D73]">{g.average.toFixed(2)}</TableCell>
+                  <TableCell className="text-center text-[8px] border-r border-black/10 font-bold">{g.coef}</TableCell>
+                  <TableCell className="text-center text-[8px] pr-2">{g.rank}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+       </div>
+
+       <div className="grid grid-cols-3 gap-4 mt-6">
+          <div className="border border-dotted border-black/40 p-3 rounded-lg space-y-1.5 text-[8px] bg-accent/5">
+            <h4 className="font-black text-[#264D73] uppercase border-b border-black/10 mb-1">Statistical Summary</h4>
+            <div className="flex justify-between border-b border-dotted border-black/20 pb-0.5"><span className="font-bold">Total Coefficient:</span><span className="font-black">18</span></div>
+            <div className="flex justify-between border-b border-dotted border-black/20 pb-0.5"><span className="font-bold">General Average:</span><span className="font-black text-[#264D73]">14.50</span></div>
+            <div className="flex justify-between pt-0.5"><span className="font-bold">Position:</span><span className="font-black">05 / 42</span></div>
+          </div>
+
+          <div className="border border-dotted border-black/40 p-3 rounded-lg space-y-1.5 text-[8px] bg-accent/5">
+            <h4 className="font-black text-[#264D73] uppercase border-b border-black/10 mb-1">Discipline & Presence</h4>
+            <div className="flex justify-between border-b border-dotted border-black/20 pb-0.5"><span className="font-bold">Days Present:</span><span className="font-black">42</span></div>
+            <div className="flex justify-between border-b border-dotted border-black/20 pb-0.5"><span className="font-bold">Days Absent:</span><span className="font-black">0</span></div>
+            <div className="flex justify-between pt-0.5"><span className="font-bold">Conduct:</span><span className="font-black">Exemplary</span></div>
+          </div>
+
+          <div className="space-y-4 flex flex-col justify-end">
+            <div className="text-center space-y-1 relative">
+               <div className="h-10 relative flex items-center justify-center">
+                  <SignatureSVG className="w-full h-full text-primary/10 p-1" />
+               </div>
+               <p className="text-[7px] font-black uppercase text-primary">The Principal</p>
+               <div className="flex justify-center mt-1">
+                  <QrCode className="w-8 h-8 opacity-10" />
+               </div>
+            </div>
+          </div>
+       </div>
+    </div>
+  );
+}
+
+function IDCardPreview({ student, platform }: { student: any, platform: any }) {
+  return (
+    <div className="flex flex-col gap-12 items-center">
+      {/* FRONT SIDE */}
+      <div className="relative group card-container">
+        <Card className="w-[450px] h-[280px] border shadow-xl bg-white overflow-hidden relative border-primary/20 flex flex-col">
+          <div className="bg-primary p-2 flex items-center justify-between text-white text-[7px] font-black uppercase tracking-tighter shrink-0 border-b border-white/10">
+            <div className="text-left leading-none space-y-0.5">
+              <p>Republic of Cameroon</p>
+              <p>Peace - Work - Fatherland</p>
+            </div>
+            <div className="flex gap-1 h-3">
+              <div className="w-2 h-full bg-[#007a5e]" />
+              <div className="w-2 h-full bg-[#ce1126] flex items-center justify-center"><div className="w-0.5 h-0.5 bg-yellow-400 rounded-full" /></div>
+              <div className="w-2 h-full bg-[#fcd116]" />
+            </div>
+            <div className="text-right leading-none space-y-0.5">
+              <p>République du Cameroun</p>
+              <p>Paix - Travail - Patrie</p>
+            </div>
+          </div>
+
+          <div className="p-3 border-b border-accent flex items-center gap-3 bg-accent/5 shrink-0">
+            <div className="w-12 h-12 bg-white rounded-lg p-1 border shadow-sm flex items-center justify-center shrink-0 overflow-hidden">
+              <img src={student?.school?.logo || platform.logo} alt="School Logo" className="w-full h-full object-contain" />
+            </div>
+            <div className="flex-1">
+              <p className="text-[8px] font-black uppercase text-muted-foreground leading-none mb-0.5">Ministry of Secondary Education</p>
+              <h3 className="text-xs font-black uppercase text-primary leading-tight">
+                {student?.school?.name || "GOVERNMENT BILINGUAL HIGH SCHOOL"}
+              </h3>
+              <p className="text-[7px] font-bold text-muted-foreground italic">"Discipline - Work - Success"</p>
+            </div>
+          </div>
+
+          <div className="flex-1 p-4 flex gap-6 relative">
+            <div className="w-28 h-28 rounded-xl border-2 border-primary/10 overflow-hidden shadow-lg shrink-0 bg-accent/5">
+              <img src={student?.avatar} alt={student?.name} className="w-full h-full object-cover" />
+            </div>
+            <div className="flex-1 flex flex-col justify-center gap-3">
+              <div className="space-y-0.5">
+                <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Full Name / Nom Complet</p>
+                <p className="text-sm font-black text-primary uppercase leading-tight">{student?.name}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-0.5">
+                  <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Matricule</p>
+                  <p className="text-sm font-mono font-black text-secondary">{student?.id}</p>
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Class / Classe</p>
+                  <p className="text-xs font-black text-primary">{student?.class}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-primary/5 p-2 flex justify-between items-center border-t border-accent shrink-0">
+            <div className="px-3 py-1 bg-primary text-white rounded-md text-[9px] font-black tracking-widest">
+              STUDENT ID CARD
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[8px] font-black text-muted-foreground uppercase">Academic Year</span>
+              <Badge className="bg-secondary text-primary border-none text-[9px] font-black h-5">2023 - 2024</Badge>
+            </div>
+          </div>
+        </Card>
+        <p className="text-center text-[10px] font-black uppercase text-muted-foreground mt-2 tracking-[0.2em]">Front Side</p>
+      </div>
+
+      {/* BACK SIDE */}
+      <div className="relative card-container">
+        <Card className="w-[450px] h-[280px] border shadow-xl bg-white overflow-hidden relative border-primary/20 flex flex-col">
+          <div className="bg-primary h-1 w-full shrink-0" />
+          <div className="flex-1 p-6 flex flex-col gap-6">
+            <div className="grid grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Guardian / Tuteur</p>
+                  <p className="text-[10px] font-bold text-primary">{student?.guardian}</p>
+                  <p className="text-[10px] font-black text-secondary flex items-center gap-1"><Phone className="w-2.5 h-2.5" /> {student?.guardianPhone}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Date of Birth / Né(e) le</p>
+                  <p className="text-[10px] font-bold text-primary">{student?.dob}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Residential Address / Adresse</p>
+                  <p className="text-[9px] font-medium text-muted-foreground leading-tight">{student?.address}</p>
+                </div>
+              </div>
+              <div className="flex flex-col items-center justify-center gap-4 text-center border-l border-accent pl-8">
+                <div className="p-2 bg-white border-2 border-accent rounded-xl shadow-inner">
+                  <QrCode className="w-20 h-20 text-primary" />
+                </div>
+                <p className="text-[7px] font-black text-muted-foreground uppercase leading-tight tracking-widest">
+                  Secure Scan<br/>Verification
+                </p>
+              </div>
+            </div>
+            <div className="mt-auto flex justify-between items-end border-t border-accent/50 pt-4">
+              <div className="text-[8px] max-w-[200px] leading-relaxed text-muted-foreground font-medium">
+                <p className="font-black text-[7px] uppercase text-primary mb-1">Notice</p>
+                This card is property of the school. If found, return to the administration.
+              </div>
+              <div className="text-center space-y-1 relative">
+                <div className="h-px bg-primary/20 w-24 mx-auto mb-1" />
+                <p className="text-[8px] font-black text-primary uppercase">The Principal</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-accent/20 p-2 px-4 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-2">
+              <img src={platform.logo} alt="EduIgnite" className="w-4 h-4 object-contain" />
+              <p className="text-[7px] font-black text-primary uppercase tracking-widest">
+                Powered by {platform.name}
+              </p>
+            </div>
+            <span className="text-[6px] text-muted-foreground font-bold italic">Secure Node Registry</span>
+          </div>
+        </Card>
+        <p className="text-center text-[10px] font-black uppercase text-muted-foreground mt-2 tracking-[0.2em]">Back Side</p>
+      </div>
+    </div>
+  );
+}
+
+function SignatureSVG({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
 }
