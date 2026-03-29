@@ -94,6 +94,12 @@ const MOCK_ATTENDANCE_HISTORY = [
   { year: "2022 / 2023", term: "Term 3", subject: "General Science", present: 18, absent: 4, rate: 81 },
 ];
 
+const MOCK_TODAY_ATTENDANCE = [
+  { subject: "Advanced Physics", status: "present", time: "08:00 AM", teacher: "Dr. Aris Tesla" },
+  { subject: "Mathematics", status: "present", time: "10:30 AM", teacher: "Prof. Sarah Smith" },
+  { subject: "English Literature", status: "absent", time: "01:30 PM", teacher: "Ms. Bennet" },
+];
+
 const MOCK_TRANSCRIPT_DATA = {
   "Advanced Physics": { f1: ["12.5", "13.0", "14.2"], f2: ["11.0", "12.5", "13.5"], f3: ["14.0", "15.5", "16.0"] },
   "Mathematics": { f1: ["15.0", "16.5", "17.0"], f2: ["14.5", "15.0", "16.0"], f3: ["17.5", "18.0", "17.5"] },
@@ -249,6 +255,65 @@ export default function StudentDetailsPage() {
         </TabsContent>
 
         <TabsContent value="attendance" className="mt-6 space-y-8">
+          {/* TODAY'S ATTENDANCE SECTION */}
+          <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+            <CardHeader className="bg-secondary/10 border-b p-8">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-secondary text-primary rounded-2xl shadow-lg">
+                    <Calendar className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl font-black uppercase tracking-tight text-primary">Today's Presence</CardTitle>
+                    <CardDescription className="font-bold text-primary/60">Live session participation registry.</CardDescription>
+                  </div>
+                </div>
+                <Badge className="bg-primary text-white border-none font-black px-4 py-1 uppercase text-[10px]">
+                  {new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0 overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-accent/30 uppercase text-[9px] font-black tracking-widest border-b">
+                  <TableRow>
+                    <TableHead className="pl-8 py-4">Subject</TableHead>
+                    <TableHead>Time Slot</TableHead>
+                    <TableHead>Teacher</TableHead>
+                    <TableHead className="text-right pr-8">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {MOCK_TODAY_ATTENDANCE.map((today, i) => (
+                    <TableRow key={i} className="hover:bg-accent/5 h-16 border-b last:border-0">
+                      <TableCell className="pl-8 font-black uppercase text-xs text-primary">{today.subject}</TableCell>
+                      <TableCell className="font-bold text-xs flex items-center gap-2 mt-4">
+                        <Clock className="w-3.5 h-3.5 text-primary/40" />
+                        {today.time}
+                      </TableCell>
+                      <TableCell className="text-xs font-bold text-muted-foreground uppercase">{today.teacher}</TableCell>
+                      <TableCell className="text-right pr-8">
+                        <Badge className={cn(
+                          "text-[9px] font-black border-none px-3 gap-1.5",
+                          today.status === 'present' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                        )}>
+                          {today.status === 'present' ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                          {today.status.toUpperCase()}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+            <CardFooter className="bg-accent/10 p-4 border-t flex justify-center">
+               <div className="flex items-center gap-2 text-muted-foreground italic">
+                  <Zap className="w-3.5 h-3.5 text-secondary animate-pulse" />
+                  <p className="text-[9px] font-black uppercase tracking-widest opacity-40">Live Node Sync Active</p>
+               </div>
+            </CardFooter>
+          </Card>
+
           <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
             <CardHeader className="bg-primary/5 p-8 border-b flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-4">
