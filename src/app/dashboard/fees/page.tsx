@@ -58,13 +58,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
-import { Textarea } from "@/components/ui/textarea";
+import { Textarea } from "@/textarea";
 import { useRouter } from "next/navigation";
 
 // Constants
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
 const SECTIONS = ["Anglophone Section", "Francophone Section", "Technical Section"];
-const ACADEMIC_YEARS = ["2023 / 2024", "2022 / 2023", "2021 / 2022"];
 
 const INITIAL_FEE_TYPES = [
   { id: "ft1", name: "Tuition Fee", amount: 150000, description: "Primary academic registration fee.", status: "mandatory" },
@@ -74,10 +73,10 @@ const INITIAL_FEE_TYPES = [
 ];
 
 const INITIAL_STUDENTS = [
-  { id: "GBHS26S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", section: "Anglophone Section", balances: { "Tuition Fee": 125000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, isLicensePaid: true, class: "2nde / Form 5", year: "2023 / 2024" },
-  { id: "GBHS26S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", section: "Anglophone Section", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, isLicensePaid: true, class: "Terminale / Upper Sixth", year: "2023 / 2024" },
-  { id: "GBHS26S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", section: "Francophone Section", balances: { "Tuition Fee": 45000, "Uniform Package": 0, "PTA Contribution": 5000, "Examination Fee": 0 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, isLicensePaid: false, class: "1ère / Lower Sixth", year: "2023 / 2024" },
-  { id: "GBHS26S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100", section: "Anglophone Section", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, isLicensePaid: true, class: "2nde / Form 5", year: "2023 / 2024" },
+  { id: "GBHS26S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", section: "Anglophone Section", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, isLicensePaid: true, class: "2nde / Form 5", year: "2023 / 2024" },
+  { id: "GBHS26S002", name: "Bob Richards", avatar: "https://picsum.photos/seed/s2/100/100", section: "Anglophone Section", balances: { "Tuition Fee": 50000, "Uniform Package": 0, "PTA Contribution": 0, "Examination Fee": 0 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, isLicensePaid: true, class: "Terminale / Upper Sixth", year: "2023 / 2024" },
+  { id: "GBHS26S003", name: "Charlie Davis", avatar: "https://picsum.photos/seed/s3/100/100", section: "Francophone Section", balances: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, isLicensePaid: false, class: "1ère / Lower Sixth", year: "2023 / 2024" },
+  { id: "GBHS26S004", name: "Diana Prince", avatar: "https://picsum.photos/seed/s4/100/100", section: "Anglophone Section", balances: { "Tuition Fee": 75000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, totals: { "Tuition Fee": 150000, "Uniform Package": 25000, "PTA Contribution": 10000, "Examination Fee": 5000 }, isLicensePaid: true, class: "2nde / Form 5", year: "2023 / 2024" },
 ];
 
 const MOCK_CLASS_STATS = [
@@ -88,13 +87,14 @@ const MOCK_CLASS_STATS = [
 
 export default function FeesPage() {
   const { user, platformSettings } = useAuth();
-  const { language } = useI18n();
+  const { t, language } = useI18n();
   const { toast } = useToast();
   const router = useRouter();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [classFilter, setClassFilter] = useState("all");
   const [sectionFilter, setSectionFilter] = useState("all");
+  const [complianceFilter, setComplianceFilter] = useState("all"); // all, paid, unpaid
   const [feeTypes, setFeeTypes] = useState(INITIAL_FEE_TYPES);
   const [activeFeeFilter, setActiveFeeFilter] = useState(INITIAL_FEE_TYPES[0].name);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -135,20 +135,18 @@ export default function FeesPage() {
       const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase()) || s.id.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesClass = classFilter === "all" || s.class === classFilter;
       const matchesSection = sectionFilter === "all" || s.section === sectionFilter;
-      return matchesSearch && matchesClass && matchesSection;
+      
+      const paidAmount = (s.balances as any)[activeFeeFilter] || 0;
+      const totalAmount = (s.totals as any)[activeFeeFilter] || 150000;
+      const isPaid = paidAmount >= totalAmount;
+      
+      const matchesCompliance = complianceFilter === 'all' || 
+                                (complianceFilter === 'paid' && isPaid) || 
+                                (complianceFilter === 'unpaid' && !isPaid);
+
+      return matchesSearch && matchesClass && matchesSection && matchesCompliance;
     });
-  }, [searchTerm, classFilter, sectionFilter, students]);
-
-  const classDossierStudents = useMemo(() => {
-    if (!selectedClassDetails) return [];
-    return students.filter(s => s.class === selectedClassDetails.name);
-  }, [selectedClassDetails, students]);
-
-  const dossierSummary = useMemo(() => {
-    if (classDossierStudents.length === 0) return { paid: 0, pending: 0 };
-    const paid = classDossierStudents.filter(s => getStatusForFee(s, activeFeeFilter) === 'cleared').length;
-    return { paid, pending: classDossierStudents.length - paid };
-  }, [classDossierStudents, activeFeeFilter]);
+  }, [searchTerm, classFilter, sectionFilter, complianceFilter, activeFeeFilter, students]);
 
   const handleProcessPayment = () => {
     if (!paymentForm.amount) return;
@@ -186,23 +184,13 @@ export default function FeesPage() {
     }, 1500);
   };
 
-  const handleAddFeeType = () => {
-    if (!newFeeTypeData.name || !newFeeTypeData.amount) return;
+  const handleExportPDF = () => {
     setIsProcessing(true);
+    toast({ title: "Generating PDF Report", description: "Preparing the institutional registry based on your current filters..." });
     setTimeout(() => {
-      const created = {
-        id: `ft-${Math.random().toString(36).substr(2, 5)}`,
-        name: newFeeTypeData.name,
-        amount: parseFloat(newFeeTypeData.amount),
-        description: newFeeTypeData.description,
-        status: newFeeTypeData.status
-      };
-      setFeeTypes([...feeTypes, created]);
       setIsProcessing(false);
-      setIsAddingFeeType(false);
-      setNewFeeTypeData({ name: "", amount: "", description: "", status: "mandatory" });
-      toast({ title: "Fee Type Created" });
-    }, 800);
+      toast({ title: "Download Ready", description: "The filtered financial report has been saved." });
+    }, 2000);
   };
 
   return (
@@ -231,7 +219,7 @@ export default function FeesPage() {
       </div>
 
       <Tabs defaultValue={isAdmin ? "oversight" : "pay"} className="w-full">
-        <TabsList className="grid w-full mb-8 bg-white shadow-sm border h-auto p-1 rounded-2xl grid-cols-4 md:w-[800px]">
+        <TabsList className="grid w-full mb-8 bg-white shadow-sm border h-auto p-1.5 rounded-2xl grid-cols-5 md:w-[900px]">
           {isAdmin && <TabsTrigger value="oversight" className="gap-2 py-3 rounded-xl transition-all font-bold text-xs sm:text-sm"><Building2 className="w-4 h-4"/> Oversight</TabsTrigger>}
           {isBursar && <TabsTrigger value="pay" className="gap-2 py-3 rounded-xl transition-all font-bold text-xs sm:text-sm"><Wallet className="w-4 h-4"/> Collection</TabsTrigger>}
           <TabsTrigger value="ledger" className="gap-2 py-3 rounded-xl transition-all font-bold text-xs sm:text-sm"><History className="w-4 h-4"/> Ledger</TabsTrigger>
@@ -292,69 +280,67 @@ export default function FeesPage() {
           </TabsContent>
         )}
 
-        {isBursar && (
-          <TabsContent value="pay" className="animate-in fade-in slide-in-from-bottom-2 mt-0 space-y-6">
-            <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
-              <CardHeader className="bg-white border-b p-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input placeholder="Find student..." className="pl-10 h-12 bg-accent/20 border-none rounded-xl" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-                  </div>
-                  <Select value={classFilter} onValueChange={setClassFilter}>
-                    <SelectTrigger className="h-12 bg-accent/20 border-none rounded-xl font-bold"><SelectValue placeholder="All Classes" /></SelectTrigger>
-                    <SelectContent><SelectItem value="all">Entire School</SelectItem>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-                  </Select>
-                  <Select value={activeFeeFilter} onValueChange={setActiveFeeFilter}>
-                    <SelectTrigger className="h-12 bg-primary/5 border-primary/20 text-primary font-black rounded-xl"><SelectValue /></SelectTrigger>
-                    <SelectContent>{feeTypes.map(t => <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>)}</SelectContent>
-                  </Select>
+        <TabsContent value="pay" className="animate-in fade-in slide-in-from-bottom-2 mt-0 space-y-6">
+          <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+            <CardHeader className="bg-white border-b p-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input placeholder="Find student..." className="pl-10 h-12 bg-accent/20 border-none rounded-xl" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                 </div>
-              </CardHeader>
-              <CardContent className="p-0 overflow-x-auto">
-                <Table>
-                  <TableHeader className="bg-accent/10 uppercase text-[10px] font-black tracking-widest border-b border-accent/20">
-                    <TableRow>
-                      <TableHead className="pl-8 py-4">Matricule</TableHead>
-                      <TableHead>Student</TableHead>
-                      <TableHead className="text-center">Status</TableHead>
-                      <TableHead className="text-right pr-8">Collect</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredStudents.map((s) => {
-                      const status = getStatusForFee(s, activeFeeFilter);
-                      return (
-                        <TableRow key={s.id} className="hover:bg-accent/5 border-b last:border-0 h-16">
-                          <TableCell className="pl-8 font-mono text-xs font-bold text-primary">{s.id}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <Avatar className="h-9 w-9 border shrink-0"><AvatarImage src={s.avatar} /><AvatarFallback>{s.name.charAt(0)}</AvatarFallback></Avatar>
-                              <div className="flex flex-col">
-                                <span className="font-bold text-xs md:text-sm text-primary uppercase">{s.name}</span>
-                                <span className="text-[8px] font-black uppercase text-muted-foreground">{s.class}</span>
-                              </div>
+                <Select value={classFilter} onValueChange={setClassFilter}>
+                  <SelectTrigger className="h-12 bg-accent/20 border-none rounded-xl font-bold"><SelectValue placeholder="All Classes" /></SelectTrigger>
+                  <SelectContent><SelectItem value="all">Entire School</SelectItem>{CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                </Select>
+                <Select value={activeFeeFilter} onValueChange={setActiveFeeFilter}>
+                  <SelectTrigger className="h-12 bg-primary/5 border-primary/20 text-primary font-black rounded-xl"><SelectValue /></SelectTrigger>
+                  <SelectContent>{feeTypes.map(t => <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0 overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-accent/10 uppercase text-[10px] font-black tracking-widest border-b border-accent/20">
+                  <TableRow>
+                    <TableHead className="pl-8 py-4">Matricule</TableHead>
+                    <TableHead>Student</TableHead>
+                    <TableHead className="text-center">Status</TableHead>
+                    <TableHead className="text-right pr-8">Collect</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredStudents.map((s) => {
+                    const status = getStatusForFee(s, activeFeeFilter);
+                    return (
+                      <TableRow key={s.id} className="hover:bg-accent/5 border-b last:border-0 h-16">
+                        <TableCell className="pl-8 font-mono text-xs font-bold text-primary">{s.id}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-9 w-9 border shrink-0"><AvatarImage src={s.avatar} /><AvatarFallback>{s.name.charAt(0)}</AvatarFallback></Avatar>
+                            <div className="flex flex-col">
+                              <span className="font-bold text-xs md:text-sm text-primary uppercase">{s.name}</span>
+                              <span className="text-[8px] font-black uppercase text-muted-foreground">{s.class}</span>
                             </div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Badge className={cn("text-[8px] font-black uppercase px-2 h-5 border-none", status === 'cleared' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700")}>
-                              {status === 'cleared' ? 'Cleared' : 'Pending'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right pr-8">
-                            <Button size="sm" className="h-9 px-6 rounded-xl font-black uppercase text-[10px] shadow-lg" disabled={status === 'cleared'} onClick={() => { setSelectedStudentForPayment(s); setPaymentForm({ ...paymentForm, type: activeFeeFilter }); }}>
-                              <Wallet className="w-3.5 h-3.5 mr-2" /> Pay
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge className={cn("text-[8px] font-black uppercase px-2 h-5 border-none", status === 'cleared' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700")}>
+                            {status === 'cleared' ? 'Cleared' : 'Pending'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right pr-8">
+                          <Button size="sm" className="h-9 px-6 rounded-xl font-black uppercase text-[10px] shadow-lg" disabled={status === 'cleared'} onClick={() => { setSelectedStudentForPayment(s); setPaymentForm({ ...paymentForm, type: activeFeeFilter }); }}>
+                            <Wallet className="w-3.5 h-3.5 mr-2" /> Pay
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="ledger" className="mt-0 space-y-6">
           <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
@@ -393,7 +379,7 @@ export default function FeesPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="tracker" className="mt-0">
+        <TabsContent value="tracker" className="mt-0 space-y-6">
           <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
             <CardHeader className="bg-primary p-6 md:p-10 text-white">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -401,26 +387,71 @@ export default function FeesPage() {
                   <div className="p-3 bg-white/10 rounded-2xl text-secondary"><FileSpreadsheet className="w-8 h-8" /></div>
                   <div>
                     <CardTitle className="text-xl md:text-2xl font-black uppercase tracking-tight">Institutional Tracker</CardTitle>
-                    <CardDescription className="text-white/60 text-xs">Live financial compliance registry.</CardDescription>
+                    <CardDescription className="text-white/60 text-xs">Generate custom PDF reports based on filtered financial criteria.</CardDescription>
                   </div>
                 </div>
-                <Button className="bg-secondary text-primary hover:bg-secondary/90 h-12 px-8 rounded-xl font-black uppercase tracking-widest text-[10px] gap-2 shadow-lg" onClick={() => toast({ title: "Export Started" })}>
-                  <FileDown className="w-4 h-4" /> Download Registry
+                <Button 
+                  className="bg-secondary text-primary hover:bg-secondary/90 h-12 px-8 rounded-xl font-black uppercase tracking-widest text-[10px] gap-2 shadow-lg" 
+                  onClick={handleExportPDF}
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+                  Download Filtered PDF
                 </Button>
               </div>
             </CardHeader>
+            <div className="p-6 bg-accent/30 border-b border-accent grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+               <div className="space-y-1.5">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Section (Sub-school)</Label>
+                  <Select value={sectionFilter} onValueChange={setSectionFilter}>
+                    <SelectTrigger className="h-11 bg-white border-none rounded-xl font-bold"><SelectValue placeholder="All Sections" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Entire School</SelectItem>
+                      {SECTIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+               </div>
+               <div className="space-y-1.5">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Class Level</Label>
+                  <Select value={classFilter} onValueChange={setClassFilter}>
+                    <SelectTrigger className="h-11 bg-white border-none rounded-xl font-bold"><SelectValue placeholder="All Classes" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Classes</SelectItem>
+                      {CLASSES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+               </div>
+               <div className="space-y-1.5">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Fee Category</Label>
+                  <Select value={activeFeeFilter} onValueChange={setActiveFeeFilter}>
+                    <SelectTrigger className="h-11 bg-white border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                    <SelectContent>{feeTypes.map(t => <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>)}</SelectContent>
+                  </Select>
+               </div>
+               <div className="space-y-1.5">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Compliance Status</Label>
+                  <Select value={complianceFilter} onValueChange={setComplianceFilter}>
+                    <SelectTrigger className="h-11 bg-white border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Records</SelectItem>
+                      <SelectItem value="paid">Fully Paid</SelectItem>
+                      <SelectItem value="unpaid">Outstanding (Unpaid)</SelectItem>
+                    </SelectContent>
+                  </Select>
+               </div>
+            </div>
             <CardContent className="p-0 overflow-x-auto">
               <Table>
-                <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest">
+                <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest border-b">
                   <TableRow>
-                    <TableHead className="pl-8 py-4">Student Profile</TableHead>
+                    <TableHead className="pl-8 py-4">Student Identity</TableHead>
                     <TableHead>Matricule</TableHead>
                     <TableHead className="text-center">Compliance</TableHead>
                     <TableHead className="text-right pr-8">Performance</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {students.map((s) => {
+                  {filteredStudents.map((s) => {
                     const paid = (s.balances as any)[activeFeeFilter] || 0;
                     const total = (s.totals as any)[activeFeeFilter] || 150000;
                     const percentage = Math.round((paid / total) * 100);
@@ -428,7 +459,7 @@ export default function FeesPage() {
                       <TableRow key={s.id} className="hover:bg-accent/5 h-16 border-b">
                         <TableCell className="pl-8">
                           <p className="font-bold text-xs md:text-sm text-primary uppercase">{s.name}</p>
-                          <p className="text-[9px] font-bold text-muted-foreground uppercase">{s.class}</p>
+                          <p className="text-[9px] font-bold text-muted-foreground uppercase">{s.class} • {s.section}</p>
                         </TableCell>
                         <TableCell className="font-mono text-xs font-bold text-muted-foreground">{s.id}</TableCell>
                         <TableCell className="text-center">
@@ -451,80 +482,78 @@ export default function FeesPage() {
           </Card>
         </TabsContent>
 
-        {isBursar && (
-          <TabsContent value="settings" className="animate-in fade-in slide-in-from-bottom-2 mt-0 space-y-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <h3 className="text-xl font-black text-primary uppercase tracking-tight">Institutional Fee Structure</h3>
-              <Dialog open={isAddingFeeType} onOpenChange={setIsAddingFeeType}>
-                <DialogTrigger asChild>
-                  <Button className="gap-2 rounded-xl h-11 px-6 shadow-lg">
-                    <Plus className="w-4 h-4" /> Define New Fee
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-                  <DialogHeader className="bg-primary p-8 text-white relative">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-white/10 rounded-2xl text-secondary"><Gavel className="w-8 h-8" /></div>
-                      <div>
-                        <DialogTitle className="text-2xl font-black uppercase tracking-tight">New Fee Type</DialogTitle>
-                        <DialogDescription className="text-white/60">Initialize a mandatory or optional institutional charge.</DialogDescription>
-                      </div>
-                    </div>
-                    <Button variant="ghost" size="icon" onClick={() => setIsAddingFeeType(false)} className="absolute top-4 right-4 text-white hover:bg-white/10"><X className="w-6 h-6"/></Button>
-                  </DialogHeader>
-                  <div className="p-8 space-y-6">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest ml-1">Fee Label</Label>
-                      <Input value={newFeeTypeData.name} onChange={(e) => setNewFeeTypeData({...newFeeTypeData, name: e.target.value})} placeholder="e.g. Laboratory Fee" className="h-12 bg-accent/30 border-none rounded-xl font-bold" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest ml-1">Standard Amount (XAF)</Label>
-                      <Input type="number" value={newFeeTypeData.amount} onChange={(e) => setNewFeeTypeData({...newFeeTypeData, amount: e.target.value})} placeholder="0" className="h-12 bg-accent/30 border-none rounded-xl font-black" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest ml-1">Requirement Status</Label>
-                      <Select value={newFeeTypeData.status} onValueChange={(v) => setNewFeeTypeData({...newFeeTypeData, status: v})}>
-                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="mandatory">Mandatory (Required)</SelectItem>
-                          <SelectItem value="optional">Optional / Elective</SelectItem>
-                        </SelectContent>
-                      </Select>
+        <TabsContent value="settings" className="animate-in fade-in slide-in-from-bottom-2 mt-0 space-y-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <h3 className="text-xl font-black text-primary uppercase tracking-tight">Institutional Fee Structure</h3>
+            <Dialog open={isAddingFeeType} onOpenChange={setIsAddingFeeType}>
+              <DialogTrigger asChild>
+                <Button className="gap-2 rounded-xl h-11 px-6 shadow-lg">
+                  <Plus className="w-4 h-4" /> Define New Fee
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+                <DialogHeader className="bg-primary p-8 text-white relative">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-white/10 rounded-2xl text-secondary"><Gavel className="w-8 h-8" /></div>
+                    <div>
+                      <DialogTitle className="text-2xl font-black uppercase tracking-tight">New Fee Type</DialogTitle>
+                      <DialogDescription className="text-white/60">Initialize a mandatory or optional institutional charge.</DialogDescription>
                     </div>
                   </div>
-                  <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
-                    <Button onClick={handleAddFeeType} disabled={isProcessing || !newFeeTypeData.name} className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3">
-                      {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                      Commit Fee Policy
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
+                  <Button variant="ghost" size="icon" onClick={() => setIsAddingFeeType(false)} className="absolute top-4 right-4 text-white hover:bg-white/10"><X className="w-6 h-6"/></Button>
+                </DialogHeader>
+                <div className="p-8 space-y-6">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest ml-1">Fee Label</Label>
+                    <Input value={newFeeTypeData.name} onChange={(e) => setNewFeeTypeData({...newFeeTypeData, name: e.target.value})} placeholder="e.g. Laboratory Fee" className="h-12 bg-accent/30 border-none rounded-xl font-bold" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest ml-1">Standard Amount (XAF)</Label>
+                    <Input type="number" value={newFeeTypeData.amount} onChange={(e) => setNewFeeTypeData({...newFeeTypeData, amount: e.target.value})} placeholder="0" className="h-12 bg-accent/30 border-none rounded-xl font-black" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest ml-1">Requirement Status</Label>
+                    <Select value={newFeeTypeData.status} onValueChange={(v) => setNewFeeTypeData({...newFeeTypeData, status: v})}>
+                      <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="mandatory">Mandatory (Required)</SelectItem>
+                        <SelectItem value="optional">Optional / Elective</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+                  <Button onClick={handleAddFeeType} disabled={isProcessing || !newFeeTypeData.name} className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3">
+                    {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    Commit Fee Policy
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {feeTypes.map(f => (
-                <Card key={f.id} className="border-none shadow-sm overflow-hidden bg-white group hover:shadow-md transition-all">
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-start mb-2">
-                      <Badge variant="secondary" className="bg-primary/5 text-primary border-none text-[8px] font-black uppercase">{f.status}</Badge>
-                      <div className="p-2 bg-accent rounded-lg"><Coins className="w-4 h-4 text-primary" /></div>
-                    </div>
-                    <CardTitle className="text-lg font-black text-primary uppercase leading-tight">{f.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="text-2xl font-black text-primary">{f.amount.toLocaleString()} <span className="text-xs font-bold opacity-40">XAF</span></div>
-                    <p className="text-[10px] text-muted-foreground line-clamp-2 italic">"{f.description || 'Institutional pedagogical charge.'}"</p>
-                  </CardContent>
-                  <CardFooter className="bg-accent/10 border-t p-3 flex justify-end gap-2">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-white text-primary/40 hover:text-primary"><Pencil className="w-3.5 h-3.5"/></Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-white text-destructive/40 hover:text-destructive" onClick={() => setFeeTypes(feeTypes.filter(item => item.id !== f.id))}><Trash2 className="w-3.5 h-3.5"/></Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-        )}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {feeTypes.map(f => (
+              <Card key={f.id} className="border-none shadow-sm overflow-hidden bg-white group hover:shadow-md transition-all">
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-start mb-2">
+                    <Badge variant="secondary" className="bg-primary/5 text-primary border-none text-[8px] font-black uppercase">{f.status}</Badge>
+                    <div className="p-2 bg-accent rounded-lg"><Coins className="w-4 h-4 text-primary" /></div>
+                  </div>
+                  <CardTitle className="text-lg font-black text-primary uppercase leading-tight">{f.name}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="text-2xl font-black text-primary">{f.amount.toLocaleString()} <span className="text-xs font-bold opacity-40">XAF</span></div>
+                  <p className="text-[10px] text-muted-foreground line-clamp-2 italic">"{f.description || 'Institutional pedagogical charge.'}"</p>
+                </CardContent>
+                <CardFooter className="bg-accent/10 border-t p-3 flex justify-end gap-2">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-white text-primary/40 hover:text-primary"><Pencil className="w-3.5 h-3.5"/></Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-white text-destructive/40 hover:text-destructive" onClick={() => setFeeTypes(feeTypes.filter(item => item.id !== f.id))}><Trash2 className="w-3.5 h-3.5"/></Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
       </Tabs>
 
       {/* ADMIN CLASS DETAILS DIALOG */}
@@ -537,16 +566,6 @@ export default function FeesPage() {
                 <div>
                   <DialogTitle className="text-2xl font-black uppercase tracking-tight">{selectedClassDetails?.name} Financial Dossier</DialogTitle>
                   <DialogDescription className="text-white/60">Audit record for {activeFeeFilter}</DialogDescription>
-                </div>
-              </div>
-              <div className="flex items-center gap-4 bg-white/10 p-4 rounded-2xl backdrop-blur-md w-fit">
-                <div className="text-center border-r border-white/20 pr-4">
-                  <p className="text-[8px] font-black uppercase opacity-60">Paid</p>
-                  <p className="text-lg font-black text-green-400">{dossierSummary.paid}</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-[8px] font-black uppercase opacity-60">Pending</p>
-                  <p className="text-lg font-black text-amber-400">{dossierSummary.pending}</p>
                 </div>
               </div>
             </div>
