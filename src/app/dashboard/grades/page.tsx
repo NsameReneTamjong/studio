@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
@@ -41,7 +42,9 @@ import {
   Users,
   LayoutGrid,
   TrendingUp,
-  Activity
+  Activity,
+  Filter,
+  FileSpreadsheet
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -98,6 +101,8 @@ const MOCK_ADMIN_CLASSES = [
 const MOCK_STUDENTS_GRADES = [
   { uid: "S1", id: "GBHS26S001", name: "Alice Thompson", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s1/100/100", seq1: 14.5, seq2: 16.0 },
   { uid: "S2", id: "GBHS26S002", name: "Bob Richards", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s2/100/100", seq1: 18.0, seq2: 17.5 },
+  { uid: "S3", id: "GBHS26S003", name: "Charlie Davis", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s3/100/100", seq1: 08.0, seq2: 09.5 },
+  { uid: "S4", id: "GBHS26S004", name: "Diana Prince", class: "2nde / Form 5", avatar: "https://picsum.photos/seed/s4/100/100", seq1: 12.0, seq2: 11.5 },
 ];
 
 const MOCK_PERSONAL_GRADES = [
@@ -127,7 +132,7 @@ export default function GradeBookPage() {
   const [viewingDoc, setViewingDoc] = useState<any>(null);
 
   // Admin Specific State
-  const [adminView, setAdminView] = useState<"list" | "details">("list");
+  const [adminView, setAdminView] = useState<"list" | "details" | "registry">("list");
   const [inspectedClass, setInspectedClass] = useState<any>(null);
 
   const isTeacher = user?.role === "TEACHER";
@@ -144,6 +149,20 @@ export default function GradeBookPage() {
     setTimeout(() => {
       toast({ title: "Download Successful", description: `${title} has been saved to your device.` });
     }, 2000);
+  };
+
+  const getSystemStatus = (s1: number, s2: number) => {
+    const avg = (s1 + s2) / 2;
+    return avg >= 10 ? "PASSED" : "FAILED";
+  };
+
+  const getSystemRemark = (s1: number, s2: number) => {
+    const avg = (s1 + s2) / 2;
+    if (avg >= 16) return "Excellent Work";
+    if (avg >= 14) return "Very Good";
+    if (avg >= 12) return "Good Progress";
+    if (avg >= 10) return "Fair Effort";
+    return "Needs Improvement";
   };
 
   if (isLoading) return <LoadingState message="Fetching pedagogical records..." />;
@@ -256,7 +275,7 @@ export default function GradeBookPage() {
               <CardFooter className="bg-accent/10 p-6 border-t flex justify-center">
                 <Button 
                   className="h-12 px-10 rounded-2xl font-black uppercase text-xs tracking-widest gap-2 shadow-lg"
-                  onClick={() => toast({ title: "Opening Current Ledger" })}
+                  onClick={() => setAdminView("registry")}
                 >
                   <Eye className="w-4 h-4" /> Open Registry
                 </Button>
@@ -295,6 +314,110 @@ export default function GradeBookPage() {
               </p>
             </div>
           </div>
+        </div>
+      );
+    }
+
+    if (adminView === "registry") {
+      return (
+        <div className="space-y-8 pb-20 animate-in slide-in-from-right-4 duration-500">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="icon" onClick={() => setAdminView("details")} className="rounded-full hover:bg-white shadow-sm">
+                <ArrowLeft className="w-6 h-6" />
+              </Button>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-primary font-headline uppercase">{inspectedClass?.name} Registry</h1>
+                <p className="text-muted-foreground text-sm font-bold uppercase tracking-widest">Active Pedagogical Audit</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" className="rounded-xl h-11 px-6 font-bold gap-2 bg-white" onClick={() => handleDownload(`${inspectedClass?.name} Performance`)}>
+                <FileDown className="w-4 h-4" /> Export Registry (PDF)
+              </Button>
+              <Button className="rounded-xl h-11 px-8 font-black uppercase text-[10px] gap-2 shadow-lg" onClick={() => handleDownload(`Batch Report Cards ${inspectedClass?.name}`)}>
+                <Printer className="w-4 h-4" /> Print Report Cards
+              </Button>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-[2rem] border shadow-sm flex flex-col md:flex-row gap-4 items-end">
+            <div className="flex-1 space-y-2 w-full">
+              <Label className="text-[10px] font-black uppercase text-primary ml-1 flex items-center gap-2">
+                <Filter className="w-3.5 h-3.5" /> Subject Filter
+              </Label>
+              <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+                <SelectTrigger className="h-12 bg-primary/5 border-primary/10 rounded-xl font-bold">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SUBJECTS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="hidden md:flex flex-col items-center justify-center px-8 border-l border-accent">
+               <p className="text-[10px] font-black text-muted-foreground uppercase">Class Master</p>
+               <p className="text-sm font-bold text-primary">{inspectedClass?.masterName}</p>
+            </div>
+          </div>
+
+          <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+            <CardHeader className="bg-primary p-8 text-white">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xl font-black uppercase tracking-tight">Student Performance Ledger</CardTitle>
+                <Badge variant="secondary" className="bg-secondary text-primary border-none font-black px-4 py-1">READ-ONLY MODE</Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0 overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-accent/10 font-black text-[9px] uppercase border-b">
+                  <TableRow>
+                    <TableHead className="pl-8 py-4">Matricule</TableHead>
+                    <TableHead>Student Profile</TableHead>
+                    <TableHead className="text-center">Seq 1</TableHead>
+                    <TableHead className="text-center">Seq 2</TableHead>
+                    <TableHead className="text-center">Status</TableHead>
+                    <TableHead className="text-right pr-8">System Remark</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {MOCK_STUDENTS_GRADES.map(s => (
+                    <TableRow key={s.uid} className="h-16 border-b last:border-0 hover:bg-accent/5">
+                      <TableCell className="pl-8 font-mono text-[10px] font-bold text-primary">{s.id}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-9 w-9 shrink-0 border-2 border-white shadow-sm ring-1 ring-accent">
+                            <AvatarImage src={s.avatar} />
+                            <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <span className="font-bold text-xs uppercase text-primary">{s.name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center font-black">{s.seq1.toFixed(2)}</TableCell>
+                      <TableCell className="text-center font-black">{s.seq2.toFixed(2)}</TableCell>
+                      <TableCell className="text-center">
+                        <Badge className={cn(
+                          "text-[8px] font-black border-none px-3",
+                          getSystemStatus(s.seq1, s.seq2) === 'PASSED' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                        )}>
+                          {getSystemStatus(s.seq1, s.seq2)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <span className="text-[10px] font-bold text-muted-foreground italic">"{getSystemRemark(s.seq1, s.seq2)}"</span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+            <CardFooter className="bg-accent/10 p-6 border-t flex justify-center">
+               <div className="flex items-center gap-2 text-muted-foreground italic">
+                  <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Verified Institutional Pedagogical Audit Active</p>
+               </div>
+            </CardFooter>
+          </Card>
         </div>
       );
     }
@@ -837,6 +960,7 @@ function SignatureSVG({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M15 30L85 10" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" strokeDasharray="2 2" />
     </svg>
   );
 }
