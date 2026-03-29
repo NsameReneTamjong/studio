@@ -57,10 +57,10 @@ const SECTION_CLASSES: Record<string, string[]> = {
 };
 
 const INITIAL_COURSES = [
-  { id: "PHY101", name: "Advanced Physics", instructorName: "Dr. Aris Tesla", instructorAvatar: "https://picsum.photos/seed/t1/200/200", targetClass: "2nde / Form 5", section: "Anglophone Section", type: "mandatory", color: "bg-blue-500", stats: { liveClasses: 24, exams: 8, attendance: 92 } },
-  { id: "MAT101", name: "Mathematics", instructorName: "Prof. Sarah Smith", instructorAvatar: "https://picsum.photos/seed/t2/200/200", targetClass: "2nde / Form 5", section: "Anglophone Section", type: "mandatory", color: "bg-emerald-500", stats: { liveClasses: 32, exams: 12, attendance: 95 } },
-  { id: "LIT105", name: "Modern Literature", instructorName: "Ms. Bennet", instructorAvatar: "https://picsum.photos/seed/t3/200/200", targetClass: "2nde / Form 5", section: "Anglophone Section", type: "optional", color: "bg-purple-500", stats: { liveClasses: 18, exams: 4, attendance: 88 } },
-  { id: "ART202", name: "Fine Arts & Design", instructorName: "Mr. Abena", instructorAvatar: "https://picsum.photos/seed/t4/200/200", targetClass: "2nde / Form 5", section: "Francophone Section", type: "optional", color: "bg-rose-500", stats: { liveClasses: 12, exams: 2, attendance: 90 } },
+  { id: "PHY101", name: "Advanced Physics", instructorName: "Dr. Aris Tesla", instructorAvatar: "https://picsum.photos/seed/t1/200/200", targetClass: "2nde / Form 5", section: "Anglophone Section", type: "mandatory", coefficient: 4, color: "bg-blue-500", stats: { liveClasses: 24, exams: 8, attendance: 92 } },
+  { id: "MAT101", name: "Mathematics", instructorName: "Prof. Sarah Smith", instructorAvatar: "https://picsum.photos/seed/t2/200/200", targetClass: "2nde / Form 5", section: "Anglophone Section", type: "mandatory", coefficient: 5, color: "bg-emerald-500", stats: { liveClasses: 32, exams: 12, attendance: 95 } },
+  { id: "LIT105", name: "Modern Literature", instructorName: "Ms. Bennet", instructorAvatar: "https://picsum.photos/seed/t3/200/200", targetClass: "2nde / Form 5", section: "Anglophone Section", type: "optional", coefficient: 3, color: "bg-purple-500", stats: { liveClasses: 18, exams: 4, attendance: 88 } },
+  { id: "ART202", name: "Fine Arts & Design", instructorName: "Mr. Abena", instructorAvatar: "https://picsum.photos/seed/t4/200/200", targetClass: "2nde / Form 5", section: "Francophone Section", type: "optional", coefficient: 2, color: "bg-rose-500", stats: { liveClasses: 12, exams: 2, attendance: 90 } },
 ];
 
 const INITIAL_MATERIALS = [
@@ -143,6 +143,7 @@ export default function CoursesPage() {
     targetClasses: [] as string[],
     section: "Anglophone Section",
     type: "mandatory",
+    coefficient: 1,
     color: "bg-blue-500"
   });
 
@@ -184,6 +185,7 @@ export default function CoursesPage() {
         targetClasses: [], 
         section: "Anglophone Section", 
         type: "mandatory", 
+        coefficient: 1,
         color: "bg-blue-500" 
       });
       toast({ title: "Subject Registered", description: `${newSubject.name} added to curriculum.` });
@@ -205,7 +207,7 @@ export default function CoursesPage() {
     toast({ title: "Removed", description: "Subject removed from curriculum." });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type?: 'logo' | 'banner') => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       if (file.size > 5 * 1024 * 1024) {
@@ -443,7 +445,7 @@ export default function CoursesPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <Card className="lg:col-span-4 border-none shadow-sm overflow-hidden bg-white">
               <CardHeader className="bg-primary p-6 text-white text-center pb-8 relative">
-                <Avatar className="h-20 w-20 border-4 border-white/20 mx-auto shadow-2xl mb-4">
+                <Avatar className="h-24 w-24 border-4 border-white/20 mx-auto shadow-2xl mb-4">
                   <AvatarImage src={viewingMaterialsFor.instructorAvatar} alt={viewingMaterialsFor.instructorName} />
                   <AvatarFallback>{viewingMaterialsFor.instructorName.charAt(0)}</AvatarFallback>
                 </Avatar>
@@ -723,7 +725,7 @@ export default function CoursesPage() {
                 <DialogTitle className="text-2xl font-black">Setup New Subject</DialogTitle>
                 <DialogDescription className="text-white/60">Configure curriculum requirements and instructor assignment.</DialogDescription>
               </DialogHeader>
-              <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+              <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto text-foreground">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="col-span-2 space-y-2">
                     <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Subject Name</Label>
@@ -734,8 +736,19 @@ export default function CoursesPage() {
                     <Input value={newSubject.id} onChange={(e) => setNewSubject({...newSubject, id: e.target.value})} placeholder="e.g. PHY101" className="h-11 bg-accent/30 border-none rounded-xl" />
                   </div>
                   <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Coefficient</Label>
+                    <Input 
+                      type="number" 
+                      min="1" 
+                      max="10" 
+                      value={newSubject.coefficient} 
+                      onChange={(e) => setNewSubject({...newSubject, coefficient: parseInt(e.target.value) || 1})} 
+                      className="h-11 bg-accent/30 border-none rounded-xl font-black text-primary" 
+                    />
+                  </div>
+                  <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Subject Type</Label>
-                    <Select value={newSubject.type} onValueChange={(v) => setNewSubject({...newSubject, type: v})}>
+                    <Select value={newSubject.type} onValueChange={(v) => setNewSubject({...newSubject, type: v as any})}>
                       <SelectTrigger className="h-11 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="mandatory">Mandatory</SelectItem>
@@ -875,6 +888,7 @@ function CourseCard({ course, isAdmin, onDelete, onViewMaterials }: { course: an
               )}>
                 {course.type}
               </Badge>
+              <Badge variant="secondary" className="text-[9px] font-black border-none h-4 px-2 bg-accent text-primary">Coef: {course.coefficient}</Badge>
             </div>
             <CardTitle className="text-xl font-black text-primary tracking-tight">{course.name}</CardTitle>
           </div>
