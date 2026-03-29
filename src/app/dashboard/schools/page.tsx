@@ -450,9 +450,18 @@ export default function SchoolsManagementPage() {
                   </div>
                   <div className="text-center space-y-4 w-40">
                     <div className="h-12 w-full mx-auto relative flex items-center justify-center">
-                       <Signature className="w-full h-full text-primary/20 p-2" />
+                       <SignatureSVG className="w-full h-full text-primary/20 p-2" />
                     </div>
                     <p className="text-[9px] font-black uppercase text-primary border-t border-black/20 pt-1">Platform Registrar</p>
+                  </div>
+               </div>
+
+               <div className="text-center pt-6 border-t border-black/5">
+                  <div className="flex items-center justify-center gap-3">
+                    <img src={platformSettings.logo} alt="SaaS" className="w-4 h-4 object-contain opacity-20" />
+                    <p className="text-[8px] font-black uppercase text-muted-foreground opacity-30 tracking-[0.4em]">
+                      Verified Employment Record • Secure Registry Node • {new Date().getFullYear()}
+                    </p>
                   </div>
                </div>
             </div>
@@ -484,7 +493,7 @@ export default function SchoolsManagementPage() {
   );
 }
 
-function Signature({ className }: { className?: string }) {
+function SignatureSVG({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />

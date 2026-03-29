@@ -30,7 +30,7 @@ import {
   Download,
   X,
   FileText,
-  Signature,
+  Signature as SignatureIcon,
   Info,
   ArrowLeft
 } from "lucide-react";
@@ -98,7 +98,7 @@ export default function SubscriptionPage() {
       setIssuedReceipt(receipt);
       
       toast({
-        title: language === 'en' ? "Payment Successful" : "Paiement Réussi",
+        title: language === 'en' ? "Paiement Réussi" : "Paiement Réussi",
         description: language === 'en' 
           ? "Your annual institutional license has been activated. You can now download your receipt." 
           : "Votre licence institutionnelle annuelle a été activée. Vous pouvez maintenant télécharger votre reçu.",
@@ -428,7 +428,7 @@ export default function SubscriptionPage() {
                   </div>
                   <div className="text-center space-y-6 w-32">
                     <div className="h-10 md:h-12 w-full mx-auto bg-primary/5 rounded border-b-2 border-black/40 relative flex items-center justify-center">
-                       <Signature className="w-full h-full text-primary/20 p-2" />
+                       <SignatureSVG className="w-full h-full text-primary/20 p-2" />
                     </div>
                     <p className="text-[8px] font-black uppercase text-primary tracking-widest leading-none">The Registrar</p>
                   </div>
@@ -471,11 +471,10 @@ export default function SubscriptionPage() {
   );
 }
 
-function Signature({ className }: { className?: string }) {
+function SignatureSVG({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path d="M15 30L85 10" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" strokeDasharray="2 2" />
     </svg>
   );
 }
