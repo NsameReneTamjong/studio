@@ -82,10 +82,10 @@ const MOCK_CHILDREN = [
 ];
 
 const MOCK_GRADES = [
-  { subject: "Advanced Physics", coef: 4, seq1: 14.5, seq2: 16.0, average: 15.25, total: 61.0, rank: "2nd", initials: "AT" },
-  { subject: "Mathematics", coef: 5, seq1: 18.0, seq2: 17.5, average: 17.75, total: 88.75, rank: "1st", initials: "SM" },
-  { subject: "English Literature", coef: 3, seq1: 12.0, seq2: 14.0, average: 13.0, total: 39.0, rank: "5th", initials: "MB" },
-  { subject: "Chemistry", coef: 4, seq1: 13.5, seq2: 12.5, average: 13.0, total: 52.0, rank: "8th", initials: "DW" },
+  { subject: "Advanced Physics", teacher: "Dr. Aris Tesla", coef: 4, seq1: 14.5, seq2: 16.0, average: 15.25, total: 61.0, rank: "2nd", initials: "AT" },
+  { subject: "Mathematics", teacher: "Prof. Sarah Smith", coef: 5, seq1: 18.0, seq2: 17.5, average: 17.75, total: 88.75, rank: "1st", initials: "SM" },
+  { subject: "English Literature", teacher: "Ms. Bennet", coef: 3, seq1: 12.0, seq2: 14.0, average: 13.0, total: 39.0, rank: "5th", initials: "MB" },
+  { subject: "Chemistry", teacher: "Dr. White", coef: 4, seq1: 13.5, seq2: 12.5, average: 13.0, total: 52.0, rank: "8th", initials: "DW" },
 ];
 
 const MOCK_ATTENDANCE_HISTORY = [
@@ -287,14 +287,16 @@ export default function StudentDetailsPage() {
                   {MOCK_TODAY_ATTENDANCE.map((today, i) => (
                     <TableRow key={i} className="hover:bg-accent/5 h-16 border-b last:border-0">
                       <TableCell className="pl-8 font-black uppercase text-xs text-primary">{today.subject}</TableCell>
-                      <TableCell className="font-bold text-xs flex items-center gap-2 mt-4">
-                        <Clock className="w-3.5 h-3.5 text-primary/40" />
-                        {today.time}
+                      <TableCell className="font-bold text-xs">
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-3.5 h-3.5 text-primary/40" />
+                          {today.time}
+                        </div>
                       </TableCell>
                       <TableCell className="text-xs font-bold text-muted-foreground uppercase">{today.teacher}</TableCell>
                       <TableCell className="text-right pr-8">
                         <Badge className={cn(
-                          "text-[9px] font-black border-none px-3 gap-1.5",
+                          "text-[8px] font-black border-none px-3 gap-1.5",
                           today.status === 'present' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
                         )}>
                           {today.status === 'present' ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
@@ -604,10 +606,10 @@ function PortraitReportCard({ student, platform, term }: { student: any, platfor
             <TableHeader className="bg-[#264D73]">
               <TableRow className="h-8 border-none hover:bg-[#264D73]">
                 <TableHead className="text-[8px] font-black uppercase text-white pl-2 border-r border-white/20">Subject</TableHead>
-                <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20">Sequence 1</TableHead>
-                <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20">Sequence 2</TableHead>
+                <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20">Teacher</TableHead>
                 <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20">Average</TableHead>
                 <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20">Coef</TableHead>
+                <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20">Avg x Coef</TableHead>
                 <TableHead className="text-[8px] font-black uppercase text-white text-center pr-2">Rank</TableHead>
               </TableRow>
             </TableHeader>
@@ -615,10 +617,10 @@ function PortraitReportCard({ student, platform, term }: { student: any, platfor
               {MOCK_GRADES.map((g, idx) => (
                 <TableRow key={idx} className="border-b border-black/10 last:border-0 h-7 hover:bg-accent/5">
                   <TableCell className="pl-2 font-bold text-[8px] uppercase border-r border-black/10">{g.subject}</TableCell>
-                  <TableCell className="text-center text-[8px] border-r border-black/10">{g.seq1.toFixed(2)}</TableCell>
-                  <TableCell className="text-center text-[8px] border-r border-black/10">{g.seq2.toFixed(2)}</TableCell>
+                  <TableCell className="text-center text-[8px] border-r border-black/10 italic opacity-60">{g.teacher}</TableCell>
                   <TableCell className="text-center text-[8px] border-r border-black/10 font-black text-[#264D73]">{g.average.toFixed(2)}</TableCell>
                   <TableCell className="text-center text-[8px] border-r border-black/10 font-bold">{g.coef}</TableCell>
+                  <TableCell className="text-center text-[8px] border-r border-black/10">{g.total.toFixed(2)}</TableCell>
                   <TableCell className="text-center text-[8px] pr-2">{g.rank}</TableCell>
                 </TableRow>
               ))}
@@ -642,14 +644,28 @@ function PortraitReportCard({ student, platform, term }: { student: any, platfor
           </div>
 
           <div className="space-y-4 flex flex-col justify-end">
-            <div className="text-center space-y-1 relative">
-               <div className="h-10 relative flex items-center justify-center">
-                  <SignatureSVG className="w-full h-full text-primary/10 p-1" />
+            <div className="grid grid-cols-3 gap-2">
+               <div className="text-center space-y-1">
+                  <div className="h-8 border-b border-black/20 relative flex items-center justify-center">
+                    <SignatureSVG className="w-full h-full text-primary/10" />
+                  </div>
+                  <p className="text-[6px] font-black uppercase text-primary">Parent</p>
                </div>
-               <p className="text-[7px] font-black uppercase text-primary">The Principal</p>
-               <div className="flex justify-center mt-1">
-                  <QrCode className="w-8 h-8 opacity-10" />
+               <div className="text-center space-y-1">
+                  <div className="h-8 border-b border-black/20 relative flex items-center justify-center">
+                    <SignatureSVG className="w-full h-full text-primary/10" />
+                  </div>
+                  <p className="text-[6px] font-black uppercase text-primary">Class Master</p>
                </div>
+               <div className="text-center space-y-1">
+                  <div className="h-8 border-b border-black/20 relative flex items-center justify-center">
+                    <SignatureSVG className="w-full h-full text-primary/10" />
+                  </div>
+                  <p className="text-[6px] font-black uppercase text-primary">Principal</p>
+               </div>
+            </div>
+            <div className="flex justify-center mt-2">
+               <QrCode className="w-8 h-8 opacity-10" />
             </div>
           </div>
        </div>
