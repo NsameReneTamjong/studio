@@ -1,11 +1,9 @@
-
 import type {Metadata} from 'next';
 import './globals.css';
 import { AuthProvider } from '@/lib/auth-context';
 import { I18nProvider } from '@/lib/i18n-context';
 import { Toaster } from "@/components/ui/toaster"
 import { FirebaseClientProvider } from '@/firebase/client-provider';
-import { ConnectivityBanner } from '@/components/layout/connectivity-banner';
 
 export const metadata: Metadata = {
   title: 'EduIgnite | School Management System',
@@ -28,7 +26,6 @@ export default function RootLayout({
         <I18nProvider>
           <FirebaseClientProvider>
             <AuthProvider>
-              <ConnectivityBanner />
               {children}
               <Toaster />
             </AuthProvider>
