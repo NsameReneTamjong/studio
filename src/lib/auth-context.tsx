@@ -70,6 +70,18 @@ export interface User {
   aiRequestCount?: number;
 }
 
+export interface LiveClass {
+  id: string;
+  title: string;
+  subject: string;
+  teacherId: string;
+  teacherName: string;
+  scheduledDateTime: string;
+  duration: number;
+  meetingId: string;
+  status: "upcoming" | "live" | "ended";
+}
+
 export interface Testimony {
   id: string;
   userId: string;
@@ -171,6 +183,7 @@ export interface PublicEvent {
 interface AuthContextType {
   user: User | null;
   platformSettings: PlatformSettings;
+  liveClasses: LiveClass[];
   testimonials: Testimony[];
   communityBlogs: CommunityBlog[];
   feedbacks: Feedback[];
@@ -187,6 +200,8 @@ interface AuthContextType {
   updatePlatformSettings: (updates: Partial<PlatformSettings>) => Promise<void>;
   markLicensePaid: () => Promise<void>;
   incrementAiRequest: () => Promise<void>;
+  addLiveClass: (session: Omit<LiveClass, "id" | "status" | "teacherId" | "teacherName" | "meetingId">) => void;
+  deleteLiveClass: (id: string) => void;
   addTestimony: (testimony: Omit<Testimony, "id" | "status" | "createdAt">) => void;
   approveTestimony: (id: string) => void;
   deleteTestimony: (id: string) => void;
@@ -244,18 +259,6 @@ const INITIAL_BLOGS: CommunityBlog[] = [
       "Our mission remains clear: to provide secure, high-fidelity pedagogical infrastructure that empowers every teacher and student in the nation. We are committed to digitizing the future of African education."
     ],
     createdAt: new Date(Date.now() - 86400000)
-  },
-  {
-    id: "BLOG-CTO-1",
-    senderName: "Tech Director",
-    senderRole: "CTO",
-    senderAvatar: "https://picsum.photos/seed/cto/150/150",
-    image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop",
-    paragraphs: [
-      "The core Node API has been upgraded to version 3.0, introducing real-time synchronization across all dashboards.",
-      "This update ensures that grades, attendance, and financial records are processed with zero-latency, even in low-bandwidth environments. Security remains our top priority."
-    ],
-    createdAt: new Date(Date.now() - 172800000)
   }
 ];
 
@@ -281,34 +284,11 @@ const INITIAL_SCHOOLS: SchoolInfo[] = [
   }
 ];
 
-const INITIAL_ANNOUNCEMENTS: Announcement[] = [
-  {
-    id: "ann-1",
-    title: "Critical Security Patch: Node API Core",
-    content: "Internal Board Alert: A critical security patch has been applied to the authentication core. All board members must verify their biometric MFA status. Systems are operating at 100% integrity.",
-    target: "saas_admins",
-    senderName: "Tech Director",
-    senderRole: "CTO",
-    senderAvatar: "https://picsum.photos/seed/cto/100/100",
-    senderUid: "mock_EDUI26CTO001",
-    createdAt: new Date(Date.now() - 3600000)
-  }
-];
-
 const DEMO_ACCOUNTS: Record<string, any> = {
   "EDUI26CEO001": { name: "EduIgnite CEO", role: "CEO", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/ceo/150/150", phone: "+237 600 00 00 01", whatsapp: "+237 600 00 00 01" },
-  "EDUI26CTO001": { name: "Tech Director", role: "CTO", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/cto/150/150", phone: "+237 600 00 00 02", whatsapp: "+237 600 00 00 02" },
-  "EDUI26COO001": { name: "Operations Lead", role: "COO", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/coo/150/150", phone: "+237 600 00 00 03", whatsapp: "+237 600 00 00 03" },
-  "EDUI26INV001": { name: "Lead Investor", role: "INV", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/inv/150/150", phone: "+237 600 00 00 04", whatsapp: "+237 600 00 00 04" },
-  "EDUI26INV002": { name: "Secondary Investor", role: "INV", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/inv2/150/150", phone: "+237 600 00 00 06", whatsapp: "+237 600 00 00 06" },
-  "EDUI26DES001": { name: "Creative Lead", role: "DESIGNER", schoolId: null, isLicensePaid: true, avatar: "https://picsum.photos/seed/designer/150/150", phone: "+237 600 00 00 05", whatsapp: "+237 600 00 00 05" },
   "GBHS26": { name: "Principal Fonka", role: "SCHOOL_ADMIN", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/p1/150/150", phone: "+237 600 11 11 11", whatsapp: "+237 600 11 11 11" },
-  "GBHS26A001": { name: "VP Academics", role: "SUB_ADMIN", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/subadmin/150/150", phone: "+237 600 22 22 22", whatsapp: "+237 600 22 22 22" },
   "GBHS26T001": { name: "Dr. Aris Tesla", role: "TEACHER", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/t1/150/150", phone: "+237 600 33 33 33", whatsapp: "+237 600 33 33 33" },
-  "GBHS26B001": { name: "Mme. Ngono Celine", role: "BURSAR", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/b1/150/150", phone: "+237 600 44 44 44", whatsapp: "+237 600 44 44 44" },
-  "GBHS26L001": { name: "Mr. Ebong", role: "LIBRARIAN", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/l1/150/150", phone: "+237 600 55 55 55", whatsapp: "+237 600 55 55 55" },
   "GBHS26S001": { name: "Alice Thompson", role: "STUDENT", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/s1/100/100", phone: "+237 600 66 66 66", whatsapp: "+237 600 66 66 66" },
-  "GBHS26P001": { name: "Mr. Robert Thompson", role: "PARENT", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/pa1/150/150", phone: "+237 677 00 11 22", whatsapp: "+237 677 00 11 22" }
 };
 
 const DEFAULT_FEES: PlatformFees = {
@@ -328,7 +308,7 @@ const DEFAULT_TUTORIALS: TutorialLinks = {
   SCHOOL_ADMIN: "https://youtube.com/watch?v=eduignite-admin",
   SUB_ADMIN: "https://youtube.com/watch?v=eduignite-subadmin",
   BURSAR: "https://youtube.com/watch?v=eduignite-bursar",
-  LIBRARian: "https://youtube.com/watch?v=eduignite-librarian",
+  LIBRARIAN: "https://youtube.com/watch?v=eduignite-librarian",
 };
 
 const PLATFORM_DEFAULTS: PlatformSettings = {
@@ -342,6 +322,7 @@ const PLATFORM_DEFAULTS: PlatformSettings = {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [userData, setUserData] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [liveClasses, setLiveClasses] = useState<LiveClass[]>([]);
   const [schools, setSchools] = useState<SchoolInfo[]>([]);
   const [testimonials, setTestimonials] = useState<Testimony[]>([]);
   const [communityBlogs, setCommunityBlogs] = useState<CommunityBlog[]>([]);
@@ -366,10 +347,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed)) {
-            return parsed.length > 0 ? parsed : defaultValue;
-          }
-          return { ...defaultValue, ...parsed };
+          return Array.isArray(parsed) ? (parsed.length > 0 ? parsed : defaultValue) : { ...defaultValue, ...parsed };
         } catch (e) {
           console.error(`Error loading registry ${key}`, e);
         }
@@ -377,11 +355,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return defaultValue;
     };
 
+    setLiveClasses(loadRegistry("live_classes", [
+      { id: "LC1", title: "Quantum Basics", subject: "Advanced Physics", teacherId: "mock_GBHS26T001", teacherName: "Dr. Aris Tesla", scheduledDateTime: new Date().toISOString(), duration: 60, meetingId: "QuantumBasicsNode1", status: "live" }
+    ]));
     setTestimonials(loadRegistry("testimonials", []));
     setCommunityBlogs(loadRegistry("community_blogs", INITIAL_BLOGS));
     setFeedbacks(loadRegistry("feedbacks", []));
     setOrders(loadRegistry("orders", []));
-    setAnnouncements(loadRegistry("announcements", INITIAL_ANNOUNCEMENTS));
+    setAnnouncements(loadRegistry("announcements", []));
     setPersonalChats(loadRegistry("personal_chats", []));
     setSupportContributions(loadRegistry("support", []));
     setSchools(loadRegistry("schools", INITIAL_SCHOOLS));
@@ -393,6 +374,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     if (!isLoading) {
+      localStorage.setItem("eduignite_live_classes", JSON.stringify(liveClasses));
       localStorage.setItem("eduignite_testimonials", JSON.stringify(testimonials));
       localStorage.setItem("eduignite_community_blogs", JSON.stringify(communityBlogs));
       localStorage.setItem("eduignite_feedbacks", JSON.stringify(feedbacks));
@@ -404,44 +386,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem("eduignite_events", JSON.stringify(publicEvents));
       localStorage.setItem("eduignite_platform", JSON.stringify(platformSettings));
     }
-  }, [testimonials, communityBlogs, feedbacks, orders, announcements, personalChats, supportContributions, schools, platformSettings, publicEvents, isLoading]);
+  }, [liveClasses, testimonials, communityBlogs, feedbacks, orders, announcements, personalChats, supportContributions, schools, platformSettings, publicEvents, isLoading]);
 
   const login = async (matricule: string) => {
     setIsLoading(true);
     const m = matricule.toUpperCase();
     const demoData = DEMO_ACCOUNTS[m] || { name: "Guest User", role: "STUDENT", schoolId: "GBHS-D", isLicensePaid: true };
-    
-    const schoolList = schools.length > 0 ? schools : INITIAL_SCHOOLS;
-    const assignedSchool = demoData.schoolId ? schoolList.find(s => s.id === demoData.schoolId) : undefined;
-
     const mockUser: User = {
-      id: m,
-      uid: `mock_${m}`,
-      name: demoData.name,
-      email: demoData.email || `${m.toLowerCase()}@eduignite.io`,
-      phone: demoData.phone || "+237 600 00 00 00",
-      whatsapp: demoData.whatsapp || "+237 600 00 00 00",
-      role: demoData.role,
-      schoolId: demoData.schoolId,
-      isLicensePaid: demoData.isLicensePaid,
-      avatar: demoData.avatar || `https://picsum.photos/seed/${m}/150/150`,
-      school: assignedSchool
+      id: m, uid: `mock_${m}`, name: demoData.name, email: `${m.toLowerCase()}@eduignite.io`,
+      phone: demoData.phone || "+237 600 00 00 00", whatsapp: demoData.whatsapp || "+237 600 00 00 00",
+      role: demoData.role, schoolId: demoData.schoolId, isLicensePaid: demoData.isLicensePaid,
+      avatar: demoData.avatar || `https://picsum.photos/seed/${m}/150/150`, school: INITIAL_SCHOOLS[0]
     };
-
     setUserData(mockUser);
     localStorage.setItem("eduignite_prototype_session", JSON.stringify(mockUser));
-    
-    const executiveRoles = ["CEO", "CTO", "COO", "INV", "SUPER_ADMIN", "DESIGNER"];
-    if (executiveRoles.includes(mockUser.role)) {
-      router.push("/dashboard");
-    } else {
-      router.push("/welcome");
-    }
+    router.push(["CEO", "CTO", "COO", "INV", "SUPER_ADMIN", "DESIGNER"].includes(mockUser.role) ? "/dashboard" : "/welcome");
     setIsLoading(false);
-  };
-
-  const activateAccount = async (matricule: string) => {
-    return login(matricule);
   };
 
   const updateUser = async (updates: Partial<User>) => {
@@ -462,103 +422,61 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setPlatformSettings(prev => ({ ...prev, ...updates }));
   };
 
-  const markLicensePaid = async () => {
-    await updateUser({ isLicensePaid: true });
-  };
+  const markLicensePaid = async () => await updateUser({ isLicensePaid: true });
+  const incrementAiRequest = async () => userData && await updateUser({ aiRequestCount: (userData.aiRequestCount || 0) + 1 });
 
-  const incrementAiRequest = async () => {
+  const addLiveClass = (session: Omit<LiveClass, "id" | "status" | "teacherId" | "teacherName" | "meetingId">) => {
     if (!userData) return;
-    await updateUser({ aiRequestCount: (userData.aiRequestCount || 0) + 1 });
+    const id = `LC-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+    const newClass: LiveClass = {
+      ...session,
+      id,
+      teacherId: userData.uid,
+      teacherName: userData.name,
+      meetingId: `${session.title.replace(/\s+/g, '')}-${id}`,
+      status: "upcoming"
+    };
+    setLiveClasses(prev => [newClass, ...prev]);
   };
 
-  const addTestimony = (t: Omit<Testimony, "id" | "status" | "createdAt">) => {
-    setTestimonials(prev => [{ ...t, id: Math.random().toString(36).substr(2, 9), status: "pending", createdAt: new Date() }, ...prev]);
-  };
-  const approveTestimony = (id: string) => {
-    setTestimonials(prev => prev.map(t => t.id === id ? { ...t, status: "approved" } : t));
-  };
-  const deleteTestimony = (id: string) => {
-    setTestimonials(prev => prev.filter(t => t.id !== id));
-  };
+  const deleteLiveClass = (id: string) => setLiveClasses(prev => prev.filter(c => c.id !== id));
 
-  const addCommunityBlog = (b: Omit<CommunityBlog, "id" | "createdAt">) => {
-    setCommunityBlogs(prev => [{ ...b, id: `BLOG-${Math.random().toString(36).substr(2, 5).toUpperCase()}`, createdAt: new Date() }, ...prev]);
-  };
-  const deleteCommunityBlog = (id: string) => {
-    setCommunityBlogs(prev => prev.filter(b => b.id !== id));
-  };
+  const addTestimony = (t: Omit<Testimony, "id" | "status" | "createdAt">) => setTestimonials(prev => [{ ...t, id: Math.random().toString(36).substr(2, 9), status: "pending", createdAt: new Date() }, ...prev]);
+  const approveTestimony = (id: string) => setTestimonials(prev => prev.map(t => t.id === id ? { ...t, status: "approved" } : t));
+  const deleteTestimony = (id: string) => setTestimonials(prev => prev.filter(t => t.id !== id));
 
-  const addFeedback = (f: Omit<Feedback, "id" | "status" | "createdAt">) => {
-    setFeedbacks(prev => [{ ...f, id: `FB-${Math.random().toString(36).substr(2, 5).toUpperCase()}`, status: "New", createdAt: new Date() }, ...prev]);
-  };
-  const resolveFeedback = (id: string) => {
-    setFeedbacks(prev => prev.map(f => f.id === id ? { ...f, status: "Resolved" } : f));
-  };
-  const deleteFeedback = (id: string) => {
-    setFeedbacks(prev => prev.filter(f => f.id !== id));
-  };
+  const addCommunityBlog = (b: Omit<CommunityBlog, "id" | "createdAt">) => setCommunityBlogs(prev => [{ ...b, id: `BLOG-${Math.random().toString(36).substr(2, 5).toUpperCase()}`, createdAt: new Date() }, ...prev]);
+  const deleteCommunityBlog = (id: string) => setCommunityBlogs(prev => prev.filter(b => b.id !== id));
 
-  const addOrder = (o: Omit<Order, "id" | "status" | "createdAt">) => {
-    setOrders(prev => [{ ...o, id: `ORD-${Math.random().toString(36).substr(2, 5).toUpperCase()}`, status: "pending", createdAt: new Date() }, ...prev]);
-  };
-  const processOrder = (id: string) => {
-    setOrders(prev => prev.map(o => o.id === id ? { ...o, status: "processed" } : o));
-  };
-  const deleteOrder = (id: string) => {
-    setOrders(prev => prev.filter(o => o.id !== id));
-  };
+  const addFeedback = (f: Omit<Feedback, "id" | "status" | "createdAt">) => setFeedbacks(prev => [{ ...f, id: `FB-${Math.random().toString(36).substr(2, 5).toUpperCase()}`, status: "New", createdAt: new Date() }, ...prev]);
+  const resolveFeedback = (id: string) => setFeedbacks(prev => prev.map(f => f.id === id ? { ...f, status: "Resolved" } : f));
+  const deleteFeedback = (id: string) => setFeedbacks(prev => prev.filter(f => f.id !== id));
 
-  const addAnnouncement = (a: Omit<Announcement, "id" | "createdAt">) => {
-    setAnnouncements(prev => [{ ...a, id: Math.random().toString(), createdAt: new Date() }, ...prev]);
-  };
-  const deleteAnnouncement = (id: string) => {
-    setAnnouncements(prev => prev.filter(a => a.id !== id));
-  };
+  const addOrder = (o: Omit<Order, "id" | "status" | "createdAt">) => setOrders(prev => [{ ...o, id: `ORD-${Math.random().toString(36).substr(2, 5).toUpperCase()}`, status: "pending", createdAt: new Date() }, ...prev]);
+  const processOrder = (id: string) => setOrders(prev => prev.map(o => o.id === id ? { ...o, status: "processed" } : o));
+  const deleteOrder = (id: string) => setOrders(prev => prev.filter(o => o.id !== id));
 
-  const addSchool = (s: Omit<SchoolInfo, "status">) => {
-    setSchools(prev => [{ ...s, status: "Active" }, ...prev]);
-  };
-  const toggleSchoolStatus = (id: string) => {
-    setSchools(prev => prev.map(s => s.id === id ? { ...s, status: s.status === 'Active' ? 'Suspended' : 'Active' } : s));
-  };
-  const deleteSchool = (id: string) => {
-    setSchools(prev => prev.filter(s => s.id !== id));
-  };
+  const addAnnouncement = (a: Omit<Announcement, "id" | "createdAt">) => setAnnouncements(prev => [{ ...a, id: Math.random().toString(), createdAt: new Date() }, ...prev]);
+  const deleteAnnouncement = (id: string) => setAnnouncements(prev => prev.filter(a => a.id !== id));
 
-  const addSupport = (c: Omit<SupportContribution, "id" | "status" | "createdAt">) => {
-    setSupportContributions(prev => [{ ...c, id: `SUP-${Math.random().toString(36).substr(2, 5).toUpperCase()}`, status: "New", createdAt: new Date() }, ...prev]);
-  };
+  const addSchool = (s: Omit<SchoolInfo, "status">) => setSchools(prev => [{ ...s, status: "Active" }, ...prev]);
+  const toggleSchoolStatus = (id: string) => setSchools(prev => prev.map(s => s.id === id ? { ...s, status: s.status === 'Active' ? 'Suspended' : 'Active' } : s));
+  const deleteSchool = (id: string) => setSchools(prev => prev.filter(s => s.id !== id));
+
+  const addSupport = (c: Omit<SupportContribution, "id" | "status" | "createdAt">) => setSupportContributions(prev => [{ ...c, id: `SUP-${Math.random().toString(36).substr(2, 5).toUpperCase()}`, status: "New", createdAt: new Date() }, ...prev]);
   const verifySupport = (id: string) => {
     setSupportContributions(prev => prev.map(c => {
       if (c.id === id) {
-        // Send Appreciation Message to Live Chat
-        const msg: PersonalChat = {
-          id: `MSG-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
-          senderId: "mock_EDUI26CEO001",
-          senderName: "EduIgnite CEO",
-          senderRole: "CEO",
-          senderAvatar: "https://picsum.photos/seed/ceo/150/150",
-          receiverId: c.uid,
-          text: `Dear ${c.userName}, We have verified your generous contribution. Your support is fueling the digital transformation of education across Africa. The EduIgnite community Love you dear, EduIgnite CEO.`,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          isOfficial: true
-        };
-        setPersonalChats(prevChats => [...prevChats, msg]);
+        setPersonalChats(pc => [...pc, { id: `MSG-${Math.random().toString(36).substr(2, 9).toUpperCase()}`, senderId: "mock_EDUI26CEO001", senderName: "EduIgnite CEO", senderRole: "CEO", senderAvatar: "https://picsum.photos/seed/ceo/150/150", receiverId: c.uid, text: `Dear ${c.userName}, verified! Love, CEO.`, timestamp: new Date().toLocaleTimeString(), isOfficial: true }]);
         return { ...c, status: "Verified" };
       }
       return c;
     }));
   };
-  const deleteSupport = (id: string) => {
-    setSupportContributions(prev => prev.filter(c => c.id !== id));
-  };
+  const deleteSupport = (id: string) => setSupportContributions(prev => prev.filter(c => c.id !== id));
 
-  const addPublicEvent = (e: Omit<PublicEvent, "id">) => {
-    setPublicEvents(prev => [{ ...e, id: `EVT-${Math.random().toString(36).substr(2, 5).toUpperCase()}` }, ...prev]);
-  };
-  const deletePublicEvent = (id: string) => {
-    setPublicEvents(prev => prev.filter(e => e.id !== id));
-  };
+  const addPublicEvent = (e: Omit<PublicEvent, "id">) => setPublicEvents(prev => [{ ...e, id: `EVT-${Math.random().toString(36).substr(2, 5).toUpperCase()}` }, ...prev]);
+  const deletePublicEvent = (id: string) => setPublicEvents(prev => prev.filter(e => e.id !== id));
 
   const logout = async () => {
     setUserData(null);
@@ -568,48 +486,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthContext.Provider value={{ 
-      user: userData, 
-      platformSettings,
-      testimonials,
-      communityBlogs,
-      feedbacks,
-      orders,
-      announcements,
-      personalChats,
-      supportContributions,
-      schools,
-      publicEvents,
-      login, 
-      activateAccount,
-      updateUser, 
-      updateSchool, 
-      updatePlatformSettings,
-      markLicensePaid, 
-      incrementAiRequest,
-      addTestimony,
-      approveTestimony,
-      deleteTestimony,
-      addCommunityBlog,
-      deleteCommunityBlog,
-      addFeedback,
-      resolveFeedback,
-      deleteFeedback,
-      addOrder,
-      processOrder,
-      deleteOrder,
-      addAnnouncement,
-      deleteAnnouncement,
-      addSchool,
-      toggleSchoolStatus,
-      deleteSchool,
-      addSupport,
-      verifySupport,
-      deleteSupport,
-      addPublicEvent,
-      deletePublicEvent,
-      logout, 
-      isAuthenticated: !!userData,
-      isLoading
+      user: userData, platformSettings, liveClasses, testimonials, communityBlogs, feedbacks, orders, announcements, personalChats, supportContributions, schools, publicEvents,
+      login, activateAccount: login, updateUser, updateSchool, updatePlatformSettings, markLicensePaid, incrementAiRequest, addLiveClass, deleteLiveClass, addTestimony, approveTestimony, deleteTestimony, addCommunityBlog, deleteCommunityBlog, addFeedback, resolveFeedback, deleteFeedback, addOrder, processOrder, deleteOrder, addAnnouncement, deleteAnnouncement, addSchool, toggleSchoolStatus, deleteSchool, addSupport, verifySupport, deleteSupport, addPublicEvent, deletePublicEvent, logout, isAuthenticated: !!userData, isLoading
     }}>
       {children}
     </AuthContext.Provider>

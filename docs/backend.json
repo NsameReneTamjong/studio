@@ -37,7 +37,7 @@
         "id": { "type": "string", "description": "The generated Matricule." },
         "uid": { "type": "string", "firebase": "auth.uid" },
         "name": { "type": "string" },
-        "role": { "type": "string", "enum": ["CEO", "CTO", "COO", "INV", "SCHOOL_ADMIN", "BURSAR", "LIBRARIAN", "TEACHER", "STUDENT", "PARENT", "SUPER_ADMIN"] },
+        "role": { "type": "string", "enum": ["CEO", "CTO", "COO", "INV", "SCHOOL_ADMIN", "BURSAR", "LIBRARIAN", "TEACHER", "STUDENT", "PARENT", "SUPER_ADMIN", "SUB_ADMIN"] },
         "schoolId": { "type": "string", "description": "Reference to School.id." },
         "email": { "type": "string", "format": "email" },
         "isLicensePaid": { "type": "boolean" },
@@ -46,6 +46,22 @@
         "section": { "type": "string" }
       },
       "required": ["id", "uid", "role", "email"]
+    },
+    "LiveClass": {
+      "title": "LiveClass",
+      "type": "object",
+      "description": "Virtual classroom session.",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "subject": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "teacherName": { "type": "string" },
+        "scheduledDateTime": { "type": "string", "format": "date-time" },
+        "duration": { "type": "number", "description": "Minutes" },
+        "meetingId": { "type": "string" },
+        "status": { "type": "string", "enum": ["upcoming", "live", "ended"] }
+      }
     },
     "Feedback": {
       "title": "Feedback",
@@ -123,6 +139,10 @@
         }
       },
       "description": "Global platform branding settings."
+    },
+    "/live_classes/{classId}": {
+      "schema": "#/entities/LiveClass",
+      "description": "Real-time pedagogical session records."
     },
     "/feedback/{fbId}": {
       "schema": "#/entities/Feedback",
