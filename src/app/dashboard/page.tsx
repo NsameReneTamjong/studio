@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
@@ -6,6 +5,7 @@ import { useI18n } from "@/lib/i18n-context";
 import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { 
   Users, 
   Building2, 
@@ -1456,7 +1456,6 @@ export default function DashboardPage() {
   if (isBursar) {
     return (
       <div className="space-y-8 pb-20 animate-in fade-in duration-500">
-        {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-primary rounded-[1.5rem] shadow-xl border-2 border-white">
@@ -1480,7 +1479,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { label: "Net Collection", value: "22.45M XAF", icon: Coins, color: "text-emerald-600", bg: "bg-emerald-50" },
@@ -1502,7 +1500,6 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <Card className="lg:col-span-8 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
             <CardHeader className="bg-primary/5 p-8 border-b flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -1518,7 +1515,7 @@ export default function DashboardPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={BURSAR_REVENUE_TRENDS}>
                   <defs>
-                    <linearGradient id="colorBursarRev" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="colorBursarRev" x1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#264D73" stopOpacity={0.15}/>
                       <stop offset="95%" stopColor="#264D73" stopOpacity={0}/>
                     </linearGradient>
@@ -1560,7 +1557,6 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        {/* Tables */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <Card className="lg:col-span-7 border-none shadow-xl overflow-hidden rounded-[2rem] bg-white">
             <CardHeader className="bg-white border-b p-8 flex items-center justify-between">
