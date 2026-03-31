@@ -378,6 +378,8 @@ export default function AcademicRewardsPage() {
 function CertificatePreview({ student, platform }: { student: any, platform: any }) {
   const date = new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
   const serial = `LIC-REWARD-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+  const schoolName = student?.school?.name || platform.name + " International College";
+  const termNumber = "Third Term (Annual)";
 
   return (
     <div id="honour-roll-print" className="bg-white p-12 md:p-24 border-[16px] border-double border-[#264D73]/20 shadow-2xl w-[1100px] md:w-full max-w-5xl mx-auto font-serif text-black relative overflow-hidden print:border-none print:shadow-none print:w-full">
@@ -416,7 +418,7 @@ function CertificatePreview({ student, platform }: { student: any, platform: any
 
         {/* TITLES */}
         <div className="text-center space-y-4">
-          <h2 className="text-[10px] font-black uppercase tracking-[0.5em] text-[#264D73]/60 mb-2">Institutional Academic Record</h2>
+          <h2 className="text-[10px] font-black uppercase tracking-[0.5em] text-[#264D73]/60 mb-2">{schoolName}</h2>
           <h1 className="text-6xl md:text-8xl font-black italic text-[#264D73] uppercase tracking-tighter leading-none drop-shadow-sm">Honor Roll</h1>
           <p className="text-2xl md:text-3xl font-bold uppercase tracking-[0.3em] text-[#FCD116] italic drop-shadow-sm">Certificate of Achievement</p>
         </div>
@@ -439,7 +441,7 @@ function CertificatePreview({ student, platform }: { student: any, platform: any
           </div>
 
           <div className="max-w-2xl mx-auto leading-relaxed text-lg md:text-xl font-medium text-gray-700 italic px-10">
-            For demonstrating exceptional academic commitment, exemplary discipline, and achieving a verified annual average of <span className="font-black text-[#264D73] underline decoration-[#FCD116] decoration-4 underline-offset-8">{student?.average || student?.annualAvg || "15.00"} / 20</span> during the current pedagogical cycle.
+            For demonstrating exceptional academic commitment during the <span className="font-black text-[#264D73]">{termNumber}</span> pedagogical cycle, and achieving a verified annual average of <span className="font-black text-[#264D73] underline decoration-[#FCD116] decoration-4 underline-offset-8">{student?.average || student?.annualAvg || "15.00"} / 20</span>.
           </div>
 
           <div className="py-6">
