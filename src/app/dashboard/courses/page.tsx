@@ -38,6 +38,7 @@ import {
   History,
   QrCode,
   MapPin,
+  XCircle
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n-context";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
@@ -66,10 +67,10 @@ const MOCK_TEACHERS = [
 ];
 
 const INITIAL_COURSES = [
-  { id: "PHY101", name: "Advanced Physics", instructorName: "Dr. Aris Tesla", instructorAvatar: "https://picsum.photos/seed/t1/200/200", targetClass: "2nde / Form 5", section: "Anglophone Section", type: "mandatory", coefficient: 4, color: "bg-blue-500", stats: { exams: 8, attendance: 92 } },
-  { id: "MAT101", name: "Mathematics", instructorName: "Prof. Sarah Smith", instructorAvatar: "https://picsum.photos/seed/t2/200/200", targetClass: "2nde / Form 5", section: "Anglophone Section", type: "mandatory", coefficient: 5, color: "bg-emerald-500", stats: { exams: 12, attendance: 95 } },
-  { id: "LIT105", name: "Modern Literature", instructorName: "Ms. Bennet", instructorAvatar: "https://picsum.photos/seed/t3/200/200", targetClass: "2nde / Form 5", section: "Anglophone Section", type: "optional", coefficient: 3, color: "bg-purple-500", stats: { exams: 4, attendance: 88 } },
-  { id: "ART202", name: "Fine Arts & Design", instructorName: "Mr. Abena", instructorAvatar: "https://picsum.photos/seed/t4/200/200", targetClass: "2nde / Form 5", section: "Francophone Section", type: "optional", coefficient: 2, color: "bg-rose-500", stats: { exams: 2, attendance: 90 } },
+  { id: "PHY101", name: "Advanced Physics", instructorName: "Dr. Aris Tesla", instructorAvatar: "https://picsum.photos/seed/t1/200/200", targetClass: "2nde / Form 5", section: "Anglophone Section", type: "mandatory", coefficient: 4, color: "bg-blue-500", stats: { exams: 8, attendance: 92, liveScheduled: 12, liveCompleted: 10, liveCancelled: 2 } },
+  { id: "MAT101", name: "Mathematics", instructorName: "Prof. Sarah Smith", instructorAvatar: "https://picsum.photos/seed/t2/200/200", targetClass: "2nde / Form 5", section: "Anglophone Section", type: "mandatory", coefficient: 5, color: "bg-emerald-500", stats: { exams: 12, attendance: 95, liveScheduled: 15, liveCompleted: 14, liveCancelled: 1 } },
+  { id: "LIT105", name: "Modern Literature", instructorName: "Ms. Bennet", instructorAvatar: "https://picsum.photos/seed/t3/200/200", targetClass: "2nde / Form 5", section: "Anglophone Section", type: "optional", coefficient: 3, color: "bg-purple-500", stats: { exams: 4, attendance: 88, liveScheduled: 8, liveCompleted: 6, liveCancelled: 2 } },
+  { id: "ART202", name: "Fine Arts & Design", instructorName: "Mr. Abena", instructorAvatar: "https://picsum.photos/seed/t4/200/200", targetClass: "2nde / Form 5", section: "Francophone Section", type: "optional", coefficient: 2, color: "bg-rose-500", stats: { exams: 2, attendance: 90, liveScheduled: 4, liveCompleted: 4, liveCancelled: 0 } },
 ];
 
 const INITIAL_MATERIALS = [
@@ -184,7 +185,7 @@ export default function CoursesPage() {
       setSubjects([...subjects, { 
         ...newSubject, 
         targetClass: newSubject.targetClasses.join(', '),
-        stats: { exams: 0, attendance: 0 } 
+        stats: { exams: 0, attendance: 0, liveScheduled: 0, liveCompleted: 0, liveCancelled: 0 } 
       }]);
       setIsProcessing(false);
       setIsAddingSubject(false);
@@ -455,7 +456,7 @@ export default function CoursesPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <Card className="lg:col-span-4 border-none shadow-sm overflow-hidden bg-white">
               <CardHeader className="bg-primary p-6 text-white text-center pb-8 relative">
-                <Avatar className="h-24 w-24 border-4 border-white/20 mx-auto shadow-2xl mb-4">
+                <Avatar className="h-24 w-24 border-4 border-white shadow-2xl mb-4">
                   <AvatarImage src={viewingMaterialsFor.instructorAvatar} alt={viewingMaterialsFor.instructorName} />
                   <AvatarFallback>{viewingMaterialsFor.instructorName.charAt(0)}</AvatarFallback>
                 </Avatar>
@@ -480,7 +481,7 @@ export default function CoursesPage() {
               </CardContent>
             </Card>
 
-            <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               <Card className="border-none shadow-sm bg-purple-50/50 group hover:shadow-md transition-all">
                 <CardContent className="pt-6">
                   <div className="flex justify-between items-center mb-2">
@@ -499,6 +500,38 @@ export default function CoursesPage() {
                   </div>
                   <div className="text-3xl font-black text-emerald-700">{viewingMaterialsFor.stats?.attendance || 0}%</div>
                   <p className="text-[9px] font-bold text-emerald-600/60 uppercase mt-1">Student Average</p>
+                </CardContent>
+              </Card>
+              
+              {/* Virtual Pedagogical Metrics */}
+              <Card className="border-none shadow-sm bg-blue-50/50 group hover:shadow-md transition-all">
+                <CardContent className="pt-6">
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Scheduled Live</p>
+                    <Video className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div className="text-3xl font-black text-blue-700">{viewingMaterialsFor.stats?.liveScheduled || 0}</div>
+                  <p className="text-[9px] font-bold text-blue-600/60 uppercase mt-1">Upcoming Virtual Nodes</p>
+                </CardContent>
+              </Card>
+              <Card className="border-none shadow-sm bg-green-50/50 group hover:shadow-md transition-all">
+                <CardContent className="pt-6">
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="text-[10px] font-black uppercase text-green-600 tracking-widest">Sessions Held</p>
+                    <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  </div>
+                  <div className="text-3xl font-black text-green-700">{viewingMaterialsFor.stats?.liveCompleted || 0}</div>
+                  <p className="text-[9px] font-bold text-green-600/60 uppercase mt-1">Completed Lectures</p>
+                </CardContent>
+              </Card>
+              <Card className="border-none shadow-sm bg-red-50/50 group hover:shadow-md transition-all">
+                <CardContent className="pt-6">
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="text-[10px] font-black uppercase text-red-600 tracking-widest">Cancelled</p>
+                    <XCircle className="w-4 h-4 text-red-600" />
+                  </div>
+                  <div className="text-3xl font-black text-red-700">{viewingMaterialsFor.stats?.liveCancelled || 0}</div>
+                  <p className="text-[9px] font-bold text-red-600/60 uppercase mt-1">Decommissioned Slots</p>
                 </CardContent>
               </Card>
             </div>
