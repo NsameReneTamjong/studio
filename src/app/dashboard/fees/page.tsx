@@ -108,7 +108,18 @@ export default function FeesPage() {
 
   const [students, setStudents] = useState(INITIAL_STUDENTS);
   const [transactions, setTransactions] = useState<any[]>([
-    { id: "PAY-001", student: "Alice Thompson", type: "Tuition Fee", amount: "50,000", method: "Cash", date: "24 May, 10:30 AM" },
+    { 
+      id: "TX-PAY-001", 
+      studentName: "Alice Thompson", 
+      studentId: "GBHS26S001", 
+      class: "2nde / Form 5", 
+      feeType: "Tuition Fee", 
+      amount: "50,000", 
+      method: "Cash", 
+      date: "24 May, 10:30 AM",
+      schoolName: INITIAL_STUDENTS[0].section,
+      bursar: "Official Bursar"
+    },
   ]);
 
   const isBursar = user?.role === "BURSAR";
@@ -179,7 +190,17 @@ export default function FeesPage() {
         bursar: user?.name || "Official Bursar"
       };
       
-      setTransactions(prev => [{ id: receipt.id, student: receipt.studentName, type: receipt.feeType, amount: receipt.amount, method: "Desk", date: "Just now" }, ...prev]);
+      setTransactions(prev => [{ 
+        id: receipt.id, 
+        studentName: receipt.studentName, 
+        studentId: receipt.studentId,
+        class: receipt.class,
+        feeType: receipt.feeType, 
+        amount: receipt.amount, 
+        method: "Desk", 
+        date: "Just now" 
+      }, ...prev]);
+      
       setIssuedReceipt(receipt);
       setIsProcessing(false);
       setSelectedStudentForPayment(null);
@@ -368,31 +389,38 @@ export default function FeesPage() {
         <TabsContent value="ledger" className="mt-0 space-y-6">
           <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
             <CardHeader className="bg-white border-b p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <CardTitle className="text-sm font-black uppercase tracking-widest text-primary">Transaction History</CardTitle>
-              <Button variant="outline" size="sm" className="rounded-xl h-9 text-[10px] font-bold gap-2"><Printer className="w-3.5 h-3.5"/> Print Ledger</Button>
+              <CardTitle className="text-sm font-black uppercase tracking-widest text-primary">Transaction History Registry</CardTitle>
+              <Button variant="outline" size="sm" className="rounded-xl h-9 text-[10px] font-bold gap-2"><Printer className="w-3.5 h-3.5"/> Print Full Ledger</Button>
             </CardHeader>
             <CardContent className="p-0 overflow-x-auto">
               <Table>
-                <TableHeader className="bg-accent/10 uppercase text-[10px] font-black tracking-widest">
+                <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest">
                   <TableRow>
-                    <TableHead className="pl-8 py-4">Ref Code</TableHead>
-                    <TableHead>Student</TableHead>
+                    <TableHead className="pl-8 py-4">Student Name</TableHead>
+                    <TableHead>Matricule</TableHead>
+                    <TableHead>Class</TableHead>
                     <TableHead>Fee Type</TableHead>
                     <TableHead className="text-center">Amount (XAF)</TableHead>
-                    <TableHead className="text-right pr-8">Status</TableHead>
+                    <TableHead className="text-right pr-8">Receipt</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {transactions.map((tx) => (
                     <TableRow key={tx.id} className="hover:bg-accent/5 h-14 border-b">
-                      <TableCell className="pl-8 font-mono text-[10px] font-bold text-primary">{tx.id}</TableCell>
-                      <TableCell className="font-bold text-xs uppercase">{tx.student}</TableCell>
-                      <TableCell className="text-xs font-medium">{tx.type}</TableCell>
+                      <TableCell className="pl-8 font-bold text-xs uppercase text-primary">{tx.studentName}</TableCell>
+                      <TableCell className="font-mono text-[10px] font-bold text-muted-foreground">{tx.studentId}</TableCell>
+                      <TableCell className="text-xs font-medium uppercase">{tx.class}</TableCell>
+                      <TableCell className="text-xs font-medium">{tx.feeType}</TableCell>
                       <TableCell className="text-center font-black text-sm text-primary">{tx.amount}</TableCell>
                       <TableCell className="text-right pr-8">
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-100 font-bold text-[8px] uppercase">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Secure
-                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-8 rounded-lg gap-2 text-[10px] font-black uppercase text-primary/60 hover:text-primary hover:bg-primary/5 transition-all"
+                          onClick={() => setIssuedReceipt(tx)}
+                        >
+                          <Eye className="w-3.5 h-3.5" /> View
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -681,8 +709,8 @@ export default function FeesPage() {
 
       {/* RECEIPT PREVIEW */}
       <Dialog open={!!issuedReceipt} onOpenChange={() => setIssuedReceipt(null)}>
-        <DialogContent className="sm:max-w-2xl p-0 border-none shadow-2xl rounded-[2rem] overflow-hidden">
-          <DialogHeader className="bg-primary p-8 text-white relative no-print">
+        <DialogContent className="sm:max-w-2xl p-0 border-none shadow-2xl rounded-[2rem] overflow-hidden flex flex-col max-h-[90vh]">
+          <DialogHeader className="bg-primary p-8 text-white no-print relative shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-white/10 rounded-2xl text-secondary"><Receipt className="w-8 h-8" /></div>
@@ -691,7 +719,7 @@ export default function FeesPage() {
             </div>
             <Button variant="ghost" size="icon" onClick={() => setIssuedReceipt(null)} className="absolute top-4 right-4 text-white/40 hover:text-white"><X className="w-6 h-6" /></Button>
           </DialogHeader>
-          <div className="bg-muted p-10 print:p-0 print:bg-white overflow-y-auto max-h-[70vh]">
+          <div className="bg-muted p-10 print:p-0 print:bg-white overflow-y-auto flex-1">
             <div id="printable-receipt" className="bg-white p-10 border-2 border-black shadow-sm relative flex flex-col space-y-8 font-serif text-black print:border-none print:shadow-none min-w-[350px]">
                <div className="flex justify-between items-center border-b-2 border-black pb-4">
                   <img src={user?.school?.logo || platformSettings.logo} alt="School" className="w-12 h-12 object-contain" />
@@ -720,9 +748,14 @@ export default function FeesPage() {
                </div>
             </div>
           </div>
-          <DialogFooter className="bg-accent/10 p-8 border-t no-print flex gap-4">
+          <DialogFooter className="bg-accent/10 p-8 border-t no-print flex gap-4 shrink-0">
             <Button variant="outline" className="flex-1 rounded-xl h-14 font-black uppercase tracking-widest text-xs" onClick={() => setIssuedReceipt(null)}>Close</Button>
-            <Button className="flex-1 rounded-xl h-14 shadow-2xl font-black uppercase tracking-widest text-xs gap-2 bg-primary text-white" onClick={() => window.print()}><Printer className="w-4 h-4" /> Print</Button>
+            <div className="flex flex-1 gap-2">
+              <Button variant="secondary" className="flex-1 rounded-xl h-14 font-black uppercase tracking-widest text-xs gap-2" onClick={() => toast({ title: "PDF Prepared" })}>
+                <Download className="w-4 h-4" /> Download
+              </Button>
+              <Button className="flex-1 rounded-xl h-14 shadow-2xl font-black uppercase tracking-widest text-xs gap-2 bg-primary text-white" onClick={() => window.print()}><Printer className="w-4 h-4" /> Print</Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
