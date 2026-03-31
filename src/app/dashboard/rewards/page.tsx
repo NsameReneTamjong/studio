@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useMemo } from "react";
@@ -130,7 +129,7 @@ export default function AcademicRewardsPage() {
                 <Badge variant="secondary" className="bg-secondary text-primary border-none font-black uppercase text-[10px] px-4 py-1 mb-4 shadow-xl">
                   HONOUR ROLL QUALIFIED
                 </Badge>
-                <CardTitle className="text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none">Congratulations, {user?.name}</CardTitle>
+                <CardTitle className="text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none">Congratulations, {user?.name?.split(' ')[0]}</CardTitle>
                 <CardDescription className="text-white/60 text-lg mt-4 font-medium max-w-xl">
                   Based on your annual average of <span className="text-secondary font-black">{studentAverage.toFixed(2)}</span>, you have been officially registered on the institutional Honour Roll.
                 </CardDescription>
@@ -310,8 +309,7 @@ export default function AcademicRewardsPage() {
           <Table>
             <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest border-b">
               <TableRow>
-                <TableHead className="pl-8 py-4">Matricule</TableHead>
-                <TableHead>Student Identity</TableHead>
+                <TableHead className="pl-8 py-4">Student Identity</TableHead>
                 <TableHead>Class Stream</TableHead>
                 <TableHead className="text-center">Mean Score</TableHead>
                 <TableHead className="text-right pr-8">Actions</TableHead>
@@ -320,11 +318,16 @@ export default function AcademicRewardsPage() {
             <TableBody>
               {eligibleStudents.map((s) => (
                 <TableRow key={s.id} className="hover:bg-primary/5 transition-colors h-16 border-b border-accent/10 last:border-0">
-                  <TableCell className="pl-8 font-mono text-[10px] font-bold text-primary">{s.id}</TableCell>
-                  <TableCell>
+                  <TableCell className="pl-8">
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-9 w-9 border shadow-sm ring-1 ring-accent"><AvatarImage src={s.avatar}/><AvatarFallback>{s.name.charAt(0)}</AvatarFallback></Avatar>
-                      <span className="font-bold text-sm text-primary uppercase">{s.name}</span>
+                      <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent shrink-0">
+                        <AvatarImage src={s.avatar}/>
+                        <AvatarFallback className="bg-primary/5 text-primary text-[10px] font-bold">{s.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <span className="font-bold text-sm text-primary uppercase leading-none mb-1">{s.name.split(' ')[0]}</span>
+                        <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase">{s.id}</span>
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell><span className="text-[10px] font-bold uppercase text-muted-foreground">{s.class}</span></TableCell>

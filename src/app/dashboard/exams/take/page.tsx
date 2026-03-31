@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -109,14 +108,14 @@ export default function TakeExamPage() {
                 <User className="h-4 w-4" />
               </AvatarFallback>
             </Avatar>
-            <div className="hidden sm:block overflow-hidden max-w-[120px]">
-              <p className="text-xs font-bold leading-none text-primary truncate">{user?.name}</p>
-              <p className="text-[9px] text-muted-foreground uppercase font-mono mt-1 truncate">{user?.id}</p>
+            <div className="hidden sm:block overflow-hidden">
+              <p className="text-xs font-black leading-none text-primary truncate uppercase">{user?.name?.split(' ')[0]}</p>
+              <p className="text-[9px] text-muted-foreground uppercase font-mono font-bold mt-1 truncate">{user?.id}</p>
             </div>
           </div>
 
           <div className="border-l pl-2 md:pl-4">
-            <h1 className="font-bold text-sm md:text-base line-clamp-1">Mid-Term Physics MCQ</h1>
+            <h1 className="font-bold text-sm md:text-base line-clamp-1 uppercase">Physics MCQ</h1>
             <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
               {currentQuestion + 1} / {MOCK_QUESTIONS.length}
             </p>

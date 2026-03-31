@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
@@ -256,7 +255,7 @@ export default function GradeBookPage() {
                 <div className="h-1.5 w-full bg-primary" />
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">
-                    <Badge variant="secondary" className="bg-primary/5 text-primary border-none text-[8px] font-black uppercase mb-2">Class Stream</Badge>
+                    <Badge variant="secondary" className="bg-primary/5 text-primary border-none font-black uppercase mb-2">Class Stream</Badge>
                     <div className="p-2 bg-accent rounded-xl"><LayoutGrid className="w-4 h-4 text-primary" /></div>
                   </div>
                   <CardTitle className="text-xl font-black text-primary uppercase leading-tight">{cls.name}</CardTitle>
@@ -345,7 +344,7 @@ export default function GradeBookPage() {
                   className="h-12 px-10 rounded-2xl font-black uppercase text-xs tracking-widest gap-2 shadow-lg"
                   onClick={() => setAdminView("registry")}
                 >
-                  <Eye className="w-4 h-4" /> Open Registry
+                  <Eye className="w-4 h-4" /> Open Register
                 </Button>
               </CardFooter>
             </Card>
@@ -430,8 +429,7 @@ export default function GradeBookPage() {
               <Table>
                 <TableHeader className="bg-accent/10 font-black text-[9px] uppercase border-b">
                   <TableRow>
-                    <TableHead className="pl-8 py-4">Matricule</TableHead>
-                    <TableHead>Student Profile</TableHead>
+                    <TableHead className="pl-8 py-4">Student Profile</TableHead>
                     <TableHead className="text-center">Seq 1</TableHead>
                     <TableHead className="text-center">Seq 2</TableHead>
                     <TableHead className="text-center">Status</TableHead>
@@ -445,14 +443,16 @@ export default function GradeBookPage() {
                     const s2 = subjectMarks.seq2;
                     return (
                       <TableRow key={s.uid} className="h-16 border-b last:border-0 hover:bg-accent/5">
-                        <TableCell className="pl-8 font-mono text-[10px] font-bold text-primary">{s.id}</TableCell>
-                        <TableCell>
+                        <TableCell className="pl-8">
                           <div className="flex items-center gap-3">
-                            <Avatar className="h-9 w-9 shrink-0 border-2 border-white shadow-sm ring-1 ring-accent">
+                            <Avatar className="h-10 w-10 shrink-0 border-2 border-white shadow-sm ring-1 ring-accent">
                               <AvatarImage src={s.avatar} />
                               <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
                             </Avatar>
-                            <span className="font-bold text-xs uppercase text-primary">{s.name}</span>
+                            <div className="flex flex-col">
+                              <span className="font-bold text-xs uppercase text-primary leading-none mb-1">{s.name.split(' ')[0]}</span>
+                              <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase">{s.id}</span>
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell className="text-center font-black">{s1.toFixed(2)}</TableCell>
@@ -547,7 +547,7 @@ export default function GradeBookPage() {
                         onCheckedChange={toggleAllArchiveStudents}
                       />
                     </TableHead>
-                    <TableHead>Student Name</TableHead>
+                    <TableHead>Student Profile</TableHead>
                     <TableHead className="text-center">Seq 1</TableHead>
                     <TableHead className="text-center">Seq 2</TableHead>
                     <TableHead className="text-center">Status</TableHead>
@@ -569,13 +569,13 @@ export default function GradeBookPage() {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-3">
-                            <Avatar className="h-9 w-9 shrink-0 border shadow-sm">
+                            <Avatar className="h-10 w-10 shrink-0 border-2 border-white shadow-sm ring-1 ring-accent">
                               <AvatarImage src={s.avatar} />
                               <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div className="flex flex-col">
-                              <span className="font-bold text-xs uppercase text-primary leading-none">{s.name}</span>
-                              <span className="text-[9px] font-mono text-muted-foreground mt-1">{s.id}</span>
+                              <span className="font-bold text-xs uppercase text-primary leading-none mb-1">{s.name.split(' ')[0]}</span>
+                              <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase">{s.id}</span>
                             </div>
                           </div>
                         </TableCell>
@@ -808,14 +808,25 @@ export default function GradeBookPage() {
         <CardContent className="p-0 overflow-x-auto">
           <Table>
             <TableHeader className="bg-accent/10 font-black text-[9px] uppercase border-b">
-              <TableRow><TableHead className="pl-8 py-4">Student Identity</TableHead><TableHead className="text-center">Seq 1</TableHead><TableHead className="text-center">Seq 2</TableHead><TableHead className="text-right pr-8">Status</TableHead></TableRow>
+              <TableRow><TableHead className="pl-8 py-4">Student Profile</TableHead><TableHead className="text-center">Seq 1</TableHead><TableHead className="text-center">Seq 2</TableHead><TableHead className="text-right pr-8">Status</TableHead></TableRow>
             </TableHeader>
             <TableBody>
               {MOCK_STUDENTS_GRADES.map(s => {
                 const subjectMarks = MOCK_SUBJECT_MARKS[selectedSubject]?.[s.uid] || { seq1: 0, seq2: 0 };
                 return (
                   <TableRow key={s.uid} className="h-16 border-b last:border-0 hover:bg-accent/5">
-                    <TableCell className="pl-8"><div className="flex items-center gap-3"><Avatar className="h-8 w-8 shrink-0"><AvatarImage src={s.avatar} /><AvatarFallback>{s.name.charAt(0)}</AvatarFallback></Avatar><span className="font-bold text-xs uppercase">{s.name}</span></div></TableCell>
+                    <TableCell className="pl-8">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent shrink-0">
+                          <AvatarImage src={s.avatar} alt={s.name} />
+                          <AvatarFallback className="bg-primary/5 text-primary text-[10px] font-bold">{s.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-xs uppercase text-primary leading-none mb-1">{s.name.split(' ')[0]}</span>
+                          <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase">{s.id}</span>
+                        </div>
+                      </div>
+                    </TableCell>
                     <TableCell className="text-center"><Input className="w-16 mx-auto h-9 text-center font-black border-primary/10" defaultValue={subjectMarks.seq1} disabled={!isTeacher || activeSequence !== 'seq1'} /></TableCell>
                     <TableCell className="text-center"><Input className="w-16 mx-auto h-9 text-center font-black border-primary/10" defaultValue={subjectMarks.seq2} disabled={!isTeacher || activeSequence !== 'seq2'} /></TableCell>
                     <TableCell className="text-right pr-8"><Badge className="bg-green-100 text-green-700">PASS</Badge></TableCell>

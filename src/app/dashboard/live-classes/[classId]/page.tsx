@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -31,7 +30,8 @@ import {
   Sparkles,
   Zap,
   Info,
-  X
+  X,
+  Fingerprint
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -235,24 +235,27 @@ export default function LiveClassRoomPage() {
                 <div className="space-y-4 py-6">
                   <p className="text-[9px] font-black uppercase text-slate-500 tracking-[0.3em] mb-6">Verified Node Registry</p>
                   {[
-                    { name: "Dr. Aris Tesla", role: "TEACHER", active: true },
-                    { name: "Alice Thompson", role: "STUDENT", active: true },
-                    { name: "Bob Richards", role: "STUDENT", active: true },
-                    { name: "Charlie Davis", role: "STUDENT", active: true },
-                    { name: "Diana Prince", role: "STUDENT", active: true },
+                    { name: "Dr. Aris Tesla", id: "GBHS26T001", role: "TEACHER", active: true },
+                    { name: "Alice Thompson", id: "GBHS26S001", role: "STUDENT", active: true },
+                    { name: "Bob Richards", id: "GBHS26S002", role: "STUDENT", active: true },
+                    { name: "Charlie Davis", id: "GBHS26S003", role: "STUDENT", active: true },
+                    { name: "Diana Prince", id: "GBHS26S004", role: "STUDENT", active: true },
                   ].map((p, i) => (
                     <div key={i} className="flex items-center justify-between group">
                       <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8 border border-white/10">
-                          <AvatarFallback className="text-[10px] font-bold">{p.name.charAt(0)}</AvatarFallback>
+                        <Avatar className="h-10 w-10 border-2 border-white/10 shadow-sm ring-1 ring-white/5">
+                          <AvatarFallback className="text-[10px] font-black text-slate-900 bg-white">{p.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="text-xs font-bold text-slate-200 uppercase leading-none mb-1">{p.name}</p>
-                          <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{p.role}</p>
+                          <p className="text-xs font-black text-slate-200 uppercase leading-none mb-1">{p.name.split(' ')[0]}</p>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-[7px] h-3.5 border-white/10 text-white/40 uppercase tracking-tighter px-1.5">{p.role}</Badge>
+                            <span className="text-[8px] font-mono font-bold text-slate-500 uppercase">{p.id}</span>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                         <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                      <div className="flex items-center gap-2">
+                         <div className={cn("w-1.5 h-1.5 rounded-full", p.active ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" : "bg-slate-700")} />
                       </div>
                     </div>
                   ))}

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -308,8 +307,7 @@ export default function StudentsPage() {
               <Table>
                 <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest border-b border-accent/20">
                   <TableRow>
-                    <TableHead className="pl-8 py-4">Matricule</TableHead>
-                    <TableHead>Student Identity</TableHead>
+                    <TableHead className="pl-8 py-4">Student Profile</TableHead>
                     <TableHead>Academic Level</TableHead>
                     <TableHead className="text-center">Status</TableHead>
                     {!isTeacher && <TableHead className="text-right pr-8">Actions</TableHead>}
@@ -318,16 +316,15 @@ export default function StudentsPage() {
                 <TableBody>
                   {filteredStudents.map((s) => (
                     <TableRow key={s.uid} className="group hover:bg-accent/5 transition-colors h-16 border-b last:border-0">
-                      <TableCell className="pl-8 font-mono text-[10px] font-bold text-primary">{s.id}</TableCell>
-                      <TableCell>
+                      <TableCell className="pl-8">
                         <div className="flex items-center gap-3">
                           <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent shrink-0">
                             <AvatarImage src={s.avatar} alt={s.name} />
                             <AvatarFallback className="bg-primary/5 text-primary text-xs font-bold">{s.name.charAt(0)}</AvatarFallback>
                           </Avatar>
                           <div className="flex flex-col">
-                            <span className="font-bold text-sm text-primary uppercase leading-none mb-1">{s.name}</span>
-                            <span className="text-[8px] font-black uppercase text-muted-foreground">{s.section}</span>
+                            <span className="font-bold text-sm text-primary leading-none mb-1">{s.name.split(' ')[0]}</span>
+                            <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase">{s.id}</span>
                           </div>
                         </div>
                       </TableCell>
@@ -406,7 +403,7 @@ export default function StudentsPage() {
                   <Table>
                     <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest">
                       <TableRow>
-                        <TableHead className="pl-8 py-4">Student Identity</TableHead>
+                        <TableHead className="pl-8 py-4">Student Profile</TableHead>
                         <TableHead>Current Class</TableHead>
                         <TableHead className="text-center">Annual Mean</TableHead>
                         <TableHead className="text-right pr-8">Transition Plan</TableHead>
@@ -417,7 +414,18 @@ export default function StudentsPage() {
                         const isPassed = (s.annualAvg || 0) >= 10;
                         return (
                           <TableRow key={s.uid} className="hover:bg-accent/5 h-16 border-b last:border-0">
-                            <TableCell className="pl-8 font-bold text-xs text-primary uppercase">{s.name}</TableCell>
+                            <TableCell className="pl-8">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-8 w-8 border-2 border-white shadow-sm ring-1 ring-accent shrink-0">
+                                  <AvatarImage src={s.avatar} alt={s.name} />
+                                  <AvatarFallback className="bg-primary/5 text-primary text-[8px] font-bold">{s.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex flex-col">
+                                  <span className="font-bold text-xs text-primary uppercase leading-none mb-1">{s.name.split(' ')[0]}</span>
+                                  <span className="text-[9px] font-mono font-bold text-muted-foreground uppercase">{s.id}</span>
+                                </div>
+                              </div>
+                            </TableCell>
                             <TableCell><span className="text-[10px] font-bold uppercase">{s.class}</span></TableCell>
                             <TableCell className="text-center font-black text-primary">{s.annualAvg?.toFixed(2)}</TableCell>
                             <TableCell className="text-right pr-8">
@@ -451,7 +459,7 @@ export default function StudentsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Identity Name</Label>
-                <Input value={newStudent.name} onChange={(e) => setNewStudent({...newStudent, name: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl font-bold" />
+                <Input value={newStudent.name} onChange={(e) => setNewStudent({...newStudent, name: e.target.value})} placeholder="e.g. John Smith" className="h-12 bg-accent/30 border-none rounded-xl font-bold" />
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Class Level</Label>

@@ -308,8 +308,7 @@ export default function AttendancePage() {
                   <Table>
                     <TableHeader className="bg-accent/30 uppercase text-[9px] font-black tracking-widest sticky top-0 z-10 border-b">
                       <TableRow>
-                        <TableHead className="pl-8 py-4">Student Profile</TableHead>
-                        <TableHead>Matricule</TableHead>
+                        <TableHead className="pl-8 py-4">Student Identity</TableHead>
                         <TableHead className="text-right pr-8">Presence Status</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -318,14 +317,16 @@ export default function AttendancePage() {
                         <TableRow key={s.id} className="hover:bg-accent/5 border-b border-accent/10 h-14">
                           <TableCell className="pl-8">
                             <div className="flex items-center gap-3">
-                              <Avatar className="h-8 w-8 border shadow-sm">
+                              <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent">
                                 <AvatarImage src={s.avatar} />
                                 <AvatarFallback className="text-[10px] font-bold">{s.name.charAt(0)}</AvatarFallback>
                               </Avatar>
-                              <span className="font-bold text-xs text-primary uppercase">{s.name}</span>
+                              <div className="flex flex-col">
+                                <span className="font-bold text-sm text-primary uppercase leading-none mb-1">{s.name.split(' ')[0]}</span>
+                                <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase">{s.id}</span>
+                              </div>
                             </div>
                           </TableCell>
-                          <TableCell className="font-mono text-[10px] font-bold opacity-60 uppercase">{s.id}</TableCell>
                           <TableCell className="text-right pr-8">
                             <Badge className={cn(
                               "text-[8px] font-black uppercase border-none px-2",
@@ -383,10 +384,13 @@ export default function AttendancePage() {
                       <TableRow key={s.id} className="hover:bg-accent/5 h-16 border-b">
                         <TableCell className="pl-8">
                           <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10 border shadow-sm"><AvatarImage src={s.avatar} /><AvatarFallback>{s.name.charAt(0)}</AvatarFallback></Avatar>
+                            <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent">
+                              <AvatarImage src={s.avatar} />
+                              <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
                             <div className="flex flex-col">
-                              <span className="font-bold text-sm text-primary uppercase">{s.name}</span>
-                              <span className="text-[10px] font-mono text-muted-foreground opacity-60 uppercase">{s.id}</span>
+                              <span className="font-bold text-sm text-primary uppercase leading-none mb-1">{s.name.split(' ')[0]}</span>
+                              <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase">{s.id}</span>
                             </div>
                           </div>
                         </TableCell>
@@ -616,8 +620,7 @@ export default function AttendancePage() {
               <Table>
                 <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest border-b">
                   <TableRow>
-                    <TableHead className="pl-8 py-4">Matricule</TableHead>
-                    <TableHead>Student Identity</TableHead>
+                    <TableHead className="pl-8 py-4">Student Identity</TableHead>
                     <TableHead className="text-right pr-8">Presence Status</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -626,14 +629,16 @@ export default function AttendancePage() {
                     const isAbsent = (idx + SUBJECTS.indexOf(selectedSubject)) % 6 === 0;
                     return (
                       <TableRow key={s.id} className="hover:bg-accent/5 h-16 border-b border-accent/10 last:border-0">
-                        <TableCell className="pl-8 font-mono text-[10px] font-bold text-primary uppercase">{s.id}</TableCell>
-                        <TableCell>
+                        <TableCell className="pl-8">
                           <div className="flex items-center gap-3">
                             <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent">
                               <AvatarImage src={s.avatar} />
                               <AvatarFallback className="text-[10px] font-bold">{s.name.charAt(0)}</AvatarFallback>
                             </Avatar>
-                            <span className="font-bold text-xs md:text-sm text-primary uppercase">{s.name}</span>
+                            <div className="flex flex-col">
+                              <span className="font-bold text-xs md:text-sm text-primary uppercase leading-none mb-1">{s.name.split(' ')[0]}</span>
+                              <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase">{s.id}</span>
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell className="text-right pr-8">
@@ -730,7 +735,6 @@ export default function AttendancePage() {
                 <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest border-b">
                   <TableRow>
                     <TableHead className="pl-8 py-4">Student Identity</TableHead>
-                    <TableHead>Matricule</TableHead>
                     <TableHead className="text-center">Days Present</TableHead>
                     <TableHead className="text-center">Days Absent</TableHead>
                     <TableHead className="text-right pr-8">Absence Rate (%)</TableHead>
@@ -746,11 +750,16 @@ export default function AttendancePage() {
                       <TableRow key={s.id} className="hover:bg-accent/5 h-16 border-b border-accent/10 last:border-0">
                         <TableCell className="pl-8">
                           <div className="flex items-center gap-3">
-                            <Avatar className="h-9 w-9 border shadow-sm"><AvatarImage src={s.avatar}/><AvatarFallback>{s.name.charAt(0)}</AvatarFallback></Avatar>
-                            <span className="font-bold text-xs md:text-sm text-primary uppercase">{s.name}</span>
+                            <Avatar className="h-10 w-10 border-2 border-white shadow-sm ring-1 ring-accent">
+                              <AvatarImage src={s.avatar} />
+                              <AvatarFallback>{s.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex flex-col">
+                              <span className="font-bold text-sm text-primary uppercase leading-none mb-1">{s.name.split(' ')[0]}</span>
+                              <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase">{s.id}</span>
+                            </div>
                           </div>
                         </TableCell>
-                        <TableCell className="font-mono text-xs font-bold text-muted-foreground">{s.id}</TableCell>
                         <TableCell className="text-center font-black text-green-600">{present}</TableCell>
                         <TableCell className="text-center font-black text-red-600">{absent}</TableCell>
                         <TableCell className="text-right pr-8">
