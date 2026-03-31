@@ -42,7 +42,11 @@ import {
   ImageIcon,
   CheckCircle2,
   FileDown,
-  Info
+  Info,
+  UserCheck,
+  RotateCcw,
+  ArrowRightLeft,
+  ArrowUpRight
 } from "lucide-react";
 import { 
   Dialog, 
@@ -69,16 +73,22 @@ import { Textarea } from "@/components/ui/textarea";
 const INITIAL_BOOKS = [
   { id: "B001", title: "Advanced Physics", author: "Dr. Tesla", category: "Science", available: 5, total: 10, cover: "https://picsum.photos/seed/phys/400/600", description: "In-depth study of thermodynamics.", isbn: "ISBN-922-X", borrowDuration: 7, overdueFee: 500 },
   { id: "B002", title: "Calculus II", author: "Prof. Smith", category: "Mathematics", available: 2, total: 5, cover: "https://picsum.photos/seed/math/400/600", description: "Comprehensive guide to integration.", isbn: "ISBN-102-M", borrowDuration: 5, overdueFee: 1000 },
+  { id: "B003", title: "Organic Chemistry", author: "Dr. White", category: "Science", available: 0, total: 8, cover: "https://picsum.photos/seed/chem/400/600", description: "Study of carbon compounds.", isbn: "ISBN-441-C", borrowDuration: 7, overdueFee: 500 },
+];
+
+const INITIAL_REQUESTS = [
+  { id: "REQ-001", studentName: "Charlie Davis", studentId: "GBHS26S003", bookTitle: "Advanced Physics", bookId: "B001", date: "Today, 09:15 AM", avatar: "https://picsum.photos/seed/s3/100/100" },
+  { id: "REQ-002", studentName: "Diana Prince", studentId: "GBHS26S004", bookTitle: "Calculus II", bookId: "B002", date: "Today, 10:30 AM", avatar: "https://picsum.photos/seed/s4/100/100" },
 ];
 
 const INITIAL_LOANS = [
-  { id: "LOAN-101", bookTitle: "Organic Chemistry", borrowerName: "Alice Thompson", borrowerId: "GBHS26S001", borrowDate: "May 15, 2024", returnDate: "May 29, 2024", status: "Active", avatar: "https://picsum.photos/seed/s1/100/100" },
+  { id: "LOAN-101", bookTitle: "Organic Chemistry", bookId: "B003", borrowerName: "Alice Thompson", borrowerId: "GBHS26S001", borrowDate: "May 15, 2024", returnDate: "May 29, 2024", status: "Active", avatar: "https://picsum.photos/seed/s1/100/100" },
+  { id: "LOAN-102", bookTitle: "Advanced Physics", bookId: "B001", borrowerName: "Bob Richards", borrowerId: "GBHS26S002", borrowDate: "May 10, 2024", returnDate: "May 17, 2024", status: "Overdue", avatar: "https://picsum.photos/seed/s2/100/100" },
 ];
 
 const MOCK_STUDENT_HISTORY = [
   { id: "H-101", title: "Organic Chemistry", author: "Dr. Tesla", borrowDate: "Mar 10, 2024", returnDate: "Mar 17, 2024", status: "Returned", fee: "0" },
   { id: "H-102", title: "Calculus II", author: "Prof. Smith", borrowDate: "Feb 05, 2024", returnDate: "Feb 15, 2024", status: "Returned", fee: "2,000" },
-  { id: "H-103", title: "Advanced Physics", author: "Dr. Tesla", borrowDate: "Jan 12, 2024", returnDate: "Jan 19, 2024", status: "Returned", fee: "0" },
 ];
 
 const MOCK_BORROWERS = [
@@ -95,6 +105,7 @@ export default function LibraryPage() {
   
   const [searchTerm, setSearchTerm] = useState("");
   const [books, setBooks] = useState(INITIAL_BOOKS);
+  const [requests, setRequests] = useState(INITIAL_REQUESTS);
   const [loans, setLoans] = useState(INITIAL_LOANS);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isAddingBook, setIsAddingBook] = useState(false);
@@ -173,6 +184,36 @@ export default function LibraryPage() {
     }, 1200);
   };
 
+  const handleIssueRequest = (request: any) => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      const newLoan = {
+        id: `LOAN-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
+        bookTitle: request.bookTitle,
+        bookId: request.bookId,
+        borrowerName: request.studentName,
+        borrowerId: request.studentId,
+        borrowDate: new Date().toLocaleDateString(),
+        returnDate: new Date(Date.now() + 86400000 * 7).toLocaleDateString(),
+        status: "Active",
+        avatar: request.avatar
+      };
+      setLoans([newLoan, ...loans]);
+      setRequests(prev => prev.filter(r => r.id !== request.id));
+      setIsProcessing(false);
+      toast({ title: "Volume Issued", description: `Request for ${request.bookTitle} finalized.` });
+    }, 1000);
+  };
+
+  const handleReturnBook = (loan: any) => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      setLoans(prev => prev.filter(l => l.id !== loan.id));
+      setIsProcessing(false);
+      toast({ title: "Return Verified", description: `${loan.bookTitle} has been returned to stock.` });
+    }, 1000);
+  };
+
   const handleUpdatePolicy = () => {
     setIsProcessing(true);
     setTimeout(() => {
@@ -228,8 +269,7 @@ export default function LibraryPage() {
               </DialogHeader>
               <div className="p-8 space-y-8 flex-1 overflow-y-auto bg-white">
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-                  {/* Left: Book Cover Preview */}
-                  <div className="md:col-span-4 space-y-4">
+                  <div className="md:col-span-4 space-y-4 text-center">
                     <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest text-center block">Volume Cover</Label>
                     <div className="aspect-[3/4] bg-accent/20 rounded-2xl border-2 border-dashed border-accent flex flex-col items-center justify-center overflow-hidden group relative shadow-inner">
                       {newBookData.cover ? (
@@ -250,7 +290,6 @@ export default function LibraryPage() {
                     />
                   </div>
 
-                  {/* Right: Book Details */}
                   <div className="md:col-span-8 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="md:col-span-2 space-y-2">
@@ -327,8 +366,12 @@ export default function LibraryPage() {
           <div className="text-3xl font-black text-blue-700">{books.length}</div>
         </Card>
         <Card className="border-none shadow-sm bg-purple-50 p-6 rounded-3xl group hover:shadow-md transition-all">
-          <p className="text-[10px] font-black uppercase text-purple-600 mb-2">Active Loans</p>
-          <div className="text-3xl font-black text-purple-700">{loans.length}</div>
+          <p className="text-[10px] font-black uppercase text-purple-600 mb-2">Pending Issue</p>
+          <div className="text-3xl font-black text-purple-700">{requests.length}</div>
+        </Card>
+        <Card className="border-none shadow-sm bg-amber-50 p-6 rounded-3xl group hover:shadow-md transition-all">
+          <p className="text-[10px] font-black uppercase text-amber-600 mb-2">Active Loans</p>
+          <div className="text-3xl font-black text-amber-700">{loans.length}</div>
         </Card>
         <Card className="border-none shadow-sm bg-emerald-50 p-6 rounded-3xl group hover:shadow-md transition-all">
           <p className="text-[10px] font-black uppercase text-emerald-600 mb-2">Node Capacity</p>
@@ -339,17 +382,21 @@ export default function LibraryPage() {
       <Tabs defaultValue="catalog" className="w-full">
         <TabsList className={cn(
           "grid w-full mb-8 bg-white shadow-sm border h-auto p-1.5 rounded-[2rem]", 
-          isLibrarian ? "grid-cols-4 md:w-[800px]" : 
+          isLibrarian ? "grid-cols-5 md:w-[1000px]" : 
           isManagement ? "grid-cols-3 md:w-[600px]" : 
           "grid-cols-3 md:w-[600px]"
         )}>
           <TabsTrigger value="catalog" className="gap-2 py-3 rounded-2xl transition-all font-bold"><BookOpen className="w-4 h-4" /> Catalog</TabsTrigger>
-          {isManagement ? (
+          {isLibrarian && (
             <>
-              <TabsTrigger value="circulation" className="gap-2 py-3 rounded-2xl transition-all font-bold"><Clock className="w-4 h-4" /> Circulation</TabsTrigger>
-              <TabsTrigger value="history" className="gap-2 py-3 rounded-2xl transition-all font-bold"><History className="w-4 h-4" /> Registry</TabsTrigger>
+              <TabsTrigger value="issue-queue" className="gap-2 py-3 rounded-2xl transition-all font-bold"><ArrowUpRight className="w-4 h-4" /> Issue Queue</TabsTrigger>
+              <TabsTrigger value="return-desk" className="gap-2 py-3 rounded-2xl transition-all font-bold"><RotateCcw className="w-4 h-4" /> Return Desk</TabsTrigger>
             </>
-          ) : (
+          )}
+          {isManagement && (
+            <TabsTrigger value="history" className="gap-2 py-3 rounded-2xl transition-all font-bold"><History className="w-4 h-4" /> Registry</TabsTrigger>
+          )}
+          {!isManagement && (
             <>
               <TabsTrigger value="my-loans" className="gap-2 py-3 rounded-2xl transition-all font-bold"><BookMarked className="w-4 h-4" /> My Loans</TabsTrigger>
               <TabsTrigger value="history" className="gap-2 py-3 rounded-2xl transition-all font-bold"><History className="w-4 h-4" /> My History</TabsTrigger>
@@ -418,58 +465,145 @@ export default function LibraryPage() {
           </div>
         </TabsContent>
 
-        {isManagement && (
-          <>
-            <TabsContent value="circulation" className="animate-in fade-in slide-in-from-bottom-2">
-              <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
-                <CardContent className="p-0 overflow-x-auto">
-                  <Table>
-                    <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest border-b">
-                      <TableRow>
-                        <TableHead className="pl-8 py-4">Borrower Identity</TableHead>
-                        <TableHead>Requested Volume</TableHead>
-                        <TableHead className="text-center">Due for Return</TableHead>
-                        <TableHead className="text-right pr-8">Lifecycle</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {loans.map(loan => (
-                        <TableRow key={loan.id} className="h-16 border-b group hover:bg-accent/5">
-                          <TableCell className="pl-8">
-                            <div className="flex items-center gap-3">
-                              <Avatar className="h-9 w-9 border-2 border-white shadow-sm ring-1 ring-accent">
-                                <AvatarImage src={loan.avatar} />
-                                <AvatarFallback className="bg-primary/5 text-primary text-[10px] font-bold">{loan.borrowerName.charAt(0)}</AvatarFallback>
-                              </Avatar>
-                              <div className="flex flex-col">
-                                <span className="font-bold text-xs md:text-sm text-primary uppercase leading-none mb-1">{loan.borrowerName}</span>
-                                <span className="text-[9px] font-mono text-muted-foreground uppercase">{loan.borrowerId}</span>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-black text-xs uppercase text-primary">{loan.bookTitle}</TableCell>
-                          <TableCell className="text-center font-mono text-[10px] font-bold text-muted-foreground">
-                            <div className="flex items-center justify-center gap-2">
-                              <Clock className="w-3.5 h-3.5 text-primary/40" />
-                              {loan.returnDate}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right pr-8">
-                            <Badge className="text-[8px] font-black uppercase px-3 h-6 border-none bg-green-100 text-green-700">
-                              {loan.status}
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </>
-        )}
+        <TabsContent value="issue-queue" className="animate-in fade-in slide-in-from-bottom-2 mt-0">
+          <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+            <CardHeader className="border-b p-8 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-xl font-black text-primary uppercase tracking-tight">Pending Issue Requests</CardTitle>
+                <CardDescription>Review and authorize student borrowing requests.</CardDescription>
+              </div>
+              <Badge variant="secondary" className="bg-purple-100 text-purple-700 border-none font-black h-7 px-4">
+                {requests.length} REQUESTS
+              </Badge>
+            </CardHeader>
+            <CardContent className="p-0 overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest border-b">
+                  <TableRow>
+                    <TableHead className="pl-8 py-4">Requester Identity</TableHead>
+                    <TableHead>Requested Volume</TableHead>
+                    <TableHead className="text-center">Requested On</TableHead>
+                    <TableHead className="text-right pr-8">Operational Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {requests.map(req => (
+                    <TableRow key={req.id} className="h-16 border-b hover:bg-accent/5 transition-colors">
+                      <TableCell className="pl-8">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-9 w-9 border-2 border-white shadow-sm">
+                            <AvatarImage src={req.avatar} />
+                            <AvatarFallback>{req.studentName.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-bold text-sm text-primary uppercase leading-none mb-1">{req.studentName}</p>
+                            <p className="text-[9px] font-mono text-muted-foreground uppercase">{req.studentId}</p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-black text-xs uppercase text-primary">{req.bookTitle}</TableCell>
+                      <TableCell className="text-center text-[10px] font-bold text-muted-foreground">{req.date}</TableCell>
+                      <TableCell className="text-right pr-8">
+                        <Button 
+                          size="sm" 
+                          className="h-9 rounded-xl font-black uppercase text-[10px] shadow-md gap-2"
+                          onClick={() => handleIssueRequest(req)}
+                          disabled={isProcessing}
+                        >
+                          {isProcessing ? <Loader2 className="w-3 h-3 animate-spin" /> : <ArrowRightLeft className="w-3.5 h-3.5" />}
+                          Finalize Issue
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {requests.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-20 text-muted-foreground italic">No pending requests found in the queue.</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        {/* UNIFIED HISTORY CONTENT */}
+        <TabsContent value="return-desk" className="animate-in fade-in slide-in-from-bottom-2 mt-0">
+          <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+            <CardHeader className="border-b p-8 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-xl font-black text-primary uppercase tracking-tight">Loan Return Desk</CardTitle>
+                <CardDescription>Process returns and verify volume integrity.</CardDescription>
+              </div>
+              <Badge variant="secondary" className="bg-amber-100 text-amber-700 border-none font-black h-7 px-4">
+                {loans.length} ACTIVE LOANS
+              </Badge>
+            </CardHeader>
+            <CardContent className="p-0 overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest border-b">
+                  <TableRow>
+                    <TableHead className="pl-8 py-4">Borrower Identity</TableHead>
+                    <TableHead>Volume Held</TableHead>
+                    <TableHead className="text-center">Due for Return</TableHead>
+                    <TableHead className="text-center">Lifecycle</TableHead>
+                    <TableHead className="text-right pr-8">Return Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loans.map(loan => (
+                    <TableRow key={loan.id} className="h-16 border-b group hover:bg-accent/5">
+                      <TableCell className="pl-8">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-9 w-9 border-2 border-white shadow-sm">
+                            <AvatarImage src={loan.avatar} />
+                            <AvatarFallback>{loan.borrowerName.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex flex-col">
+                            <span className="font-bold text-sm text-primary uppercase leading-none mb-1">{loan.borrowerName}</span>
+                            <span className="text-[9px] font-mono text-muted-foreground uppercase">{loan.borrowerId}</span>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-black text-xs uppercase text-primary">{loan.bookTitle}</TableCell>
+                      <TableCell className="text-center font-mono text-[10px] font-bold text-muted-foreground">
+                        <div className="flex items-center justify-center gap-2">
+                          <Clock className="w-3.5 h-3.5 text-primary/40" />
+                          {loan.returnDate}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge className={cn(
+                          "text-[8px] font-black uppercase px-2 h-5 border-none",
+                          loan.status === 'Overdue' ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
+                        )}>
+                          {loan.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <Button 
+                          size="sm" 
+                          variant="secondary"
+                          className="h-9 rounded-xl font-black uppercase text-[10px] shadow-sm gap-2"
+                          onClick={() => handleReturnBook(loan)}
+                          disabled={isProcessing}
+                        >
+                          {isProcessing ? <Loader2 className="w-3 h-3 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />}
+                          Verify Return
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {loans.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-20 text-muted-foreground italic">No active loans currently in circulation.</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="history" className="animate-in fade-in slide-in-from-bottom-2">
           {isManagement ? (
             <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
@@ -752,5 +886,14 @@ export default function LibraryPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function SignatureSVG({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M15 30L85 10" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" strokeDasharray="2 2" />
+    </svg>
   );
 }
