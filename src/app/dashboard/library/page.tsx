@@ -52,6 +52,13 @@ import {
   DialogFooter, 
   DialogTrigger 
 } from "@/components/ui/dialog";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -73,6 +80,12 @@ const MOCK_STUDENT_HISTORY = [
   { id: "H-103", title: "Advanced Physics", author: "Dr. Tesla", borrowDate: "Jan 12, 2024", returnDate: "Jan 19, 2024", status: "Returned", fee: "0" },
 ];
 
+const MOCK_BORROWERS = [
+  { id: "GBHS26S001", name: "Alice Thompson" },
+  { id: "GBHS26S002", name: "Bob Richards" },
+  { id: "GBHS26S003", name: "Charlie Davis" },
+];
+
 export default function LibraryPage() {
   const { user } = useAuth();
   const { language } = useI18n();
@@ -81,9 +94,13 @@ export default function LibraryPage() {
   
   const [searchTerm, setSearchTerm] = useState("");
   const [books, setBooks] = useState(INITIAL_BOOKS);
-  const [loans] = useState(INITIAL_LOANS);
+  const [loans, setLoans] = useState(INITIAL_LOANS);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isAddingBook, setIsAddingBook] = useState(false);
+  
+  // Borrowing State
+  const [selectedBookForLoan, setSelectedBookForLoan] = useState<any>(null);
+  const [borrowerData, setBorrowerData] = useState({ studentId: "", duration: "7" });
 
   const [libraryPolicy, setLibraryPolicy] = useState({
     defaultDuration: 7,
@@ -130,6 +147,29 @@ export default function LibraryPage() {
       });
       toast({ title: "Catalog Updated", description: "New volume has been registered to the node." });
     }, 800);
+  };
+
+  const handleIssueLoan = () => {
+    if (!borrowerData.studentId) return;
+    setIsProcessing(true);
+    setTimeout(() => {
+      const student = MOCK_BORROWERS.find(s => s.id === borrowerData.studentId);
+      const newLoan = {
+        id: `LOAN-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
+        bookTitle: selectedBookForLoan.title,
+        borrowerName: student?.name || "Unknown",
+        borrowerId: borrowerData.studentId,
+        borrowDate: new Date().toLocaleDateString(),
+        returnDate: new Date(Date.now() + 86400000 * 7).toLocaleDateString(),
+        status: "Active",
+        avatar: "https://picsum.photos/seed/borrower/100/100"
+      };
+      setLoans([newLoan, ...loans]);
+      setIsProcessing(false);
+      setSelectedBookForLoan(null);
+      setBorrowerData({ studentId: "", duration: "7" });
+      toast({ title: "Loan Recorded", description: `Issued to ${student?.name}` });
+    }, 1200);
   };
 
   const handleUpdatePolicy = () => {
@@ -364,7 +404,11 @@ export default function LibraryPage() {
                    </div>
                 </CardContent>
                 <CardFooter className="p-6 pt-2">
-                  <Button className="w-full h-12 text-xs font-black uppercase tracking-widest shadow-lg rounded-2xl bg-primary text-white hover:bg-primary/90 transition-all active:scale-95" disabled={book.available === 0}>
+                  <Button 
+                    className="w-full h-12 text-xs font-black uppercase tracking-widest shadow-lg rounded-2xl bg-primary text-white hover:bg-primary/90 transition-all active:scale-95" 
+                    disabled={book.available === 0}
+                    onClick={() => setSelectedBookForLoan(book)}
+                  >
                     <BookMarked className="w-4 h-4 mr-2" /> Borrow Volume
                   </Button>
                 </CardFooter>
@@ -659,6 +703,53 @@ export default function LibraryPage() {
           </TabsContent>
         )}
       </Tabs>
+
+      {/* BORROW VOLUME DIALOG */}
+      <Dialog open={!!selectedBookForLoan} onOpenChange={() => setSelectedBookForLoan(null)}>
+        <DialogContent className="sm:max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="bg-primary p-8 text-white relative">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/10 rounded-xl">
+                <BookMarked className="w-8 h-8 text-secondary" />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-black uppercase">Loan Authorization</DialogTitle>
+                <DialogDescription className="text-white/60">Borrowing: {selectedBookForLoan?.title}</DialogDescription>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setSelectedBookForLoan(null)} className="absolute top-4 right-4 text-white hover:bg-white/10">
+              <X className="w-6 h-6" />
+            </Button>
+          </DialogHeader>
+          <div className="p-8 space-y-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Identity of Borrower</Label>
+                <Select value={borrowerData.studentId} onValueChange={(v) => setBorrowerData({...borrowerData, studentId: v})}>
+                  <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold">
+                    <SelectValue placeholder="Search Student Registry..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MOCK_BORROWERS.map(s => <SelectItem key={s.id} value={s.id}>{s.name} ({s.id})</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 flex items-center gap-3">
+                <Info className="w-5 h-5 text-primary opacity-40" />
+                <p className="text-[10px] text-muted-foreground italic leading-relaxed">
+                  By clicking finalize, you acknowledge that the student is verified and eligible for library services.
+                </p>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+            <Button className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3" onClick={handleIssueLoan} disabled={isProcessing || !borrowerData.studentId}>
+              {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-5 h-5 text-secondary" />}
+              Finalize Loan Registry
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

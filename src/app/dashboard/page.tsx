@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
@@ -63,7 +64,8 @@ import {
   Receipt,
   Printer,
   Heart,
-  Plus
+  Plus,
+  X
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -88,9 +90,12 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 const DATA_PERIODS = {
   weekly: [
@@ -99,7 +104,7 @@ const DATA_PERIODS = {
     { name: 'Wed', users: 180, revenue: 48000, loans: 15 },
     { name: 'Thu', users: 210, revenue: 61000, loans: 24 },
     { name: 'Fri', users: 250, revenue: 55000, loans: 30 },
-    { name: 'Sat', users: 190, revenue: 32000, loans: 8 },
+    { name: 'Sat', users: 190, usersRevenue: 32000, loans: 8 },
     { name: 'Sun', users: 110, revenue: 28000, loans: 5 },
   ],
   monthly: [
@@ -244,13 +249,36 @@ const PARENT_RECENT_MARKS = [
   { child: "Alice", subject: "Calculus", seq: "Seq 2", mark: "17.0/20", teacher: "Prof. Smith", date: "Yesterday" },
 ];
 
+// Mock for Librarian Loan functionality
+const MOCK_BOOKS = [
+  { id: "B001", title: "Advanced Physics" },
+  { id: "B002", title: "Calculus II" },
+  { id: "B003", title: "Organic Chemistry" },
+];
+
+const MOCK_STUDENTS_LIST = [
+  { id: "GBHS26S001", name: "Alice Thompson" },
+  { id: "GBHS26S002", name: "Bob Richards" },
+  { id: "GBHS26S003", name: "Charlie Davis" },
+];
+
 export default function DashboardPage() {
   const { user, schools, isLoading: isAuthLoading } = useAuth();
   const { t, language } = useI18n();
+  const { toast } = useToast();
 
   const [timePeriod, setTimePeriod] = useState<"weekly" | "monthly" | "yearly">("monthly");
   const [selectedSchoolId, setSelectedSchoolId] = useState("all");
   const [isDataSyncing, setIsDataSyncing] = useState(true);
+
+  // Librarian Loan State
+  const [isIssuingLoan, setIsIssuingLoan] = useState(false);
+  const [isProcessingLoan, setIsProcessingLoan] = useState(false);
+  const [loanFormData, setLoanFormData] = useState({
+    studentId: "",
+    bookId: "",
+    duration: "7"
+  });
 
   useEffect(() => {
     const timer = setTimeout(() => setIsDataSyncing(false), 800);
@@ -271,6 +299,20 @@ export default function DashboardPage() {
       systemHealth: "Optimal"
     };
   }, [schools]);
+
+  const handleIssueLoan = () => {
+    if (!loanFormData.studentId || !loanFormData.bookId) {
+      toast({ variant: "destructive", title: "Form Incomplete", description: "Select a student and a volume." });
+      return;
+    }
+    setIsProcessingLoan(true);
+    setTimeout(() => {
+      setIsProcessingLoan(false);
+      setIsIssuingLoan(false);
+      setLoanFormData({ studentId: "", bookId: "", duration: "7" });
+      toast({ title: "Loan Recorded", description: "Pedagogical materials issued to student node." });
+    }, 1500);
+  };
 
   if (isAuthLoading || !user) {
     return (
@@ -426,7 +468,7 @@ export default function DashboardPage() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeights: 'bold' }} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
                   <RechartsTooltip 
                     contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
@@ -1266,7 +1308,10 @@ export default function DashboardPage() {
             <Button asChild variant="outline" className="h-11 px-6 rounded-xl font-bold border-primary/10 bg-white gap-2 shadow-sm">
               <Link href="/dashboard/library"><Book className="w-4 h-4 text-primary" /> Manage Catalog</Link>
             </Button>
-            <Button className="h-11 px-8 shadow-xl font-black uppercase tracking-widest text-[10px] gap-2 rounded-xl">
+            <Button 
+              className="h-11 px-8 shadow-xl font-black uppercase tracking-widest text-[10px] gap-2 rounded-xl"
+              onClick={() => setIsIssuingLoan(true)}
+            >
               <Plus className="w-4 h-4" /> Issue Loan
             </Button>
           </div>
@@ -1450,6 +1495,73 @@ export default function DashboardPage() {
             </CardFooter>
           </Card>
         </div>
+
+        {/* LOAN ISSUANCE DIALOG */}
+        <Dialog open={isIssuingLoan} onOpenChange={setIsIssuingLoan}>
+          <DialogContent className="sm:max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
+            <DialogHeader className="bg-primary p-8 text-white relative">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-xl">
+                  <BookMarked className="w-8 h-8 text-secondary" />
+                </div>
+                <div>
+                  <DialogTitle className="text-2xl font-black">Issue Material Loan</DialogTitle>
+                  <DialogDescription className="text-white/60">Registry authorization for pedagogical volumes.</DialogDescription>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setIsIssuingLoan(false)} className="absolute top-4 right-4 text-white hover:bg-white/10">
+                <X className="w-6 h-6" />
+              </Button>
+            </DialogHeader>
+            <div className="p-8 space-y-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Select Student (Matricule)</Label>
+                  <Select value={loanFormData.studentId} onValueChange={(v) => setLoanFormData({...loanFormData, studentId: v})}>
+                    <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold">
+                      <SelectValue placeholder="Choose Borrower..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MOCK_STUDENTS_LIST.map(s => <SelectItem key={s.id} value={s.id}>{s.name} ({s.id})</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Select Volume</Label>
+                  <Select value={loanFormData.bookId} onValueChange={(v) => setLoanFormData({...loanFormData, bookId: v})}>
+                    <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold">
+                      <SelectValue placeholder="Choose Book..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MOCK_BOOKS.map(b => <SelectItem key={b.id} value={b.id}>{b.title}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Standard Duration</Label>
+                  <div className="flex gap-2">
+                    {["7", "14", "21"].map(d => (
+                      <Button 
+                        key={d}
+                        variant={loanFormData.duration === d ? "default" : "outline"}
+                        className={cn("flex-1 h-11 rounded-xl font-black", loanFormData.duration === d ? "bg-primary text-white" : "border-primary/10")}
+                        onClick={() => setLoanFormData({...loanFormData, duration: d})}
+                      >
+                        {d} Days
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+              <Button className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3" onClick={handleIssueLoan} disabled={isProcessingLoan}>
+                {isProcessingLoan ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5 text-secondary" />}
+                Authorize Loan Issue
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
@@ -1755,5 +1867,13 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function SignatureSVG({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
   );
 }
