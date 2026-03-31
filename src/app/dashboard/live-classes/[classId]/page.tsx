@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -50,7 +49,7 @@ interface ChatMessage {
   avatar: string;
 }
 
-// Larger mock participant list to test scrolling
+// Expanded mock participant list to test high-traffic scrolling
 const MOCK_PARTICIPANTS = [
   { name: "Alice Thompson", id: "GBHS26S001", avatar: "https://picsum.photos/seed/s1/100/100" },
   { name: "Bob Richards", id: "GBHS26S002", avatar: "https://picsum.photos/seed/s2/100/100" },
@@ -64,6 +63,20 @@ const MOCK_PARTICIPANTS = [
   { name: "Julia Roberts", id: "GBHS26S010", avatar: "https://picsum.photos/seed/s10/100/100" },
   { name: "Kevin Hart", id: "GBHS26S011", avatar: "https://picsum.photos/seed/s11/100/100" },
   { name: "Lisa Kudrow", id: "GBHS26S012", avatar: "https://picsum.photos/seed/s12/100/100" },
+  { name: "Michael Jordan", id: "GBHS26S013", avatar: "https://picsum.photos/seed/s13/100/100" },
+  { name: "Nancy Wheeler", id: "GBHS26S014", avatar: "https://picsum.photos/seed/s14/100/100" },
+  { name: "Oscar Isaac", id: "GBHS26S015", avatar: "https://picsum.photos/seed/s15/100/100" },
+  { name: "Paul Rudd", id: "GBHS26S016", avatar: "https://picsum.photos/seed/s16/100/100" },
+  { name: "Quentin Blake", id: "GBHS26S017", avatar: "https://picsum.photos/seed/s17/100/100" },
+  { name: "Riley Reid", id: "GBHS26S018", avatar: "https://picsum.photos/seed/s18/100/100" },
+  { name: "Steve Rogers", id: "GBHS26S019", avatar: "https://picsum.photos/seed/s19/100/100" },
+  { name: "Tony Stark", id: "GBHS26S020", avatar: "https://picsum.photos/seed/s20/100/100" },
+  { name: "Ursula K", id: "GBHS26S021", avatar: "https://picsum.photos/seed/s21/100/100" },
+  { name: "Victor Von", id: "GBHS26S022", avatar: "https://picsum.photos/seed/s22/100/100" },
+  { name: "Wanda Maximoff", id: "GBHS26S023", avatar: "https://picsum.photos/seed/s23/100/100" },
+  { name: "Xavier Charles", id: "GBHS26S024", avatar: "https://picsum.photos/seed/s24/100/100" },
+  { name: "Yara Greyjoy", id: "GBHS26S025", avatar: "https://picsum.photos/seed/s25/100/100" },
+  { name: "Zane Malik", id: "GBHS26S026", avatar: "https://picsum.photos/seed/s26/100/100" },
 ];
 
 export default function LiveClassRoomPage() {
@@ -181,7 +194,7 @@ export default function LiveClassRoomPage() {
                       </Avatar>
                     ))}
                  </div>
-                 <span className="text-[10px] font-bold text-white/60">+21 others watching</span>
+                 <span className="text-[10px] font-bold text-white/60">+{MOCK_PARTICIPANTS.length - 3} others watching</span>
               </div>
             </div>
           </Card>
@@ -259,13 +272,13 @@ export default function LiveClassRoomPage() {
             <div className="p-4 border-b border-white/5 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2">
                 <h3 className="text-[10px] font-black uppercase tracking-widest text-white">Registry</h3>
-                <Badge variant="outline" className="text-[8px] h-4 border-white/10 text-white/40">24 Active</Badge>
+                <Badge variant="outline" className="text-[8px] h-4 border-white/10 text-white/40">{MOCK_PARTICIPANTS.length} Active</Badge>
               </div>
               <LayoutGrid className="w-3 h-3 text-slate-500" />
             </div>
             
             <ScrollArea className="flex-1">
-              <div className="p-4 grid grid-cols-2 gap-3">
+              <div className="p-4 grid grid-cols-2 gap-3 pb-10">
                 {MOCK_PARTICIPANTS.map((p) => (
                   <div key={p.id} className="relative aspect-square rounded-xl overflow-hidden border border-white/5 bg-slate-800 group cursor-pointer hover:border-secondary/40 transition-all">
                     <img src={p.avatar} alt={p.name} className="w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-500" />
