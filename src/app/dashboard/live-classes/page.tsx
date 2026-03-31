@@ -32,7 +32,8 @@ import {
   Save,
   Radio,
   Timer,
-  AlertCircle
+  AlertCircle,
+  FileText
 } from "lucide-react";
 import { 
   Dialog, 
@@ -54,10 +55,54 @@ import { Textarea } from "@/components/ui/textarea";
 
 // --- MOCK DATA ---
 const INITIAL_CLASSES = [
-  { id: "LC-001", title: "Quantum Mechanics: The Basics", subject: "Advanced Physics", teacher: "Dr. Aris Tesla", startTime: new Date().toISOString(), duration: "60", status: "live", students: 42, avatar: "https://picsum.photos/seed/t1/100/100" },
-  { id: "LC-002", title: "Organic Chemistry Revision", subject: "General Chemistry", teacher: "Dr. White", startTime: new Date(Date.now() + 86400000).toISOString(), duration: "45", status: "upcoming", students: 38, avatar: "https://picsum.photos/seed/t5/100/100" },
-  { id: "LC-003", title: "Calculus II: Integration", subject: "Mathematics", teacher: "Prof. Sarah Smith", startTime: new Date(Date.now() - 172800000).toISOString(), duration: "90", status: "completed", students: 45, avatar: "https://picsum.photos/seed/t2/100/100" },
-  { id: "LC-004", title: "Modern Poetry Workshop", subject: "English Literature", teacher: "Ms. Bennet", startTime: new Date(Date.now() + 172800000).toISOString(), duration: "60", status: "cancelled", students: 0, avatar: "https://picsum.photos/seed/t3/100/100" },
+  { 
+    id: "LC-001", 
+    title: "Quantum Mechanics: The Basics", 
+    subject: "Advanced Physics", 
+    teacher: "Dr. Aris Tesla", 
+    startTime: new Date().toISOString(), 
+    duration: "60", 
+    status: "live", 
+    students: 42, 
+    avatar: "https://picsum.photos/seed/t1/100/100",
+    description: "In this session, we will explore the foundational principles of quantum theory, focusing on wave-particle duality and the Schrodinger equation."
+  },
+  { 
+    id: "LC-002", 
+    title: "Organic Chemistry Revision", 
+    subject: "General Chemistry", 
+    teacher: "Dr. White", 
+    startTime: new Date(Date.now() + 86400000).toISOString(), 
+    duration: "45", 
+    status: "upcoming", 
+    students: 38, 
+    avatar: "https://picsum.photos/seed/t5/100/100",
+    description: "Comprehensive review of carbon compounds and functional groups in preparation for the upcoming sequence evaluation."
+  },
+  { 
+    id: "LC-003", 
+    title: "Calculus II: Integration", 
+    subject: "Mathematics", 
+    teacher: "Prof. Sarah Smith", 
+    startTime: new Date(Date.now() - 172800000).toISOString(), 
+    duration: "90", 
+    status: "completed", 
+    students: 45, 
+    avatar: "https://picsum.photos/seed/t2/100/100",
+    description: "Detailed session on definite integrals and their applications in calculating areas under curves."
+  },
+  { 
+    id: "LC-004", 
+    title: "Modern Poetry Workshop", 
+    subject: "English Literature", 
+    teacher: "Ms. Bennet", 
+    startTime: new Date(Date.now() + 172800000).toISOString(), 
+    duration: "60", 
+    status: "cancelled", 
+    students: 0, 
+    avatar: "https://picsum.photos/seed/t3/100/100",
+    description: "A collaborative workshop exploring the structure and themes of early 20th-century modernest poetry."
+  },
 ];
 
 export default function OnlineClassesPage() {
@@ -79,7 +124,8 @@ export default function OnlineClassesPage() {
     subject: "Advanced Physics",
     date: "",
     time: "",
-    duration: "60"
+    duration: "60",
+    description: ""
   });
 
   const isTeacher = user?.role === "TEACHER" || user?.role === "SCHOOL_ADMIN";
@@ -95,6 +141,7 @@ export default function OnlineClassesPage() {
         teacher: user?.name || "Official Instructor",
         startTime: new Date(`${newClass.date}T${newClass.time || "08:00"}`).toISOString(),
         duration: newClass.duration,
+        description: newClass.description,
         status: "upcoming",
         students: 0,
         avatar: user?.avatar || ""
@@ -102,7 +149,7 @@ export default function OnlineClassesPage() {
       setClasses([created, ...classes]);
       setIsProcessing(false);
       setIsScheduling(false);
-      setNewClass({ title: "", subject: "Advanced Physics", date: "", time: "", duration: "60" });
+      setNewClass({ title: "", subject: "Advanced Physics", date: "", time: "", duration: "60", description: "" });
       toast({ title: "Class Scheduled", description: "The session has been broadcasted to the student registry." });
     }, 1200);
   };
@@ -289,7 +336,7 @@ export default function OnlineClassesPage() {
                 <DialogDescription className="text-white/60">Initialize a new synchronous pedagogical node.</DialogDescription>
               </div>
             </div>
-            <Button variant="ghost" size="icon" onClick={() => setIsScheduling(false)} className="absolute top-4 right-4 text-white/40 hover:text-white">
+            <Button variant="ghost" size="icon" onClick={() => setIsScheduling(false)} className="absolute top-4 right-4 text-white hover:bg-white/10">
               <X className="w-6 h-6" />
             </Button>
           </DialogHeader>
@@ -299,7 +346,7 @@ export default function OnlineClassesPage() {
               <Input 
                 value={newClass.title} 
                 onChange={(e) => setNewClass({...newClass, title: e.target.value})} 
-                className="h-12 bg-accent/30 border-none rounded-xl font-bold" 
+                className="h-12 bg-accent/30 border-none rounded-xl font-bold text-primary" 
                 placeholder="e.g. Introduction to Thermodynamics" 
               />
             </div>
@@ -335,6 +382,15 @@ export default function OnlineClassesPage() {
                 <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Start Time</Label>
                 <Input type="time" className="h-12 bg-accent/30 border-none rounded-xl" onChange={(e) => setNewClass({...newClass, time: e.target.value})} />
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Lesson Description</Label>
+              <Textarea 
+                value={newClass.description} 
+                onChange={(e) => setNewClass({...newClass, description: e.target.value})} 
+                className="min-h-[120px] bg-accent/30 border-none rounded-2xl p-4 text-sm leading-relaxed"
+                placeholder="Describe lesson objectives, materials needed, or prerequisites..."
+              />
             </div>
           </div>
           <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
@@ -396,6 +452,14 @@ export default function OnlineClassesPage() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Lesson Description</Label>
+              <Textarea 
+                value={editingClass?.description} 
+                onChange={(e) => setEditingClass({...editingClass, description: e.target.value})} 
+                className="min-h-[120px] bg-accent/30 border-none rounded-2xl p-4 text-sm leading-relaxed"
+              />
             </div>
           </div>
           <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
@@ -483,6 +547,17 @@ export default function OnlineClassesPage() {
                </div>
             </div>
 
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
+                <FileText className="w-3 h-3 text-secondary" /> Lesson Description
+              </Label>
+              <div className="p-4 bg-accent/20 rounded-2xl border border-accent">
+                <p className="text-sm text-primary/80 leading-relaxed italic font-medium">
+                  "{viewingDetails?.description || "No lesson description provided."}"
+                </p>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-6 pt-4 border-t">
                <div className="space-y-1">
                   <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Instructor</p>
@@ -496,7 +571,7 @@ export default function OnlineClassesPage() {
 
             <div className="p-6 bg-accent/20 rounded-[2rem] border border-accent flex flex-col items-center gap-4 text-center">
                <div className="p-4 bg-white rounded-full shadow-inner"><Calendar className="w-8 h-8 text-primary/40" /></div>
-               <p className="text-xs text-muted-foreground leading-relaxed italic">
+               <p className="text-[10px] text-muted-foreground leading-relaxed italic">
                  "Prepare materials and ensure audio-visual synchronization 10 minutes before the scheduled start time."
                </p>
             </div>
