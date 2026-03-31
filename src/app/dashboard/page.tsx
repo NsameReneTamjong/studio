@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
@@ -44,7 +45,11 @@ import {
   Timer,
   BookMarked,
   TrendingDown,
-  QrCode
+  QrCode,
+  Smartphone,
+  MessageCircle,
+  Baby,
+  Scale
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -155,6 +160,18 @@ const STUDENT_TODAY_SCHEDULE = [
   { time: "01:30 PM", subject: "Literature", room: "Library B", teacher: "Ms. Bennet" },
 ];
 
+// PARENT SPECIFIC MOCK DATA
+const PARENT_CHILDREN_LEDGER = [
+  { id: "GBHS26S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", class: "Form 5", today: "Math Exam (Hall A)", status: "At School", gpa: "16.45", attendance: "98%", feeStatus: 85 },
+  { id: "GBHS26S004", name: "Diana Thompson", avatar: "https://picsum.photos/seed/s4/100/100", class: "Form 3", today: "Biology Lab", status: "At School", gpa: "14.20", attendance: "95%", feeStatus: 40 },
+];
+
+const PARENT_RECENT_MARKS = [
+  { child: "Alice", subject: "Physics", seq: "Seq 2", mark: "18.5/20", teacher: "Dr. Tesla", date: "Just now" },
+  { child: "Diana", subject: "English", seq: "Seq 2", mark: "14.0/20", teacher: "Ms. Bennet", date: "2 hours ago" },
+  { child: "Alice", subject: "Calculus", seq: "Seq 2", mark: "17.0/20", teacher: "Prof. Smith", date: "Yesterday" },
+];
+
 export default function DashboardPage() {
   const { user, schools, isLoading: isAuthLoading } = useAuth();
   const { t, language } = useI18n();
@@ -195,7 +212,9 @@ export default function DashboardPage() {
   const isPlatformExecutive = ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV", "DESIGNER"].includes(user.role);
   const isTeacher = user.role === "TEACHER";
   const isStudent = user.role === "STUDENT";
+  const isParent = user.role === "PARENT";
 
+  // PLATFORM EXECUTIVE VIEW
   if (isPlatformExecutive) {
     return (
       <div className="space-y-8 pb-20 animate-in fade-in duration-500">
@@ -384,6 +403,7 @@ export default function DashboardPage() {
     );
   }
 
+  // TEACHER DASHBOARD VIEW
   if (isTeacher) {
     return (
       <div className="space-y-8 pb-20 animate-in fade-in duration-500">
@@ -583,7 +603,7 @@ export default function DashboardPage() {
     );
   }
 
-  // SPECIALIZED STUDENT OVERVIEW
+  // STUDENT DASHBOARD VIEW
   if (isStudent) {
     return (
       <div className="space-y-8 pb-20 animate-in fade-in duration-500">
@@ -609,7 +629,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* 1. ACADEMIC QUICK STATS */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { label: "Term Average", value: "16.45 / 20", icon: Award, color: "text-amber-600", bg: "bg-amber-50" },
@@ -631,7 +650,6 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        {/* 2. ANALYTICS ROW */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <Card className="lg:col-span-8 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
             <CardHeader className="bg-primary/5 p-8 border-b flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -694,7 +712,6 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        {/* 3. SCHEDULE & RESULTS ROW */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <Card className="lg:col-span-7 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
             <CardHeader className="bg-white border-b p-8 flex items-center justify-between">
@@ -775,69 +792,202 @@ export default function DashboardPage() {
             </CardFooter>
           </Card>
         </div>
+      </div>
+    );
+  }
 
-        {/* 4. TASKS & ALERTS */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <Card className="border-none shadow-sm bg-white p-8 rounded-[2rem] space-y-6">
-            <div className="flex items-center justify-between border-b pb-4">
-              <h3 className="text-sm font-black text-primary uppercase tracking-widest flex items-center gap-2">
-                <ListChecks className="w-5 h-5 text-secondary" /> Pending Academic Tasks
-              </h3>
-              <Badge className="bg-primary/5 text-primary border-none">{STUDENT_TASKS.length}</Badge>
+  // PARENT DASHBOARD VIEW
+  if (isParent) {
+    return (
+      <div className="space-y-8 pb-20 animate-in fade-in duration-500">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-primary rounded-[1.5rem] shadow-xl border-2 border-white">
+              <Heart className="w-8 h-8 text-secondary fill-secondary/20" />
             </div>
-            <div className="space-y-4">
-              {STUDENT_TASKS.map((task) => (
-                <div key={task.id} className="flex items-center justify-between p-4 rounded-2xl bg-accent/20 border border-accent hover:border-primary/20 transition-all group">
+            <div>
+              <h1 className="text-3xl font-bold text-primary font-headline tracking-tighter uppercase leading-none">Family Academic Hub</h1>
+              <p className="text-muted-foreground text-sm mt-1">Strategic oversight of your children's pedagogical progress.</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button asChild variant="outline" className="h-12 px-6 rounded-2xl font-bold border-primary/10 bg-white gap-2">
+              <Link href="/dashboard/children"><Baby className="w-4 h-4 text-primary" /> Manage Children</Link>
+            </Button>
+            <Button asChild className="h-12 px-8 shadow-xl font-black uppercase tracking-widest text-[10px] gap-2 bg-primary text-white">
+              <Link href="/dashboard/subscription"><Wallet className="w-4 h-4 text-secondary" /> Pay Licenses</Link>
+            </Button>
+          </div>
+        </div>
+
+        {/* FAMILY QUICK STATS */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { label: "Children Enrolled", value: "2 Students", icon: GraduationCap, color: "text-blue-600", bg: "bg-blue-50" },
+            { label: "Family GPA Mean", value: "15.33 / 20", icon: Award, color: "text-amber-600", bg: "bg-amber-50" },
+            { label: "Attendance Avg", value: "96.5%", icon: ClipboardCheck, color: "text-purple-600", bg: "bg-purple-50" },
+            { label: "Compliance Status", value: "Active Node", icon: ShieldCheck, color: "text-green-600", bg: "bg-green-50" },
+          ].map((stat, i) => (
+            <Card key={i} className="border-none shadow-sm group hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{stat.label}</CardTitle>
+                <div className={cn("p-2 rounded-lg", stat.bg)}>
+                  <stat.icon className={cn("w-4 h-4", stat.color)} />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-black text-primary">{stat.value}</div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* ANALYTICS & STATUS ROW */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <Card className="lg:col-span-8 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+            <CardHeader className="bg-primary/5 p-8 border-b flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <CardTitle className="text-xl font-black text-primary uppercase tracking-tighter flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-secondary"/> Family Scholastic Velocity
+                </CardTitle>
+                <CardDescription>Aggregate success outcome trends for all children.</CardDescription>
+              </div>
+              <Badge variant="outline" className="border-primary/10 text-primary font-bold uppercase text-[9px] px-3">VERIFIED RECORDS</Badge>
+            </CardHeader>
+            <CardContent className="h-[350px] pt-10">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={DATA_PERIODS.monthly}>
+                  <defs>
+                    <linearGradient id="colorParentPerf" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#264D73" stopOpacity={0.15}/>
+                      <stop offset="95%" stopColor="#264D73" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
+                  <RechartsTooltip contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
+                  <Area name="Family Avg" type="monotone" dataKey="performance" stroke="#264D73" strokeWidth={4} fill="url(#colorParentPerf)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-4 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white flex flex-col">
+            <CardHeader className="bg-primary p-8 text-white">
+              <CardTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-2">
+                <Activity className="w-5 h-5 text-secondary" />
+                Children Activity
+              </CardTitle>
+              <CardDescription className="text-white/60">Live node location tracking.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1 p-0">
+              {PARENT_CHILDREN_LEDGER.map((child, i) => (
+                <div key={i} className="p-6 border-b last:border-0 hover:bg-accent/10 transition-colors flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="p-3 bg-white rounded-xl shadow-sm group-hover:scale-110 transition-transform">
-                      <task.icon className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-black text-primary uppercase">{task.title}</p>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase">{task.subject}</p>
+                    <Avatar className="h-12 w-12 border-2 border-white shadow-sm ring-1 ring-accent">
+                      <AvatarImage src={child.avatar} />
+                      <AvatarFallback>{child.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="space-y-0.5">
+                      <p className="text-sm font-black text-primary uppercase leading-none">{child.name}</p>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1.5">
+                        <MapPin className="w-3 h-3 text-secondary" /> {child.today}
+                      </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-[9px] font-black uppercase text-red-600 mb-1">{task.deadline}</p>
-                    <Button asChild size="sm" className="h-7 text-[8px] font-black uppercase px-3 rounded-lg shadow-sm">
-                      <Link href="/dashboard/assignments">Rendre</Link>
-                    </Button>
+                  <Badge variant="secondary" className="bg-green-100 text-green-700 border-none text-[8px] font-black h-5 px-2">LIVE</Badge>
+                </div>
+              ))}
+              <div className="p-6 bg-accent/20">
+                 <Button asChild variant="ghost" className="w-full text-[10px] font-black uppercase tracking-widest gap-2 hover:bg-white transition-all h-10">
+                   <Link href="/dashboard/children">Access Children Dossiers <ChevronRight className="w-3.5 h-3.5"/></Link>
+                 </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* RESULTS & FINANCIAL ROW */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <Card className="lg:col-span-7 border-none shadow-xl overflow-hidden rounded-[2rem] bg-white">
+            <CardHeader className="bg-white border-b p-8 flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg font-black text-primary uppercase flex items-center gap-2">
+                  <History className="w-5 h-5 text-secondary" />
+                  Recent Academic Marks
+                </CardTitle>
+                <CardDescription>Latest evaluations synchronized across the family registry.</CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableBody>
+                  {PARENT_RECENT_MARKS.map((res, i) => (
+                    <TableRow key={i} className="hover:bg-primary/5 transition-colors border-b last:border-0 h-16">
+                      <TableCell className="pl-8 py-4">
+                        <div className="space-y-0.5">
+                          <p className="text-[11px] font-black text-primary uppercase leading-none">{res.child} • {res.subject}</p>
+                          <p className="text-[9px] font-bold text-muted-foreground uppercase">{res.seq} • {res.teacher}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <div className="flex flex-col items-end">
+                          <span className="text-sm font-black text-primary">{res.mark}</span>
+                          <span className="text-[8px] font-bold text-muted-foreground uppercase italic">{res.date}</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+            <CardFooter className="bg-accent/10 p-4 border-t flex justify-center">
+               <Button asChild variant="ghost" className="text-[10px] font-black uppercase gap-2 hover:bg-white transition-all">
+                 <Link href="/dashboard/grades">View Full Family Gradebook <ChevronRight className="w-3 h-3"/></Link>
+               </Button>
+            </CardFooter>
+          </Card>
+
+          <Card className="lg:col-span-5 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white flex flex-col">
+            <CardHeader className="bg-primary p-8 text-white">
+              <CardTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-2">
+                <Coins className="w-5 h-5 text-secondary" />
+                Financial Intake Tracker
+              </CardTitle>
+              <CardDescription className="text-white/60">Monitoring fee compliance per student node.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1 pt-8 space-y-8 px-8">
+              {PARENT_CHILDREN_LEDGER.map((child, i) => (
+                <div key={i} className="space-y-3">
+                  <div className="flex justify-between items-end">
+                    <p className="text-xs font-black text-primary uppercase">{child.name}</p>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase">{child.feeStatus}% Collected</p>
+                  </div>
+                  <Progress value={child.feeStatus} className="h-2 rounded-full" />
+                  <div className="flex justify-between text-[9px] font-black uppercase text-primary/40 tracking-widest">
+                    <span>Outstanding: {((1 - child.feeStatus/100) * 150000).toLocaleString()} XAF</span>
+                    <button className="text-secondary hover:underline">Clear Balance</button>
                   </div>
                 </div>
               ))}
-            </div>
-          </Card>
-
-          <Card className="border-none shadow-sm bg-primary text-white p-8 rounded-[2.5rem] relative overflow-hidden flex flex-col justify-center text-center space-y-6">
-             <div className="absolute top-0 right-0 p-8 opacity-5 rotate-12"><Building2 className="w-48 h-48" /></div>
-             <div className="flex justify-center relative z-10">
-                <div className="p-5 bg-white/10 rounded-[2rem] border-4 border-white/5 backdrop-blur-md shadow-2xl">
-                   <ShieldCheck className="w-16 h-16 text-secondary" />
-                </div>
-             </div>
-             <div className="space-y-2 relative z-10">
-                <h4 className="text-2xl font-black uppercase tracking-tighter">Verified Node Record</h4>
-                <p className="text-xs text-white/60 leading-relaxed max-w-xs mx-auto italic font-medium">
-                  "Your academic dossier is synchronized with the national institutional registry. All evaluation sequences are tamper-proof and digitally signed."
-                </p>
-             </div>
-             <div className="pt-6 border-t border-white/10 flex justify-center gap-6 relative z-10">
-                <div className="flex flex-col items-center gap-1 opacity-40">
-                   <QrCode className="w-8 h-8" />
-                   <span className="text-[7px] font-black uppercase tracking-widest">ID Scan</span>
-                </div>
-                <div className="flex flex-col items-center gap-1 opacity-40">
-                   <History className="w-8 h-8" />
-                   <span className="text-[7px] font-black uppercase tracking-widest">Audit Logs</span>
-                </div>
-             </div>
+              
+              <div className="pt-4 border-t border-accent flex flex-col items-center text-center gap-4">
+                 <div className="p-4 bg-primary/5 rounded-2xl">
+                    <ShieldCheck className="w-8 h-8 text-secondary opacity-40" />
+                 </div>
+                 <p className="text-[10px] text-muted-foreground leading-relaxed italic font-medium">
+                   "Annual license renewals and tuition fees are synchronized with the national school registry. Verified receipts are available in the Finance module."
+                 </p>
+              </div>
+            </CardContent>
           </Card>
         </div>
       </div>
     );
   }
 
-  // STANDARD OVERVIEW (PARENT / OTHER)
+  // STANDARD OVERVIEW (BURSAR / LIBRARIAN / OTHER)
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
