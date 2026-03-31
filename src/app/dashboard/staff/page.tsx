@@ -54,7 +54,8 @@ import {
   FileBadge,
   Save,
   MessageCircle,
-  Signature as SignatureIcon
+  Signature as SignatureIcon,
+  Send
 } from "lucide-react";
 import { 
   Dialog, 
