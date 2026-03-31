@@ -343,22 +343,22 @@ export default function OnlineClassesPage() {
 
       {/* SCHEDULE DIALOG */}
       <Dialog open={isScheduling} onOpenChange={setIsScheduling}>
-        <DialogContent className="sm:max-w-xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
+        <DialogContent className="sm:max-w-xl w-[95vw] rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl flex flex-col max-h-[90vh]">
           <DialogHeader className="bg-primary p-8 text-white relative shrink-0">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/10 rounded-2xl text-secondary">
                 <Video className="w-8 h-8" />
               </div>
               <div>
-                <DialogTitle className="text-2xl font-black uppercase">Schedule Broadcast</DialogTitle>
+                <DialogTitle className="text-xl md:text-2xl font-black uppercase tracking-tight">Schedule Broadcast</DialogTitle>
                 <DialogDescription className="text-white/60">Initialize a new synchronous pedagogical node.</DialogDescription>
               </div>
             </div>
-            <Button variant="ghost" size="icon" onClick={() => setIsScheduling(false)} className="absolute top-4 right-4 text-white hover:bg-white/10">
+            <Button variant="ghost" size="icon" onClick={() => setIsScheduling(false)} className="absolute top-4 right-4 text-white hover:bg-white/10 rounded-full">
               <X className="w-6 h-6" />
             </Button>
           </DialogHeader>
-          <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+          <div className="p-8 space-y-6 flex-1 overflow-y-auto bg-white scrollbar-thin">
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Class Title</Label>
               <Input 
@@ -368,7 +368,7 @@ export default function OnlineClassesPage() {
                 placeholder="e.g. Introduction to Thermodynamics" 
               />
             </div>
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Subject Registry</Label>
                 <Select value={newClass.subject} onValueChange={(v) => setNewClass({...newClass, subject: v})}>
@@ -411,7 +411,7 @@ export default function OnlineClassesPage() {
               />
             </div>
           </div>
-          <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+          <DialogFooter className="bg-accent/20 p-6 border-t border-accent shrink-0">
             <Button onClick={handleSchedule} disabled={isProcessing || !newClass.title || !newClass.date} className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3">
               {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <ShieldCheck className="w-5 h-5 text-secondary" />}
               Finalize Schedule
@@ -422,22 +422,22 @@ export default function OnlineClassesPage() {
 
       {/* EDIT DIALOG */}
       <Dialog open={!!editingClass} onOpenChange={() => setEditingClass(null)}>
-        <DialogContent className="sm:max-w-xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
+        <DialogContent className="sm:max-w-xl w-[95vw] rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl flex flex-col max-h-[90vh]">
           <DialogHeader className="bg-primary p-8 text-white relative shrink-0">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/10 rounded-2xl text-secondary">
                 <Pencil className="w-8 h-8 text-secondary" />
               </div>
               <div>
-                <DialogTitle className="text-2xl font-black uppercase">Edit Live Session</DialogTitle>
-                <DialogDescription className="text-white/60">Update pedagogical details for this node.</DialogDescription>
+                <DialogTitle className="text-xl md:text-2xl font-black uppercase tracking-tight">Edit Live Session</DialogTitle>
+                <DialogDescription className="text-white/60 text-xs">Update pedagogical details for this node.</DialogDescription>
               </div>
             </div>
-            <Button variant="ghost" size="icon" onClick={() => setEditingClass(null)} className="absolute top-4 right-4 text-white hover:bg-white/10">
+            <Button variant="ghost" size="icon" onClick={() => setEditingClass(null)} className="absolute top-4 right-4 text-white hover:bg-white/10 rounded-full">
               <X className="w-6 h-6" />
             </Button>
           </DialogHeader>
-          <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+          <div className="p-8 space-y-6 flex-1 overflow-y-auto bg-white scrollbar-thin">
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Class Title</Label>
               <Input 
@@ -446,7 +446,7 @@ export default function OnlineClassesPage() {
                 className="h-12 bg-accent/30 border-none rounded-xl font-bold text-primary" 
               />
             </div>
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Subject Registry</Label>
                 <Select value={editingClass?.subject} onValueChange={(v) => setEditingClass({...editingClass, subject: v})}>
@@ -480,7 +480,7 @@ export default function OnlineClassesPage() {
               />
             </div>
           </div>
-          <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+          <DialogFooter className="bg-accent/20 p-6 border-t border-accent shrink-0">
             <Button onClick={handleSaveEdit} disabled={isProcessing || !editingClass?.title} className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3">
               {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
               Save Node Updates
@@ -491,22 +491,22 @@ export default function OnlineClassesPage() {
 
       {/* CANCELLATION DIALOG */}
       <Dialog open={!!cancellingClass} onOpenChange={() => setCancellingClass(null)}>
-        <DialogContent className="sm:max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
+        <DialogContent className="sm:max-w-md w-[95vw] rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl flex flex-col">
           <DialogHeader className="bg-destructive p-8 text-white relative shrink-0">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/10 rounded-2xl text-white">
                 <XCircle className="w-8 h-8" />
               </div>
               <div>
-                <DialogTitle className="text-2xl font-black uppercase">Terminate Session</DialogTitle>
+                <DialogTitle className="text-xl md:text-2xl font-black uppercase tracking-tight">Terminate Session</DialogTitle>
                 <DialogDescription className="text-white/60">Formal cancellation record required.</DialogDescription>
               </div>
             </div>
-            <Button variant="ghost" size="icon" onClick={() => setCancellingClass(null)} className="absolute top-4 right-4 text-white hover:bg-white/10">
+            <Button variant="ghost" size="icon" onClick={() => setCancellingClass(null)} className="absolute top-4 right-4 text-white hover:bg-white/10 rounded-full">
               <X className="w-6 h-6" />
             </Button>
           </DialogHeader>
-          <div className="p-8 space-y-6 bg-white">
+          <div className="p-8 space-y-6 bg-white overflow-y-auto">
             <div className="space-y-4">
               <div className="p-4 bg-red-50 rounded-2xl border border-red-100 flex gap-3">
                 <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
@@ -518,14 +518,14 @@ export default function OnlineClassesPage() {
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Reason for Cancellation</Label>
                 <Textarea 
                   placeholder="e.g. Technical difficulty, Institutional holiday..." 
-                  className="min-h-[120px] bg-accent/30 border-none rounded-2xl p-4 focus-visible:ring-destructive font-medium"
+                  className="min-h-[120px] bg-accent/30 border-none rounded-2xl p-4 focus-visible:ring-destructive font-medium text-sm"
                   value={cancelReason}
                   onChange={(e) => setCancelReason(e.target.value)}
                 />
               </div>
             </div>
           </div>
-          <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+          <DialogFooter className="bg-accent/20 p-6 border-t border-accent shrink-0">
             <Button 
               variant="destructive"
               className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3" 
@@ -541,24 +541,24 @@ export default function OnlineClassesPage() {
 
       {/* DETAILS DIALOG */}
       <Dialog open={!!viewingDetails} onOpenChange={() => setViewingDetails(null)}>
-        <DialogContent className="sm:max-w-xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
-          <DialogHeader className="bg-primary p-8 text-white relative">
+        <DialogContent className="sm:max-w-xl w-[95vw] rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl flex flex-col max-h-[90vh]">
+          <DialogHeader className="bg-primary p-8 text-white relative shrink-0">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/10 rounded-xl text-secondary">
                 <Info className="w-8 h-8" />
               </div>
               <div>
-                <DialogTitle className="text-xl font-black uppercase">Session Brief</DialogTitle>
-                <DialogDescription className="text-white/60">Registry details for node {viewingDetails?.id}</DialogDescription>
+                <DialogTitle className="text-xl md:text-2xl font-black uppercase tracking-tight">Session Brief</DialogTitle>
+                <DialogDescription className="text-white/60 text-xs">Registry details for node {viewingDetails?.id}</DialogDescription>
               </div>
             </div>
-            <Button variant="ghost" size="icon" onClick={() => setViewingDetails(null)} className="absolute top-4 right-4 text-white hover:bg-white/10">
+            <Button variant="ghost" size="icon" onClick={() => setViewingDetails(null)} className="absolute top-4 right-4 text-white hover:bg-white/10 rounded-full transition-all">
               <X className="w-6 h-6" />
             </Button>
           </DialogHeader>
-          <div className="p-8 space-y-8 bg-white">
+          <div className="p-8 space-y-8 flex-1 overflow-y-auto bg-white scrollbar-thin">
             <div className="space-y-4">
-               <h3 className="text-2xl font-black text-primary uppercase leading-tight">{viewingDetails?.title}</h3>
+               <h3 className="text-2xl font-black text-primary uppercase leading-tight tracking-tighter">{viewingDetails?.title}</h3>
                <div className="flex flex-wrap gap-2">
                   <Badge variant="secondary" className="bg-primary/5 text-primary border-none text-[9px] font-black uppercase">{viewingDetails?.subject}</Badge>
                   <Badge variant="outline" className="border-primary/10 text-primary font-black uppercase text-[9px]">{viewingDetails?.status}</Badge>
@@ -588,7 +588,7 @@ export default function OnlineClassesPage() {
                     <MessageCircle className="w-3 h-3 text-secondary" /> Instructor's Class Summary
                   </Label>
                   <div className="p-4 bg-secondary/10 rounded-2xl border border-secondary/20">
-                    <p className="text-sm text-primary leading-relaxed font-medium">
+                    <p className="text-sm text-primary leading-relaxed font-medium italic">
                       {(viewingDetails as any).summary || "No post-session summary recorded."}
                     </p>
                   </div>
@@ -627,7 +627,7 @@ export default function OnlineClassesPage() {
               </div>
             )}
           </div>
-          <DialogFooter className="bg-accent/10 p-6 border-t border-accent">
+          <DialogFooter className="bg-accent/10 p-6 border-t border-accent shrink-0">
             <Button onClick={() => setViewingDetails(null)} className="w-full h-12 rounded-xl font-bold uppercase text-xs">Close Dossier</Button>
           </DialogFooter>
         </DialogContent>
