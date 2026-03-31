@@ -33,7 +33,9 @@ import {
   Radio,
   Timer,
   AlertCircle,
-  FileText
+  FileText,
+  Activity,
+  MessageCircle
 } from "lucide-react";
 import { 
   Dialog, 
@@ -88,8 +90,10 @@ const INITIAL_CLASSES = [
     duration: "90", 
     status: "completed", 
     students: 45, 
+    attendanceRate: 96,
     avatar: "https://picsum.photos/seed/t2/100/100",
-    description: "Detailed session on definite integrals and their applications in calculating areas under curves."
+    description: "Detailed session on definite integrals and their applications in calculating areas under curves.",
+    summary: "The class successfully covered basic integration techniques. Students engaged well with the practical examples. Recommended reading: Chapter 5, sections 1-3."
   },
   { 
     id: "LC-004", 
@@ -266,6 +270,20 @@ export default function OnlineClassesPage() {
                       <div className="flex items-center justify-center gap-2 p-3 bg-red-50 rounded-2xl border border-red-100 text-red-600">
                         <Users className="w-4 h-4" />
                         <span className="text-xs font-black uppercase tracking-widest">{session.students} Joined Now</span>
+                      </div>
+                    )}
+
+                    {status === 'completed' && (
+                      <div className="flex items-center justify-center gap-4 p-3 bg-green-50 rounded-2xl border border-green-100 text-green-700">
+                        <div className="flex items-center gap-1.5">
+                          <Users className="w-3.5 h-3.5" />
+                          <span className="text-[10px] font-black uppercase">{session.students}</span>
+                        </div>
+                        <div className="w-px h-3 bg-green-200" />
+                        <div className="flex items-center gap-1.5">
+                          <Activity className="w-3.5 h-3.5" />
+                          <span className="text-[10px] font-black uppercase">{(session as any).attendanceRate || 0}%</span>
+                        </div>
                       </div>
                     )}
                   </CardContent>
@@ -523,7 +541,7 @@ export default function OnlineClassesPage() {
 
       {/* DETAILS DIALOG */}
       <Dialog open={!!viewingDetails} onOpenChange={() => setViewingDetails(null)}>
-        <DialogContent className="sm:max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
+        <DialogContent className="sm:max-w-xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
           <DialogHeader className="bg-primary p-8 text-white relative">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-white/10 rounded-xl text-secondary">
@@ -547,6 +565,37 @@ export default function OnlineClassesPage() {
                </div>
             </div>
 
+            {/* POST-SESSION ANALYTICS FOR COMPLETED CLASSES */}
+            {viewingDetails?.status === 'completed' && (
+              <div className="space-y-6 animate-in fade-in duration-500">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 space-y-1">
+                    <p className="text-[9px] font-black uppercase text-emerald-600 tracking-widest flex items-center gap-1.5">
+                      <Users className="w-3 h-3"/> Participants
+                    </p>
+                    <p className="text-lg font-black text-emerald-700">{viewingDetails.students} Nodes</p>
+                  </div>
+                  <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100 space-y-1">
+                    <p className="text-[9px] font-black uppercase text-blue-600 tracking-widest flex items-center gap-1.5">
+                      <Activity className="w-3 h-3"/> Attendance
+                    </p>
+                    <p className="text-lg font-black text-blue-700">{(viewingDetails as any).attendanceRate || 0}%</p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
+                    <MessageCircle className="w-3 h-3 text-secondary" /> Instructor's Class Summary
+                  </Label>
+                  <div className="p-4 bg-secondary/10 rounded-2xl border border-secondary/20">
+                    <p className="text-sm text-primary leading-relaxed font-medium">
+                      {(viewingDetails as any).summary || "No post-session summary recorded."}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
                 <FileText className="w-3 h-3 text-secondary" /> Lesson Description
@@ -569,12 +618,14 @@ export default function OnlineClassesPage() {
                </div>
             </div>
 
-            <div className="p-6 bg-accent/20 rounded-[2rem] border border-accent flex flex-col items-center gap-4 text-center">
-               <div className="p-4 bg-white rounded-full shadow-inner"><Calendar className="w-8 h-8 text-primary/40" /></div>
-               <p className="text-[10px] text-muted-foreground leading-relaxed italic">
-                 "Prepare materials and ensure audio-visual synchronization 10 minutes before the scheduled start time."
-               </p>
-            </div>
+            {viewingDetails?.status !== 'completed' && (
+              <div className="p-6 bg-accent/20 rounded-[2rem] border border-accent flex flex-col items-center gap-4 text-center">
+                 <div className="p-4 bg-white rounded-full shadow-inner"><Calendar className="w-8 h-8 text-primary/40" /></div>
+                 <p className="text-[10px] text-muted-foreground leading-relaxed italic">
+                   "Prepare materials and ensure audio-visual synchronization 10 minutes before the scheduled start time."
+                 </p>
+              </div>
+            )}
           </div>
           <DialogFooter className="bg-accent/10 p-6 border-t border-accent">
             <Button onClick={() => setViewingDetails(null)} className="w-full h-12 rounded-xl font-bold uppercase text-xs">Close Dossier</Button>
