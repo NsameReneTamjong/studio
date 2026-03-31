@@ -66,7 +66,9 @@ import {
   Heart,
   Plus,
   X,
-  Trophy
+  Trophy,
+  FileBadge,
+  Download
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -1489,7 +1491,7 @@ export default function DashboardPage() {
                       </TableCell>
                       <TableCell className="text-right pr-8">
                         <div className="flex flex-col items-end">
-                          <span className={cn("text-sm font-black", item.available === 0 ? "text-red-600" : "text-amber-600")}>
+                          <span className={cn("text-sm font-black", item.available === 0 ? "text-red-600" : "item.available < 3 ? 'text-amber-600' : 'text-primary'")}>
                             {item.available} <span className="text-[10px] opacity-40">/ {item.total}</span>
                           </span>
                           <span className="text-[8px] font-bold uppercase opacity-40">Stock Level</span>
