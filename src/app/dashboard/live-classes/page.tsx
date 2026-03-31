@@ -27,7 +27,12 @@ import {
   Smartphone,
   Search,
   ArrowLeft,
-  X
+  X,
+  Pencil,
+  Save,
+  Radio,
+  Timer,
+  AlertCircle
 } from "lucide-react";
 import { 
   Dialog, 
@@ -45,6 +50,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Textarea } from "@/components/ui/textarea";
 
 // --- MOCK DATA ---
 const INITIAL_CLASSES = [
@@ -62,6 +68,9 @@ export default function OnlineClassesPage() {
 
   const [classes, setClasses] = useState(INITIAL_CLASSES);
   const [isScheduling, setIsScheduling] = useState(false);
+  const [editingClass, setEditingClass] = useState<any>(null);
+  const [cancellingClass, setCancellingClass] = useState<any>(null);
+  const [cancelReason, setCancelReason] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [viewingDetails, setViewingDetails] = useState<any>(null);
   
@@ -98,9 +107,27 @@ export default function OnlineClassesPage() {
     }, 1200);
   };
 
-  const handleCancel = (id: string) => {
-    setClasses(prev => prev.map(c => c.id === id ? { ...c, status: 'cancelled' } : c));
-    toast({ variant: "destructive", title: "Session Canceled" });
+  const handleSaveEdit = () => {
+    if (!editingClass || !editingClass.title) return;
+    setIsProcessing(true);
+    setTimeout(() => {
+      setClasses(prev => prev.map(c => c.id === editingClass.id ? editingClass : c));
+      setIsProcessing(false);
+      setEditingClass(null);
+      toast({ title: "Session Updated", description: "Node registry has been synchronized." });
+    }, 1000);
+  };
+
+  const handleConfirmCancel = () => {
+    if (!cancellingClass || !cancelReason.trim()) return;
+    setIsProcessing(true);
+    setTimeout(() => {
+      setClasses(prev => prev.map(c => c.id === cancellingClass.id ? { ...c, status: 'cancelled', cancelReason } : c));
+      setIsProcessing(false);
+      setCancellingClass(null);
+      setCancelReason("");
+      toast({ variant: "destructive", title: "Session Canceled", description: "Cancellation reason has been recorded." });
+    }, 1000);
   };
 
   const getStatusBadge = (status: string) => {
@@ -213,14 +240,24 @@ export default function OnlineClassesPage() {
                           <Info className="w-4 h-4 mr-2" /> Details
                         </Button>
                         {isTeacher && status === 'upcoming' && (
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-12 w-12 text-destructive/40 hover:text-destructive hover:bg-red-50 rounded-xl"
-                            onClick={() => handleCancel(session.id)}
-                          >
-                            <XCircle className="w-5 h-5" />
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-12 w-12 text-primary/40 hover:text-primary hover:bg-primary/5 rounded-xl transition-all"
+                              onClick={() => setEditingClass({...session})}
+                            >
+                              <Pencil className="w-5 h-5" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-12 w-12 text-destructive/40 hover:text-destructive hover:bg-red-50 rounded-xl transition-all"
+                              onClick={() => setCancellingClass(session)}
+                            >
+                              <XCircle className="w-5 h-5" />
+                            </Button>
+                          </div>
                         )}
                       </>
                     )}
@@ -309,6 +346,117 @@ export default function OnlineClassesPage() {
         </DialogContent>
       </Dialog>
 
+      {/* EDIT DIALOG */}
+      <Dialog open={!!editingClass} onOpenChange={() => setEditingClass(null)}>
+        <DialogContent className="sm:max-w-xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="bg-primary p-8 text-white relative shrink-0">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/10 rounded-2xl text-secondary">
+                <Pencil className="w-8 h-8 text-secondary" />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-black uppercase">Edit Live Session</DialogTitle>
+                <DialogDescription className="text-white/60">Update pedagogical details for this node.</DialogDescription>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setEditingClass(null)} className="absolute top-4 right-4 text-white hover:bg-white/10">
+              <X className="w-6 h-6" />
+            </Button>
+          </DialogHeader>
+          <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Class Title</Label>
+              <Input 
+                value={editingClass?.title} 
+                onChange={(e) => setEditingClass({...editingClass, title: e.target.value})} 
+                className="h-12 bg-accent/30 border-none rounded-xl font-bold text-primary" 
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Subject Registry</Label>
+                <Select value={editingClass?.subject} onValueChange={(v) => setEditingClass({...editingClass, subject: v})}>
+                  <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Advanced Physics">Advanced Physics</SelectItem>
+                    <SelectItem value="Mathematics">Mathematics</SelectItem>
+                    <SelectItem value="General Chemistry">General Chemistry</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Duration (Mins)</Label>
+                <Select value={editingClass?.duration} onValueChange={(v) => setEditingClass({...editingClass, duration: v})}>
+                  <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="30">30 Minutes</SelectItem>
+                    <SelectItem value="45">45 Minutes</SelectItem>
+                    <SelectItem value="60">60 Minutes</SelectItem>
+                    <SelectItem value="90">90 Minutes</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+            <Button onClick={handleSaveEdit} disabled={isProcessing || !editingClass?.title} className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3">
+              {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+              Save Node Updates
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* CANCELLATION DIALOG */}
+      <Dialog open={!!cancellingClass} onOpenChange={() => setCancellingClass(null)}>
+        <DialogContent className="sm:max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
+          <DialogHeader className="bg-destructive p-8 text-white relative shrink-0">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/10 rounded-2xl text-white">
+                <XCircle className="w-8 h-8" />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-black uppercase">Terminate Session</DialogTitle>
+                <DialogDescription className="text-white/60">Formal cancellation record required.</DialogDescription>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setCancellingClass(null)} className="absolute top-4 right-4 text-white hover:bg-white/10">
+              <X className="w-6 h-6" />
+            </Button>
+          </DialogHeader>
+          <div className="p-8 space-y-6 bg-white">
+            <div className="space-y-4">
+              <div className="p-4 bg-red-50 rounded-2xl border border-red-100 flex gap-3">
+                <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                <p className="text-[11px] text-red-800 font-medium leading-relaxed">
+                  Canceling a scheduled class will notify all registered students via their dashboards. This action is irreversible.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Reason for Cancellation</Label>
+                <Textarea 
+                  placeholder="e.g. Technical difficulty, Institutional holiday..." 
+                  className="min-h-[120px] bg-accent/30 border-none rounded-2xl p-4 focus-visible:ring-destructive font-medium"
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+            <Button 
+              variant="destructive"
+              className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3" 
+              onClick={handleConfirmCancel} 
+              disabled={isProcessing || !cancelReason.trim()}
+            >
+              {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <XCircle className="w-5 h-5" />}
+              Decommission Node Session
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* DETAILS DIALOG */}
       <Dialog open={!!viewingDetails} onOpenChange={() => setViewingDetails(null)}>
         <DialogContent className="sm:max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
@@ -359,27 +507,5 @@ export default function OnlineClassesPage() {
         </DialogContent>
       </Dialog>
     </div>
-  );
-}
-
-function Radio({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9" />
-      <path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5" />
-      <circle cx="12" cy="12" r="2" />
-      <path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5" />
-      <path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1" />
-    </svg>
-  );
-}
-
-function Timer({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="10" x2="14" y1="2" y2="2" />
-      <line x1="12" x2="15" y1="14" y2="11" />
-      <circle cx="12" cy="14" r="8" />
-    </svg>
   );
 }
