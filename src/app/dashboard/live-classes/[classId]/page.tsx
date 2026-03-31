@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -31,7 +30,8 @@ import {
   CheckCircle2,
   Mail,
   Circle,
-  Heart
+  Heart,
+  LayoutGrid
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
