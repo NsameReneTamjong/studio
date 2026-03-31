@@ -38,7 +38,8 @@ import {
   BarChart3,
   FileBadge,
   Sparkles,
-  Trophy
+  Trophy,
+  Video
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -173,6 +174,12 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       icon: GraduationCap,
       href: "/dashboard/students",
       roles: ["SCHOOL_ADMIN", "SUB_ADMIN", "TEACHER"],
+    },
+    {
+      label: language === 'en' ? 'Online Classes' : 'Classes en Ligne',
+      icon: Video,
+      href: "/dashboard/live-classes",
+      roles: ["TEACHER", "STUDENT"],
     },
     {
       label: t("idCards"),
