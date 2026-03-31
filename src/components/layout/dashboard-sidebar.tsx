@@ -39,7 +39,8 @@ import {
   FileBadge,
   Sparkles,
   Trophy,
-  Video
+  Video,
+  Medal
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -55,6 +56,7 @@ interface SidebarProps {
 
 const EXECUTIVE_ROLES: UserRole[] = ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV", "DESIGNER"];
 const BLOG_ROLES: UserRole[] = ["SUPER_ADMIN", "CEO", "CTO", "COO", "DESIGNER"];
+const STAFF_ROLES: UserRole[] = ["TEACHER", "BURSAR", "LIBRARIAN"];
 
 export function DashboardSidebar({ onClose }: SidebarProps) {
   const pathname = usePathname();
@@ -168,6 +170,12 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       icon: Trophy,
       href: "/dashboard/rewards",
       roles: ["STUDENT"],
+    },
+    {
+      label: language === 'en' ? 'Recognition' : 'Reconnaissance',
+      icon: Medal,
+      href: "/dashboard/rewards",
+      roles: STAFF_ROLES,
     },
     {
       label: t("students"),
