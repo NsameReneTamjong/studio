@@ -53,9 +53,10 @@ import {
   Heart,
   CalendarDays,
   Zap,
-  Signature,
+  Signature as SignatureIcon,
   Trophy,
-  Sparkles
+  Sparkles,
+  Star
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
@@ -120,6 +121,7 @@ export default function StudentDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [student, setStudent] = useState<any>(null);
   const [viewingDoc, setViewingDoc] = useState<any>(null);
+  const [viewingCertificate, setViewingCertificate] = useState<boolean>(false);
 
   useEffect(() => {
     const found = MOCK_CHILDREN.find(c => c.id === studentId) || MOCK_CHILDREN[0];
@@ -156,7 +158,7 @@ export default function StudentDetailsPage() {
             <ArrowLeft className="w-6 h-6" />
           </Button>
           <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16 border-2 border-primary shadow-lg shrink-0">
+            <Avatar className="h-16 w-16 md:h-20 md:w-20 border-4 border-white shadow-xl shrink-0 ring-1 ring-primary/10">
               <AvatarImage src={student.avatar} />
               <AvatarFallback className="bg-primary/5 text-primary text-2xl font-black">{student.name?.charAt(0)}</AvatarFallback>
             </Avatar>
@@ -178,14 +180,22 @@ export default function StudentDetailsPage() {
       {isHonourRoll ? (
         <Card className="border-none shadow-xl bg-primary text-white overflow-hidden rounded-[2rem] relative group">
           <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform"><Trophy className="w-32 h-32"/></div>
-          <CardContent className="p-8 flex items-center gap-6">
-            <div className="p-4 bg-secondary text-primary rounded-[1.5rem] shadow-2xl">
-              <Award className="w-10 h-10" />
+          <CardContent className="p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+            <div className="flex items-center gap-6">
+              <div className="p-4 bg-secondary text-primary rounded-[1.5rem] shadow-2xl">
+                <Award className="w-10 h-10" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-black uppercase tracking-tighter text-secondary">Academic Distinction</h3>
+                <p className="text-white/60 text-sm font-medium">Your child has achieved the **Honour Roll** with an average of **{student.annualAvg.toFixed(2)}**.</p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-2xl font-black uppercase tracking-tighter text-secondary">Academic Distinction</h3>
-              <p className="text-white/60 text-sm font-medium">Your child has achieved the **Honour Roll** with an average of **{student.annualAvg.toFixed(2)}**.</p>
-            </div>
+            <Button 
+              className="h-14 px-8 rounded-2xl bg-secondary text-primary hover:bg-secondary/90 font-black uppercase text-xs tracking-widest gap-2 shadow-lg transition-all active:scale-95"
+              onClick={() => setViewingCertificate(true)}
+            >
+              <Trophy className="w-4 h-4" /> View Official Certificate
+            </Button>
           </CardContent>
         </Card>
       ) : (
@@ -295,24 +305,23 @@ export default function StudentDetailsPage() {
         </TabsContent>
 
         <TabsContent value="attendance" className="mt-6 space-y-8">
-          {/* TODAY'S ATTENDANCE SECTION */}
-          <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
-            <CardHeader className="bg-secondary/10 border-b p-8">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-secondary text-primary rounded-2xl shadow-lg">
-                    <Calendar className="w-8 h-8" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-xl font-black uppercase tracking-tight text-primary">Today's Presence</CardTitle>
-                    <CardDescription className="font-bold text-primary/60">Live session participation registry.</CardDescription>
-                  </div>
+          <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-secondary/10 border-b p-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-secondary text-primary rounded-2xl shadow-lg">
+                  <Calendar className="w-8 h-8" />
                 </div>
-                <Badge className="bg-primary text-white border-none font-black px-4 py-1 uppercase text-[10px]">
-                  {new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}
-                </Badge>
+                <div>
+                  <CardTitle className="text-xl font-black uppercase tracking-tight text-primary">Today's Presence</CardTitle>
+                  <CardDescription className="font-bold text-primary/60">Live session participation registry.</CardDescription>
+                </div>
               </div>
-            </CardHeader>
+              <Badge className="bg-primary text-white border-none font-black px-4 py-1 uppercase text-[10px]">
+                {new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}
+              </Badge>
+            </div>
+          </Card>
+          <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
             <CardContent className="p-0 overflow-x-auto">
               <Table>
                 <TableHeader className="bg-accent/30 uppercase text-[9px] font-black tracking-widest border-b">
@@ -348,69 +357,11 @@ export default function StudentDetailsPage() {
                 </TableBody>
               </Table>
             </CardContent>
-            <CardFooter className="bg-accent/10 p-4 border-t flex justify-center">
-               <div className="flex items-center gap-2 text-muted-foreground italic">
-                  <Zap className="w-3.5 h-3.5 text-secondary animate-pulse" />
-                  <p className="text-[9px] font-black uppercase tracking-widest opacity-40">Live Node Sync Active</p>
-               </div>
-            </CardFooter>
-          </Card>
-
-          <Card className="border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
-            <CardHeader className="bg-primary/5 p-8 border-b flex flex-col md:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-primary rounded-2xl text-white shadow-xl"><CalendarDays className="w-8 h-8 text-secondary" /></div>
-                <div><CardTitle className="text-xl font-black text-primary uppercase">Attendance History</CardTitle><CardDescription>Session participation breakdown across all subjects.</CardDescription></div>
-              </div>
-              <Button variant="outline" className="rounded-xl h-11 gap-2 font-bold bg-white" onClick={() => handleDownload('Attendance Record')}><FileDown className="w-4 h-4 text-primary" /> Export Records</Button>
-            </CardHeader>
-            <CardContent className="p-0 overflow-x-auto">
-              <Table>
-                <TableHeader className="bg-accent/10 uppercase text-[10px] font-black tracking-widest border-b">
-                  <TableRow>
-                    <TableHead className="pl-8 py-4">Year</TableHead>
-                    <TableHead>Term</TableHead>
-                    <TableHead>Subject</TableHead>
-                    <TableHead className="text-center">Present</TableHead>
-                    <TableHead className="text-center">Absent</TableHead>
-                    <TableHead className="text-right pr-8">Rate (%)</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {MOCK_ATTENDANCE_HISTORY.map((hist, i) => (
-                    <TableRow key={i} className="hover:bg-accent/5 h-16 border-b last:border-0">
-                      <TableCell className="pl-8 font-bold text-xs text-muted-foreground">{hist.year}</TableCell>
-                      <TableCell><Badge variant="outline" className="text-[9px] font-black uppercase text-primary">{hist.term}</Badge></TableCell>
-                      <TableCell className="font-black text-primary uppercase text-sm">{hist.subject}</TableCell>
-                      <TableCell className="text-center font-black text-green-600">{hist.present}</TableCell>
-                      <TableCell className="text-center font-black text-red-600">{hist.absent}</TableCell>
-                      <TableCell className="text-right pr-8">
-                        <div className="inline-flex flex-col items-end gap-1.5 min-w-[80px]">
-                          <div className="flex items-center gap-2">
-                            <span className={cn("text-xs font-black", hist.rate >= 90 ? "text-green-600" : "text-amber-600")}>
-                              {hist.rate}%
-                            </span>
-                            {hist.rate >= 95 && <Zap className="w-3 h-3 text-secondary fill-current" />}
-                          </div>
-                          <div className="w-24 h-1.5 bg-accent rounded-full overflow-hidden">
-                            <div 
-                              className={cn("h-full transition-all duration-1000", hist.rate >= 90 ? "bg-green-500" : "bg-amber-500")} 
-                              style={{ width: `${hist.rate}%` }} 
-                            />
-                          </div>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="documents" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Report Card Term 1 */}
             <Card className="border-none shadow-sm overflow-hidden bg-white group hover:shadow-md transition-all rounded-3xl">
               <div className="h-1.5 w-full bg-blue-500" />
               <CardHeader className="pb-4">
@@ -431,7 +382,6 @@ export default function StudentDetailsPage() {
               </CardFooter>
             </Card>
 
-            {/* Report Card Term 2 */}
             <Card className="border-none shadow-sm overflow-hidden bg-white group hover:shadow-md transition-all rounded-3xl">
               <div className="h-1.5 w-full bg-amber-500" />
               <CardHeader className="pb-4">
@@ -452,7 +402,6 @@ export default function StudentDetailsPage() {
               </CardFooter>
             </Card>
 
-            {/* Digital ID Card */}
             <Card className="border-none shadow-sm overflow-hidden bg-white group hover:shadow-md transition-all rounded-3xl">
               <div className="h-1.5 w-full bg-secondary" />
               <CardHeader className="pb-4">
@@ -518,6 +467,159 @@ export default function StudentDetailsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* HONOUR ROLL CERTIFICATE DIALOG */}
+      <Dialog open={viewingCertificate} onOpenChange={setViewingCertificate}>
+        <DialogContent className="sm:max-w-5xl max-h-[95vh] p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col">
+          <DialogHeader className="bg-primary p-6 md:p-8 text-white no-print relative shrink-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-xl text-secondary"><Trophy className="w-8 h-8" /></div>
+                <div>
+                  <DialogTitle className="text-xl md:text-2xl font-black uppercase">Honour Roll Certificate</DialogTitle>
+                  <DialogDescription className="text-white/60 text-xs">Verified academic achievement for {student.name}.</DialogDescription>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setViewingCertificate(false)} className="text-white hover:bg-white/10"><X className="w-6 h-6" /></Button>
+            </div>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto bg-muted p-2 md:p-10 print:p-0 print:bg-white no-scrollbar">
+            <div className="overflow-x-auto rounded-xl border-2 border-primary/10 shadow-inner bg-white">
+              <CertificatePreview student={student} platform={platformSettings} />
+            </div>
+          </div>
+          <DialogFooter className="bg-accent/10 p-6 border-t border-accent flex justify-between items-center shrink-0 no-print">
+             <div className="flex items-center gap-2 text-muted-foreground">
+                <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                <p className="text-[10px] font-black uppercase italic opacity-40">Digitally Signed Institutional Achievement</p>
+             </div>
+             <div className="flex gap-2">
+                <Button variant="outline" className="rounded-xl h-11 px-6 font-bold text-xs" onClick={() => window.print()}><Printer className="w-4 h-4 mr-2" /> Print</Button>
+                <Button className="rounded-xl px-10 h-11 font-black uppercase text-[10px] gap-2 shadow-lg" onClick={() => handleDownload('Honour Roll Certificate')}><Download className="w-4 h-4" /> Download PDF</Button>
+             </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function CertificatePreview({ student, platform }: { student: any, platform: any }) {
+  const date = new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+  const serial = `LIC-REWARD-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+
+  return (
+    <div id="honour-roll-print" className="bg-white p-12 md:p-24 border-[16px] border-double border-[#264D73]/20 shadow-2xl w-[1100px] md:w-full max-w-5xl mx-auto font-serif text-black relative overflow-hidden print:border-none print:shadow-none print:w-full">
+      {/* PROFESSIONAL FRAME DECORATIONS */}
+      <div className="absolute top-0 left-0 p-8 opacity-40"><LaurelCorner className="w-24 h-24 text-[#264D73]" /></div>
+      <div className="absolute top-0 right-0 p-8 opacity-40 rotate-90"><LaurelCorner className="w-24 h-24 text-[#264D73]" /></div>
+      <div className="absolute bottom-0 left-0 p-8 opacity-40 -rotate-90"><LaurelCorner className="w-24 h-24 text-[#264D73]" /></div>
+      <div className="absolute bottom-0 right-0 p-8 opacity-40 rotate-180"><LaurelCorner className="w-24 h-24 text-[#264D73]" /></div>
+      
+      {/* INNER BORDER */}
+      <div className="absolute inset-6 border border-[#264D73]/10 pointer-events-none" />
+      
+      <div className="relative z-10 space-y-12">
+        {/* NATIONAL HEADER */}
+        <div className="grid grid-cols-3 gap-4 items-center text-center">
+          <div className="space-y-1 text-[8px] uppercase font-black text-left">
+            <p className="text-[#264D73]">Republic of Cameroon</p>
+            <p>Peace - Work - Fatherland</p>
+            <div className="h-px bg-black w-10 my-1" />
+            <p>Ministry of Secondary Education</p>
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="w-24 h-24 bg-white rounded-full shadow-2xl flex items-center justify-center border-[6px] border-[#FCD116] relative mb-2">
+               <div className="absolute -bottom-4 bg-[#FCD116] text-[#264D73] px-3 py-0.5 rounded text-[8px] font-black uppercase shadow-sm">EXCELLENCE</div>
+               <Trophy className="w-10 h-10 text-[#264D73]" />
+            </div>
+          </div>
+          <div className="space-y-1 text-[8px] uppercase font-black text-right">
+            <p className="text-[#264D73]">République du Cameroun</p>
+            <p>Paix - Travail - Patrie</p>
+            <div className="h-px bg-black w-10 ml-auto my-1" />
+            <p>Min. des Enseignements Secondaires</p>
+          </div>
+        </div>
+
+        {/* TITLES */}
+        <div className="text-center space-y-4">
+          <h2 className="text-[10px] font-black uppercase tracking-[0.5em] text-[#264D73]/60 mb-2">Institutional Academic Record</h2>
+          <h1 className="text-6xl md:text-8xl font-black italic text-[#264D73] uppercase tracking-tighter leading-none drop-shadow-sm">Honor Roll</h1>
+          <p className="text-2xl md:text-3xl font-bold uppercase tracking-[0.3em] text-[#FCD116] italic drop-shadow-sm">Certificate of Achievement</p>
+        </div>
+
+        {/* BODY */}
+        <div className="text-center space-y-12 py-10">
+          <p className="text-xs font-black uppercase tracking-[0.4em] text-[#264D73]/40">THIS PRESTIGIOUS AWARD IS PROUDLY PRESENTED TO :</p>
+          
+          <div className="space-y-4">
+            <h2 className="text-5xl md:text-7xl font-black text-[#264D73] leading-tight uppercase tracking-tight">
+              {student?.name}
+            </h2>
+            <div className="flex items-center justify-center gap-6 pt-4">
+               <div className="h-px w-16 bg-[#264D73]/20" />
+               <p className="font-mono text-sm md:text-lg font-bold uppercase tracking-widest text-[#264D73]/60">
+                 Matricule: <span className="text-[#264D73]">{student?.id}</span> • Class: <span className="text-[#264D73]">{student?.class}</span>
+               </p>
+               <div className="h-px w-16 bg-[#264D73]/20" />
+            </div>
+          </div>
+
+          <div className="max-w-2xl mx-auto leading-relaxed text-lg md:text-xl font-medium text-gray-700 italic px-10">
+            For demonstrating exceptional academic commitment, exemplary discipline, and achieving a verified annual average of <span className="font-black text-[#264D73] underline decoration-[#FCD116] decoration-4 underline-offset-8">{student?.annualAvg || "15.00"} / 20</span> during the current pedagogical cycle.
+          </div>
+
+          <div className="py-6">
+             <p className="text-4xl md:text-5xl font-black text-[#FCD116] font-serif opacity-80 italic transform -rotate-3">Congratulations</p>
+          </div>
+        </div>
+
+        {/* FOOTER */}
+        <div className="grid grid-cols-2 gap-20 md:gap-40 pt-16 items-end">
+          <div className="text-center space-y-6">
+            <div className="h-px bg-black/20 w-full" />
+            <div className="space-y-1">
+              <p className="font-black text-[10px] md:text-xs uppercase tracking-[0.3em] text-[#264D73]">The Principal</p>
+              <div className="h-16 w-full relative flex items-center justify-center">
+                 <SignatureSVG className="w-full h-full text-[#264D73]/10 p-4" />
+                 <div className="absolute inset-0 flex items-center justify-center opacity-5">
+                    <img src={student?.school?.logo || platform.logo} className="w-12 h-12 grayscale" />
+                 </div>
+              </div>
+            </div>
+          </div>
+          <div className="text-center space-y-6 relative">
+            <div className="absolute top-[-80px] left-1/2 -translate-x-1/2">
+              <ShieldCheck className="w-24 h-24 text-[#264D73] opacity-[0.05] rotate-12" />
+            </div>
+            <div className="h-px bg-black/20 w-full" />
+            <div className="space-y-1">
+              <p className="font-black text-[10px] md:text-xs uppercase tracking-[0.3em] text-[#264D73]">Institutional Seal</p>
+              <p className="font-mono font-black text-[9px] opacity-40">{serial}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* SUB-FOOTER */}
+        <div className="text-center pt-12 border-t border-black/5 flex flex-col md:flex-row items-center justify-between gap-4">
+           <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-[#264D73] rounded-lg p-2 flex items-center justify-center">
+                 <img src={platform.logo} alt="EduIgnite" className="w-full h-full object-contain" />
+              </div>
+              <p className="text-left text-[8px] md:text-[10px] uppercase font-black text-muted-foreground opacity-30 tracking-[0.2em]">
+                {platform.name} Secure Academic Registry • Verified Digital Node • {new Date().getFullYear()}
+              </p>
+           </div>
+           <div className="flex items-center gap-4">
+              <QrCode className="w-12 h-12 opacity-10" />
+              <div className="text-left">
+                <p className="text-[7px] font-black uppercase text-[#264D73]/40 leading-none">Date Issued</p>
+                <p className="text-[10px] font-bold text-[#264D73]/60">{date}</p>
+              </div>
+           </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -844,6 +946,16 @@ function IDCardPreview({ student, platform }: { student: any, platform: any }) {
         <p className="text-center text-[10px] font-black uppercase text-muted-foreground mt-2 tracking-[0.2em]">Back Side</p>
       </div>
     </div>
+  );
+}
+
+function LaurelCorner({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 100" className={className} fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 10 C 20 10, 10 20, 10 40 M10 10 C 10 20, 20 10, 40 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      <circle cx="10" cy="10" r="3" />
+      <path d="M15 25 L25 15 M20 35 L35 20 M25 45 L45 25" stroke="currentColor" strokeWidth="1" strokeLinecap="round" opacity="0.5"/>
+    </svg>
   );
 }
 
