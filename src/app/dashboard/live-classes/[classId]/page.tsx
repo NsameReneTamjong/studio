@@ -33,7 +33,9 @@ import {
   LayoutGrid,
   ListChecks,
   UserCheck,
-  Loader2
+  Loader2,
+  Hand,
+  ThumbsUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -49,7 +51,6 @@ interface ChatMessage {
   avatar: string;
 }
 
-// Expanded mock participant list to test high-traffic scrolling
 const MOCK_PARTICIPANTS = [
   { name: "Alice Thompson", id: "GBHS26S001", avatar: "https://picsum.photos/seed/s1/100/100" },
   { name: "Bob Richards", id: "GBHS26S002", avatar: "https://picsum.photos/seed/s2/100/100" },
@@ -88,12 +89,18 @@ export default function LiveClassRoomPage() {
   const [isMuted, setIsMuted] = useState(false);
   const [isCamOff, setIsCamOff] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const [chatMessage, setChatMessage] = useState("");
   const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
   const [isSyncingAttendance, setIsSyncingAttendance] = useState(false);
   const [presenceMap, setPresenceMap] = useState<Record<string, boolean>>(
     MOCK_PARTICIPANTS.reduce((acc, p) => ({ ...acc, [p.id]: true }), {})
   );
+
+  // Interaction State
+  const [loveCount, setLoveCount] = useState(12);
+  const [isLiking, setIsLiking] = useState(false);
+  const [isHandRaised, setIsHandRaised] = useState(false);
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     { id: "1", sender: "Alice", role: "STUDENT", text: "Can you explain how you find the vertex?", time: "10:05 AM", isSelf: false, avatar: "https://picsum.photos/seed/s1/100/100" },
@@ -129,6 +136,28 @@ export default function LiveClassRoomPage() {
       setIsAttendanceOpen(false);
       toast({ title: "Registry Synchronized", description: "Attendance data has been committed to the institutional node." });
     }, 1500);
+  };
+
+  const toggleHand = () => {
+    const nextState = !isHandRaised;
+    setIsHandRaised(nextState);
+    if (nextState) {
+      toast({
+        title: "Hand Raised",
+        description: "The instructor has been notified that you wish to speak.",
+      });
+    }
+  };
+
+  const handleLove = () => {
+    setLoveCount(prev => prev + 1);
+    toast({ title: "Reaction Sent", description: "You sent a ❤️ reaction." });
+  };
+
+  const handleLike = () => {
+    setIsLiking(true);
+    setTimeout(() => setIsLiking(false), 1000);
+    toast({ title: "Reaction Sent", description: "You sent a 👍 reaction." });
   };
 
   return (
@@ -202,10 +231,20 @@ export default function LiveClassRoomPage() {
           {/* CHAT & Q&A AREA */}
           <Card className="h-64 bg-[#252841] border-none rounded-2xl overflow-hidden flex flex-col shadow-xl">
             <div className="px-6 py-3 border-b border-white/5 flex items-center justify-between">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Live Pedagogical Chat</h3>
+              <div className="flex items-center gap-4">
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Live Pedagogical Chat</h3>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="icon" className="h-6 w-6 text-red-400 hover:bg-white/5" onClick={handleLove}>
+                    <Heart className={cn("w-3.5 h-3.5", loveCount > 12 && "fill-current")} />
+                  </Button>
+                  <span className="text-[10px] font-black">{loveCount}</span>
+                </div>
+              </div>
               <div className="flex gap-3 text-white/40">
-                <Heart className="w-3.5 h-3.5" />
-                <MessageSquare className="w-3.5 h-3.5" />
+                <Button variant="ghost" size="icon" className="h-6 w-6 text-secondary hover:bg-white/5" onClick={handleLike}>
+                  <ThumbsUp className={cn("w-3.5 h-3.5", isLiking && "fill-current")} />
+                </Button>
+                <MessageSquare className="w-3.5 h-3.5 mt-1.5" />
               </div>
             </div>
             <ScrollArea className="flex-1 px-6">
@@ -287,6 +326,14 @@ export default function LiveClassRoomPage() {
                       <p className="text-[9px] font-black uppercase text-white truncate">{p.name.split(' ')[0]}</p>
                       <p className="text-[7px] font-mono font-bold text-white/40 truncate">{p.id}</p>
                     </div>
+                    
+                    {/* Raising Hand Visual */}
+                    {p.id === "GBHS26S001" && isHandRaised && (
+                      <div className="absolute top-2 right-2 bg-yellow-400 text-primary p-1 rounded-md shadow-lg animate-bounce">
+                        <Hand className="w-3 h-3 fill-current" />
+                      </div>
+                    )}
+
                     {!presenceMap[p.id] && (
                       <div className="absolute inset-0 bg-red-900/40 flex items-center justify-center">
                         <Badge variant="destructive" className="text-[7px] h-4 font-black">ABSENT</Badge>
@@ -319,7 +366,10 @@ export default function LiveClassRoomPage() {
             onClick={() => setIsMuted(!isMuted)}
             className="flex flex-col items-center gap-1 group"
           >
-            <div className={cn("p-2.5 rounded-xl transition-all", isMuted ? "bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.4)]" : "bg-white/5 group-hover:bg-white/10")}>
+            <div className={cn(
+              "p-2.5 rounded-xl transition-all", 
+              isMuted ? "bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.4)]" : "bg-white/5 group-hover:bg-white/10"
+            )}>
               {isMuted ? <MicOff className="w-5 h-5 text-white" /> : <Mic className="w-5 h-5 text-white" />}
             </div>
             <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">
@@ -331,7 +381,10 @@ export default function LiveClassRoomPage() {
             onClick={() => setIsCamOff(!isCamOff)}
             className="flex flex-col items-center gap-1 group"
           >
-            <div className={cn("p-2.5 rounded-xl transition-all", isCamOff ? "bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.4)]" : "bg-white/5 group-hover:bg-white/10")}>
+            <div className={cn(
+              "p-2.5 rounded-xl transition-all", 
+              isCamOff ? "bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.4)]" : "bg-white/5 group-hover:bg-white/10"
+            )}>
               {isCamOff ? <VideoOff className="w-5 h-5 text-white" /> : <VideoIcon className="w-5 h-5 text-white" />}
             </div>
             <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">
@@ -341,11 +394,31 @@ export default function LiveClassRoomPage() {
         </div>
 
         <div className="flex items-center gap-6">
+          {!isTeacher && (
+            <button 
+              onClick={toggleHand}
+              className="flex flex-col items-center gap-1 group"
+            >
+              <div className={cn(
+                "p-2.5 rounded-xl transition-all", 
+                isHandRaised ? "bg-yellow-400 text-primary shadow-[0_0_15px_rgba(250,204,21,0.4)]" : "bg-white/5 group-hover:bg-white/10"
+              )}>
+                <Hand className="w-5 h-5" />
+              </div>
+              <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">
+                Hand
+              </span>
+            </button>
+          )}
+
           <button 
             onClick={() => setIsSharing(!isSharing)}
             className="flex flex-col items-center gap-1 group"
           >
-            <div className={cn("p-2.5 rounded-xl transition-all", isSharing ? "bg-secondary text-primary shadow-[0_0_15px_rgba(103,208,228,0.4)]" : "bg-white/5 hover:bg-white/10")}>
+            <div className={cn(
+              "p-2.5 rounded-xl transition-all", 
+              isSharing ? "bg-secondary text-primary shadow-[0_0_15px_rgba(103,208,228,0.4)]" : "bg-white/5 hover:bg-white/10"
+            )}>
               <Monitor className="w-5 h-5" />
             </div>
             <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">
@@ -353,10 +426,16 @@ export default function LiveClassRoomPage() {
             </span>
           </button>
 
-          <button className="flex flex-col items-center gap-1 group">
-            <div className="p-2.5 bg-white/5 rounded-xl group-hover:bg-white/10 transition-all">
-              <div className="w-5 h-5 rounded-full border-2 border-red-600 flex items-center justify-center">
-                <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
+          <button 
+            onClick={() => setIsRecording(!isRecording)}
+            className="flex flex-col items-center gap-1 group"
+          >
+            <div className={cn(
+              "p-2.5 rounded-xl transition-all",
+              isRecording ? "bg-red-600 animate-pulse" : "bg-white/5 group-hover:bg-white/10"
+            )}>
+              <div className="w-5 h-5 rounded-full border-2 border-current flex items-center justify-center">
+                <div className={cn("w-2 h-2 rounded-full", isRecording ? "bg-white" : "bg-red-600")} />
               </div>
             </div>
             <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">
