@@ -264,7 +264,7 @@ const MOCK_STUDENTS_LIST = [
 ];
 
 export default function DashboardPage() {
-  const { user, schools, isLoading: isAuthLoading, platformSettings } = useAuth();
+  const { user, schools, isLoading: isAuthLoading, platformSettings, staffRemarks } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
 
@@ -315,6 +315,13 @@ export default function DashboardPage() {
     }, 1500);
   };
 
+  const handleDownloadRemark = (remark: any) => {
+    toast({ title: "Dossier Preparation", description: "Generating formal administrative report..." });
+    setTimeout(() => {
+      toast({ title: "Report Ready", description: "Download successful." });
+    }, 1500);
+  };
+
   if (isAuthLoading || !user) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
@@ -331,6 +338,8 @@ export default function DashboardPage() {
   const isLibrarian = user.role === "LIBRARIAN";
   const isBursar = user.role === "BURSAR";
   const isAdmin = user.role === "SCHOOL_ADMIN" || user.role === "SUB_ADMIN";
+
+  const myRemarks = useMemo(() => staffRemarks.filter(r => r.staffId === user.id), [staffRemarks, user.id]);
 
   // 1. PLATFORM EXECUTIVE VIEW
   if (isPlatformExecutive) {
@@ -860,46 +869,43 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
+          {/* TEACHER ADMINISTRATIVE REMARKS */}
           <Card className="lg:col-span-5 border-none shadow-xl overflow-hidden rounded-[2rem] bg-white">
-            <CardHeader className="bg-white border-b p-8 flex items-center justify-between">
+            <CardHeader className="bg-secondary/20 p-8 flex items-center justify-between">
               <div>
                 <CardTitle className="text-lg font-black text-primary uppercase flex items-center gap-2">
-                  <Award className="w-5 h-5 text-secondary" />
-                  Recent Submissions
+                  <Award className="w-5 h-5 text-primary" />
+                  Admin Evaluation
                 </CardTitle>
-                <CardDescription>Latest scores committed to registry.</CardDescription>
+                <CardDescription>Official professional feedback from the principal.</CardDescription>
               </div>
             </CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableBody>
-                  {RECENT_GRADES.map((grade, i) => (
-                    <TableRow key={i} className="hover:bg-primary/5 border-b last:border-0 h-16">
-                      <TableCell className="pl-8">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-8 w-8 border shadow-sm">
-                            <AvatarImage src={grade.avatar} />
-                            <AvatarFallback>{grade.student.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="text-[11px] font-black text-primary uppercase leading-none mb-1">{grade.student}</p>
-                            <p className="text-[9px] font-bold text-muted-foreground uppercase">{grade.class} • {grade.subject}</p>
-                          </div>
+            <CardContent className="p-6">
+              {myRemarks.length > 0 ? (
+                <div className="space-y-4">
+                  {myRemarks.map((remark) => (
+                    <div key={remark.id} className="p-6 bg-accent/30 rounded-2xl border border-accent space-y-4 animate-in fade-in zoom-in-95">
+                      <p className="text-sm italic font-medium text-primary leading-relaxed">
+                        "{remark.text}"
+                      </p>
+                      <div className="flex items-center justify-between pt-4 border-t border-accent/50">
+                        <div className="flex items-center gap-2">
+                          <SignatureIcon className="w-4 h-4 text-primary/40" />
+                          <span className="text-[10px] font-black uppercase text-primary/60">{remark.adminName} • {remark.date}</span>
                         </div>
-                      </TableCell>
-                      <TableCell className="text-right pr-8">
-                        <div className="flex flex-col items-end">
-                          <span className="text-sm font-black text-primary">{grade.score}</span>
-                          <span className={cn(
-                            "text-[8px] font-bold uppercase",
-                            grade.status === 'Excellent' ? "text-green-600" : grade.status === 'Good' ? "text-blue-600" : "text-primary/60"
-                          )}>{grade.status}</span>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                        <Button variant="ghost" size="sm" className="h-8 gap-2 text-[10px] font-black uppercase bg-white shadow-sm" onClick={() => handleDownloadRemark(remark)}>
+                          <Download className="w-3.5 h-3.5" /> PDF
+                        </Button>
+                      </div>
+                    </div>
                   ))}
-                </TableBody>
-              </Table>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center space-y-4 opacity-40">
+                  <FileBadge className="w-12 h-12" />
+                  <p className="text-xs font-bold uppercase tracking-widest">No formal remarks in dossier.</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -1563,7 +1569,7 @@ export default function DashboardPage() {
             </div>
             <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
               <Button className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3" onClick={handleIssueLoan} disabled={isProcessingLoan}>
-                {isProcessingLoan ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5 text-secondary" />}
+                {isProcessingLoan ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-5 h-5 text-secondary" />}
                 Authorize Loan Issue
               </Button>
             </DialogFooter>
@@ -1710,7 +1716,7 @@ export default function DashboardPage() {
                           </Avatar>
                           <div>
                             <p className="text-[11px] font-black text-primary uppercase leading-none mb-1">{tx.student}</p>
-                            <p className="text-[9px] font-mono text-muted-foreground uppercase">{tx.id}</p>
+                            <p className="text-[9px] font-mono font-bold text-muted-foreground uppercase">{tx.id}</p>
                           </div>
                         </div>
                       </TableCell>

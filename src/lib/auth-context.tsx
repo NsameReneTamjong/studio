@@ -170,6 +170,14 @@ export interface PublicEvent {
   url: string;
 }
 
+export interface StaffRemark {
+  id: string;
+  staffId: string;
+  adminName: string;
+  text: string;
+  date: string;
+}
+
 interface AuthContextType {
   user: User | null;
   platformSettings: PlatformSettings;
@@ -182,6 +190,7 @@ interface AuthContextType {
   personalChats: PersonalChat[];
   schools: SchoolInfo[];
   publicEvents: PublicEvent[];
+  staffRemarks: StaffRemark[];
   login: (matricule: string) => Promise<void>;
   activateAccount: (matricule: string) => Promise<void>;
   updateUser: (updates: Partial<User>) => Promise<void>;
@@ -210,6 +219,7 @@ interface AuthContextType {
   deleteSupport: (id: string) => void;
   addPublicEvent: (event: Omit<PublicEvent, "id">) => void;
   deletePublicEvent: (id: string) => void;
+  addStaffRemark: (remark: Omit<StaffRemark, "id" | "date">) => void;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -330,6 +340,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [personalChats, setPersonalChats] = useState<PersonalChat[]>([]);
   const [supportContributions, setSupportContributions] = useState<SupportContribution[]>([]);
   const [publicEvents, setPublicEvents] = useState<PublicEvent[]>([]);
+  const [staffRemarks, setStaffRemarks] = useState<StaffRemark[]>([]);
   const [platformSettings, setPlatformSettings] = useState<PlatformSettings>(PLATFORM_DEFAULTS);
 
   const router = useRouter();
@@ -360,6 +371,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setAnnouncements(loadRegistry("announcements", []));
     setPersonalChats(loadRegistry("personal_chats", []));
     setSupportContributions(loadRegistry("support", []));
+    setStaffRemarks(loadRegistry("staff_remarks", []));
     setSchools(loadRegistry("schools", INITIAL_SCHOOLS));
     setPublicEvents(loadRegistry("events", INITIAL_EVENTS));
     setPlatformSettings(loadRegistry("platform", PLATFORM_DEFAULTS));
@@ -376,11 +388,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem("eduignite_announcements", JSON.stringify(announcements));
       localStorage.setItem("eduignite_personal_chats", JSON.stringify(personalChats));
       localStorage.setItem("eduignite_support", JSON.stringify(supportContributions));
+      localStorage.setItem("eduignite_staff_remarks", JSON.stringify(staffRemarks));
       localStorage.setItem("eduignite_schools", JSON.stringify(schools));
       localStorage.setItem("eduignite_events", JSON.stringify(publicEvents));
       localStorage.setItem("eduignite_platform", JSON.stringify(platformSettings));
     }
-  }, [testimonials, communityBlogs, feedbacks, orders, announcements, personalChats, supportContributions, schools, platformSettings, publicEvents, isLoading]);
+  }, [testimonials, communityBlogs, feedbacks, orders, announcements, personalChats, supportContributions, staffRemarks, schools, platformSettings, publicEvents, isLoading]);
 
   const login = async (matricule: string) => {
     setIsLoading(true);
@@ -457,6 +470,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const addPublicEvent = (e: Omit<PublicEvent, "id">) => setPublicEvents(prev => [{ ...e, id: `EVT-${Math.random().toString(36).substr(2, 5).toUpperCase()}` }, ...prev]);
   const deletePublicEvent = (id: string) => setPublicEvents(prev => prev.filter(e => e.id !== id));
 
+  const addStaffRemark = (r: Omit<StaffRemark, "id" | "date">) => {
+    setStaffRemarks(prev => [{ ...r, id: `REM-${Math.random().toString(36).substr(2, 5).toUpperCase()}`, date: new Date().toLocaleDateString() }, ...prev]);
+  };
+
   const logout = async () => {
     setUserData(null);
     localStorage.removeItem("eduignite_prototype_session");
@@ -465,8 +482,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthContext.Provider value={{ 
-      user: userData, platformSettings, testimonials, communityBlogs, feedbacks, orders, announcements, personalChats, supportContributions, schools, publicEvents,
-      login, activateAccount: login, updateUser, updateSchool, updatePlatformSettings, markLicensePaid, incrementAiRequest, addTestimony, approveTestimony, deleteTestimony, addCommunityBlog, deleteCommunityBlog, addFeedback, resolveFeedback, deleteFeedback, addOrder, processOrder, deleteOrder, addAnnouncement, deleteAnnouncement, addSchool, toggleSchoolStatus, deleteSchool, addSupport, verifySupport, deleteSupport, addPublicEvent, deletePublicEvent, logout, isAuthenticated: !!userData, isLoading
+      user: userData, platformSettings, testimonials, communityBlogs, feedbacks, orders, announcements, personalChats, supportContributions, schools, publicEvents, staffRemarks,
+      login, activateAccount: login, updateUser, updateSchool, updatePlatformSettings, markLicensePaid, incrementAiRequest, addTestimony, approveTestimony, deleteTestimony, addCommunityBlog, deleteCommunityBlog, addFeedback, resolveFeedback, deleteFeedback, addOrder, processOrder, deleteOrder, addAnnouncement, deleteAnnouncement, addSchool, toggleSchoolStatus, deleteSchool, addSupport, verifySupport, deleteSupport, addPublicEvent, deletePublicEvent, addStaffRemark, logout, isAuthenticated: !!userData, isLoading
     }}>
       {children}
     </AuthContext.Provider>
