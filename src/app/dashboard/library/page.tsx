@@ -41,7 +41,8 @@ import {
   CreditCard,
   ImageIcon,
   CheckCircle2,
-  FileDown
+  FileDown,
+  Info
 } from "lucide-react";
 import { 
   Dialog, 
