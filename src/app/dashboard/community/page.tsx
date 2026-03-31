@@ -133,6 +133,7 @@ const STAFF_MEMBERS = [
 ];
 
 export default function CommunityPage() {
+  const { user } = useAuth();
   const { language } = useI18n();
   const { toast } = useToast();
   const [subSchools, setSubSchools] = useState(INITIAL_SUB_SCHOOLS);
@@ -162,6 +163,8 @@ export default function CommunityPage() {
       fullControl: false
     }
   });
+
+  const isSchoolAdmin = user?.role === "SCHOOL_ADMIN";
 
   const handleAddSection = () => {
     if (!newSectionData.name) return;
@@ -214,6 +217,11 @@ export default function CommunityPage() {
       setConfiguringSection(null);
       toast({ title: "Section Updated", description: "The institutional structure has been synchronized." });
     }, 800);
+  };
+
+  const handleDeleteSection = (id: string) => {
+    setSubSchools(prev => prev.filter(s => s.id !== id));
+    toast({ variant: "destructive", title: "Section Decommissioned", description: "The institutional node has been updated." });
   };
 
   const handleAppointAdmin = () => {
@@ -299,41 +307,43 @@ export default function CommunityPage() {
         <TabsContent value="structure" className="animate-in fade-in slide-in-from-bottom-4 mt-0 space-y-6">
           <div className="flex justify-between items-center">
             <h3 className="text-xl font-black text-primary uppercase tracking-tight">Active Sections</h3>
-            <Dialog open={isAddingSubSchool} onOpenChange={setIsAddingSubSchool}>
-              <DialogTrigger asChild>
-                <Button className="gap-2 rounded-xl h-11 px-6 shadow-lg bg-secondary text-primary hover:bg-secondary/90 font-bold">
-                  <Plus className="w-4 h-4" /> Create Section
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-                <DialogHeader className="bg-primary p-8 text-white">
-                  <DialogTitle className="text-2xl font-black">New Institutional Section</DialogTitle>
-                  <DialogDescription className="text-white/60">Define a specialized sub-school or wing.</DialogDescription>
-                </DialogHeader>
-                <div className="p-8 space-y-6">
-                  <div className="space-y-2">
-                    <Label>Section Name</Label>
-                    <Input value={newSectionData.name} onChange={(e) => setNewSectionData({...newSectionData, name: e.target.value})} placeholder="e.g. Technical Section" className="h-12 bg-accent/30 border-none rounded-xl" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Type</Label>
-                    <Select value={newSectionData.type} onValueChange={(v) => setNewSectionData({...newSectionData, type: v})}>
-                      <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="General">General Education</SelectItem>
-                        <SelectItem value="Technical">Technical Education</SelectItem>
-                        <SelectItem value="Teacher Training">Teacher Training</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
-                  <Button onClick={handleAddSection} className="w-full h-12 rounded-xl shadow-lg font-bold" disabled={isProcessing}>
-                    {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Confirm Section Creation"}
+            {isSchoolAdmin && (
+              <Dialog open={isAddingSubSchool} onOpenChange={setIsAddingSubSchool}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2 rounded-xl h-11 px-6 shadow-lg bg-secondary text-primary hover:bg-secondary/90 font-bold">
+                    <Plus className="w-4 h-4" /> Create Section
                   </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+                  <DialogHeader className="bg-primary p-8 text-white">
+                    <DialogTitle className="text-2xl font-black">New Institutional Section</DialogTitle>
+                    <DialogDescription className="text-white/60">Define a specialized sub-school or wing.</DialogDescription>
+                  </DialogHeader>
+                  <div className="p-8 space-y-6">
+                    <div className="space-y-2">
+                      <Label>Section Name</Label>
+                      <Input value={newSectionData.name} onChange={(e) => setNewSectionData({...newSectionData, name: e.target.value})} placeholder="e.g. Technical Section" className="h-12 bg-accent/30 border-none rounded-xl" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Type</Label>
+                      <Select value={newSectionData.type} onValueChange={(v) => setNewSectionData({...newSectionData, type: v})}>
+                        <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="General">General Education</SelectItem>
+                          <SelectItem value="Technical">Technical Education</SelectItem>
+                          <SelectItem value="Teacher Training">Teacher Training</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+                    <Button onClick={handleAddSection} className="w-full h-12 rounded-xl shadow-lg font-bold" disabled={isProcessing}>
+                      {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Confirm Section Creation"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -362,11 +372,16 @@ export default function CommunityPage() {
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="pt-0 border-t bg-accent/10 p-4">
-                  <Button variant="ghost" className="w-full justify-between hover:bg-white text-xs font-bold text-primary" onClick={() => setConfiguringSection({...sec})}>
-                    Section Configuration
+                <CardFooter className="pt-0 border-t bg-accent/10 p-4 flex gap-2">
+                  <Button variant="ghost" className="flex-1 justify-between hover:bg-white text-xs font-bold text-primary h-10" onClick={() => setConfiguringSection({...sec})}>
+                    {isSchoolAdmin ? "Edit Section" : "View Configuration"}
                     <ChevronRight className="w-4 h-4" />
                   </Button>
+                  {isSchoolAdmin && (
+                    <Button variant="ghost" size="icon" className="h-10 w-10 text-destructive/40 hover:text-destructive hover:bg-red-50" onClick={() => handleDeleteSection(sec.id)}>
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
                 </CardFooter>
               </Card>
             ))}
@@ -658,11 +673,16 @@ export default function CommunityPage() {
           <div className="p-8 space-y-6">
             <div className="space-y-2">
               <Label>Section Title</Label>
-              <Input value={configuringSection?.name || ""} onChange={(e) => setConfiguringSection({...configuringSection, name: e.target.value})} className="h-12 bg-accent/30 border-none rounded-xl font-bold" />
+              <Input 
+                value={configuringSection?.name || ""} 
+                onChange={(e) => setConfiguringSection({...configuringSection, name: e.target.value})} 
+                className="h-12 bg-accent/30 border-none rounded-xl font-bold" 
+                disabled={!isSchoolAdmin}
+              />
             </div>
             <div className="space-y-2">
               <Label>Section Type</Label>
-              <Select value={configuringSection?.type} onValueChange={(v) => setConfiguringSection({...configuringSection, type: v})}>
+              <Select value={configuringSection?.type} onValueChange={(v) => setConfiguringSection({...configuringSection, type: v})} disabled={!isSchoolAdmin}>
                 <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="General">General Education</SelectItem>
@@ -673,7 +693,7 @@ export default function CommunityPage() {
             </div>
             <div className="space-y-2">
               <Label>Assigned Section Head</Label>
-              <Select value={configuringSection?.head} onValueChange={(v) => setConfiguringSection({...configuringSection, head: v})}>
+              <Select value={configuringSection?.head} onValueChange={(v) => setConfiguringSection({...configuringSection, head: v})} disabled={!isSchoolAdmin}>
                 <SelectTrigger className="h-12 bg-accent/30 border-none rounded-xl font-bold">
                   <SelectValue />
                 </SelectTrigger>
@@ -683,12 +703,14 @@ export default function CommunityPage() {
               </Select>
             </div>
           </div>
-          <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
-            <Button onClick={handleUpdateSection} className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3 bg-primary text-white" disabled={isProcessing}>
-              {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
-              Commit Section Updates
-            </Button>
-          </DialogFooter>
+          {isSchoolAdmin && (
+            <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
+              <Button onClick={handleUpdateSection} className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3 bg-primary text-white" disabled={isProcessing}>
+                {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle2 className="w-5 h-5" />}
+                Commit Section Updates
+              </Button>
+            </DialogFooter>
+          )}
         </DialogContent>
       </Dialog>
 
@@ -697,7 +719,7 @@ export default function CommunityPage() {
         <DialogContent className="sm:max-w-xl rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
           <DialogHeader className="bg-primary p-8 text-white relative">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-white/10 rounded-2xl"><Settings2 className="w-8 h-8 text-secondary" /></div>
+              <div className="p-3 bg-white/10 rounded-2xl"><Pencil className="w-8 h-8 text-secondary" /></div>
               <div>
                 <DialogTitle className="text-2xl font-black">Modify Admin Purview</DialogTitle>
                 <DialogDescription className="text-white/60">Update authority and roles for {editingAdmin?.name}.</DialogDescription>
@@ -761,7 +783,7 @@ export default function CommunityPage() {
           </div>
           <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
             <Button onClick={handleUpdateAdmin} className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3 bg-primary text-white" disabled={isProcessing}>
-              {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <ShieldCheck className="w-5 h-5" />}
+              {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-5 h-5" />}
               Commit Authority Changes
             </Button>
           </DialogFooter>
