@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useMemo } from "react";
@@ -329,8 +330,8 @@ export default function AcademicRewardsPage() {
                   <TableCell><span className="text-[10px] font-bold uppercase text-muted-foreground">{s.class}</span></TableCell>
                   <TableCell className="text-center font-black text-lg text-primary">{s.average.toFixed(2)}</TableCell>
                   <TableCell className="text-right pr-8">
-                    <Button variant="ghost" size="sm" className="gap-2 text-[10px] font-black uppercase text-primary/60 hover:text-primary" onClick={() => setViewingCertificate(s)}>
-                      <Eye className="w-3.5 h-3.5" /> Preview Certificate
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/5" onClick={() => setViewingCertificate(s)}>
+                      <Eye className="w-4 h-4 text-primary/60 hover:text-primary" />
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -376,59 +377,73 @@ export default function AcademicRewardsPage() {
 
 function CertificatePreview({ student, platform }: { student: any, platform: any }) {
   const date = new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
-  const serial = `REWARD-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+  const serial = `LIC-REWARD-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
   return (
-    <div id="honour-roll-print" className="bg-white p-12 md:p-20 border-[12px] border-double border-primary/20 shadow-2xl w-[1000px] md:w-full max-w-5xl mx-auto font-serif text-black relative overflow-hidden print:border-none print:shadow-none print:w-full">
-      {/* BACKGROUND ELEMENTS */}
-      <div className="absolute top-0 right-0 p-12 opacity-[0.03] rotate-12"><Trophy className="w-[500px] h-[500px]" /></div>
-      <div className="absolute inset-4 border border-primary/10 pointer-events-none" />
+    <div id="honour-roll-print" className="bg-white p-12 md:p-24 border-[16px] border-double border-[#264D73]/20 shadow-2xl w-[1100px] md:w-full max-w-5xl mx-auto font-serif text-black relative overflow-hidden print:border-none print:shadow-none print:w-full">
+      {/* PROFESSIONAL FRAME DECORATIONS */}
+      <div className="absolute top-0 left-0 p-8 opacity-40"><LaurelCorner className="w-24 h-24 text-[#264D73]" /></div>
+      <div className="absolute top-0 right-0 p-8 opacity-40 rotate-90"><LaurelCorner className="w-24 h-24 text-[#264D73]" /></div>
+      <div className="absolute bottom-0 left-0 p-8 opacity-40 -rotate-90"><LaurelCorner className="w-24 h-24 text-[#264D73]" /></div>
+      <div className="absolute bottom-0 right-0 p-8 opacity-40 rotate-180"><LaurelCorner className="w-24 h-24 text-[#264D73]" /></div>
+      
+      {/* INNER BORDER */}
+      <div className="absolute inset-6 border border-[#264D73]/10 pointer-events-none" />
       
       <div className="relative z-10 space-y-12">
-        {/* HEADER */}
+        {/* NATIONAL HEADER */}
         <div className="grid grid-cols-3 gap-4 items-center text-center">
           <div className="space-y-1 text-[8px] uppercase font-black text-left">
-            <p>Republic of Cameroon</p>
+            <p className="text-[#264D73]">Republic of Cameroon</p>
             <p>Peace - Work - Fatherland</p>
             <div className="h-px bg-black w-10 my-1" />
             <p>Ministry of Secondary Education</p>
           </div>
           <div className="flex flex-col items-center">
-            <div className="w-20 h-20 bg-white rounded-2xl shadow-xl p-3 border-2 border-primary/10 mb-2">
-              <img src={student?.school?.logo || platform.logo} alt="Logo" className="w-full h-full object-contain" />
+            {/* CENTRAL ACHIEVEMENT SEAL */}
+            <div className="w-24 h-24 bg-white rounded-full shadow-2xl flex items-center justify-center border-[6px] border-[#FCD116] relative mb-2">
+               <div className="absolute -bottom-4 bg-[#FCD116] text-[#264D73] px-3 py-0.5 rounded text-[8px] font-black uppercase shadow-sm">EXCELLENCE</div>
+               <Trophy className="w-10 h-10 text-[#264D73]" />
             </div>
           </div>
           <div className="space-y-1 text-[8px] uppercase font-black text-right">
-            <p>République du Cameroun</p>
+            <p className="text-[#264D73]">République du Cameroun</p>
             <p>Paix - Travail - Patrie</p>
             <div className="h-px bg-black w-10 ml-auto my-1" />
             <p>Min. des Enseignements Secondaires</p>
           </div>
         </div>
 
-        {/* TITLE */}
+        {/* TITLES */}
         <div className="text-center space-y-4">
-          <h1 className="text-5xl md:text-7xl font-black italic text-primary uppercase tracking-tighter leading-tight drop-shadow-sm">Honour Roll</h1>
-          <div className="flex items-center justify-center gap-4">
-             <div className="h-px w-20 bg-primary/20" />
-             <p className="text-lg md:text-xl font-bold uppercase tracking-[0.4em] text-primary/60 italic">Academic Excellence Award</p>
-             <div className="h-px w-20 bg-primary/20" />
-          </div>
+          <h2 className="text-[10px] font-black uppercase tracking-[0.5em] text-[#264D73]/60 mb-2">Institutional Academic Record</h2>
+          <h1 className="text-6xl md:text-8xl font-black italic text-[#264D73] uppercase tracking-tighter leading-none drop-shadow-sm">Honor Roll</h1>
+          <p className="text-2xl md:text-3xl font-bold uppercase tracking-[0.3em] text-[#FCD116] italic drop-shadow-sm">Certificate of Achievement</p>
         </div>
 
         {/* BODY */}
-        <div className="text-center space-y-10 py-10">
-          <p className="text-xl md:text-2xl font-medium italic opacity-60">This prestigious award is proudly presented to:</p>
+        <div className="text-center space-y-12 py-10">
+          <p className="text-xs font-black uppercase tracking-[0.4em] text-[#264D73]/40">THIS PRESTIGIOUS AWARD IS PROUDLY PRESENTED TO :</p>
           
-          <div className="space-y-2">
-            <h2 className="text-5xl md:text-7xl font-black underline decoration-secondary decoration-8 underline-offset-12 text-primary leading-tight px-10 uppercase">
+          <div className="space-y-4">
+            <h2 className="text-5xl md:text-7xl font-black text-[#264D73] leading-tight uppercase tracking-tight">
               {student?.name}
             </h2>
-            <p className="font-mono text-sm md:text-lg font-bold uppercase tracking-widest opacity-40 pt-6">Matricule: {student?.id} • Class: {student?.class}</p>
+            <div className="flex items-center justify-center gap-6 pt-4">
+               <div className="h-px w-16 bg-[#264D73]/20" />
+               <p className="font-mono text-sm md:text-lg font-bold uppercase tracking-widest text-[#264D73]/60">
+                 Matricule: <span className="text-[#264D73]">{student?.id}</span> • Class: <span className="text-[#264D73]">{student?.class}</span>
+               </p>
+               <div className="h-px w-16 bg-[#264D73]/20" />
+            </div>
           </div>
 
-          <div className="max-w-2xl mx-auto leading-relaxed text-lg md:text-xl font-medium italic">
-            In high recognition of outstanding academic achievements, exemplary conduct, and maintaining a cumulative average of <span className="font-black text-primary underline decoration-secondary decoration-4 underline-offset-4">{student?.average || student?.annualAvg} / 20</span> during the current academic session.
+          <div className="max-w-2xl mx-auto leading-relaxed text-lg md:text-xl font-medium text-gray-700 italic px-10">
+            For demonstrating exceptional academic commitment, exemplary discipline, and achieving a verified annual average of <span className="font-black text-[#264D73] underline decoration-[#FCD116] decoration-4 underline-offset-8">{student?.average || student?.annualAvg || "15.00"} / 20</span> during the current pedagogical cycle.
+          </div>
+
+          <div className="py-6">
+             <p className="text-4xl md:text-5xl font-black text-[#FCD116] font-serif opacity-80 italic transform -rotate-3">Congratulations</p>
           </div>
         </div>
 
@@ -436,21 +451,24 @@ function CertificatePreview({ student, platform }: { student: any, platform: any
         <div className="grid grid-cols-2 gap-20 md:gap-40 pt-16 items-end">
           <div className="text-center space-y-6">
             <div className="h-px bg-black/20 w-full" />
-            <div>
-              <p className="font-black text-[10px] md:text-xs uppercase tracking-[0.3em] text-primary">The Principal</p>
+            <div className="space-y-1">
+              <p className="font-black text-[10px] md:text-xs uppercase tracking-[0.3em] text-[#264D73]">The Principal</p>
               <div className="h-16 w-full relative flex items-center justify-center">
-                 <SignatureSVG className="w-full h-full text-primary/10 p-4" />
+                 <SignatureSVG className="w-full h-full text-[#264D73]/10 p-4" />
+                 <div className="absolute inset-0 flex items-center justify-center opacity-5">
+                    <img src={student?.school?.logo || platform.logo} className="w-12 h-12 grayscale" />
+                 </div>
               </div>
             </div>
           </div>
           <div className="text-center space-y-6 relative">
             <div className="absolute top-[-80px] left-1/2 -translate-x-1/2">
-              <ShieldCheck className="w-24 h-24 text-primary opacity-[0.05] rotate-12" />
+              <ShieldCheck className="w-24 h-24 text-[#264D73] opacity-[0.05] rotate-12" />
             </div>
             <div className="h-px bg-black/20 w-full" />
             <div className="space-y-1">
-              <p className="font-black text-[10px] md:text-xs uppercase tracking-[0.3em] text-primary">Verification Code</p>
-              <p className="font-mono font-black text-sm md:text-base opacity-40">{serial}</p>
+              <p className="font-black text-[10px] md:text-xs uppercase tracking-[0.3em] text-[#264D73]">Institutional Seal</p>
+              <p className="font-mono font-black text-[9px] opacity-40">{serial}</p>
             </div>
           </div>
         </div>
@@ -458,18 +476,33 @@ function CertificatePreview({ student, platform }: { student: any, platform: any
         {/* SUB-FOOTER */}
         <div className="text-center pt-12 border-t border-black/5 flex flex-col md:flex-row items-center justify-between gap-4">
            <div className="flex items-center gap-3">
-              <img src={platform.logo} alt="EduIgnite" className="w-6 h-6 object-contain opacity-20" />
-              <p className="text-[8px] md:text-[10px] uppercase font-black text-muted-foreground opacity-30 tracking-[0.2em]">
-                {platform.name} Secure Node Registry • Verified Digital Record • {new Date().getFullYear()}
+              <div className="w-10 h-10 bg-[#264D73] rounded-lg p-2 flex items-center justify-center">
+                 <img src={platform.logo} alt="EduIgnite" className="w-full h-full object-contain" />
+              </div>
+              <p className="text-left text-[8px] md:text-[10px] uppercase font-black text-muted-foreground opacity-30 tracking-[0.2em]">
+                {platform.name} Secure Academic Registry • Verified Digital Node • {new Date().getFullYear()}
               </p>
            </div>
            <div className="flex items-center gap-4">
               <QrCode className="w-12 h-12 opacity-10" />
-              <div className="text-left"><p className="text-[7px] font-black uppercase text-primary/40 leading-none">Date Issued</p><p className="text-[10px] font-bold text-primary/60">{date}</p></div>
+              <div className="text-left">
+                <p className="text-[7px] font-black uppercase text-[#264D73]/40 leading-none">Date Issued</p>
+                <p className="text-[10px] font-bold text-[#264D73]/60">{date}</p>
+              </div>
            </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function LaurelCorner({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 100" className={className} fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 10 C 20 10, 10 20, 10 40 M10 10 C 10 20, 20 10, 40 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      <circle cx="10" cy="10" r="3" />
+      <path d="M15 25 L25 15 M20 35 L35 20 M25 45 L45 25" stroke="currentColor" strokeWidth="1" strokeLinecap="round" opacity="0.5"/>
+    </svg>
   );
 }
 
