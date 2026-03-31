@@ -5,7 +5,6 @@ import { AuthProvider } from '@/lib/auth-context';
 import { I18nProvider } from '@/lib/i18n-context';
 import { Toaster } from "@/components/ui/toaster"
 import { FirebaseClientProvider } from '@/firebase/client-provider';
-import { ConnectivityBanner } from '@/components/layout/connectivity-banner';
 import { TopProgressBar } from '@/components/layout/progress-bar';
 import { Suspense } from 'react';
 
@@ -30,7 +29,6 @@ export default function RootLayout({
         <I18nProvider>
           <FirebaseClientProvider>
             <AuthProvider>
-              <ConnectivityBanner />
               <Suspense fallback={null}>
                 <TopProgressBar />
               </Suspense>
