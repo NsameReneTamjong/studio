@@ -79,7 +79,7 @@ export interface LiveClass {
   scheduledDateTime: string;
   duration: number;
   meetingId: string;
-  status: "upcoming" | "live" | "ended";
+  status: "upcoming" | "live" | "ended" | "cancelled";
 }
 
 export interface Testimony {
@@ -201,6 +201,7 @@ interface AuthContextType {
   markLicensePaid: () => Promise<void>;
   incrementAiRequest: () => Promise<void>;
   addLiveClass: (session: Omit<LiveClass, "id" | "status" | "teacherId" | "teacherName" | "meetingId">) => void;
+  cancelLiveClass: (id: string) => void;
   deleteLiveClass: (id: string) => void;
   addTestimony: (testimony: Omit<Testimony, "id" | "status" | "createdAt">) => void;
   approveTestimony: (id: string) => void;
@@ -439,6 +440,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLiveClasses(prev => [newClass, ...prev]);
   };
 
+  const cancelLiveClass = (id: string) => {
+    setLiveClasses(prev => prev.map(c => c.id === id ? { ...c, status: "cancelled" } : c));
+  };
+
   const deleteLiveClass = (id: string) => setLiveClasses(prev => prev.filter(c => c.id !== id));
 
   const addTestimony = (t: Omit<Testimony, "id" | "status" | "createdAt">) => setTestimonials(prev => [{ ...t, id: Math.random().toString(36).substr(2, 9), status: "pending", createdAt: new Date() }, ...prev]);
@@ -487,7 +492,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <AuthContext.Provider value={{ 
       user: userData, platformSettings, liveClasses, testimonials, communityBlogs, feedbacks, orders, announcements, personalChats, supportContributions, schools, publicEvents,
-      login, activateAccount: login, updateUser, updateSchool, updatePlatformSettings, markLicensePaid, incrementAiRequest, addLiveClass, deleteLiveClass, addTestimony, approveTestimony, deleteTestimony, addCommunityBlog, deleteCommunityBlog, addFeedback, resolveFeedback, deleteFeedback, addOrder, processOrder, deleteOrder, addAnnouncement, deleteAnnouncement, addSchool, toggleSchoolStatus, deleteSchool, addSupport, verifySupport, deleteSupport, addPublicEvent, deletePublicEvent, logout, isAuthenticated: !!userData, isLoading
+      login, activateAccount: login, updateUser, updateSchool, updatePlatformSettings, markLicensePaid, incrementAiRequest, addLiveClass, cancelLiveClass, deleteLiveClass, addTestimony, approveTestimony, deleteTestimony, addCommunityBlog, deleteCommunityBlog, addFeedback, resolveFeedback, deleteFeedback, addOrder, processOrder, deleteOrder, addAnnouncement, deleteAnnouncement, addSchool, toggleSchoolStatus, deleteSchool, addSupport, verifySupport, deleteSupport, addPublicEvent, deletePublicEvent, logout, isAuthenticated: !!userData, isLoading
     }}>
       {children}
     </AuthContext.Provider>

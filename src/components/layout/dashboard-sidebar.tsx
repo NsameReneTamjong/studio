@@ -211,7 +211,7 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       roles: ["TEACHER", "STUDENT"],
     },
     {
-      label: language === 'en' ? 'Live Classes' : 'Classes en Direct',
+      label: t("onlineClasses"),
       icon: Video,
       href: "/dashboard/live-classes",
       roles: ["TEACHER", "STUDENT"],
