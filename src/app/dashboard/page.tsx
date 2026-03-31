@@ -36,7 +36,11 @@ import {
   PenTool,
   History,
   LayoutGrid,
-  Sparkles
+  Sparkles,
+  AlertCircle,
+  FileEdit,
+  ListChecks,
+  BookOpen
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -64,7 +68,6 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { CardSkeleton } from "@/components/shared/loading-state";
 
 const DATA_PERIODS = {
   weekly: [
@@ -77,10 +80,10 @@ const DATA_PERIODS = {
     { name: 'Sun', users: 110, revenue: 28000 },
   ],
   monthly: [
-    { name: 'Week 1', users: 1200, revenue: 245000 },
-    { name: 'Week 2', users: 1450, revenue: 280000 },
-    { name: 'Week 3', users: 1100, revenue: 210000 },
-    { name: 'Week 4', users: 1800, revenue: 350000 },
+    { name: 'Week 1', users: 1200, revenue: 245000, performance: 14.2 },
+    { name: 'Week 2', users: 1450, revenue: 280000, performance: 15.5 },
+    { name: 'Week 3', users: 1100, revenue: 210000, performance: 13.8 },
+    { name: 'Week 4', users: 1800, revenue: 350000, performance: 16.1 },
   ],
   yearly: [
     { name: 'Jan', users: 4500, revenue: 1200000 },
@@ -98,6 +101,14 @@ const DATA_PERIODS = {
   ]
 };
 
+const TEACHER_CLASS_DATA = [
+  { name: 'Form 1', attendance: 92, performance: 12.5 },
+  { name: 'Form 2', attendance: 85, performance: 11.8 },
+  { name: 'Form 3', attendance: 96, performance: 14.2 },
+  { name: 'Form 4', attendance: 88, performance: 13.1 },
+  { name: 'Form 5', attendance: 98, performance: 16.4 },
+];
+
 const USER_DISTRIBUTION = [
   { name: 'Students', value: 18500, color: '#264D73' },
   { name: 'Teachers', value: 2400, color: '#67D0E4' },
@@ -113,16 +124,27 @@ const EXECUTIVE_LOGS = [
   { actor: "Investor", action: "Accessed Quarterly Revenue Audit", time: "3 days ago", date: "May 22", impact: "Financial", icon: Coins, color: "text-emerald-600" },
 ];
 
+const UPCOMING_TASKS = [
+  { id: "T1", title: "Physics Seq 2 Marks Entry", class: "Form 5", deadline: "Today, 4PM", status: "Urgent", icon: PenTool },
+  { id: "T2", title: "Lab Report Review", class: "Form 3", deadline: "Tomorrow", status: "Upcoming", icon: FileEdit },
+  { id: "T3", title: "Weekly Attendance Audit", class: "All Classes", deadline: "Friday", status: "Routine", icon: ClipboardCheck },
+];
+
+const RECENT_GRADES = [
+  { student: "Alice Thompson", class: "Form 5", subject: "Physics", score: "18.5/20", status: "Excellent", avatar: "https://picsum.photos/seed/s1/100/100" },
+  { student: "Bob Richards", class: "Form 5", subject: "Physics", score: "14.2/20", status: "Good", avatar: "https://picsum.photos/seed/s2/100/100" },
+  { student: "Charlie Davis", class: "Form 3", subject: "Math", score: "08.5/20", status: "Failed", avatar: "https://picsum.photos/seed/s3/100/100" },
+];
+
 export default function DashboardPage() {
   const { user, schools, isLoading: isAuthLoading } = useAuth();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
 
   const [timePeriod, setTimePeriod] = useState<"weekly" | "monthly" | "yearly">("monthly");
   const [selectedSchoolId, setSelectedSchoolId] = useState("all");
   const [isDataSyncing, setIsDataSyncing] = useState(true);
 
   useEffect(() => {
-    // Simulate initial data sync for dashboard widgets
     const timer = setTimeout(() => setIsDataSyncing(false), 800);
     return () => clearTimeout(timer);
   }, []);
@@ -152,6 +174,7 @@ export default function DashboardPage() {
   }
 
   const isPlatformExecutive = ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV", "DESIGNER"].includes(user.role);
+  const isTeacher = user.role === "TEACHER";
 
   if (isPlatformExecutive) {
     return (
@@ -276,35 +299,29 @@ export default function DashboardPage() {
               </Badge>
             </CardHeader>
             <CardContent className="h-[400px] pt-10">
-              {isDataSyncing ? (
-                <div className="w-full h-full bg-accent/5 rounded-2xl flex items-center justify-center">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary/20" />
-                </div>
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={activeChartData}>
-                    <defs>
-                      <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#264D73" stopOpacity={0.15}/>
-                        <stop offset="95%" stopColor="#264D73" stopOpacity={0}/>
-                      </linearGradient>
-                      <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#67D0E4" stopOpacity={0.15}/>
-                        <stop offset="95%" stopColor="#67D0E4" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
-                    <RechartsTooltip 
-                      contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                    />
-                    <Legend verticalAlign="top" align="right" height={36} iconType="circle" />
-                    <Area name="Revenue (XAF)" type="monotone" dataKey="revenue" stroke="#264D73" strokeWidth={4} fill="url(#colorRev)" />
-                    <Area name="Active Users" type="monotone" dataKey="users" stroke="#67D0E4" strokeWidth={4} fill="url(#colorUsers)" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              )}
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={activeChartData}>
+                  <defs>
+                    <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#264D73" stopOpacity={0.15}/>
+                      <stop offset="95%" stopColor="#264D73" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#67D0E4" stopOpacity={0.15}/>
+                      <stop offset="95%" stopColor="#67D0E4" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
+                  <RechartsTooltip 
+                    contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  />
+                  <Legend verticalAlign="top" align="right" height={36} iconType="circle" />
+                  <Area name="Revenue (XAF)" type="monotone" dataKey="revenue" stroke="#264D73" strokeWidth={4} fill="url(#colorRev)" />
+                  <Area name="Active Users" type="monotone" dataKey="users" stroke="#67D0E4" strokeWidth={4} fill="url(#colorUsers)" />
+                </AreaChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
 
@@ -343,42 +360,212 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+      </div>
+    );
+  }
 
-        {/* STRATEGIC GOVERNANCE LOGS FOR CEO */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <Card className="lg:col-span-7 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
-            <CardHeader className="bg-white border-b p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="space-y-1">
-                <CardTitle className="text-xl font-black text-primary uppercase tracking-tight flex items-center gap-2">
-                  <History className="w-6 h-6 text-secondary" />
-                  Executive Activity Ledger
-                </CardTitle>
-                <CardDescription>Live auditing of strategic interventions by platform founders.</CardDescription>
+  // TEACHER SPECIFIC OVERVIEW
+  if (isTeacher) {
+    return (
+      <div className="space-y-8 pb-20 animate-in fade-in duration-500">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Avatar className="h-16 w-16 md:h-20 md:w-20 border-4 border-white shadow-xl shrink-0 ring-4 ring-primary/5">
+              <AvatarImage src={user.avatar} alt={user.name} />
+              <AvatarFallback className="bg-primary/5 text-primary text-2xl font-black">{user.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div>
+              <h1 className="text-3xl font-bold text-primary font-headline tracking-tighter">Welcome back, {user.name}</h1>
+              <div className="flex items-center gap-2 mt-1">
+                <Badge variant="secondary" className="bg-primary/5 text-primary border-none font-black uppercase text-[10px] h-5 px-3">
+                  Pedagogical Lead
+                </Badge>
+                {user.school && (
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">• {user.school.name}</span>
+                )}
               </div>
-              <Button variant="outline" className="rounded-xl h-10 px-6 font-black uppercase text-[10px] gap-2 border-primary/10">
-                <Activity className="w-4 h-4 text-primary" /> Board Audit
+            </div>
+          </div>
+          <div className="bg-green-50 px-4 py-2 rounded-xl border border-green-100 flex items-center gap-3 shrink-0">
+            <ShieldCheck className="w-5 h-5 text-green-600" />
+            <p className="text-xs font-bold text-green-700">Digital Node Sync Active</p>
+          </div>
+        </div>
+
+        {/* 1. TACTICAL METRICS */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { label: "Assigned Classes", value: "5 Streams", icon: LayoutGrid, color: "text-blue-600", bg: "bg-blue-50" },
+            { label: "Total Students", value: "210 Active", icon: Users, color: "text-purple-600", bg: "bg-purple-50" },
+            { label: "Pending Grading", value: "42 Scripts", icon: ListChecks, color: "text-amber-600", bg: "bg-amber-50" },
+            { label: "Active Assignments", value: "3 Tasks", icon: BookOpen, color: "text-emerald-600", bg: "bg-emerald-50" },
+          ].map((stat, i) => (
+            <Card key={i} className="border-none shadow-sm group hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{stat.label}</CardTitle>
+                <div className={cn("p-2 rounded-lg", stat.bg)}>
+                  <stat.icon className={cn("w-4 h-4", stat.color)} />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-black text-primary">{stat.value}</div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* 2. PEDAGOGICAL ANALYTICS */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <Card className="lg:col-span-8 border-none shadow-xl overflow-hidden rounded-[2rem] bg-white">
+            <CardHeader className="bg-primary/5 p-8 border-b flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <CardTitle className="text-xl font-black text-primary uppercase tracking-tighter flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-secondary"/> Performance Velocity
+                </CardTitle>
+                <CardDescription>Aggregate student mean scores over current evaluation cycle.</CardDescription>
+              </div>
+              <Select defaultValue="monthly">
+                <SelectTrigger className="w-[140px] bg-white border-primary/10 rounded-xl h-9 text-xs font-bold">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="weekly">This Week</SelectItem>
+                  <SelectItem value="monthly">This Month</SelectItem>
+                </SelectContent>
+              </Select>
+            </CardHeader>
+            <CardContent className="h-[350px] pt-10">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={DATA_PERIODS.monthly}>
+                  <defs>
+                    <linearGradient id="colorPerf" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#264D73" stopOpacity={0.15}/>
+                      <stop offset="95%" stopColor="#264D73" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
+                  <RechartsTooltip 
+                    contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  />
+                  <Area name="Avg Mark" type="monotone" dataKey="performance" stroke="#264D73" strokeWidth={4} fill="url(#colorPerf)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-4 border-none shadow-xl overflow-hidden rounded-[2rem] bg-white flex flex-col">
+            <CardHeader className="bg-primary p-8 text-white">
+              <CardTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-2">
+                <Activity className="w-5 h-5 text-secondary" />
+                Presence Matrix
+              </CardTitle>
+              <CardDescription className="text-white/60">Mean attendance density per class.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1 pt-10">
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={TEACHER_CLASS_DATA}>
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                  <YAxis hide />
+                  <RechartsTooltip />
+                  <Bar dataKey="attendance" radius={[10, 10, 0, 0]} barSize={25} fill="#67D0E4" />
+                </BarChart>
+              </ResponsiveContainer>
+              
+              <div className="mt-6 space-y-3">
+                {TEACHER_CLASS_DATA.slice(0, 3).map((item, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-accent/20 border border-accent">
+                    <span className="text-xs font-bold text-primary uppercase">{item.name}</span>
+                    <Badge variant="outline" className="border-primary/10 text-primary font-black">{item.attendance}%</Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* 3. TASK & EVALUATION LEDGER */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <Card className="lg:col-span-7 border-none shadow-xl overflow-hidden rounded-[2rem] bg-white">
+            <CardHeader className="bg-white border-b p-8 flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg font-black text-primary uppercase flex items-center gap-2">
+                  <PenTool className="w-5 h-5 text-secondary" />
+                  Upcoming Pedagogical Tasks
+                </CardTitle>
+                <CardDescription>Timeline of markers and administrative duties.</CardDescription>
+              </div>
+              <Button asChild variant="ghost" className="text-[10px] font-black uppercase gap-2">
+                <Link href="/dashboard/assignments">View All <ChevronRight className="w-3.5 h-3.5"/></Link>
               </Button>
             </CardHeader>
             <CardContent className="p-0">
               <Table>
                 <TableBody>
-                  {EXECUTIVE_LOGS.map((log, i) => (
-                    <TableRow key={i} className="hover:bg-primary/5 transition-colors border-b last:border-0">
+                  {UPCOMING_TASKS.map((task) => (
+                    <TableRow key={task.id} className="hover:bg-primary/5 transition-colors border-b last:border-0">
                       <TableCell className="pl-8 py-4">
                         <div className="flex items-center gap-4">
-                          <div className={cn("p-2.5 rounded-xl shadow-sm bg-white border", log.color.replace('text', 'border'))}>
-                            <log.icon className={cn("w-5 h-5", log.color)} />
+                          <div className="p-2.5 rounded-xl bg-accent/30 text-primary">
+                            <task.icon className="w-5 h-5" />
                           </div>
                           <div>
-                            <p className="text-xs font-black text-primary uppercase tracking-tight">{log.action}</p>
-                            <p className="text-[10px] text-muted-foreground font-bold">Executed by: {log.actor}</p>
+                            <p className="text-xs font-black text-primary uppercase">{task.title}</p>
+                            <p className="text-[10px] text-muted-foreground font-bold">{task.class}</p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <Badge className={cn(
+                          "text-[8px] font-black uppercase border-none px-3 mb-1",
+                          task.status === 'Urgent' ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
+                        )}>
+                          {task.status}
+                        </Badge>
+                        <p className="text-[10px] text-muted-foreground font-bold italic">{task.deadline}</p>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-5 border-none shadow-xl overflow-hidden rounded-[2rem] bg-white">
+            <CardHeader className="bg-white border-b p-8 flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg font-black text-primary uppercase flex items-center gap-2">
+                  <Award className="w-5 h-5 text-secondary" />
+                  Recent Submissions
+                </CardTitle>
+                <CardDescription>Latest scores committed to registry.</CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableBody>
+                  {RECENT_GRADES.map((grade, i) => (
+                    <TableRow key={i} className="hover:bg-primary/5 border-b last:border-0 h-16">
+                      <TableCell className="pl-8">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-8 w-8 border shadow-sm">
+                            <AvatarImage src={grade.avatar} />
+                            <AvatarFallback>{grade.student.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="text-[11px] font-black text-primary uppercase leading-none mb-1">{grade.student}</p>
+                            <p className="text-[9px] font-bold text-muted-foreground uppercase">{grade.class} • {grade.subject}</p>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell className="text-right pr-8">
                         <div className="flex flex-col items-end">
-                          <Badge variant="secondary" className="bg-secondary/20 text-primary border-none text-[8px] font-black uppercase tracking-widest">{log.impact}</Badge>
-                          <span className="text-[9px] text-muted-foreground mt-1 font-bold italic">{log.time} • {log.date}</span>
+                          <span className="text-sm font-black text-primary">{grade.score}</span>
+                          <span className={cn(
+                            "text-[8px] font-bold uppercase",
+                            grade.status === 'Excellent' ? "text-green-600" : grade.status === 'Failed' ? "text-red-600" : "text-primary/60"
+                          )}>{grade.status}</span>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -386,64 +573,11 @@ export default function DashboardPage() {
                 </TableBody>
               </Table>
             </CardContent>
-            <CardFooter className="bg-accent/10 p-6 border-t flex justify-center">
+            <CardFooter className="bg-accent/10 p-4 border-t flex justify-center">
                <div className="flex items-center gap-2 text-muted-foreground italic">
                   <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
-                  <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Verified Platform Governance Node</p>
+                  <p className="text-[9px] font-black uppercase tracking-widest opacity-40">Records Digitally Signed</p>
                </div>
-            </CardFooter>
-          </Card>
-
-          <Card className="lg:col-span-5 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
-            <CardHeader className="bg-white border-b p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="space-y-1">
-                <CardTitle className="text-xl font-black text-primary uppercase tracking-tight flex items-center gap-2">
-                  <Building2 className="w-6 h-6 text-secondary" />
-                  Node Performance
-                </CardTitle>
-                <CardDescription>Verified institutional records.</CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent className="p-0 overflow-x-auto">
-              <Table>
-                <TableHeader className="bg-accent/10 uppercase text-[10px] font-black tracking-widest border-b">
-                  <TableRow>
-                    <TableHead className="pl-8 py-4">Node</TableHead>
-                    <TableHead className="text-center">Intake %</TableHead>
-                    <TableHead className="text-right pr-8">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(schools || []).slice(0, 5).map((school) => (
-                    <TableRow key={school.id} className="hover:bg-accent/5 transition-colors border-b last:border-0">
-                      <TableCell className="pl-8 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-white p-1 border shadow-sm flex items-center justify-center shrink-0">
-                            <img src={school.logo} alt="Logo" className="w-full h-full object-contain" />
-                          </div>
-                          <p className="font-bold text-xs text-primary uppercase truncate max-w-[120px]">{school.name}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex flex-col items-center gap-1">
-                          <span className="text-[10px] font-black text-green-600">92%</span>
-                          <div className="w-12 h-1 bg-accent rounded-full overflow-hidden">
-                            <div className="h-full bg-green-500" style={{ width: '92%' }} />
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right pr-8">
-                        <Badge className="bg-green-100 text-green-700 border-none text-[8px] font-black">ACTIVE</Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-            <CardFooter className="bg-accent/10 p-4 border-t flex justify-end">
-               <Button variant="ghost" className="gap-2 text-[10px] font-black uppercase" asChild>
-                 <Link href="/dashboard/schools">All Nodes <ArrowRight className="w-3.5 h-3.5"/></Link>
-               </Button>
             </CardFooter>
           </Card>
         </div>
@@ -451,7 +585,7 @@ export default function DashboardPage() {
     );
   }
 
-  // SCHOOL USER OVERVIEW (Admin, Teacher, Student, etc.)
+  // STUDENT / PARENT / OTHER OVERVIEW (Standard View)
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -478,28 +612,22 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {isDataSyncing ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => <div key={i} className="h-24 bg-white rounded-xl animate-pulse" />)}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { label: "Role Registry", value: user.role.replace('_', ' '), icon: ShieldCheck, color: "text-blue-600" },
-            { label: "License Status", value: user.isLicensePaid ? "Active" : "Locked", icon: Wallet, color: "text-green-600" },
-            { label: "Matricule", value: user.id, icon: GraduationCap, color: "text-purple-600" },
-            { label: "AI Requests", value: user.aiRequestCount || 0, icon: Activity, color: "text-amber-600" },
-          ].map((stat, i) => (
-            <Card key={i} className="border-none shadow-sm group hover:shadow-md transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{stat.label}</CardTitle>
-                <stat.icon className={cn("w-4 h-4 transition-transform group-hover:scale-110", stat.color)} />
-              </CardHeader>
-              <CardContent><div className="text-2xl font-black text-primary">{stat.value}</div></CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: "Role Registry", value: user.role.replace('_', ' '), icon: ShieldCheck, color: "text-blue-600" },
+          { label: "License Status", value: user.isLicensePaid ? "Active" : "Locked", icon: Wallet, color: "text-green-600" },
+          { label: "Matricule", value: user.id, icon: GraduationCap, color: "text-purple-600" },
+          { label: "AI Requests", value: user.aiRequestCount || 0, icon: Activity, color: "text-amber-600" },
+        ].map((stat, i) => (
+          <Card key={i} className="border-none shadow-sm group hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{stat.label}</CardTitle>
+              <stat.icon className={cn("w-4 h-4 transition-transform group-hover:scale-110", stat.color)} />
+            </CardHeader>
+            <CardContent><div className="text-2xl font-black text-primary">{stat.value}</div></CardContent>
+          </Card>
+        ))}
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <Card className="lg:col-span-2 border-none shadow-xl overflow-hidden rounded-[2rem]">
@@ -510,23 +638,17 @@ export default function DashboardPage() {
             <CardDescription>Visual summary of institutional engagement and activity.</CardDescription>
           </CardHeader>
           <CardContent className="h-[350px] pt-10">
-            {isDataSyncing ? (
-              <div className="w-full h-full bg-accent/5 rounded-2xl flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-primary/20" />
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={DATA_PERIODS.monthly}>
-                  <defs>
-                    <linearGradient id="colorPulse" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.15}/>
-                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <Area type="monotone" dataKey="users" stroke="hsl(var(--primary))" strokeWidth={4} fill="url(#colorPulse)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            )}
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={DATA_PERIODS.monthly}>
+                <defs>
+                  <linearGradient id="colorPulse" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.15}/>
+                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <Area type="monotone" dataKey="users" stroke="hsl(var(--primary))" strokeWidth={4} fill="url(#colorPulse)" />
+              </AreaChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
 
@@ -539,7 +661,7 @@ export default function DashboardPage() {
               <h3 className="text-xl font-black text-primary uppercase tracking-tighter leading-none">Verified Identity</h3>
               <p className="text-xs text-muted-foreground mt-2 leading-relaxed">Your account is secured with a unique institutional matricule. All actions are logged for integrity.</p>
             </div>
-            <Button asChild variant="outline" className="w-full rounded-xl font-bold border-primary/20 bg-white">
+            <Button asChild variant="outline" className="w-full rounded-xl font-bold border-primary/10 bg-white">
               <Link href="/dashboard/profile">View Secure Profile</Link>
             </Button>
           </Card>
