@@ -33,7 +33,8 @@ import {
   X,
   FileBadge,
   ArrowLeft,
-  Save
+  Save,
+  TrendingUp
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
