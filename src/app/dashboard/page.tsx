@@ -61,7 +61,8 @@ import {
   Archive,
   ArrowDownCircle,
   Receipt,
-  Printer
+  Printer,
+  Heart
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -543,7 +544,7 @@ export default function DashboardPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={DATA_PERIODS.monthly}>
                   <defs>
-                    <linearGradient id="colorAdminPerf" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="colorAdminPerf" x1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#264D73" stopOpacity={0.15}/>
                       <stop offset="95%" stopColor="#264D73" stopOpacity={0}/>
                     </linearGradient>
@@ -725,7 +726,7 @@ export default function DashboardPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={DATA_PERIODS.monthly}>
                   <defs>
-                    <linearGradient id="colorPerf" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="colorPerf" x1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#264D73" stopOpacity={0.15}/>
                       <stop offset="95%" stopColor="#264D73" stopOpacity={0}/>
                     </linearGradient>
@@ -1115,7 +1116,7 @@ export default function DashboardPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={DATA_PERIODS.monthly}>
                   <defs>
-                    <linearGradient id="colorParentPerf" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="colorParentPerf" x1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#264D73" stopOpacity={0.15}/>
                       <stop offset="95%" stopColor="#264D73" stopOpacity={0}/>
                     </linearGradient>
@@ -1190,7 +1191,7 @@ export default function DashboardPage() {
                       <TableCell className="text-right pr-8">
                         <div className="flex flex-col items-end">
                           <span className="text-sm font-black text-primary">{res.mark}</span>
-                          <span className="text-[8px] font-bold text-muted-foreground uppercase italic">{res.date}</span>
+                          <span className="text-[8px] font-bold uppercase text-muted-foreground uppercase italic">{res.date}</span>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -1706,7 +1707,7 @@ export default function DashboardPage() {
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={DATA_PERIODS.monthly}>
                 <defs>
-                  <linearGradient id="colorPulse" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id="colorPulse" x1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.15}/>
                     <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
                   </linearGradient>
