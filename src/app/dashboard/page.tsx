@@ -59,7 +59,8 @@ import {
   Library,
   Book,
   Archive,
-  ArrowDownCircle
+  ArrowDownCircle,
+  Receipt
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -138,6 +139,35 @@ const LIBRARIAN_LOW_STOCK = [
   { title: "General Chemistry", author: "Dr. White", available: 0, total: 10 },
   { title: "English Grammar", author: "Ms. Bennet", available: 1, total: 15 },
   { title: "Modern History", author: "Prof. Smith", available: 2, total: 8 },
+];
+
+const BURSAR_REVENUE_TRENDS = [
+  { name: 'Mon', revenue: 450000 },
+  { name: 'Tue', revenue: 520000 },
+  { name: 'Wed', revenue: 480000 },
+  { name: 'Thu', revenue: 610000 },
+  { name: 'Fri', revenue: 550000 },
+  { name: 'Sat', revenue: 320000 },
+  { name: 'Sun', revenue: 110000 },
+];
+
+const BURSAR_FEE_DISTRIBUTION = [
+  { name: 'Tuition', value: 12500000, color: '#264D73' },
+  { name: 'Uniforms', value: 2450000, color: '#67D0E4' },
+  { name: 'PTA', value: 1200000, color: '#FCD116' },
+  { name: 'Exams', value: 850000, color: '#CE1126' },
+];
+
+const BURSAR_RECENT_COLLECTIONS = [
+  { student: "Alice Thompson", id: "GBHS26S001", type: "Tuition", amount: "50,000", method: "Cash", date: "10:30 AM", status: "Verified", avatar: "https://picsum.photos/seed/s1/100/100" },
+  { student: "Bob Richards", id: "GBHS26S002", type: "Uniform", amount: "25,000", method: "Orange", date: "09:12 AM", status: "Verified", avatar: "https://picsum.photos/seed/s2/100/100" },
+  { student: "Diana Prince", id: "GBHS26S004", type: "PTA", amount: "10,000", method: "MTN", date: "Yesterday", status: "Verified", avatar: "https://picsum.photos/seed/s4/100/100" },
+];
+
+const BURSAR_CLASS_REVENUE = [
+  { class: "Form 1", target: 4500000, collected: 3800000, percentage: 84 },
+  { class: "Form 2", target: 4000000, collected: 2200000, percentage: 55 },
+  { class: "Form 5", target: 4200000, collected: 4000000, percentage: 95 },
 ];
 
 const ADMIN_CLASS_SUMMARY = [
@@ -253,6 +283,7 @@ export default function DashboardPage() {
   const isStudent = user.role === "STUDENT";
   const isParent = user.role === "PARENT";
   const isLibrarian = user.role === "LIBRARIAN";
+  const isBursar = user.role === "BURSAR";
   const isAdmin = user.role === "SCHOOL_ADMIN" || user.role === "SUB_ADMIN";
 
   // 1. PLATFORM EXECUTIVE VIEW
@@ -1168,7 +1199,7 @@ export default function DashboardPage() {
             </CardContent>
             <CardFooter className="bg-accent/10 p-4 border-t flex justify-center">
                <Button asChild variant="ghost" className="text-[10px] font-black uppercase gap-2 hover:bg-white transition-all">
-                 <Link href="/dashboard/grades">View Full Family Gradebook <ChevronRight className="w-3 h-3"/></Link>
+                 <Link href="/dashboard/grades">View Full Family Gradebook <ChevronRight className="w-3.5 h-3.5"/></Link>
                </Button>
             </CardFooter>
           </Card>
@@ -1354,7 +1385,7 @@ export default function DashboardPage() {
                             <AvatarFallback>{loan.student.charAt(0)}</AvatarFallback>
                           </Avatar>
                           <div className="flex flex-col">
-                            <span className="font-bold text-xs md:text-sm text-primary uppercase leading-none">{loan.student}</span>
+                            <span className="font-bold text-xs md:text-sm text-primary uppercase leading-none mb-1">{loan.student}</span>
                             <span className="text-[8px] font-black uppercase text-muted-foreground">{loan.class}</span>
                           </div>
                         </div>
@@ -1420,7 +1451,209 @@ export default function DashboardPage() {
     );
   }
 
-  // 7. STANDARD OVERVIEW (BURSAR / OTHER)
+  // 7. BURSAR DASHBOARD VIEW
+  if (isBursar) {
+    return (
+      <div className="space-y-8 pb-20 animate-in fade-in duration-500">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-primary rounded-[1.5rem] shadow-xl border-2 border-white">
+              <Coins className="w-8 h-8 text-secondary" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-primary font-headline tracking-tighter uppercase leading-none">Financial Management Hub</h1>
+              <div className="flex items-center gap-2 mt-2">
+                <Badge className="bg-secondary text-primary border-none font-black h-5 px-3 text-[9px] tracking-widest uppercase">Bursar Office</Badge>
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">• Global Revenue Node</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button asChild variant="outline" className="h-11 px-6 rounded-xl font-bold border-primary/10 bg-white gap-2 shadow-sm">
+              <Link href="/dashboard/fees"><Receipt className="w-4 h-4 text-primary" /> Collect Fees</Link>
+            </Button>
+            <Button className="h-11 px-8 shadow-xl font-black uppercase tracking-widest text-[10px] gap-2 rounded-xl">
+              <Printer className="w-4 h-4" /> Print Ledger
+            </Button>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { label: "Net Collection", value: "22.45M XAF", icon: Coins, color: "text-emerald-600", bg: "bg-emerald-50" },
+            { label: "Outstanding Arrears", value: "4.12M XAF", icon: TrendingDown, color: "text-red-600", bg: "bg-red-50" },
+            { label: "Intake Efficiency", value: "82.4%", icon: PieChart, color: "text-blue-600", bg: "bg-blue-50" },
+            { label: "Transaction Count", value: "1,240 Receipts", icon: Receipt, color: "text-purple-600", bg: "bg-purple-50" },
+          ].map((stat, i) => (
+            <Card key={i} className="border-none shadow-sm group hover:shadow-md transition-all">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{stat.label}</CardTitle>
+                <div className={cn("p-2 rounded-lg", stat.bg)}>
+                  <stat.icon className={cn("w-4 h-4", stat.color)} />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-black text-primary">{stat.value}</div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <Card className="lg:col-span-8 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+            <CardHeader className="bg-primary/5 p-8 border-b flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <CardTitle className="text-xl font-black text-primary uppercase tracking-tighter flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-secondary"/> Revenue Intake Velocity
+                </CardTitle>
+                <CardDescription>Chronological tracking of fee collections for the current period.</CardDescription>
+              </div>
+              <Badge variant="outline" className="border-primary/10 text-primary font-bold h-7 px-4">SECURE NODE SYNC</Badge>
+            </CardHeader>
+            <CardContent className="h-[350px] pt-10">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={BURSAR_REVENUE_TRENDS}>
+                  <defs>
+                    <linearGradient id="colorBursarRev" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#264D73" stopOpacity={0.15}/>
+                      <stop offset="95%" stopColor="#264D73" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeights: 'bold' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
+                  <RechartsTooltip contentStyle={{ borderRadius: '1rem', border: 'none', shadow: 'none' }} />
+                  <Area name="Intake (XAF)" type="monotone" dataKey="revenue" stroke="#264D73" strokeWidth={4} fill="url(#colorBursarRev)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-4 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white flex flex-col">
+            <CardHeader className="bg-primary p-8 text-white">
+              <CardTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-2">
+                <Coins className="w-5 h-5 text-secondary" />
+                Fee Allocation
+              </CardTitle>
+              <CardDescription className="text-white/60 text-xs">Distribution by fee category.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1 pt-10 px-8 space-y-6">
+              {BURSAR_FEE_DISTRIBUTION.map((item, i) => (
+                <div key={i} className="space-y-2">
+                  <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-primary/60">
+                    <span>{item.name}</span>
+                    <span>{((item.value / 17000000) * 100).toFixed(1)}%</span>
+                  </div>
+                  <Progress value={(item.value / 17000000) * 100} className="h-1.5 rounded-full" />
+                </div>
+              ))}
+              <div className="pt-4 border-t">
+                 <Button asChild variant="ghost" className="w-full text-[10px] font-black uppercase tracking-widest gap-2 hover:bg-primary/5">
+                   <Link href="/dashboard/fees">View Policy Settings <ChevronRight className="w-3.5 h-3.5"/></Link>
+                 </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Tables */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <Card className="lg:col-span-7 border-none shadow-xl overflow-hidden rounded-[2rem] bg-white">
+            <CardHeader className="bg-white border-b p-8 flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg font-black text-primary uppercase flex items-center gap-2">
+                  <History className="w-5 h-5 text-secondary" />
+                  Recent Collection Registry
+                </CardTitle>
+                <CardDescription>Verified chronological record of latest payments.</CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest">
+                  <TableRow>
+                    <TableHead className="pl-8 py-4">Student Profile</TableHead>
+                    <TableHead>Fee Category</TableHead>
+                    <TableHead className="text-center">Amount</TableHead>
+                    <TableHead className="text-right pr-8">Integrity</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {BURSAR_RECENT_COLLECTIONS.map((tx, i) => (
+                    <TableRow key={i} className="hover:bg-primary/5 transition-colors border-b last:border-0 h-16">
+                      <TableCell className="pl-8">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-8 w-8 border shadow-sm">
+                            <AvatarImage src={tx.avatar} />
+                            <AvatarFallback>{tx.student.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="text-[11px] font-black text-primary uppercase leading-none mb-1">{tx.student}</p>
+                            <p className="text-[9px] font-mono text-muted-foreground uppercase">{tx.id}</p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-black text-primary text-xs uppercase">{tx.type}</TableCell>
+                      <TableCell className="text-center font-black text-sm text-primary">{tx.amount} <span className="text-[9px] opacity-40">XAF</span></TableCell>
+                      <TableCell className="text-right pr-8">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-100 font-bold text-[8px] uppercase">
+                          <CheckCircle2 className="w-3.5 h-3.5" /> Secure
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-5 border-none shadow-xl overflow-hidden rounded-[2rem] bg-white">
+            <CardHeader className="bg-white border-b p-8">
+              <CardTitle className="text-lg font-black text-primary uppercase flex items-center gap-2">
+                <LayoutGrid className="w-5 h-5 text-secondary" />
+                Class Compliance Matrix
+              </CardTitle>
+              <CardDescription>Intake status summarized by academic level.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableBody>
+                  {BURSAR_CLASS_REVENUE.map((cls, i) => (
+                    <TableRow key={i} className="hover:bg-primary/5 border-b last:border-0 h-16">
+                      <TableCell className="pl-8">
+                        <p className="text-xs font-black text-primary uppercase leading-none">{cls.class}</p>
+                        <p className="text-[9px] font-bold text-muted-foreground uppercase mt-1">Target: {cls.target.toLocaleString()} XAF</p>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <div className="flex flex-col items-end">
+                          <span className={cn(
+                            "text-sm font-black",
+                            cls.percentage >= 90 ? "text-emerald-600" : cls.percentage < 60 ? "text-red-600" : "text-primary"
+                          )}>{cls.percentage}%</span>
+                          <span className="text-[8px] font-bold uppercase opacity-40">Compliance</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+            <CardFooter className="bg-accent/10 p-4 flex justify-center border-t">
+               <div className="flex items-center gap-2 text-muted-foreground italic">
+                  <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                  <p className="text-[9px] font-black uppercase tracking-widest opacity-40">Verified Institutional Financial Record</p>
+               </div>
+            </CardFooter>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // 8. STANDARD OVERVIEW (OTHER)
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
