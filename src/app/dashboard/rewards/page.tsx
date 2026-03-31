@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useMemo } from "react";
@@ -33,7 +32,8 @@ import {
   Loader2,
   X,
   FileBadge,
-  ArrowLeft
+  ArrowLeft,
+  Save
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -41,6 +41,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 // --- MOCK DATA ---
 const SECTIONS = ["Anglophone Section", "Francophone Section", "Technical Section"];
@@ -92,6 +93,13 @@ export default function AcademicRewardsPage() {
 
   const handleDownloadRegistry = () => {
     toast({ title: "Generating Registry PDF", description: "Preparing the verified honour roll dossier..." });
+  };
+
+  const handleDownload = (title: string) => {
+    toast({ title: "Preparation Started", description: `Generating high-fidelity PDF for ${title}...` });
+    setTimeout(() => {
+      toast({ title: "Download Successful", description: `${title} has been saved to your device.` });
+    }, 2000);
   };
 
   if (isStudent) {
