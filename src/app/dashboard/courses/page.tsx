@@ -66,10 +66,10 @@ const MOCK_TEACHERS = [
 ];
 
 const INITIAL_COURSES = [
-  { id: "PHY101", name: "Advanced Physics", instructorName: "Dr. Aris Tesla", instructorAvatar: "https://picsum.photos/seed/t1/200/200", targetClass: "2nde / Form 5", section: "Anglophone Section", type: "mandatory", coefficient: 4, color: "bg-blue-500", stats: { liveClasses: 24, exams: 8, attendance: 92 } },
-  { id: "MAT101", name: "Mathematics", instructorName: "Prof. Sarah Smith", instructorAvatar: "https://picsum.photos/seed/t2/200/200", targetClass: "2nde / Form 5", section: "Anglophone Section", type: "mandatory", coefficient: 5, color: "bg-emerald-500", stats: { liveClasses: 32, exams: 12, attendance: 95 } },
-  { id: "LIT105", name: "Modern Literature", instructorName: "Ms. Bennet", instructorAvatar: "https://picsum.photos/seed/t3/200/200", targetClass: "2nde / Form 5", section: "Anglophone Section", type: "optional", coefficient: 3, color: "bg-purple-500", stats: { liveClasses: 18, exams: 4, attendance: 88 } },
-  { id: "ART202", name: "Fine Arts & Design", instructorName: "Mr. Abena", instructorAvatar: "https://picsum.photos/seed/t4/200/200", targetClass: "2nde / Form 5", section: "Francophone Section", type: "optional", coefficient: 2, color: "bg-rose-500", stats: { liveClasses: 12, exams: 2, attendance: 90 } },
+  { id: "PHY101", name: "Advanced Physics", instructorName: "Dr. Aris Tesla", instructorAvatar: "https://picsum.photos/seed/t1/200/200", targetClass: "2nde / Form 5", section: "Anglophone Section", type: "mandatory", coefficient: 4, color: "bg-blue-500", stats: { exams: 8, attendance: 92 } },
+  { id: "MAT101", name: "Mathematics", instructorName: "Prof. Sarah Smith", instructorAvatar: "https://picsum.photos/seed/t2/200/200", targetClass: "2nde / Form 5", section: "Anglophone Section", type: "mandatory", coefficient: 5, color: "bg-emerald-500", stats: { exams: 12, attendance: 95 } },
+  { id: "LIT105", name: "Modern Literature", instructorName: "Ms. Bennet", instructorAvatar: "https://picsum.photos/seed/t3/200/200", targetClass: "2nde / Form 5", section: "Anglophone Section", type: "optional", coefficient: 3, color: "bg-purple-500", stats: { exams: 4, attendance: 88 } },
+  { id: "ART202", name: "Fine Arts & Design", instructorName: "Mr. Abena", instructorAvatar: "https://picsum.photos/seed/t4/200/200", targetClass: "2nde / Form 5", section: "Francophone Section", type: "optional", coefficient: 2, color: "bg-rose-500", stats: { exams: 2, attendance: 90 } },
 ];
 
 const INITIAL_MATERIALS = [
@@ -85,13 +85,13 @@ const INITIAL_MATERIALS = [
   },
   { 
     id: "M2", 
-    title: "Thermodynamics Lecture", 
-    description: "Video recording of the session covering the Laws of Thermodynamics.",
-    type: "video", 
+    title: "Thermodynamics Lecture Note", 
+    description: "Document covering the Laws of Thermodynamics.",
+    type: "pdf", 
     date: "2024-05-12", 
-    size: "45 MB", 
+    size: "1.2 MB", 
     subjectId: "PHY101",
-    fileUrl: "https://sample-videos.com/video321/mp4/720/big_buck_bunny_720p_1mb.mp4"
+    fileUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
   },
   { 
     id: "M3", 
@@ -184,7 +184,7 @@ export default function CoursesPage() {
       setSubjects([...subjects, { 
         ...newSubject, 
         targetClass: newSubject.targetClasses.join(', '),
-        stats: { liveClasses: 0, exams: 0, attendance: 0 } 
+        stats: { exams: 0, attendance: 0 } 
       }]);
       setIsProcessing(false);
       setIsAddingSubject(false);
@@ -295,7 +295,6 @@ export default function CoursesPage() {
   const visibleSubjects = useMemo(() => {
     if (isSchoolAdmin) return subjects;
     if (isSubAdmin) {
-      // Mock sub-admin section assignment (usually comes from user profile)
       const subAdminSection = "Anglophone Section";
       return subjects.filter(s => s.section === subAdminSection);
     }
@@ -481,17 +480,7 @@ export default function CoursesPage() {
               </CardContent>
             </Card>
 
-            <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Card className="border-none shadow-sm bg-blue-50/50 group hover:shadow-md transition-all">
-                <CardContent className="pt-6">
-                  <div className="flex justify-between items-center mb-2">
-                    <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Live Classes</p>
-                    <Radio className="w-4 h-4 text-blue-600" />
-                  </div>
-                  <div className="text-3xl font-black text-blue-700">{viewingMaterialsFor.stats?.liveClasses || 0}</div>
-                  <p className="text-[9px] font-bold text-blue-600/60 uppercase mt-1">Sessions Organized</p>
-                </CardContent>
-              </Card>
+            <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Card className="border-none shadow-sm bg-purple-50/50 group hover:shadow-md transition-all">
                 <CardContent className="pt-6">
                   <div className="flex justify-between items-center mb-2">
@@ -758,7 +747,7 @@ export default function CoursesPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Assigned Teacher</Label>
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Assigned Teacher</Label>
                     <Select value={newSubject.instructorName} onValueChange={(v) => {
                       const teacher = MOCK_TEACHERS.find(t => t.name === v);
                       setNewSubject({...newSubject, instructorName: v, instructorAvatar: teacher?.avatar || ""})
@@ -774,7 +763,7 @@ export default function CoursesPage() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Subject Type</Label>
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Subject Type</Label>
                     <Select value={newSubject.type} onValueChange={(v) => setNewSubject({...newSubject, type: v as any})}>
                       <SelectTrigger className="h-11 bg-accent/30 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
                       <SelectContent>

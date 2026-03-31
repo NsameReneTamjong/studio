@@ -70,18 +70,6 @@ export interface User {
   aiRequestCount?: number;
 }
 
-export interface LiveClass {
-  id: string;
-  title: string;
-  subject: string;
-  teacherId: string;
-  teacherName: string;
-  scheduledDateTime: string;
-  duration: number;
-  meetingId: string;
-  status: "upcoming" | "live" | "ended" | "cancelled";
-}
-
 export interface Testimony {
   id: string;
   userId: string;
@@ -183,7 +171,6 @@ export interface PublicEvent {
 interface AuthContextType {
   user: User | null;
   platformSettings: PlatformSettings;
-  liveClasses: LiveClass[];
   testimonials: Testimony[];
   communityBlogs: CommunityBlog[];
   feedbacks: Feedback[];
@@ -200,9 +187,6 @@ interface AuthContextType {
   updatePlatformSettings: (updates: Partial<PlatformSettings>) => Promise<void>;
   markLicensePaid: () => Promise<void>;
   incrementAiRequest: () => Promise<void>;
-  addLiveClass: (session: Omit<LiveClass, "id" | "status" | "teacherId" | "teacherName" | "meetingId">) => void;
-  cancelLiveClass: (id: string) => void;
-  deleteLiveClass: (id: string) => void;
   addTestimony: (testimony: Omit<Testimony, "id" | "status" | "createdAt">) => void;
   approveTestimony: (id: string) => void;
   deleteTestimony: (id: string) => void;
@@ -323,7 +307,6 @@ const PLATFORM_DEFAULTS: PlatformSettings = {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [userData, setUserData] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [liveClasses, setLiveClasses] = useState<LiveClass[]>([]);
   const [schools, setSchools] = useState<SchoolInfo[]>([]);
   const [testimonials, setTestimonials] = useState<Testimony[]>([]);
   const [communityBlogs, setCommunityBlogs] = useState<CommunityBlog[]>([]);
@@ -356,9 +339,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return defaultValue;
     };
 
-    setLiveClasses(loadRegistry("live_classes", [
-      { id: "LC1", title: "Quantum Basics", subject: "Advanced Physics", teacherId: "mock_GBHS26T001", teacherName: "Dr. Aris Tesla", scheduledDateTime: new Date().toISOString(), duration: 60, meetingId: "QuantumBasicsNode1", status: "live" }
-    ]));
     setTestimonials(loadRegistry("testimonials", []));
     setCommunityBlogs(loadRegistry("community_blogs", INITIAL_BLOGS));
     setFeedbacks(loadRegistry("feedbacks", []));
@@ -375,7 +355,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     if (!isLoading) {
-      localStorage.setItem("eduignite_live_classes", JSON.stringify(liveClasses));
       localStorage.setItem("eduignite_testimonials", JSON.stringify(testimonials));
       localStorage.setItem("eduignite_community_blogs", JSON.stringify(communityBlogs));
       localStorage.setItem("eduignite_feedbacks", JSON.stringify(feedbacks));
@@ -387,7 +366,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem("eduignite_events", JSON.stringify(publicEvents));
       localStorage.setItem("eduignite_platform", JSON.stringify(platformSettings));
     }
-  }, [liveClasses, testimonials, communityBlogs, feedbacks, orders, announcements, personalChats, supportContributions, schools, platformSettings, publicEvents, isLoading]);
+  }, [testimonials, communityBlogs, feedbacks, orders, announcements, personalChats, supportContributions, schools, platformSettings, publicEvents, isLoading]);
 
   const login = async (matricule: string) => {
     setIsLoading(true);
@@ -425,26 +404,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const markLicensePaid = async () => await updateUser({ isLicensePaid: true });
   const incrementAiRequest = async () => userData && await updateUser({ aiRequestCount: (userData.aiRequestCount || 0) + 1 });
-
-  const addLiveClass = (session: Omit<LiveClass, "id" | "status" | "teacherId" | "teacherName" | "meetingId">) => {
-    if (!userData) return;
-    const id = `LC-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
-    const newClass: LiveClass = {
-      ...session,
-      id,
-      teacherId: userData.uid,
-      teacherName: userData.name,
-      meetingId: `${session.title.replace(/\s+/g, '')}-${id}`,
-      status: "upcoming"
-    };
-    setLiveClasses(prev => [newClass, ...prev]);
-  };
-
-  const cancelLiveClass = (id: string) => {
-    setLiveClasses(prev => prev.map(c => c.id === id ? { ...c, status: "cancelled" } : c));
-  };
-
-  const deleteLiveClass = (id: string) => setLiveClasses(prev => prev.filter(c => c.id !== id));
 
   const addTestimony = (t: Omit<Testimony, "id" | "status" | "createdAt">) => setTestimonials(prev => [{ ...t, id: Math.random().toString(36).substr(2, 9), status: "pending", createdAt: new Date() }, ...prev]);
   const approveTestimony = (id: string) => setTestimonials(prev => prev.map(t => t.id === id ? { ...t, status: "approved" } : t));
@@ -491,8 +450,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthContext.Provider value={{ 
-      user: userData, platformSettings, liveClasses, testimonials, communityBlogs, feedbacks, orders, announcements, personalChats, supportContributions, schools, publicEvents,
-      login, activateAccount: login, updateUser, updateSchool, updatePlatformSettings, markLicensePaid, incrementAiRequest, addLiveClass, cancelLiveClass, deleteLiveClass, addTestimony, approveTestimony, deleteTestimony, addCommunityBlog, deleteCommunityBlog, addFeedback, resolveFeedback, deleteFeedback, addOrder, processOrder, deleteOrder, addAnnouncement, deleteAnnouncement, addSchool, toggleSchoolStatus, deleteSchool, addSupport, verifySupport, deleteSupport, addPublicEvent, deletePublicEvent, logout, isAuthenticated: !!userData, isLoading
+      user: userData, platformSettings, testimonials, communityBlogs, feedbacks, orders, announcements, personalChats, supportContributions, schools, publicEvents,
+      login, activateAccount: login, updateUser, updateSchool, updatePlatformSettings, markLicensePaid, incrementAiRequest, addTestimony, approveTestimony, deleteTestimony, addCommunityBlog, deleteCommunityBlog, addFeedback, resolveFeedback, deleteFeedback, addOrder, processOrder, deleteOrder, addAnnouncement, deleteAnnouncement, addSchool, toggleSchoolStatus, deleteSchool, addSupport, verifySupport, deleteSupport, addPublicEvent, deletePublicEvent, logout, isAuthenticated: !!userData, isLoading
     }}>
       {children}
     </AuthContext.Provider>

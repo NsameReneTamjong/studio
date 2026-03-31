@@ -32,7 +32,6 @@ import {
   Settings2,
   Crown,
   Wallet,
-  Video,
   Quote,
   Network,
   Star,
@@ -208,12 +207,6 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       label: t("assignments"),
       icon: FileEdit,
       href: "/dashboard/assignments",
-      roles: ["TEACHER", "STUDENT"],
-    },
-    {
-      label: t("onlineClasses"),
-      icon: Video,
-      href: "/dashboard/live-classes",
       roles: ["TEACHER", "STUDENT"],
     },
     {

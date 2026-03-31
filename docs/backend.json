@@ -47,22 +47,6 @@
       },
       "required": ["id", "uid", "role", "email"]
     },
-    "LiveClass": {
-      "title": "LiveClass",
-      "type": "object",
-      "description": "Virtual classroom session.",
-      "properties": {
-        "id": { "type": "string" },
-        "title": { "type": "string" },
-        "subject": { "type": "string" },
-        "teacherId": { "type": "string" },
-        "teacherName": { "type": "string" },
-        "scheduledDateTime": { "type": "string", "format": "date-time" },
-        "duration": { "type": "number", "description": "Minutes" },
-        "meetingId": { "type": "string" },
-        "status": { "type": "string", "enum": ["upcoming", "live", "ended"] }
-      }
-    },
     "Feedback": {
       "title": "Feedback",
       "type": "object",
@@ -139,10 +123,6 @@
         }
       },
       "description": "Global platform branding settings."
-    },
-    "/live_classes/{classId}": {
-      "schema": "#/entities/LiveClass",
-      "description": "Real-time pedagogical session records."
     },
     "/feedback/{fbId}": {
       "schema": "#/entities/Feedback",
