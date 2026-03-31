@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
@@ -24,7 +23,8 @@ import {
   Heart,
   FileText,
   CheckCircle2,
-  Info
+  Info,
+  Loader2
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -37,6 +37,7 @@ export default function SchoolWelcomePage() {
   const { t, language } = useI18n();
   const router = useRouter();
   const [isConnecting, setIsConnecting] = useState(true);
+  const [isEntering, setIsEntering] = useState(false);
 
   useEffect(() => {
     if (!isAuthLoading && !isAuthenticated) {
@@ -50,6 +51,12 @@ export default function SchoolWelcomePage() {
       return () => clearTimeout(timer);
     }
   }, [isAuthenticated, isAuthLoading, user, router]);
+
+  const handleEnterDashboard = () => {
+    setIsEntering(true);
+    // Navigation is handled by the Link or router.push
+    // We just set state here for immediate button feedback
+  };
 
   if (isAuthLoading || isConnecting) {
     return <LoadingScreen />;
@@ -141,12 +148,27 @@ export default function SchoolWelcomePage() {
           </div>
           
           <div className="w-full lg:w-auto shrink-0">
-            <Button asChild size="lg" className="w-full lg:w-[300px] h-20 bg-primary text-white hover:bg-primary/90 font-black uppercase tracking-widest text-sm rounded-2xl shadow-2xl transition-all active:scale-95 gap-4 group">
+            <Button 
+              asChild 
+              size="lg" 
+              className="w-full lg:w-[300px] h-20 bg-primary text-white hover:bg-primary/90 font-black uppercase tracking-widest text-sm rounded-2xl shadow-2xl transition-all active:scale-95 gap-4 group"
+              onClick={handleEnterDashboard}
+              disabled={isEntering}
+            >
               <Link href="/dashboard">
-                Enter Dashboard 
-                <div className="bg-secondary p-2 rounded-lg group-hover:translate-x-1 transition-transform">
-                  <ArrowRight className="w-5 h-5 text-primary" />
-                </div>
+                {isEntering ? (
+                  <>
+                    <Loader2 className="w-6 h-6 animate-spin text-secondary" />
+                    Synchronizing Node...
+                  </>
+                ) : (
+                  <>
+                    Enter Dashboard 
+                    <div className="bg-secondary p-2 rounded-lg group-hover:translate-x-1 transition-transform">
+                      <ArrowRight className="w-5 h-5 text-primary" />
+                    </div>
+                  </>
+                )}
               </Link>
             </Button>
           </div>
