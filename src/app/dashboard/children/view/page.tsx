@@ -498,7 +498,9 @@ export default function StudentDetailsPage() {
 }
 
 function LandscapeTranscript({ student, platform }: { student: any, platform: any }) {
-  const visibleClasses = CLASSES.slice(0, CLASSES.indexOf(student?.class || "2nde / Form 5") + 1);
+  const currentGrade = student?.class || "2nde / Form 5";
+  const classIndex = CLASSES.indexOf(currentGrade);
+  const visibleClasses = CLASSES.slice(0, classIndex + 1);
 
   return (
     <div className="bg-white p-8 md:p-12 relative overflow-hidden font-serif text-black min-w-[1100px] print:p-0">
@@ -893,7 +895,7 @@ function CertificatePreview({ student, platform }: { student: any, platform: any
         </div>
 
         <div className="text-center space-y-12 py-10">
-          <p className="text-xs font-black uppercase tracking-[0.4em] text-[#264D73]/40">THIS PRESTIGIOUS AWARD IS PROUDLY PRESENTED TO :</p>
+          <p className="text-xs font-black uppercase tracking-[0.4em] text-[#264D73]/40">THIS PRESTIGIOUS AWARD IS PROUDLY PRESENT TO :</p>
           
           <div className="space-y-4">
             <h2 className="text-5xl md:text-7xl font-black text-[#264D73] leading-tight uppercase tracking-tight">
@@ -959,74 +961,6 @@ function CertificatePreview({ student, platform }: { student: any, platform: any
               </div>
            </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function LandscapeTranscript({ student, platform }: { student: any, platform: any }) {
-  const currentGrade = student?.class || "2nde / Form 5";
-  const classIndex = CLASSES.indexOf(currentGrade);
-  const visibleClasses = CLASSES.slice(0, classIndex + 1);
-
-  return (
-    <div className="bg-white p-8 md:p-12 border shadow-sm relative overflow-hidden font-serif text-black min-w-[1100px]">
-      <div className="grid grid-cols-3 gap-4 items-start text-center border-b-2 border-black pb-6">
-        <div className="space-y-1 text-[9px] uppercase font-black text-left">
-          <p>Republic of Cameroon</p><p>Peace - Work - Fatherland</p><div className="h-px bg-black w-10 mx-auto my-1" /><p>Ministry of Secondary Education</p>
-        </div>
-        <div className="flex flex-col items-center gap-2">
-          <img src={platform.logo} alt="Logo" className="w-14 h-14 object-contain" /><p className="text-[9px] font-black uppercase text-primary tracking-tighter">Verified Node Record</p>
-        </div>
-        <div className="space-y-1 text-[9px] uppercase font-black text-right"><p>République du Cameroun</p><p>Paix - Travail - Patrie</p></div>
-      </div>
-      <div className="text-center my-10 space-y-2"><h1 className="text-4xl font-black uppercase tracking-widest underline underline-offset-8 decoration-double">Academic Transcript</h1><p className="text-sm font-bold opacity-60">Session 2023 / 2024</p></div>
-      <div className="grid grid-cols-12 gap-8 bg-accent/5 p-6 border border-black/10 rounded-2xl items-center mb-10 shadow-inner">
-        <div className="col-span-2">
-          <Avatar className="w-28 h-28 border-4 border-white rounded-[2rem] shadow-xl mx-auto"><AvatarImage src={student?.avatar} /><AvatarFallback className="text-3xl font-black">{student?.name?.charAt(0)}</AvatarFallback></Avatar>
-        </div>
-        <div className="col-span-10 grid grid-cols-2 gap-x-12 gap-y-3 text-sm">
-          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Identity:</span><span className="font-black uppercase">{student?.name}</span></div>
-          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Matricule:</span><span className="font-mono font-bold text-primary">{student?.id}</span></div>
-        </div>
-      </div>
-      <div className="border-2 border-black overflow-hidden rounded-sm">
-        <Table className="border-collapse">
-          <TableHeader className="bg-black/5">
-            <TableRow className="border-b-2 border-black h-12">
-              <TableHead rowSpan={2} className="border-r-2 border-black font-black text-black uppercase text-[10px] text-center w-48">Subject</TableHead>
-              {visibleClasses.map((cls, i) => (
-                <TableHead key={i} colSpan={3} className={cn("border-r-2 border-black font-black text-black uppercase text-[10px] text-center h-8", i === visibleClasses.length - 1 ? "border-r-0" : "")}>{cls.split(' / ')[1] || cls}</TableHead>
-              ))}
-            </TableRow>
-            <TableRow className="border-b-2 border-black h-8">
-              {visibleClasses.map((_, i) => (
-                <React.Fragment key={i}>
-                  <TableHead className="border-r border-black font-bold text-[8px] text-center">T1</TableHead>
-                  <TableHead className="border-r border-black font-bold text-[8px] text-center">T2</TableHead>
-                  <TableHead className={cn("border-r-2 border-black font-bold text-[8px] text-center", i === visibleClasses.length - 1 ? "border-r-0" : "")}>T3</TableHead>
-                </React.Fragment>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {Object.entries(MOCK_TRANSCRIPT_DATA).map(([subject, years]: [string, any], idx) => (
-              <TableRow key={idx} className="border-b border-black last:border-0 h-10">
-                <TableCell className="border-r-2 border-black font-black text-[10px] uppercase py-2 pl-4">{subject}</TableCell>
-                {visibleClasses.map((_, i) => { 
-                  const data = years[`f${i + 1}`] || ["---", "---", "---"]; 
-                  return (
-                    <React.Fragment key={i}>
-                      <TableCell className="border-r border-black text-center text-[10px] font-mono">{data[0]}</TableCell>
-                      <TableCell className="border-r border-black text-center text-[10px] font-mono">{data[1]}</TableCell>
-                      <TableCell className={cn("border-r-2 border-black text-center text-[10px] font-mono bg-accent/5", i === visibleClasses.length - 1 ? "border-r-0" : "")}>{data[2]}</TableCell>
-                    </React.Fragment>
-                  ); 
-                })}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
       </div>
     </div>
   );
