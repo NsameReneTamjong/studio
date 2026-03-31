@@ -40,7 +40,10 @@ import {
   AlertCircle,
   FileEdit,
   ListChecks,
-  BookOpen
+  BookOpen,
+  MapPin,
+  Timer,
+  BookMarked
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -109,6 +112,14 @@ const TEACHER_CLASS_DATA = [
   { name: 'Form 5', attendance: 98, performance: 16.4 },
 ];
 
+const STUDENT_SUBJECT_PERF = [
+  { name: 'Physics', score: 16.5 },
+  { name: 'Maths', score: 18.2 },
+  { name: 'Literature', score: 14.0 },
+  { name: 'Chem', score: 13.5 },
+  { name: 'Biology', score: 15.8 },
+];
+
 const USER_DISTRIBUTION = [
   { name: 'Students', value: 18500, color: '#264D73' },
   { name: 'Teachers', value: 2400, color: '#67D0E4' },
@@ -116,24 +127,31 @@ const USER_DISTRIBUTION = [
   { name: 'Founders', value: 5, color: '#CE1126' },
 ];
 
-const EXECUTIVE_LOGS = [
-  { actor: "CEO", action: "Updated Global Pricing Policy", time: "08:45 AM", date: "Today", impact: "Strategic", icon: Crown, color: "text-primary" },
-  { actor: "CTO", action: "Authorized High-Availability Node Sync", time: "Yesterday", date: "May 24", impact: "System", icon: Zap, color: "text-indigo-600" },
-  { actor: "COO", action: "Provisioned 4 New Institutional Nodes", time: "Yesterday", date: "May 24", impact: "Operational", icon: Building2, color: "text-blue-600" },
-  { actor: "Designer", action: "Updated Public Portfolio Media", time: "2 days ago", date: "May 23", impact: "Marketing", icon: Sparkles, color: "text-cyan-600" },
-  { actor: "Investor", action: "Accessed Quarterly Revenue Audit", time: "3 days ago", date: "May 22", impact: "Financial", icon: Coins, color: "text-emerald-600" },
+const UPCOMING_TASKS = [
+  { id: "T1", title: "Physics Seq 2 Entry", class: "Form 5", deadline: "Today, 4PM", status: "Urgent", icon: PenTool },
+  { id: "T2", title: "Lab Report Review", class: "Form 3", deadline: "Tomorrow", status: "Upcoming", icon: FileEdit },
 ];
 
-const UPCOMING_TASKS = [
-  { id: "T1", title: "Physics Seq 2 Marks Entry", class: "Form 5", deadline: "Today, 4PM", status: "Urgent", icon: PenTool },
-  { id: "T2", title: "Lab Report Review", class: "Form 3", deadline: "Tomorrow", status: "Upcoming", icon: FileEdit },
-  { id: "T3", title: "Weekly Attendance Audit", class: "All Classes", deadline: "Friday", status: "Routine", icon: ClipboardCheck },
+const STUDENT_TASKS = [
+  { id: "S1", title: "Newton's Laws Report", subject: "Physics", deadline: "In 2 Days", status: "Pending", icon: FileEdit },
+  { id: "S2", title: "Algebra Worksheet", subject: "Maths", deadline: "Today", status: "Urgent", icon: PenTool },
 ];
 
 const RECENT_GRADES = [
   { student: "Alice Thompson", class: "Form 5", subject: "Physics", score: "18.5/20", status: "Excellent", avatar: "https://picsum.photos/seed/s1/100/100" },
   { student: "Bob Richards", class: "Form 5", subject: "Physics", score: "14.2/20", status: "Good", avatar: "https://picsum.photos/seed/s2/100/100" },
-  { student: "Charlie Davis", class: "Form 3", subject: "Math", score: "08.5/20", status: "Failed", avatar: "https://picsum.photos/seed/s3/100/100" },
+];
+
+const STUDENT_RECENT_RESULTS = [
+  { subject: "Advanced Physics", sequence: "Seq 1", score: "16.5", avg: "12.4", rank: "2nd" },
+  { subject: "Mathematics", sequence: "Seq 1", score: "18.0", avg: "13.1", rank: "1st" },
+  { subject: "Literature", sequence: "Seq 1", score: "14.0", avg: "11.2", rank: "5th" },
+];
+
+const STUDENT_TODAY_SCHEDULE = [
+  { time: "08:00 AM", subject: "Advanced Physics", room: "Room 402", teacher: "Dr. Tesla" },
+  { time: "10:30 AM", subject: "Mathematics", room: "Hall A", teacher: "Prof. Smith" },
+  { time: "01:30 PM", subject: "Literature", room: "Library B", teacher: "Ms. Bennet" },
 ];
 
 export default function DashboardPage() {
@@ -175,6 +193,7 @@ export default function DashboardPage() {
 
   const isPlatformExecutive = ["SUPER_ADMIN", "CEO", "CTO", "COO", "INV", "DESIGNER"].includes(user.role);
   const isTeacher = user.role === "TEACHER";
+  const isStudent = user.role === "STUDENT";
 
   if (isPlatformExecutive) {
     return (
@@ -248,7 +267,6 @@ export default function DashboardPage() {
                 <div className="text-2xl font-black text-primary">{summaryStats.students}</div>
                 <p className="text-[9px] font-bold mt-1 text-muted-foreground uppercase">82% Participation</p>
               </CardContent>
-            </Card>
 
             <Card className="border-none shadow-sm bg-white overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -259,7 +277,6 @@ export default function DashboardPage() {
                 <div className="text-2xl font-black text-primary">{summaryStats.teachers}</div>
                 <p className="text-[9px] font-bold mt-1 text-muted-foreground uppercase">Active Curriculums</p>
               </CardContent>
-            </Card>
 
             <Card className="border-none shadow-sm bg-white overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -270,7 +287,6 @@ export default function DashboardPage() {
                 <div className="text-2xl font-black text-primary">{summaryStats.founders}</div>
                 <p className="text-[9px] font-bold mt-1 text-muted-foreground uppercase">Executive Board</p>
               </CardContent>
-            </Card>
 
             <Card className="border-none shadow-sm bg-secondary text-primary overflow-hidden">
               <CardHeader className="pb-2">
@@ -364,7 +380,6 @@ export default function DashboardPage() {
     );
   }
 
-  // TEACHER SPECIFIC OVERVIEW
   if (isTeacher) {
     return (
       <div className="space-y-8 pb-20 animate-in fade-in duration-500">
@@ -392,7 +407,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* 1. TACTICAL METRICS */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { label: "Assigned Classes", value: "5 Streams", icon: LayoutGrid, color: "text-blue-600", bg: "bg-blue-50" },
@@ -414,7 +428,6 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        {/* 2. PEDAGOGICAL ANALYTICS */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <Card className="lg:col-span-8 border-none shadow-xl overflow-hidden rounded-[2rem] bg-white">
             <CardHeader className="bg-primary/5 p-8 border-b flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -424,15 +437,6 @@ export default function DashboardPage() {
                 </CardTitle>
                 <CardDescription>Aggregate student mean scores over current evaluation cycle.</CardDescription>
               </div>
-              <Select defaultValue="monthly">
-                <SelectTrigger className="w-[140px] bg-white border-primary/10 rounded-xl h-9 text-xs font-bold">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="weekly">This Week</SelectItem>
-                  <SelectItem value="monthly">This Month</SelectItem>
-                </SelectContent>
-              </Select>
             </CardHeader>
             <CardContent className="h-[350px] pt-10">
               <ResponsiveContainer width="100%" height="100%">
@@ -485,7 +489,6 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        {/* 3. TASK & EVALUATION LEDGER */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <Card className="lg:col-span-7 border-none shadow-xl overflow-hidden rounded-[2rem] bg-white">
             <CardHeader className="bg-white border-b p-8 flex items-center justify-between">
@@ -496,9 +499,6 @@ export default function DashboardPage() {
                 </CardTitle>
                 <CardDescription>Timeline of markers and administrative duties.</CardDescription>
               </div>
-              <Button asChild variant="ghost" className="text-[10px] font-black uppercase gap-2">
-                <Link href="/dashboard/assignments">View All <ChevronRight className="w-3.5 h-3.5"/></Link>
-              </Button>
             </CardHeader>
             <CardContent className="p-0">
               <Table>
@@ -573,19 +573,267 @@ export default function DashboardPage() {
                 </TableBody>
               </Table>
             </CardContent>
-            <CardFooter className="bg-accent/10 p-4 border-t flex justify-center">
-               <div className="flex items-center gap-2 text-muted-foreground italic">
-                  <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
-                  <p className="text-[9px] font-black uppercase tracking-widest opacity-40">Records Digitally Signed</p>
-               </div>
-            </CardFooter>
           </Card>
         </div>
       </div>
     );
   }
 
-  // STUDENT / PARENT / OTHER OVERVIEW (Standard View)
+  // SPECIALIZED STUDENT OVERVIEW
+  if (isStudent) {
+    return (
+      <div className="space-y-8 pb-20 animate-in fade-in duration-500">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Avatar className="h-16 w-16 md:h-20 md:w-20 border-4 border-white shadow-xl shrink-0 ring-4 ring-primary/5">
+              <AvatarImage src={user.avatar} alt={user.name} />
+              <AvatarFallback className="bg-primary/5 text-primary text-2xl font-black">{user.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div>
+              <h1 className="text-3xl font-bold text-primary font-headline tracking-tighter uppercase leading-none">Welcome, {user.name}</h1>
+              <div className="flex items-center gap-2 mt-2">
+                <Badge className="bg-primary/5 text-primary border-primary/10 h-5 px-3 font-black uppercase text-[10px] tracking-widest">
+                  {user.class}
+                </Badge>
+                <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">• Matricule: {user.id}</span>
+              </div>
+            </div>
+          </div>
+          <div className="bg-green-50 px-4 py-2 rounded-xl border border-green-100 flex items-center gap-3 shrink-0 shadow-sm">
+            <ShieldCheck className="w-5 h-5 text-green-600" />
+            <p className="text-xs font-bold text-green-700">Student Node Active</p>
+          </div>
+        </div>
+
+        {/* 1. ACADEMIC QUICK STATS */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { label: "Term Average", value: "16.45 / 20", icon: Award, color: "text-amber-600", bg: "bg-amber-50" },
+            { label: "Attendance Integrity", value: "98.2%", icon: ClipboardCheck, color: "text-purple-600", bg: "bg-purple-50" },
+            { label: "Pending Tasks", value: "4 Assignments", icon: ListChecks, color: "text-blue-600", bg: "bg-blue-50" },
+            { label: "Library Loans", value: "2 Volumes", icon: BookMarked, color: "text-emerald-600", bg: "bg-emerald-50" },
+          ].map((stat, i) => (
+            <Card key={i} className="border-none shadow-sm group hover:shadow-md transition-all">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{stat.label}</CardTitle>
+                <div className={cn("p-2 rounded-lg", stat.bg)}>
+                  <stat.icon className={cn("w-4 h-4", stat.color)} />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-black text-primary">{stat.value}</div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* 2. ANALYTICS ROW */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <Card className="lg:col-span-8 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+            <CardHeader className="bg-primary/5 p-8 border-b flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <CardTitle className="text-xl font-black text-primary uppercase tracking-tighter flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-secondary"/> Performance Velocity
+                </CardTitle>
+                <CardDescription>Visualizing your academic evolution over the current term.</CardDescription>
+              </div>
+              <Badge variant="outline" className="border-primary/10 text-primary font-bold uppercase text-[9px] px-3">VERIFIED RECORDS</Badge>
+            </CardHeader>
+            <CardContent className="h-[350px] pt-10">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={DATA_PERIODS.monthly}>
+                  <defs>
+                    <linearGradient id="colorStudentPerf" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#264D73" stopOpacity={0.15}/>
+                      <stop offset="95%" stopColor="#264D73" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
+                  <RechartsTooltip 
+                    contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  />
+                  <Area name="Sequence Mark" type="monotone" dataKey="performance" stroke="#264D73" strokeWidth={4} fill="url(#colorStudentPerf)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-4 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-primary text-white flex flex-col">
+            <CardHeader className="p-8">
+              <CardTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-secondary" />
+                Subject Proficiency
+              </CardTitle>
+              <CardDescription className="text-white/60">Latest evaluation benchmarks.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1 pt-10">
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={STUDENT_SUBJECT_PERF}>
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 9, fontWeight: 'bold', fill: '#fff' }} />
+                  <YAxis hide />
+                  <RechartsTooltip />
+                  <Bar dataKey="score" radius={[10, 10, 0, 0]} barSize={20} fill="#67D0E4" />
+                </BarChart>
+              </ResponsiveContainer>
+              
+              <div className="mt-6 space-y-3">
+                {STUDENT_SUBJECT_PERF.slice(0, 3).map((item, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-white/10 border border-white/10">
+                    <span className="text-[10px] font-black uppercase tracking-widest">{item.name}</span>
+                    <Badge className="bg-secondary text-primary border-none font-black">{item.score}</Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* 3. SCHEDULE & RESULTS ROW */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <Card className="lg:col-span-7 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+            <CardHeader className="bg-white border-b p-8 flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg font-black text-primary uppercase flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-secondary" />
+                  Today's Sequence
+                </CardTitle>
+                <CardDescription>Your chronological academic timetable for today.</CardDescription>
+              </div>
+              <Badge className="bg-secondary text-primary border-none font-black h-7 px-4">LIVE NODE</Badge>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableBody>
+                  {STUDENT_TODAY_SCHEDULE.map((slot, i) => (
+                    <TableRow key={i} className="hover:bg-primary/5 transition-colors border-b last:border-0 h-16">
+                      <TableCell className="pl-8 py-4">
+                        <div className="flex items-center gap-4">
+                          <div className="p-2.5 rounded-xl bg-accent/30 text-primary">
+                            <Clock className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-black text-primary uppercase">{slot.subject}</p>
+                            <p className="text-[10px] text-muted-foreground font-bold">{slot.time}</p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <div className="flex flex-col items-end">
+                          <p className="text-xs font-bold text-primary flex items-center gap-1.5"><MapPin className="w-3 h-3 text-secondary" /> {slot.room}</p>
+                          <p className="text-[10px] text-muted-foreground uppercase font-black">{slot.teacher}</p>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-5 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+            <CardHeader className="bg-white border-b p-8 flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg font-black text-primary uppercase flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-secondary" />
+                  Recent Results
+                </CardTitle>
+                <CardDescription>Latest marks registered in your dossier.</CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableBody>
+                  {STUDENT_RECENT_RESULTS.map((res, i) => (
+                    <TableRow key={i} className="hover:bg-primary/5 border-b last:border-0 h-16">
+                      <TableCell className="pl-8">
+                        <div className="space-y-0.5">
+                          <p className="text-[11px] font-black text-primary uppercase leading-none">{res.subject}</p>
+                          <p className="text-[9px] font-bold text-muted-foreground uppercase">{res.sequence}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <div className="flex flex-col items-end">
+                          <span className="text-sm font-black text-primary">{res.score} <span className="text-[10px] opacity-40">/ 20</span></span>
+                          <span className="text-[8px] font-bold uppercase text-secondary">Rank: {res.rank}</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+            <CardFooter className="bg-accent/10 p-4 border-t flex justify-center">
+               <Button asChild variant="ghost" className="text-[10px] font-black uppercase gap-2 hover:bg-white transition-all">
+                 <Link href="/dashboard/grades">Access Full Report Card <ChevronRight className="w-3 h-3"/></Link>
+               </Button>
+            </CardFooter>
+          </Card>
+        </div>
+
+        {/* 4. TASKS & ALERTS */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <Card className="border-none shadow-sm bg-white p-8 rounded-[2rem] space-y-6">
+            <div className="flex items-center justify-between border-b pb-4">
+              <h3 className="text-sm font-black text-primary uppercase tracking-widest flex items-center gap-2">
+                <ListChecks className="w-5 h-5 text-secondary" /> Pending Academic Tasks
+              </h3>
+              <Badge className="bg-primary/5 text-primary border-none">{STUDENT_TASKS.length}</Badge>
+            </div>
+            <div className="space-y-4">
+              {STUDENT_TASKS.map((task) => (
+                <div key={task.id} className="flex items-center justify-between p-4 rounded-2xl bg-accent/20 border border-accent hover:border-primary/20 transition-all group">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-white rounded-xl shadow-sm group-hover:scale-110 transition-transform">
+                      <task.icon className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-primary uppercase">{task.title}</p>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase">{task.subject}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[9px] font-black uppercase text-red-600 mb-1">{task.deadline}</p>
+                    <Button asChild size="sm" className="h-7 text-[8px] font-black uppercase px-3 rounded-lg shadow-sm">
+                      <Link href="/dashboard/assignments">Rendre</Link>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          <Card className="border-none shadow-sm bg-primary text-white p-8 rounded-[2.5rem] relative overflow-hidden flex flex-col justify-center text-center space-y-6">
+             <div className="absolute top-0 right-0 p-8 opacity-5 rotate-12"><Building2 className="w-48 h-48" /></div>
+             <div className="flex justify-center relative z-10">
+                <div className="p-5 bg-white/10 rounded-[2rem] border-4 border-white/5 backdrop-blur-md shadow-2xl">
+                   <ShieldCheck className="w-16 h-16 text-secondary" />
+                </div>
+             </div>
+             <div className="space-y-2 relative z-10">
+                <h4 className="text-2xl font-black uppercase tracking-tighter">Verified Node Record</h4>
+                <p className="text-xs text-white/60 leading-relaxed max-w-xs mx-auto italic font-medium">
+                  "Your academic dossier is synchronized with the national institutional registry. All evaluation sequences are tamper-proof and digitally signed."
+                </p>
+             </div>
+             <div className="pt-6 border-t border-white/10 flex justify-center gap-6 relative z-10">
+                <div className="flex flex-col items-center gap-1 opacity-40">
+                   <QrCode className="w-8 h-8" />
+                   <span className="text-[7px] font-black uppercase tracking-widest">ID Scan</span>
+                </div>
+                <div className="flex flex-col items-center gap-1 opacity-40">
+                   <History className="w-8 h-8" />
+                   <span className="text-[7px] font-black uppercase tracking-widest">Audit Logs</span>
+                </div>
+             </div>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // STANDARD OVERVIEW (PARENT / OTHER)
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -646,7 +894,7 @@ export default function DashboardPage() {
                     <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <Area type="monotone" dataKey="users" stroke="hsl(var(--primary))" strokeWidth={4} fill="url(#colorPulse)" />
+                <Area type="monotone" dataKey="performance" stroke="hsl(var(--primary))" strokeWidth={4} fill="url(#colorPulse)" />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
