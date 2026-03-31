@@ -93,22 +93,18 @@ const MOCK_GRADES = [
   { subject: "Chemistry", teacher: "Dr. White", coef: 4, seq1: 13.5, seq2: 12.5, average: 13.0, total: 52.0, rank: "8th", initials: "DW" },
 ];
 
-const MOCK_ATTENDANCE_HISTORY = [
-  { year: "2023 / 2024", term: "Term 1", subject: "Advanced Physics", present: 22, absent: 2, rate: 92 },
-  { year: "2023 / 2024", term: "Term 1", subject: "Mathematics", present: 24, absent: 0, rate: 100 },
-  { year: "2022 / 2023", term: "Term 3", subject: "General Science", present: 18, absent: 4, rate: 81 },
-];
+const MOCK_TRANSCRIPT_DATA = {
+  "Advanced Physics": { f1: ["12.5", "13.0", "14.2"], f2: ["11.0", "12.5", "13.5"], f3: ["14.0", "15.5", "16.0"] },
+  "Mathematics": { f1: ["15.0", "16.5", "17.0"], f2: ["14.5", "15.0", "16.0"], f3: ["17.5", "18.0", "17.5"] },
+  "English Literature": { f1: ["10.0", "11.5", "12.0"], f2: ["09.5", "10.0", "11.0"], f3: ["12.5", "13.0", "13.5"] },
+  "General Chemistry": { f1: ["13.5", "14.0", "14.5"], f2: ["12.0", "13.5", "14.0"], f3: ["15.0", "16.0", "16.5"] },
+};
 
 const MOCK_TODAY_ATTENDANCE = [
   { subject: "Advanced Physics", status: "present", time: "08:00 AM", teacher: "Dr. Aris Tesla" },
   { subject: "Mathematics", status: "present", time: "10:30 AM", teacher: "Prof. Sarah Smith" },
   { subject: "English Literature", status: "absent", time: "01:30 PM", teacher: "Ms. Bennet" },
 ];
-
-const MOCK_TRANSCRIPT_DATA = {
-  "Advanced Physics": { f1: ["12.5", "13.0", "14.2"], f2: ["11.0", "12.5", "13.5"], f3: ["14.0", "15.5", "16.0"] },
-  "Mathematics": { f1: ["15.0", "16.5", "17.0"], f2: ["14.5", "15.0", "16.0"], f3: ["17.5", "18.0", "17.5"] },
-};
 
 export default function StudentDetailsPage() {
   const searchParams = useSearchParams();
@@ -176,7 +172,6 @@ export default function StudentDetailsPage() {
         </Button>
       </div>
 
-      {/* HONOUR ROLL BANNER FOR PARENT VIEW */}
       {isHonourRoll ? (
         <Card className="border-none shadow-xl bg-primary text-white overflow-hidden rounded-[2rem] relative group">
           <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform"><Trophy className="w-32 h-32"/></div>
@@ -433,7 +428,6 @@ export default function StudentDetailsPage() {
         </TabsContent>
       </Tabs>
 
-      {/* REUSABLE DOCUMENT PREVIEW DIALOG */}
       <Dialog open={!!viewingDoc} onOpenChange={() => setViewingDoc(null)}>
         <DialogContent className="sm:max-w-4xl max-h-[95vh] p-0 overflow-hidden border-none shadow-2xl bg-white flex flex-col">
           <DialogHeader className="bg-primary p-6 md:p-8 text-white relative shrink-0 no-print">
@@ -468,7 +462,6 @@ export default function StudentDetailsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* HONOUR ROLL CERTIFICATE DIALOG */}
       <Dialog open={viewingCertificate} onOpenChange={setViewingCertificate}>
         <DialogContent className="sm:max-w-5xl max-h-[95vh] p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col">
           <DialogHeader className="bg-primary p-6 md:p-8 text-white no-print relative shrink-0">
@@ -504,6 +497,358 @@ export default function StudentDetailsPage() {
   );
 }
 
+function LandscapeTranscript({ student, platform }: { student: any, platform: any }) {
+  const visibleClasses = CLASSES.slice(0, CLASSES.indexOf(student?.class || "2nde / Form 5") + 1);
+
+  return (
+    <div className="bg-white p-8 md:p-12 relative overflow-hidden font-serif text-black min-w-[1100px] print:p-0">
+      <div className="grid grid-cols-3 gap-4 items-start text-center border-b-2 border-black pb-6">
+        <div className="space-y-1 text-[9px] uppercase font-black text-left">
+          <p>Republic of Cameroon</p>
+          <p>Peace - Work - Fatherland</p>
+          <div className="h-px bg-black w-8 my-1" />
+          <p>Ministry of Secondary Education</p>
+        </div>
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-20 h-20 bg-white flex items-center justify-center p-2 border-2 border-primary/10">
+             <img src={platform.logo} alt="Logo" className="w-14 h-14 object-contain" />
+          </div>
+          <p className="text-[9px] font-black uppercase text-primary tracking-tighter">Verified Node Record</p>
+        </div>
+        <div className="space-y-1 text-[9px] uppercase font-black text-right">
+          <p>République du Cameroun</p>
+          <p>Paix - Travail - Patrie</p>
+          <div className="h-px bg-black w-8 ml-auto my-1" />
+          <p>Min. des Enseignements Secondaires</p>
+        </div>
+      </div>
+
+      <div className="text-center my-10 space-y-2">
+        <h1 className="text-4xl font-black uppercase tracking-widest underline underline-offset-8 decoration-double">OFFICIAL TRANSCRIPT</h1>
+        <p className="text-sm font-bold opacity-60 italic">Academic Record 2023 / 2024</p>
+      </div>
+
+      <div className="grid grid-cols-12 gap-8 bg-accent/5 p-6 border border-black/10 rounded-2xl items-center mb-10 shadow-inner">
+        <div className="col-span-3">
+           <Avatar className="w-28 h-28 border-4 border-white rounded-[2rem] shadow-xl mx-auto">
+              <AvatarImage src={student?.avatar} />
+              <AvatarFallback className="text-3xl font-black">{student?.name?.charAt(0)}</AvatarFallback>
+           </Avatar>
+        </div>
+        <div className="col-span-9 grid grid-cols-2 gap-x-12 gap-y-3 text-sm">
+          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Identity:</span><span className="font-black uppercase">{student?.name}</span></div>
+          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Matricule:</span><span className="font-mono font-bold text-primary">{student?.id}</span></div>
+          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Class:</span><span className="font-bold">{student?.class}</span></div>
+          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Status:</span><span className="font-bold text-green-600">ENROLLED</span></div>
+        </div>
+      </div>
+
+      <div className="border-2 border-black overflow-hidden rounded-sm mb-10">
+        <Table className="border-collapse">
+          <TableHeader className="bg-black/5">
+            <TableRow className="border-b-2 border-black h-12">
+              <TableHead rowSpan={2} className="border-r-2 border-black font-black text-black uppercase text-[10px] text-center w-48">Subject</TableHead>
+              {visibleClasses.map((cls, i) => (
+                <TableHead key={i} colSpan={3} className={cn("border-r-2 border-black font-black text-black uppercase text-[10px] text-center h-8", i === visibleClasses.length - 1 ? "border-r-0" : "")}>
+                  {cls.split(' / ')[1] || cls}
+                </TableHead>
+              ))}
+            </TableRow>
+            <TableRow className="border-b-2 border-black h-8">
+              {visibleClasses.map((_, i) => (
+                <React.Fragment key={i}>
+                  <TableHead className="border-r border-black font-bold text-[8px] text-center">T1</TableHead>
+                  <TableHead className="border-r border-black font-bold text-[8px] text-center">T2</TableHead>
+                  <TableHead className={cn("border-r-2 border-black font-bold text-[8px] text-center", i === visibleClasses.length - 1 ? "border-r-0" : "")}>T3</TableHead>
+                </React.Fragment>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {Object.entries(MOCK_TRANSCRIPT_DATA).map(([subject, years]: [string, any], idx) => (
+              <TableRow key={idx} className="border-b border-black last:border-0 h-10">
+                <TableCell className="border-r-2 border-black font-black text-[10px] uppercase py-2 pl-4">{subject}</TableCell>
+                {visibleClasses.map((_, i) => {
+                  const data = years[`f${i + 1}`] || ["---", "---", "---"];
+                  return (
+                    <React.Fragment key={i}>
+                      <TableCell className={cn("border-r border-black text-center text-[10px] font-mono", parseFloat(data[0]) < 10 ? "text-red-600" : "")}>{data[0]}</TableCell>
+                      <TableCell className={cn("border-r border-black text-center text-[10px] font-mono", parseFloat(data[1]) < 10 ? "text-red-600" : "")}>{data[1]}</TableCell>
+                      <TableCell className={cn("border-r-2 border-black text-center text-[10px] font-mono bg-accent/5", i === visibleClasses.length - 1 ? "border-r-0" : "", parseFloat(data[2]) < 10 ? "text-red-600" : "")}>{data[2]}</TableCell>
+                    </React.Fragment>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className="grid grid-cols-3 gap-10 mt-16 pt-10 border-t-2 border-black/5">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <QrCode className="w-20 h-20 opacity-10" />
+          <p className="text-[8px] font-black uppercase text-muted-foreground opacity-40">Security Scan</p>
+        </div>
+        <div className="text-center space-y-6 w-48 mx-auto">
+          <div className="h-14 w-full bg-accent/10 border-b-2 border-black/40 relative flex items-center justify-center overflow-hidden">
+             <SignatureSVG className="w-full h-full text-primary/10 p-2" />
+          </div>
+          <p className="text-[10px] font-black uppercase text-primary tracking-widest leading-none">The Registrar</p>
+        </div>
+        <div className="text-center space-y-6">
+          <div className="h-14 w-full bg-accent/10 border-b-2 border-black/40 flex items-center justify-center">
+             <Badge variant="outline" className="border-black text-[8px] font-black uppercase px-4 py-1">OFFICIAL SEAL</Badge>
+          </div>
+          <p className="text-[10px] font-black uppercase text-primary tracking-widest leading-none">Institutional Head</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PortraitReportCard({ student, platform, term }: { student: any, platform: any, term: string }) {
+  return (
+    <div className="bg-white p-6 md:p-10 shadow-sm relative flex flex-col space-y-6 font-serif text-black max-w-[800px] mx-auto print:shadow-none print:p-0">
+       <div className="grid grid-cols-12 gap-2 items-start text-center border-b border-black pb-4">
+          <div className="col-span-4 space-y-0.5 text-[7px] uppercase font-bold text-left">
+            <p className="text-[#264D73] font-black">Republic of Cameroon</p>
+            <p>Peace - Work - Fatherland</p>
+          </div>
+          <div className="col-span-4 flex flex-col items-center">
+            <div className="w-12 h-12 flex items-center justify-center mb-1">
+              <img src={student?.school?.logo || platform.logo} alt="School" className="w-full h-full object-contain" />
+            </div>
+          </div>
+          <div className="col-span-4 space-y-0.5 text-[7px] uppercase font-bold text-right">
+            <p className="text-[#264D73] font-black">République du Cameroun</p>
+            <p>Paix - Travail - Patrie</p>
+          </div>
+       </div>
+
+       <div className="text-center space-y-1">
+          <p className="text-[8px] font-black uppercase text-[#264D73]">Ministry of Secondary Education / Ministère de l'Éducation Secondaire</p>
+          <div className="h-px bg-[#264D73] w-full my-1 opacity-20" />
+          <h2 className="font-black text-xl uppercase text-[#264D73] tracking-tight">{student?.school?.name || "EDUIGNITE INTERNATIONAL COLLEGE"}</h2>
+          <p className="text-[8px] font-bold italic opacity-60">Report Card: {term}</p>
+       </div>
+
+       <div className="grid grid-cols-12 border rounded-xl overflow-hidden mt-4 text-[9px] relative">
+          <div className="col-span-9 p-4 grid grid-cols-2 gap-x-8 gap-y-2 border-r bg-accent/5">
+            <div className="flex gap-2"><span className="font-bold whitespace-nowrap">Name:</span><span className="border-b border-dotted border-black/40 flex-1 font-black uppercase">{student?.name}</span></div>
+            <div className="flex gap-2"><span className="font-bold whitespace-nowrap">Class:</span><span className="border-b border-dotted border-black/40 flex-1 font-bold">{student?.class || "N/A"}</span></div>
+            <div className="flex gap-2"><span className="font-bold whitespace-nowrap">Matricule:</span><span className="border-b border-dotted border-black/40 flex-1 font-mono font-bold text-primary">{student?.id}</span></div>
+            <div className="flex gap-2"><span className="font-bold whitespace-nowrap">Sex:</span><span className="border-b border-dotted border-black/40 flex-1">Female</span></div>
+            <div className="flex gap-2"><span className="font-bold whitespace-nowrap">Date of Birth:</span><span className="border-b border-dotted border-black/40 flex-1">{student?.dob}</span></div>
+            <div className="flex gap-2"><span className="font-bold whitespace-nowrap">Parent Contact:</span><span className="border-b border-dotted border-black/40 flex-1">{student?.guardianPhone}</span></div>
+          </div>
+          <div className="col-span-3 p-2 flex items-center justify-center bg-white">
+            <div className="w-20 h-24 border rounded shadow-sm overflow-hidden">
+              <img src={student?.avatar} alt="Student" className="w-full h-full object-cover" />
+            </div>
+          </div>
+       </div>
+
+       <div className="mt-6 border border-black rounded-sm overflow-hidden">
+          <Table>
+            <TableHeader className="bg-[#264D73]">
+              <TableRow className="h-8 border-none hover:bg-[#264D73]">
+                <TableHead className="text-[8px] font-black uppercase text-white pl-2 border-r border-white/20">Subject</TableHead>
+                <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20">Teacher</TableHead>
+                <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20">Seq 1</TableHead>
+                <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20">Seq 2</TableHead>
+                <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20">Average</TableHead>
+                <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20">Coef</TableHead>
+                <TableHead className="text-[8px] font-black uppercase text-white text-center border-r border-white/20">Avg x Coef</TableHead>
+                <TableHead className="text-[8px] font-black uppercase text-white text-center pr-2">Rank</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {MOCK_GRADES.map((g, idx) => (
+                <TableRow key={idx} className="border-b border-black/10 last:border-0 h-7 hover:bg-accent/5">
+                  <TableCell className="pl-2 font-bold text-[8px] uppercase border-r border-black/10">{g.subject}</TableCell>
+                  <TableCell className="text-center text-[8px] border-r border-black/10 italic opacity-60">{g.teacher}</TableCell>
+                  <TableCell className="text-center text-[8px] border-r border-black/10 font-bold">{g.seq1.toFixed(2)}</TableCell>
+                  <TableCell className="text-center text-[8px] border-r border-black/10 font-bold">{g.seq2.toFixed(2)}</TableCell>
+                  <TableCell className="text-center text-[8px] border-r border-black/10 font-black text-[#264D73]">{g.average.toFixed(2)}</TableCell>
+                  <TableCell className="text-center text-[8px] border-r border-black/10 font-bold">{g.coef}</TableCell>
+                  <TableCell className="text-center text-[8px] border-r border-black/10">{g.total.toFixed(2)}</TableCell>
+                  <TableCell className="text-center text-[8px] pr-2">{g.rank}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+       </div>
+
+       <div className="grid grid-cols-3 gap-4 mt-6">
+          <div className="border border-dotted border-black/40 p-3 rounded-lg space-y-1.5 text-[8px] bg-accent/5">
+            <h4 className="font-black text-[#264D73] uppercase border-b border-black/10 mb-1">Statistical Summary</h4>
+            <div className="flex justify-between border-b border-dotted border-black/20 pb-0.5"><span className="font-bold">Total Coefficient:</span><span className="font-black">29</span></div>
+            <div className="flex justify-between border-b border-dotted border-black/20 pb-0.5"><span className="font-bold text-[#264D73]">General Average:</span><span className="font-black text-[#264D73]">15.18</span></div>
+            <div className="flex justify-between pt-0.5"><span className="font-bold">Position:</span><span className="font-black">05 / 42</span></div>
+          </div>
+
+          <div className="border border-dotted border-black/40 p-3 rounded-lg space-y-1.5 text-[8px] bg-accent/5">
+            <h4 className="font-black text-[#264D73] uppercase border-b border-black/10 mb-1">Discipline & Presence</h4>
+            <div className="flex justify-between border-b border-dotted border-black/20 pb-0.5"><span className="font-bold">Days Present:</span><span className="font-black">42</span></div>
+            <div className="flex justify-between border-b border-dotted border-black/20 pb-0.5"><span className="font-bold">Days Absent:</span><span className="font-black">0</span></div>
+            <div className="flex justify-between pt-0.5"><span className="font-bold">Conduct:</span><span className="font-black">Exemplary</span></div>
+          </div>
+
+          <div className="space-y-4 flex flex-col justify-end">
+            <div className="grid grid-cols-3 gap-2">
+               <div className="text-center space-y-1">
+                  <div className="h-8 border-b border-black/20 relative flex items-center justify-center">
+                    <SignatureSVG className="w-full h-full text-primary/10" />
+                  </div>
+                  <p className="text-[6px] font-black uppercase text-primary">Parent</p>
+               </div>
+               <div className="text-center space-y-1">
+                  <div className="h-8 border-b border-black/20 relative flex items-center justify-center">
+                    <SignatureSVG className="w-full h-full text-primary/10" />
+                  </div>
+                  <p className="text-[6px] font-black uppercase text-primary">Class Master</p>
+               </div>
+               <div className="text-center space-y-1">
+                  <div className="h-8 border-b border-black/20 relative flex items-center justify-center">
+                    <SignatureSVG className="w-full h-full text-primary/10" />
+                  </div>
+                  <p className="text-[6px] font-black uppercase text-primary">Principal</p>
+               </div>
+            </div>
+            <div className="flex justify-center mt-2">
+               <QrCode className="w-8 h-8 opacity-10" />
+            </div>
+          </div>
+       </div>
+    </div>
+  );
+}
+
+function IDCardPreview({ student, platform }: { student: any, platform: any }) {
+  return (
+    <div className="flex flex-col gap-12 items-center">
+      <div className="relative group card-container">
+        <Card className="w-[450px] h-[280px] border shadow-xl bg-white overflow-hidden relative border-primary/20 flex flex-col">
+          <div className="bg-primary p-2 flex items-center justify-between text-white text-[7px] font-black uppercase tracking-tighter shrink-0 border-b border-white/10">
+            <div className="text-left leading-none space-y-0.5">
+              <p>Republic of Cameroon</p>
+              <p>Peace - Work - Fatherland</p>
+            </div>
+            <div className="flex gap-1 h-3">
+              <div className="w-2 h-full bg-[#007a5e]" />
+              <div className="w-2 h-full bg-[#ce1126] flex items-center justify-center"><div className="w-0.5 h-0.5 bg-yellow-400 rounded-full" /></div>
+              <div className="w-2 h-full bg-[#fcd116]" />
+            </div>
+            <div className="text-right leading-none space-y-0.5">
+              <p>République du Cameroun</p>
+              <p>Paix - Travail - Patrie</p>
+            </div>
+          </div>
+
+          <div className="p-3 border-b border-accent flex items-center gap-3 bg-accent/5 shrink-0">
+            <div className="w-12 h-12 bg-white rounded-lg p-1 border shadow-sm flex items-center justify-center shrink-0 overflow-hidden">
+              <img src={student?.school?.logo || platform.logo} alt="School Logo" className="w-full h-full object-contain" />
+            </div>
+            <div className="flex-1">
+              <p className="text-[8px] font-black uppercase text-muted-foreground leading-none mb-0.5">Ministry of Secondary Education</p>
+              <h3 className="text-xs font-black uppercase text-primary leading-tight">
+                {student?.school?.name || "EDUIGNITE INTERNATIONAL COLLEGE"}
+              </h3>
+              <p className="text-[7px] font-bold text-muted-foreground italic">"Discipline - Work - Success"</p>
+            </div>
+          </div>
+
+          <div className="flex-1 p-4 flex gap-6 relative">
+            <div className="w-28 h-28 rounded-xl border-2 border-primary/10 overflow-hidden shadow-lg shrink-0 bg-accent/5">
+              <img src={student?.avatar} alt={student?.name} className="w-full h-full object-cover" />
+            </div>
+            <div className="flex-1 flex flex-col justify-center gap-3">
+              <div className="space-y-0.5">
+                <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Full Name / Nom Complet</p>
+                <p className="text-sm font-black text-primary uppercase leading-tight">{student?.name}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-0.5">
+                  <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Matricule</p>
+                  <p className="text-sm font-mono font-black text-secondary">{student?.id}</p>
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Class / Classe</p>
+                  <p className="text-xs font-black text-primary">{student?.class || "N/A"}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-primary/5 p-2 flex justify-between items-center border-t border-accent shrink-0">
+            <div className="px-3 py-1 bg-primary text-white rounded-md text-[9px] font-black tracking-widest">
+              STUDENT ID CARD
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[8px] font-black text-muted-foreground uppercase">Academic Year</span>
+              <Badge className="bg-secondary text-primary border-none text-[9px] font-black h-5">2023 - 2024</Badge>
+            </div>
+          </div>
+        </Card>
+        <p className="text-center text-[10px] font-black uppercase text-muted-foreground mt-2 tracking-[0.2em]">Front Side</p>
+      </div>
+
+      <div className="relative card-container">
+        <Card className="w-[450px] h-[280px] border shadow-xl bg-white overflow-hidden relative border-primary/20 flex flex-col">
+          <div className="bg-primary h-1 w-full shrink-0" />
+          <div className="flex-1 p-6 flex flex-col gap-6">
+            <div className="grid grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Guardian / Tuteur</p>
+                  <div className="h-10 bg-accent/30 border-none rounded-xl font-bold flex items-center px-4 text-sm text-primary">Mr. Robert Thompson</div>
+                  <p className="text-[10px] font-black text-secondary flex items-center gap-1"><Phone className="w-2.5 h-2.5" /> +237 6XX XX XX XX</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Date of Birth / Né(e) le</p>
+                  <p className="text-[10px] font-bold text-primary">12/05/2007</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Residential Address / Adresse</p>
+                  <p className="text-[9px] font-medium text-muted-foreground leading-tight">Bonapriso, Douala</p>
+                </div>
+              </div>
+              <div className="flex flex-col items-center justify-center gap-4 text-center border-l border-accent pl-8">
+                <div className="p-2 bg-white border-2 border-accent rounded-xl shadow-inner">
+                  <QrCode className="w-20 h-20 text-primary" />
+                </div>
+                <p className="text-[7px] font-black text-muted-foreground uppercase leading-tight tracking-widest">
+                  Secure Scan<br/>Verification
+                </p>
+              </div>
+            </div>
+            <div className="mt-auto flex justify-between items-end border-t border-accent/50 pt-4">
+              <div className="text-[8px] max-w-[200px] leading-relaxed text-muted-foreground font-medium">
+                <p className="font-black text-[7px] uppercase text-primary mb-1">Notice</p>
+                This card is property of the school. If found, return to the administration.
+              </div>
+              <div className="text-center space-y-1 relative">
+                <div className="h-px bg-primary/20 w-24 mx-auto mb-1" />
+                <p className="text-[8px] font-black text-primary uppercase">The Principal</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-accent/20 p-2 px-4 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-2">
+              <img src={platform.logo} alt="EduIgnite" className="w-4 h-4 object-contain rounded-sm" />
+              <p className="text-[7px] font-black text-primary uppercase tracking-widest">
+                Powered by {platform.name} SaaS
+              </p>
+            </div>
+            <span className="text-[6px] text-muted-foreground font-bold italic">Secure Node Registry</span>
+          </div>
+        </Card>
+        <p className="text-center text-[10px] font-black uppercase text-muted-foreground mt-2 tracking-[0.2em]">Back Side</p>
+      </div>
+    </div>
+  );
+}
+
 function CertificatePreview({ student, platform }: { student: any, platform: any }) {
   const date = new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
   const serial = `LIC-REWARD-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
@@ -512,17 +857,14 @@ function CertificatePreview({ student, platform }: { student: any, platform: any
 
   return (
     <div id="honour-roll-print" className="bg-white p-12 md:p-24 border-[16px] border-double border-[#264D73]/20 shadow-2xl w-[1100px] md:w-full max-w-5xl mx-auto font-serif text-black relative overflow-hidden print:border-none print:shadow-none print:w-full">
-      {/* PROFESSIONAL FRAME DECORATIONS */}
       <div className="absolute top-0 left-0 p-8 opacity-40"><LaurelCorner className="w-24 h-24 text-[#264D73]" /></div>
       <div className="absolute top-0 right-0 p-8 opacity-40 rotate-90"><LaurelCorner className="w-24 h-24 text-[#264D73]" /></div>
       <div className="absolute bottom-0 left-0 p-8 opacity-40 -rotate-90"><LaurelCorner className="w-24 h-24 text-[#264D73]" /></div>
       <div className="absolute bottom-0 right-0 p-8 opacity-40 rotate-180"><LaurelCorner className="w-24 h-24 text-[#264D73]" /></div>
       
-      {/* INNER BORDER */}
       <div className="absolute inset-6 border border-[#264D73]/10 pointer-events-none" />
       
       <div className="relative z-10 space-y-12">
-        {/* NATIONAL HEADER */}
         <div className="grid grid-cols-3 gap-4 items-center text-center">
           <div className="space-y-1 text-[8px] uppercase font-black text-left">
             <p className="text-[#264D73]">Republic of Cameroon</p>
@@ -544,14 +886,12 @@ function CertificatePreview({ student, platform }: { student: any, platform: any
           </div>
         </div>
 
-        {/* TITLES */}
         <div className="text-center space-y-4">
           <h2 className="text-[10px] font-black uppercase tracking-[0.5em] text-[#264D73]/60 mb-2">{schoolName}</h2>
           <h1 className="text-6xl md:text-8xl font-black italic text-[#264D73] uppercase tracking-tighter leading-none drop-shadow-sm">Honor Roll</h1>
           <p className="text-2xl md:text-3xl font-bold uppercase tracking-[0.3em] text-[#FCD116] italic drop-shadow-sm">Certificate of Achievement</p>
         </div>
 
-        {/* BODY */}
         <div className="text-center space-y-12 py-10">
           <p className="text-xs font-black uppercase tracking-[0.4em] text-[#264D73]/40">THIS PRESTIGIOUS AWARD IS PROUDLY PRESENTED TO :</p>
           
@@ -577,7 +917,6 @@ function CertificatePreview({ student, platform }: { student: any, platform: any
           </div>
         </div>
 
-        {/* FOOTER */}
         <div className="grid grid-cols-2 gap-20 md:gap-40 pt-16 items-end">
           <div className="text-center space-y-6">
             <div className="h-px bg-black/20 w-full" />
@@ -603,7 +942,6 @@ function CertificatePreview({ student, platform }: { student: any, platform: any
           </div>
         </div>
 
-        {/* SUB-FOOTER */}
         <div className="text-center pt-12 border-t border-black/5 flex flex-col md:flex-row items-center justify-between gap-4">
            <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-[#264D73] rounded-lg p-2 flex items-center justify-center">
@@ -621,6 +959,74 @@ function CertificatePreview({ student, platform }: { student: any, platform: any
               </div>
            </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function LandscapeTranscript({ student, platform }: { student: any, platform: any }) {
+  const currentGrade = student?.class || "2nde / Form 5";
+  const classIndex = CLASSES.indexOf(currentGrade);
+  const visibleClasses = CLASSES.slice(0, classIndex + 1);
+
+  return (
+    <div className="bg-white p-8 md:p-12 border shadow-sm relative overflow-hidden font-serif text-black min-w-[1100px]">
+      <div className="grid grid-cols-3 gap-4 items-start text-center border-b-2 border-black pb-6">
+        <div className="space-y-1 text-[9px] uppercase font-black text-left">
+          <p>Republic of Cameroon</p><p>Peace - Work - Fatherland</p><div className="h-px bg-black w-10 mx-auto my-1" /><p>Ministry of Secondary Education</p>
+        </div>
+        <div className="flex flex-col items-center gap-2">
+          <img src={platform.logo} alt="Logo" className="w-14 h-14 object-contain" /><p className="text-[9px] font-black uppercase text-primary tracking-tighter">Verified Node Record</p>
+        </div>
+        <div className="space-y-1 text-[9px] uppercase font-black text-right"><p>République du Cameroun</p><p>Paix - Travail - Patrie</p></div>
+      </div>
+      <div className="text-center my-10 space-y-2"><h1 className="text-4xl font-black uppercase tracking-widest underline underline-offset-8 decoration-double">Academic Transcript</h1><p className="text-sm font-bold opacity-60">Session 2023 / 2024</p></div>
+      <div className="grid grid-cols-12 gap-8 bg-accent/5 p-6 border border-black/10 rounded-2xl items-center mb-10 shadow-inner">
+        <div className="col-span-2">
+          <Avatar className="w-28 h-28 border-4 border-white rounded-[2rem] shadow-xl mx-auto"><AvatarImage src={student?.avatar} /><AvatarFallback className="text-3xl font-black">{student?.name?.charAt(0)}</AvatarFallback></Avatar>
+        </div>
+        <div className="col-span-10 grid grid-cols-2 gap-x-12 gap-y-3 text-sm">
+          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Identity:</span><span className="font-black uppercase">{student?.name}</span></div>
+          <div className="flex justify-between border-b border-black/5 pb-1"><span className="font-bold uppercase opacity-60 text-[9px]">Matricule:</span><span className="font-mono font-bold text-primary">{student?.id}</span></div>
+        </div>
+      </div>
+      <div className="border-2 border-black overflow-hidden rounded-sm">
+        <Table className="border-collapse">
+          <TableHeader className="bg-black/5">
+            <TableRow className="border-b-2 border-black h-12">
+              <TableHead rowSpan={2} className="border-r-2 border-black font-black text-black uppercase text-[10px] text-center w-48">Subject</TableHead>
+              {visibleClasses.map((cls, i) => (
+                <TableHead key={i} colSpan={3} className={cn("border-r-2 border-black font-black text-black uppercase text-[10px] text-center h-8", i === visibleClasses.length - 1 ? "border-r-0" : "")}>{cls.split(' / ')[1] || cls}</TableHead>
+              ))}
+            </TableRow>
+            <TableRow className="border-b-2 border-black h-8">
+              {visibleClasses.map((_, i) => (
+                <React.Fragment key={i}>
+                  <TableHead className="border-r border-black font-bold text-[8px] text-center">T1</TableHead>
+                  <TableHead className="border-r border-black font-bold text-[8px] text-center">T2</TableHead>
+                  <TableHead className={cn("border-r-2 border-black font-bold text-[8px] text-center", i === visibleClasses.length - 1 ? "border-r-0" : "")}>T3</TableHead>
+                </React.Fragment>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {Object.entries(MOCK_TRANSCRIPT_DATA).map(([subject, years]: [string, any], idx) => (
+              <TableRow key={idx} className="border-b border-black last:border-0 h-10">
+                <TableCell className="border-r-2 border-black font-black text-[10px] uppercase py-2 pl-4">{subject}</TableCell>
+                {visibleClasses.map((_, i) => { 
+                  const data = years[`f${i + 1}`] || ["---", "---", "---"]; 
+                  return (
+                    <React.Fragment key={i}>
+                      <TableCell className="border-r border-black text-center text-[10px] font-mono">{data[0]}</TableCell>
+                      <TableCell className="border-r border-black text-center text-[10px] font-mono">{data[1]}</TableCell>
+                      <TableCell className={cn("border-r-2 border-black text-center text-[10px] font-mono bg-accent/5", i === visibleClasses.length - 1 ? "border-r-0" : "")}>{data[2]}</TableCell>
+                    </React.Fragment>
+                  ); 
+                })}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );
