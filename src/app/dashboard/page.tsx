@@ -3,7 +3,7 @@
 
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
@@ -64,6 +64,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { CardSkeleton } from "@/components/shared/loading-state";
 
 const DATA_PERIODS = {
   weekly: [
@@ -113,12 +114,18 @@ const EXECUTIVE_LOGS = [
 ];
 
 export default function DashboardPage() {
-  const { user, schools, isLoading } = useAuth();
+  const { user, schools, isLoading: isAuthLoading } = useAuth();
   const { t } = useI18n();
 
   const [timePeriod, setTimePeriod] = useState<"weekly" | "monthly" | "yearly">("monthly");
   const [selectedSchoolId, setSelectedSchoolId] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [isDataSyncing, setIsDataSyncing] = useState(true);
+
+  useEffect(() => {
+    // Simulate initial data sync for dashboard widgets
+    const timer = setTimeout(() => setIsDataSyncing(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
 
   const activeChartData = useMemo(() => DATA_PERIODS[timePeriod] || DATA_PERIODS.monthly, [timePeriod]);
 
@@ -135,11 +142,11 @@ export default function DashboardPage() {
     };
   }, [schools]);
 
-  if (isLoading || !user) {
+  if (isAuthLoading || !user) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
         <Loader2 className="w-12 h-12 animate-spin text-primary opacity-20" />
-        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Synchronizing Prototype Data...</p>
+        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Synchronizing Identity Node...</p>
       </div>
     );
   }
@@ -190,61 +197,69 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          <Card className="border-none shadow-sm bg-primary text-white overflow-hidden relative group">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform"><Users className="w-16 h-16"/></div>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-[10px] uppercase font-black opacity-60 tracking-widest">Global Users</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-black text-secondary">{summaryStats.totalUsers}</div>
-              <p className="text-[9px] font-bold mt-2 uppercase flex items-center gap-1"><ArrowUpRight className="w-3 h-3" /> +12% Growth</p>
-            </CardContent>
-          </Card>
+        {isDataSyncing ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-32 bg-white rounded-xl animate-pulse" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            <Card className="border-none shadow-sm bg-primary text-white overflow-hidden relative group">
+              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform"><Users className="w-16 h-16"/></div>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-[10px] uppercase font-black opacity-60 tracking-widest">Global Users</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-black text-secondary">{summaryStats.totalUsers}</div>
+                <p className="text-[9px] font-bold mt-2 uppercase flex items-center gap-1"><ArrowUpRight className="w-3 h-3" /> +12% Growth</p>
+              </CardContent>
+            </Card>
 
-          <Card className="border-none shadow-sm bg-white overflow-hidden group">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Students</CardTitle>
-              <GraduationCap className="w-4 h-4 text-primary/40 group-hover:text-primary transition-colors" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-black text-primary">{summaryStats.students}</div>
-              <p className="text-[9px] font-bold mt-1 text-muted-foreground uppercase">82% Participation</p>
-            </CardContent>
-          </Card>
+            <Card className="border-none shadow-sm bg-white overflow-hidden group">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Students</CardTitle>
+                <GraduationCap className="w-4 h-4 text-primary/40 group-hover:text-primary transition-colors" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-black text-primary">{summaryStats.students}</div>
+                <p className="text-[9px] font-bold mt-1 text-muted-foreground uppercase">82% Participation</p>
+              </CardContent>
+            </Card>
 
-          <Card className="border-none shadow-sm bg-white overflow-hidden group">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Teachers</CardTitle>
-              <Users className="w-4 h-4 text-primary/40 group-hover:text-primary transition-colors" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-black text-primary">{summaryStats.teachers}</div>
-              <p className="text-[9px] font-bold mt-1 text-muted-foreground uppercase">Active Curriculums</p>
-            </CardContent>
-          </Card>
+            <Card className="border-none shadow-sm bg-white overflow-hidden group">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Teachers</CardTitle>
+                <Users className="w-4 h-4 text-primary/40 group-hover:text-primary transition-colors" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-black text-primary">{summaryStats.teachers}</div>
+                <p className="text-[9px] font-bold mt-1 text-muted-foreground uppercase">Active Curriculums</p>
+              </CardContent>
+            </Card>
 
-          <Card className="border-none shadow-sm bg-white overflow-hidden group">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Founders</CardTitle>
-              <Crown className="w-4 h-4 text-secondary group-hover:scale-110 transition-transform" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-black text-primary">{summaryStats.founders}</div>
-              <p className="text-[9px] font-bold mt-1 text-muted-foreground uppercase">Executive Board</p>
-            </CardContent>
-          </Card>
+            <Card className="border-none shadow-sm bg-white overflow-hidden group">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Founders</CardTitle>
+                <Crown className="w-4 h-4 text-secondary group-hover:scale-110 transition-transform" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-black text-primary">{summaryStats.founders}</div>
+                <p className="text-[9px] font-bold mt-1 text-muted-foreground uppercase">Executive Board</p>
+              </CardContent>
+            </Card>
 
-          <Card className="border-none shadow-sm bg-secondary text-primary overflow-hidden">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-[10px] uppercase font-black opacity-60 tracking-widest">Net Revenue</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-black">{summaryStats.revenue} <span className="text-xs">XAF</span></div>
-              <p className="text-[9px] font-bold mt-1 uppercase">Platform Licenses</p>
-            </CardContent>
-          </Card>
-        </div>
+            <Card className="border-none shadow-sm bg-secondary text-primary overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-[10px] uppercase font-black opacity-60 tracking-widest">Net Revenue</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-black">{summaryStats.revenue} <span className="text-xs">XAF</span></div>
+                <p className="text-[9px] font-bold mt-1 uppercase">Platform Licenses</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <Card className="lg:col-span-8 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
@@ -261,29 +276,35 @@ export default function DashboardPage() {
               </Badge>
             </CardHeader>
             <CardContent className="h-[400px] pt-10">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={activeChartData}>
-                  <defs>
-                    <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#264D73" stopOpacity={0.15}/>
-                      <stop offset="95%" stopColor="#264D73" stopOpacity={0}/>
-                    </linearGradient>
-                    <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#67D0E4" stopOpacity={0.15}/>
-                      <stop offset="95%" stopColor="#67D0E4" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
-                  <RechartsTooltip 
-                    contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                  />
-                  <Legend verticalAlign="top" align="right" height={36} iconType="circle" />
-                  <Area name="Revenue (XAF)" type="monotone" dataKey="revenue" stroke="#264D73" strokeWidth={4} fill="url(#colorRev)" />
-                  <Area name="Active Users" type="monotone" dataKey="users" stroke="#67D0E4" strokeWidth={4} fill="url(#colorUsers)" />
-                </AreaChart>
-              </ResponsiveContainer>
+              {isDataSyncing ? (
+                <div className="w-full h-full bg-accent/5 rounded-2xl flex items-center justify-center">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary/20" />
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={activeChartData}>
+                    <defs>
+                      <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#264D73" stopOpacity={0.15}/>
+                        <stop offset="95%" stopColor="#264D73" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#67D0E4" stopOpacity={0.15}/>
+                        <stop offset="95%" stopColor="#67D0E4" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
+                    <RechartsTooltip 
+                      contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                    />
+                    <Legend verticalAlign="top" align="right" height={36} iconType="circle" />
+                    <Area name="Revenue (XAF)" type="monotone" dataKey="revenue" stroke="#264D73" strokeWidth={4} fill="url(#colorRev)" />
+                    <Area name="Active Users" type="monotone" dataKey="users" stroke="#67D0E4" strokeWidth={4} fill="url(#colorUsers)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
             </CardContent>
           </Card>
 
@@ -457,22 +478,28 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: "Role Registry", value: user.role.replace('_', ' '), icon: ShieldCheck, color: "text-blue-600" },
-          { label: "License Status", value: user.isLicensePaid ? "Active" : "Locked", icon: Wallet, color: "text-green-600" },
-          { label: "Matricule", value: user.id, icon: GraduationCap, color: "text-purple-600" },
-          { label: "AI Requests", value: user.aiRequestCount || 0, icon: Activity, color: "text-amber-600" },
-        ].map((stat, i) => (
-          <Card key={i} className="border-none shadow-sm group hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{stat.label}</CardTitle>
-              <stat.icon className={cn("w-4 h-4 transition-transform group-hover:scale-110", stat.color)} />
-            </CardHeader>
-            <CardContent><div className="text-2xl font-black text-primary">{stat.value}</div></CardContent>
-          </Card>
-        ))}
-      </div>
+      {isDataSyncing ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => <div key={i} className="h-24 bg-white rounded-xl animate-pulse" />)}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { label: "Role Registry", value: user.role.replace('_', ' '), icon: ShieldCheck, color: "text-blue-600" },
+            { label: "License Status", value: user.isLicensePaid ? "Active" : "Locked", icon: Wallet, color: "text-green-600" },
+            { label: "Matricule", value: user.id, icon: GraduationCap, color: "text-purple-600" },
+            { label: "AI Requests", value: user.aiRequestCount || 0, icon: Activity, color: "text-amber-600" },
+          ].map((stat, i) => (
+            <Card key={i} className="border-none shadow-sm group hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{stat.label}</CardTitle>
+                <stat.icon className={cn("w-4 h-4 transition-transform group-hover:scale-110", stat.color)} />
+              </CardHeader>
+              <CardContent><div className="text-2xl font-black text-primary">{stat.value}</div></CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <Card className="lg:col-span-2 border-none shadow-xl overflow-hidden rounded-[2rem]">
@@ -483,17 +510,23 @@ export default function DashboardPage() {
             <CardDescription>Visual summary of institutional engagement and activity.</CardDescription>
           </CardHeader>
           <CardContent className="h-[350px] pt-10">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={DATA_PERIODS.monthly}>
-                <defs>
-                  <linearGradient id="colorPulse" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.15}/>
-                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <Area type="monotone" dataKey="users" stroke="hsl(var(--primary))" strokeWidth={4} fill="url(#colorPulse)" />
-              </AreaChart>
-            </ResponsiveContainer>
+            {isDataSyncing ? (
+              <div className="w-full h-full bg-accent/5 rounded-2xl flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-primary/20" />
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={DATA_PERIODS.monthly}>
+                  <defs>
+                    <linearGradient id="colorPulse" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.15}/>
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <Area type="monotone" dataKey="users" stroke="hsl(var(--primary))" strokeWidth={4} fill="url(#colorPulse)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
 

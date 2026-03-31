@@ -91,7 +91,7 @@ export default function LoginPage() {
   };
 
   const handleQuickLogin = async (matricule: string) => {
-    if (mode !== "login") return;
+    if (mode !== "login" || isProcessing) return;
     setIsProcessing(true);
     try {
       await login(matricule);
@@ -105,6 +105,7 @@ export default function LoginPage() {
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isProcessing) return;
     setIsProcessing(true);
     
     if (mode === "login" || mode === "activate") {
@@ -153,6 +154,7 @@ export default function LoginPage() {
   };
 
   const switchMode = (newMode: AuthMode) => {
+    if (isProcessing) return;
     clearAuthData();
     setAuthMode(newMode);
   };
@@ -225,6 +227,7 @@ export default function LoginPage() {
                         <Input 
                           required
                           autoComplete="off"
+                          disabled={isProcessing}
                           className="h-14 bg-accent/30 border-none rounded-2xl focus-visible:ring-primary font-black uppercase text-center text-xl shadow-inner transition-all focus:bg-white"
                           value={authData.matricule}
                           onChange={(e) => setAuthData({...authData, matricule: e.target.value})}
@@ -238,6 +241,7 @@ export default function LoginPage() {
                           required
                           autoComplete="off"
                           type="email"
+                          disabled={isProcessing}
                           className="h-14 bg-accent/30 border-none rounded-2xl focus-visible:ring-primary font-bold text-center text-lg shadow-inner transition-all focus:bg-white px-6"
                           value={authData.email}
                           onChange={(e) => setAuthData({...authData, email: e.target.value})}
@@ -256,6 +260,7 @@ export default function LoginPage() {
                         <Input 
                           required
                           autoComplete="off"
+                          disabled={isProcessing}
                           className="h-14 bg-accent/30 border-none rounded-2xl focus-visible:ring-primary font-black uppercase text-center text-xl shadow-inner transition-all focus:bg-white"
                           value={authData.matricule}
                           onChange={(e) => setAuthData({...authData, matricule: e.target.value})}
@@ -269,7 +274,8 @@ export default function LoginPage() {
                           {mode === "login" && (
                             <button 
                               type="button" 
-                              className="text-[10px] font-black uppercase text-primary/40 hover:text-primary transition-colors tracking-widest"
+                              disabled={isProcessing}
+                              className="text-[10px] font-black uppercase text-primary/40 hover:text-primary transition-colors tracking-widest disabled:opacity-50"
                               onClick={() => switchMode("forgot")}
                             >
                               {t("forgotPassword")}
@@ -280,6 +286,7 @@ export default function LoginPage() {
                           required
                           autoComplete="new-password"
                           type="password" 
+                          disabled={isProcessing}
                           className="h-14 bg-accent/30 border-none rounded-2xl focus-visible:ring-primary font-bold text-center text-lg shadow-inner transition-all focus:bg-white"
                           value={authData.password}
                           onChange={(e) => setAuthData({...authData, password: e.target.value})}
@@ -297,6 +304,7 @@ export default function LoginPage() {
                         required
                         autoComplete="new-password"
                         type="password" 
+                        disabled={isProcessing}
                         className="h-14 bg-accent/30 border-none rounded-2xl focus-visible:ring-primary font-bold text-center text-lg shadow-inner transition-all focus:bg-white"
                         value={authData.confirmPassword}
                         onChange={(e) => setAuthData({...authData, confirmPassword: e.target.value})}
@@ -312,6 +320,7 @@ export default function LoginPage() {
                         <Input 
                           required
                           autoComplete="one-time-code"
+                          disabled={isProcessing}
                           className="h-20 bg-accent/30 border-none rounded-[2rem] focus-visible:ring-primary font-black text-4xl text-center tracking-[0.5em] shadow-inner transition-all focus:bg-white"
                           maxLength={6}
                           value={authData.otp}
@@ -340,6 +349,7 @@ export default function LoginPage() {
                             required
                             autoComplete="new-password"
                             type="password"
+                            disabled={isProcessing}
                             className="h-14 bg-accent/30 border-none rounded-2xl shadow-inner focus:bg-white px-6 font-bold text-center text-lg"
                             value={authData.newPassword}
                             onChange={(e) => setAuthData({...authData, newPassword: e.target.value})}
@@ -351,6 +361,7 @@ export default function LoginPage() {
                             required
                             autoComplete="new-password"
                             type="password"
+                            disabled={isProcessing}
                             className="h-14 bg-accent/30 border-none rounded-2xl shadow-inner focus:bg-white px-6 font-bold text-center text-lg"
                             value={authData.resetConfirmPassword}
                             onChange={(e) => setAuthData({...authData, resetConfirmPassword: e.target.value})}
@@ -364,11 +375,16 @@ export default function LoginPage() {
                     type="submit"
                     disabled={isProcessing}
                     className={cn(
-                      "w-full h-16 text-sm font-black uppercase tracking-widest shadow-2xl rounded-[1.5rem] transition-all active:scale-95 mt-6",
+                      "w-full h-16 text-sm font-black uppercase tracking-widest shadow-2xl rounded-[1.5rem] transition-all active:scale-95 mt-6 gap-3",
                       mode === "login" ? "bg-primary hover:bg-primary/90 text-white" : "bg-secondary text-primary hover:bg-secondary/90"
                     )}
                   >
-                    {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : (
+                    {isProcessing ? (
+                      <>
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                        {mode === "login" ? "Authenticating..." : "Processing..."}
+                      </>
+                    ) : (
                       mode === "login" ? "Open Dashboard" : 
                       mode === "activate" ? "Activate Account" : 
                       mode === "forgot" ? "Identify Record" : 
@@ -381,7 +397,8 @@ export default function LoginPage() {
                 {mode === "login" ? (
                   <button 
                     type="button"
-                    className="w-full text-[10px] font-black uppercase tracking-widest text-primary/40 hover:text-primary transition-all h-12 flex items-center justify-center gap-2"
+                    disabled={isProcessing}
+                    className="w-full text-[10px] font-black uppercase tracking-widest text-primary/40 hover:text-primary transition-all h-12 flex items-center justify-center gap-2 disabled:opacity-50"
                     onClick={() => switchMode("activate")}
                   >
                     {t("dontHaveAccount")}
@@ -389,7 +406,8 @@ export default function LoginPage() {
                 ) : (
                   <button 
                     type="button"
-                    className="w-full text-[10px] font-black uppercase tracking-widest text-primary/40 hover:text-primary transition-all h-12 flex items-center justify-center gap-2"
+                    disabled={isProcessing}
+                    className="w-full text-[10px] font-black uppercase tracking-widest text-primary/40 hover:text-primary transition-all h-12 flex items-center justify-center gap-2 disabled:opacity-50"
                     onClick={() => switchMode("login")}
                   >
                     <ArrowLeft className="w-4 h-4" /> {t("alreadyHaveAccount")}

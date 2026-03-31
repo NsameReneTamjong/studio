@@ -204,8 +204,17 @@ export default function SchoolsManagementPage() {
               </div>
               <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
                 <Button onClick={handleSaveSchool} className="w-full h-14 rounded-2xl shadow-lg font-black uppercase tracking-widest text-xs gap-3 bg-primary text-white hover:bg-primary/90" disabled={isProcessing}>
-                  {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <ShieldCheck className="w-5 h-5 text-secondary" />}
-                  Provision Node & Generate ID
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Provisioning...</span>
+                    </>
+                  ) : (
+                    <>
+                      <ShieldCheck className="w-5 h-5 text-secondary" />
+                      <span>Provision Node & Generate ID</span>
+                    </>
+                  )}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -450,7 +459,7 @@ export default function SchoolsManagementPage() {
                   </div>
                   <div className="text-center space-y-4 w-40">
                     <div className="h-12 w-full mx-auto relative flex items-center justify-center">
-                       <SignatureSVG className="w-full h-full text-primary/20 p-2" />
+                       <SignatureSVG className="w-full h-full text-primary/10 p-2" />
                     </div>
                     <p className="text-[9px] font-black uppercase text-primary border-t border-black/20 pt-1">Platform Registrar</p>
                   </div>
@@ -467,7 +476,7 @@ export default function SchoolsManagementPage() {
             </div>
           </div>
 
-          <DialogFooter className="bg-accent/10 p-8 border-t no-print flex flex-col sm:flex-row gap-4">
+          <DialogFooter className="bg-accent/10 p-8 border-t no-print flex flex-col sm:flex-row gap-4 shrink-0">
             <Button variant="outline" className="flex-1 rounded-2xl h-14 font-black uppercase tracking-widest text-xs" onClick={() => setOnboardingSuccess(null)}>
               Return to Registry
             </Button>
