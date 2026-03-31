@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -35,7 +36,8 @@ import {
   UserCheck,
   Loader2,
   Hand,
-  ThumbsUp
+  ThumbsUp,
+  Search
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -92,6 +94,8 @@ export default function LiveClassRoomPage() {
   const [isRecording, setIsRecording] = useState(false);
   const [chatMessage, setChatMessage] = useState("");
   const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [gallerySearch, setGallerySearch] = useState("");
   const [isSyncingAttendance, setIsSyncingAttendance] = useState(false);
   const [presenceMap, setPresenceMap] = useState<Record<string, boolean>>(
     MOCK_PARTICIPANTS.reduce((acc, p) => ({ ...acc, [p.id]: true }), {})
@@ -313,7 +317,9 @@ export default function LiveClassRoomPage() {
                 <h3 className="text-[10px] font-black uppercase tracking-widest text-white">Registry</h3>
                 <Badge variant="outline" className="text-[8px] h-4 border-white/10 text-white/40">{MOCK_PARTICIPANTS.length} Active</Badge>
               </div>
-              <LayoutGrid className="w-3 h-3 text-slate-500" />
+              <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-500 hover:text-white" onClick={() => setIsGalleryOpen(true)}>
+                <LayoutGrid className="w-3 h-3" />
+              </Button>
             </div>
             
             <ScrollArea className="flex-1">
@@ -512,6 +518,62 @@ export default function LiveClassRoomPage() {
               {isSyncingAttendance ? <Loader2 className="w-5 h-5 animate-spin" /> : <ShieldCheck className="w-5 h-5 text-secondary" />}
               Commit Node Register
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* GALLERY VIEW DIALOG */}
+      <Dialog open={isGalleryOpen} onOpenChange={setIsGalleryOpen}>
+        <DialogContent className="sm:max-w-7xl w-[95vw] h-[90vh] rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-[#1A1C2E] text-slate-200 flex flex-col">
+          <DialogHeader className="bg-primary p-8 text-white relative shrink-0">
+             <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                   <div className="p-3 bg-white/10 rounded-2xl text-secondary">
+                      <Users className="w-8 h-8" />
+                   </div>
+                   <div>
+                      <DialogTitle className="text-2xl font-black uppercase tracking-tight">Participant Gallery</DialogTitle>
+                      <DialogDescription className="text-white/60">Node Registry • {MOCK_PARTICIPANTS.length} Connected</DialogDescription>
+                   </div>
+                </div>
+                <div className="flex items-center gap-4 mr-8">
+                   <div className="relative w-64 hidden md:block">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                      <input 
+                        placeholder="Search students..." 
+                        className="w-full bg-white/10 border-none rounded-xl h-10 pl-10 pr-4 text-xs text-white placeholder:text-white/20 focus:ring-1 focus:ring-secondary outline-none"
+                        value={gallerySearch}
+                        onChange={(e) => setGallerySearch(e.target.value)}
+                      />
+                   </div>
+                   <Button variant="ghost" size="icon" onClick={() => setIsGalleryOpen(false)} className="text-white hover:bg-white/10 rounded-full">
+                     <X className="w-6 h-6" />
+                   </Button>
+                </div>
+             </div>
+          </DialogHeader>
+          <ScrollArea className="flex-1 p-8">
+             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 pb-10">
+                {MOCK_PARTICIPANTS.filter(p => p.name.toLowerCase().includes(gallerySearch.toLowerCase()) || p.id.toLowerCase().includes(gallerySearch.toLowerCase())).map((p) => (
+                  <div key={p.id} className="relative aspect-video rounded-3xl overflow-hidden border border-white/5 bg-[#252841] group shadow-xl hover:border-secondary/40 transition-all">
+                     <img src={p.avatar} alt={p.name} className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-all duration-500" />
+                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
+                     <div className="absolute bottom-4 left-4 right-4">
+                        <p className="text-xs font-black uppercase text-white truncate">{p.name.split(' ')[0]}</p>
+                        <p className="text-[9px] font-mono font-bold text-secondary/60 truncate">{p.id}</p>
+                     </div>
+                     {/* Mic indicator */}
+                     <div className="absolute top-3 right-3 p-1.5 bg-black/40 backdrop-blur-md rounded-lg">
+                        <MicOff className="w-3 h-3 text-red-400" />
+                     </div>
+                  </div>
+                ))}
+             </div>
+          </ScrollArea>
+          <DialogFooter className="bg-black/20 p-4 border-t border-white/5 flex justify-center shrink-0">
+             <div className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-500 tracking-[0.2em]">
+                <ShieldCheck className="w-4 h-4 text-green-600" /> Verified Pedagogical Gallery
+             </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
