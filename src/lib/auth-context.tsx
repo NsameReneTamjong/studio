@@ -53,6 +53,7 @@ interface PlatformSettings {
   paymentDeadline: string;
   fees: PlatformFees;
   tutorialLinks: TutorialLinks;
+  honourRollThreshold: number;
 }
 
 export interface User {
@@ -68,6 +69,7 @@ export interface User {
   school?: SchoolInfo;
   isLicensePaid: boolean; 
   aiRequestCount?: number;
+  annualAvg?: number;
 }
 
 export interface Testimony {
@@ -281,7 +283,7 @@ const DEMO_ACCOUNTS: Record<string, any> = {
   "GBHS26": { name: "Principal Fonka", role: "SCHOOL_ADMIN", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/p1/150/150", phone: "+237 600 11 11 11", whatsapp: "+237 600 11 11 11" },
   "GBHS26A001": { name: "VP Academics", role: "SUB_ADMIN", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/subadmin/150/150", phone: "+237 600 22 22 22", whatsapp: "+237 600 22 22 22" },
   "GBHS26T001": { name: "Dr. Aris Tesla", role: "TEACHER", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/t1/150/150", phone: "+237 600 33 33 33", whatsapp: "+237 600 33 33 33" },
-  "GBHS26S001": { name: "Alice Thompson", role: "STUDENT", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/s1/100/100", phone: "+237 600 66 66 66", whatsapp: "+237 600 66 66 66" },
+  "GBHS26S001": { name: "Alice Thompson", role: "STUDENT", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/s1/100/100", phone: "+237 600 66 66 66", whatsapp: "+237 600 66 66 66", annualAvg: 16.45 },
   "GBHS26B001": { name: "Mme. Celine Njoh", role: "BURSAR", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/b1/150/150", phone: "+237 600 44 44 44", whatsapp: "+237 600 44 44 44" },
   "GBHS26L001": { name: "Mr. Ebong", role: "LIBRARIAN", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/l1/150/150", phone: "+237 600 55 55 55", whatsapp: "+237 600 55 55 55" },
   "GBHS26P001": { name: "Mr. Robert Thompson", role: "PARENT", schoolId: "GBHS-D", isLicensePaid: true, avatar: "https://picsum.photos/seed/pa1/150/150", phone: "+237 600 77 77 77", whatsapp: "+237 600 77 77 77" },
@@ -312,7 +314,8 @@ const PLATFORM_DEFAULTS: PlatformSettings = {
   logo: "https://picsum.photos/seed/eduignite-platform/200/200",
   paymentDeadline: "2024-10-31",
   fees: DEFAULT_FEES,
-  tutorialLinks: DEFAULT_TUTORIALS
+  tutorialLinks: DEFAULT_TUTORIALS,
+  honourRollThreshold: 15.0
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -387,7 +390,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       id: m, uid: `mock_${m}`, name: demoData.name, email: `${m.toLowerCase()}@eduignite.io`,
       phone: demoData.phone || "+237 600 00 00 00", whatsapp: demoData.whatsapp || "+237 600 00 00 00",
       role: demoData.role, schoolId: demoData.schoolId, isLicensePaid: demoData.isLicensePaid,
-      avatar: demoData.avatar || `https://picsum.photos/seed/${m}/150/150`, school: INITIAL_SCHOOLS[0]
+      avatar: demoData.avatar || `https://picsum.photos/seed/${m}/150/150`, school: INITIAL_SCHOOLS[0],
+      annualAvg: demoData.annualAvg || 0
     };
     setUserData(mockUser);
     localStorage.setItem("eduignite_prototype_session", JSON.stringify(mockUser));

@@ -37,7 +37,8 @@ import {
   Star,
   BarChart3,
   FileBadge,
-  Sparkles
+  Sparkles,
+  Trophy
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -126,6 +127,12 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       roles: ["SCHOOL_ADMIN"],
     },
     {
+      label: language === 'en' ? 'Academic Reward' : 'Récompense Académique',
+      icon: Trophy,
+      href: "/dashboard/rewards",
+      roles: ["SCHOOL_ADMIN", "SUB_ADMIN"],
+    },
+    {
       label: t("chat"),
       icon: MessageCircle,
       href: "/dashboard/chat",
@@ -154,6 +161,12 @@ export function DashboardSidebar({ onClose }: SidebarProps) {
       icon: Wallet,
       href: "/dashboard/subscription",
       roles: ["SCHOOL_ADMIN", "SUB_ADMIN", "TEACHER", "STUDENT", "PARENT", "BURSAR", "LIBRARIAN"],
+    },
+    {
+      label: language === 'en' ? 'Honour Roll' : 'Tableau d\'Honneur',
+      icon: Trophy,
+      href: "/dashboard/rewards",
+      roles: ["STUDENT"],
     },
     {
       label: t("students"),
