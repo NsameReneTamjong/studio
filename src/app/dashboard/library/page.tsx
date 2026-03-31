@@ -46,7 +46,12 @@ import {
   UserCheck,
   RotateCcw,
   ArrowRightLeft,
-  ArrowUpRight
+  ArrowUpRight,
+  Printer,
+  QrCode,
+  Signature as SignatureIcon,
+  User,
+  GraduationCap
 } from "lucide-react";
 import { 
   Dialog, 
@@ -71,9 +76,9 @@ import { useRouter } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
 
 const INITIAL_BOOKS = [
-  { id: "B001", title: "Advanced Physics", author: "Dr. Tesla", category: "Science", available: 5, total: 10, cover: "https://picsum.photos/seed/phys/400/600", description: "In-depth study of thermodynamics.", isbn: "ISBN-922-X", borrowDuration: 7, overdueFee: 500 },
-  { id: "B002", title: "Calculus II", author: "Prof. Smith", category: "Mathematics", available: 2, total: 5, cover: "https://picsum.photos/seed/math/400/600", description: "Comprehensive guide to integration.", isbn: "ISBN-102-M", borrowDuration: 5, overdueFee: 1000 },
-  { id: "B003", title: "Organic Chemistry", author: "Dr. White", category: "Science", available: 0, total: 8, cover: "https://picsum.photos/seed/chem/400/600", description: "Study of carbon compounds.", isbn: "ISBN-441-C", borrowDuration: 7, overdueFee: 500 },
+  { id: "B001", title: "Advanced Physics", author: "Dr. Tesla", category: "Science", available: 5, total: 10, cover: "https://picsum.photos/seed/phys/400/600", description: "In-depth study of thermodynamics and quantum mechanics.", isbn: "ISBN-922-X", borrowDuration: 7, overdueFee: 500 },
+  { id: "B002", title: "Calculus II", author: "Prof. Smith", category: "Mathematics", available: 2, total: 5, cover: "https://picsum.photos/seed/math/400/600", description: "Comprehensive guide to integration and complex series.", isbn: "ISBN-102-M", borrowDuration: 5, overdueFee: 1000 },
+  { id: "B003", title: "Organic Chemistry", author: "Dr. White", category: "Science", available: 0, total: 8, cover: "https://picsum.photos/seed/chem/400/600", description: "Study of carbon compounds and biological synthesis.", isbn: "ISBN-441-C", borrowDuration: 7, overdueFee: 500 },
 ];
 
 const INITIAL_REQUESTS = [
@@ -98,7 +103,7 @@ const MOCK_BORROWERS = [
 ];
 
 export default function LibraryPage() {
-  const { user } = useAuth();
+  const { user, platformSettings } = useAuth();
   const { language } = useI18n();
   const { toast } = useToast();
   const router = useRouter();
@@ -112,6 +117,7 @@ export default function LibraryPage() {
   
   // Borrowing State
   const [selectedBookForLoan, setSelectedBookForLoan] = useState<any>(null);
+  const [borrowRequestTicket, setBorrowRequestTicket] = useState<any>(null);
   const [borrowerData, setBorrowerData] = useState({ studentId: "", duration: "7" });
 
   const [libraryPolicy, setLibraryPolicy] = useState({
@@ -182,6 +188,31 @@ export default function LibraryPage() {
       setBorrowerData({ studentId: "", duration: "7" });
       toast({ title: "Loan Recorded", description: `Issued to ${student?.name}` });
     }, 1200);
+  };
+
+  const handleStudentBorrowRequest = (book: any) => {
+    if (!user) return;
+    setIsProcessing(true);
+    
+    setTimeout(() => {
+      const ticket = {
+        id: `REQ-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+        borrowerName: user.name,
+        borrowerId: user.id,
+        borrowerRole: user.role,
+        bookTitle: book.title,
+        bookAuthor: book.author,
+        bookIsbn: book.isbn,
+        bookId: book.id,
+        duration: book.borrowDuration || 7,
+        date: new Date().toLocaleDateString(),
+        schoolName: user.school?.name || "EduIgnite Academic Node"
+      };
+      
+      setBorrowRequestTicket(ticket);
+      setIsProcessing(false);
+      toast({ title: "Request Certificate Generated", description: "Present this to the librarian." });
+    }, 1000);
   };
 
   const handleIssueRequest = (request: any) => {
@@ -455,9 +486,16 @@ export default function LibraryPage() {
                   <Button 
                     className="w-full h-12 text-xs font-black uppercase tracking-widest shadow-lg rounded-2xl bg-primary text-white hover:bg-primary/90 transition-all active:scale-95" 
                     disabled={book.available === 0}
-                    onClick={() => setSelectedBookForLoan(book)}
+                    onClick={() => {
+                      if (isLibrarian) {
+                        setSelectedBookForLoan(book);
+                      } else {
+                        handleStudentBorrowRequest(book);
+                      }
+                    }}
                   >
-                    <BookMarked className="w-4 h-4 mr-2" /> Borrow Volume
+                    <BookMarked className="w-4 h-4 mr-2" /> 
+                    {isLibrarian ? "Issue Volume" : "Request Borrow"}
                   </Button>
                 </CardFooter>
               </Card>
@@ -716,7 +754,7 @@ export default function LibraryPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {loans.map(loan => (
+                    {loans.filter(l => l.borrowerId === user?.id).map(loan => (
                       <TableRow key={loan.id} className="h-16 border-b group hover:bg-accent/5">
                         <TableCell className="pl-8 font-mono text-[10px] font-bold text-primary">{loan.id}</TableCell>
                         <TableCell className="font-black text-xs uppercase text-primary">{loan.bookTitle}</TableCell>
@@ -732,7 +770,7 @@ export default function LibraryPage() {
                         </TableCell>
                       </TableRow>
                     ))}
-                    {loans.length === 0 && (
+                    {loans.filter(l => l.borrowerId === user?.id).length === 0 && (
                       <TableRow>
                         <TableCell colSpan={5} className="text-center py-10 text-muted-foreground italic">No active loans found.</TableCell>
                       </TableRow>
@@ -839,7 +877,7 @@ export default function LibraryPage() {
         )}
       </Tabs>
 
-      {/* BORROW VOLUME DIALOG */}
+      {/* LIBRARIAN ISSUE LOAN DIALOG */}
       <Dialog open={!!selectedBookForLoan} onOpenChange={() => setSelectedBookForLoan(null)}>
         <DialogContent className="sm:max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
           <DialogHeader className="bg-primary p-8 text-white relative">
@@ -878,13 +916,148 @@ export default function LibraryPage() {
             </div>
           </div>
           <DialogFooter className="bg-accent/20 p-6 border-t border-accent">
-            <Button className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3" onClick={handleIssueLoan} disabled={isProcessing || !borrowerData.studentId}>
+            <Button className="w-full h-14 rounded-2xl shadow-xl font-black uppercase tracking-widest text-xs gap-3 bg-primary text-white" onClick={handleIssueLoan} disabled={isProcessing || !borrowerData.studentId}>
               {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-5 h-5 text-secondary" />}
               Finalize Loan Registry
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* STUDENT BORROW REQUEST CERTIFICATE */}
+      <Dialog open={!!borrowRequestTicket} onOpenChange={() => setBorrowRequestTicket(null)}>
+        <DialogContent className="sm:max-w-5xl max-h-[95vh] p-0 border-none shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col">
+          <DialogHeader className="bg-primary p-6 md:p-8 text-white no-print relative shrink-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-xl text-secondary"><BookMarked className="w-8 h-8" /></div>
+                <div>
+                  <DialogTitle className="text-xl md:text-2xl font-black uppercase">Borrow Request Generated</DialogTitle>
+                  <DialogDescription className="text-white/60 text-xs">Official institutional request for volume accession.</DialogDescription>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setBorrowRequestTicket(null)} className="text-white hover:bg-white/10"><X className="w-6 h-6" /></Button>
+            </div>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto bg-muted p-4 md:p-10 print:p-0 print:bg-white no-scrollbar">
+            <div className="overflow-x-auto rounded-xl border-2 border-primary/10 shadow-inner bg-white">
+              <BorrowRequestCertificate ticket={borrowRequestTicket} platform={platformSettings} />
+            </div>
+          </div>
+          <DialogFooter className="bg-accent/10 p-6 border-t border-accent flex justify-between items-center shrink-0 no-print">
+             <div className="flex items-center gap-2 text-muted-foreground italic">
+                <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Verified Institutional Node Request</p>
+             </div>
+             <div className="flex gap-2">
+                <Button variant="outline" className="rounded-xl h-11 px-6 font-bold" onClick={() => window.print()}><Printer className="w-4 h-4 mr-2" /> Print Ticket</Button>
+                <Button className="rounded-xl px-10 h-11 font-black uppercase text-[10px] gap-2 shadow-lg" onClick={() => toast({ title: "PDF Generated" })}><Download className="w-4 h-4" /> Download</Button>
+             </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function BorrowRequestCertificate({ ticket, platform }: { ticket: any, platform: any }) {
+  if (!ticket) return null;
+  
+  return (
+    <div id="borrow-request-print" className="bg-white p-12 md:p-20 border-[12px] border-double border-primary/10 shadow-2xl w-[900px] md:w-full max-w-4xl mx-auto font-serif text-black relative overflow-hidden print:border-none print:shadow-none print:w-full">
+      <div className="relative z-10 space-y-10">
+        {/* National Header */}
+        <div className="grid grid-cols-3 gap-4 items-center text-center border-b-2 border-black pb-6">
+          <div className="space-y-1 text-[8px] uppercase font-black text-left">
+            <p>Republic of Cameroon</p>
+            <p>Peace - Work - Fatherland</p>
+            <div className="h-px bg-black w-8 my-1" />
+            <p>Ministry of Secondary Education</p>
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="w-16 h-16 bg-white flex items-center justify-center p-2 border-2 border-primary/10 mb-2">
+               <img src={platform.logo} alt="Logo" className="w-12 h-12 object-contain" />
+            </div>
+            <p className="text-[8px] font-black uppercase text-primary tracking-widest">Library Node Record</p>
+          </div>
+          <div className="space-y-1 text-[8px] uppercase font-black text-right">
+            <p>République du Cameroun</p>
+            <p>Paix - Travail - Patrie</p>
+            <div className="h-px bg-black w-8 ml-auto my-1" />
+            <p>Min. des Enseignements Secondaires</p>
+          </div>
+        </div>
+
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-black uppercase tracking-[0.2em] underline underline-offset-8 decoration-double">OFFICIAL BORROW REQUEST</h1>
+          <p className="text-[10px] font-bold opacity-60 uppercase tracking-widest">{ticket.schoolName}</p>
+        </div>
+
+        <div className="grid grid-cols-12 gap-8 bg-accent/5 p-8 border border-black/10 rounded-2xl items-start shadow-inner">
+          <div className="col-span-12 md:col-span-6 space-y-6">
+            <div className="space-y-4">
+              <h4 className="text-[10px] font-black uppercase text-primary border-b border-black/10 pb-1 flex items-center gap-2">
+                <User className="w-3 h-3" /> Borrower Identity
+              </h4>
+              <div className="space-y-2 text-sm">
+                <p className="flex justify-between font-bold text-primary uppercase"><span className="opacity-40 font-black text-[9px]">Identity:</span> {ticket.borrowerName}</p>
+                <p className="flex justify-between font-mono font-bold"><span className="opacity-40 font-black text-[9px] uppercase font-serif">Matricule:</span> {ticket.borrowerId}</p>
+                <p className="flex justify-between font-bold"><span className="opacity-40 font-black text-[9px] uppercase font-serif">Position:</span> {ticket.borrowerRole}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="col-span-12 md:col-span-6 space-y-6 md:border-l md:pl-8 border-black/10">
+            <div className="space-y-4">
+              <h4 className="text-[10px] font-black uppercase text-primary border-b border-black/10 pb-1 flex items-center gap-2">
+                <Book className="w-3 h-3" /> Material Description
+              </h4>
+              <div className="space-y-2 text-sm">
+                <p className="flex justify-between font-black text-primary uppercase"><span className="opacity-40 font-black text-[9px] font-serif">Title:</span> {ticket.bookTitle}</p>
+                <p className="flex justify-between font-bold"><span className="opacity-40 font-black text-[9px] uppercase font-serif">Author:</span> {ticket.bookAuthor}</p>
+                <p className="flex justify-between font-mono font-bold"><span className="opacity-40 font-black text-[9px] uppercase font-serif">ISBN:</span> {ticket.bookIsbn}</p>
+                <p className="flex justify-between font-bold text-secondary"><span className="opacity-40 font-black text-[9px] uppercase font-serif">Loan Limit:</span> {ticket.duration} Days</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 bg-primary/5 border border-primary/10 rounded-2xl space-y-3">
+           <h4 className="text-[10px] font-black uppercase text-primary tracking-widest flex items-center gap-2">
+             <Gavel className="w-3 h-3" /> Borrower's Commitment
+           </h4>
+           <p className="text-[10px] leading-relaxed italic text-muted-foreground font-medium">
+             "I, the undersigned, hereby request accession to the aforementioned pedagogical material. I commit to handling the volume with professional care and returning it to the institutional node on or before the agreed deadline. I acknowledge that late returns or damages will result in penalties linked to my student/staff financial registry."
+           </p>
+        </div>
+
+        <div className="grid grid-cols-3 gap-10 pt-10 border-t border-black/5">
+          <div className="flex flex-col items-center gap-3 text-center">
+            <QrCode className="w-16 h-16 opacity-10" />
+            <p className="text-[7px] font-black uppercase text-muted-foreground opacity-40">Request ID: {ticket.id}</p>
+          </div>
+          <div className="text-center space-y-6">
+            <div className="h-12 border-b-2 border-black/20 relative flex items-center justify-center">
+               <SignatureSVG className="w-full h-full text-primary/10 p-2" />
+            </div>
+            <p className="text-[9px] font-black uppercase text-primary tracking-widest leading-none">Borrower</p>
+          </div>
+          <div className="text-center space-y-6">
+            <div className="h-12 border-b-2 border-black/20 flex items-center justify-center">
+               <Badge variant="outline" className="border-black/20 text-[7px] font-black uppercase px-3 py-0.5">OFFICIAL SEAL</Badge>
+            </div>
+            <p className="text-[9px] font-black uppercase text-primary tracking-widest leading-none">Librarian Office</p>
+          </div>
+        </div>
+
+        <div className="text-center pt-6 border-t border-black/5 flex items-center justify-between opacity-30">
+           <div className="flex items-center gap-3">
+              <Building2 className="w-4 h-4" />
+              <p className="text-[8px] font-black uppercase tracking-[0.2em]">Verified Node Registry • {new Date().getFullYear()}</p>
+           </div>
+           <p className="text-[8px] font-black uppercase tracking-widest">Date Issued: {ticket.date}</p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -893,7 +1066,16 @@ function SignatureSVG({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 100 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M10 25C15 25 20 15 25 15C30 15 35 30 40 30C45 30 50 10 55 10C60 10 65 35 70 35C75 35 80 20 85 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path d="M15 30L85 10" stroke="currentColor" strokeWidth="1" strokeOpacity="0.3" strokeDasharray="2 2" />
+    </svg>
+  );
+}
+
+function LaurelCorner({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 100" className={className} fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 10 C 20 10, 10 20, 10 40 M10 10 C 10 20, 20 10, 40 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      <circle cx="10" cy="10" r="3" />
+      <path d="M15 25 L25 15 M20 35 L35 20 M25 45 L45 25" stroke="currentColor" strokeWidth="1" strokeLinecap="round" opacity="0.5"/>
     </svg>
   );
 }
