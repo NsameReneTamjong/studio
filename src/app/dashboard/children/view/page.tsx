@@ -53,12 +53,15 @@ import {
   Heart,
   CalendarDays,
   Zap,
-  Signature
+  Signature,
+  Trophy,
+  Sparkles
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import Link from "next/link";
 
 const CLASSES = ["6ème / Form 1", "5ème / Form 2", "4ème / Form 3", "3ème / Form 4", "2nde / Form 5", "1ère / Lower Sixth", "Terminale / Upper Sixth"];
 
@@ -78,6 +81,7 @@ const MOCK_CHILDREN = [
     guardian: "Mr. Robert Thompson",
     guardianPhone: "+237 677 00 11 22",
     address: "Bonapriso, Douala",
+    annualAvg: 16.45
   }
 ];
 
@@ -141,6 +145,9 @@ export default function StudentDetailsPage() {
 
   if (!student) return null;
 
+  const threshold = platformSettings.honourRollThreshold || 15.0;
+  const isHonourRoll = student.annualAvg >= threshold;
+
   return (
     <div className="space-y-6 pb-20">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -166,6 +173,39 @@ export default function StudentDetailsPage() {
           <Printer className="w-4 h-4" /> {t("print")} Record
         </Button>
       </div>
+
+      {/* HONOUR ROLL BANNER FOR PARENT VIEW */}
+      {isHonourRoll ? (
+        <Card className="border-none shadow-xl bg-primary text-white overflow-hidden rounded-[2rem] relative group">
+          <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform"><Trophy className="w-32 h-32"/></div>
+          <CardContent className="p-8 flex items-center gap-6">
+            <div className="p-4 bg-secondary text-primary rounded-[1.5rem] shadow-2xl">
+              <Award className="w-10 h-10" />
+            </div>
+            <div>
+              <h3 className="text-2xl font-black uppercase tracking-tighter text-secondary">Academic Distinction</h3>
+              <p className="text-white/60 text-sm font-medium">Your child has achieved the **Honour Roll** with an average of **{student.annualAvg.toFixed(2)}**.</p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="border-none shadow-sm bg-accent/20 border border-accent rounded-[2rem]">
+          <CardContent className="p-6 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white rounded-xl shadow-inner text-primary/40">
+                <AlertCircle className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Honour Roll Status</p>
+                <p className="text-sm font-bold text-primary">Not Yet Eligible (Threshold: {threshold.toFixed(1)})</p>
+              </div>
+            </div>
+            <Button asChild variant="ghost" className="text-[10px] font-black uppercase gap-2 hover:bg-white">
+              <Link href="/dashboard/ai-assistant">Get Support <Sparkles className="w-3.5 h-3.5"/></Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       <Tabs defaultValue="grades" className="w-full">
         <TabsList className="grid w-full bg-white border shadow-sm h-auto p-1.5 rounded-2xl grid-cols-5 overflow-x-auto no-scrollbar">
@@ -352,8 +392,11 @@ export default function StudentDetailsPage() {
                             </span>
                             {hist.rate >= 95 && <Zap className="w-3 h-3 text-secondary fill-current" />}
                           </div>
-                          <div className="w-20 h-1.5 bg-accent rounded-full overflow-hidden">
-                            <div className={cn("h-full transition-all duration-1000", hist.rate >= 90 ? "bg-green-500" : "bg-amber-500")} style={{ width: `${hist.rate}%` }} />
+                          <div className="w-24 h-1.5 bg-accent rounded-full overflow-hidden">
+                            <div 
+                              className={cn("h-full transition-all duration-1000", hist.rate >= 90 ? "bg-green-500" : "bg-amber-500")} 
+                              style={{ width: `${hist.rate}%` }} 
+                            />
                           </div>
                         </div>
                       </TableCell>
@@ -444,7 +487,7 @@ export default function StudentDetailsPage() {
       {/* REUSABLE DOCUMENT PREVIEW DIALOG */}
       <Dialog open={!!viewingDoc} onOpenChange={() => setViewingDoc(null)}>
         <DialogContent className="sm:max-w-4xl max-h-[95vh] p-0 overflow-hidden border-none shadow-2xl bg-white flex flex-col">
-          <DialogHeader className="bg-primary p-6 text-white relative shrink-0 no-print">
+          <DialogHeader className="bg-primary p-6 md:p-8 text-white relative shrink-0 no-print">
             <div className="flex items-center gap-4">
               <div className="p-2 bg-white/10 rounded-xl">
                 {viewingDoc?.type === 'report' ? <FileText className="w-6 h-6 text-secondary" /> : <CreditCard className="w-6 h-6 text-secondary" />}
@@ -790,7 +833,7 @@ function IDCardPreview({ student, platform }: { student: any, platform: any }) {
           </div>
           <div className="bg-accent/20 p-2 px-4 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
-              <img src={platform.logo} alt="EduIgnite" className="w-4 h-4 object-contain" />
+              <img src={platform.logo} alt="EduIgnite" className="w-4 h-4 object-contain rounded-sm opacity-40" />
               <p className="text-[7px] font-black text-primary uppercase tracking-widest">
                 Powered by {platform.name}
               </p>

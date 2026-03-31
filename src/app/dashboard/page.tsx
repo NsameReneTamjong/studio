@@ -65,7 +65,8 @@ import {
   Printer,
   Heart,
   Plus,
-  X
+  X,
+  Trophy
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -239,8 +240,8 @@ const STUDENT_TODAY_SCHEDULE = [
 ];
 
 const PARENT_CHILDREN_LEDGER = [
-  { id: "GBHS26S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", class: "Form 5", today: "Math Exam (Hall A)", status: "At School", gpa: "16.45", attendance: "98%", feeStatus: 85 },
-  { id: "GBHS26S004", name: "Diana Thompson", avatar: "https://picsum.photos/seed/s4/100/100", class: "Form 3", today: "Biology Lab", status: "At School", gpa: "14.20", attendance: "95%", feeStatus: 40 },
+  { id: "GBHS26S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", class: "Form 5", today: "Math Exam (Hall A)", status: "At School", gpa: "16.45", attendance: "98%", feeStatus: 85, isHonourRoll: true },
+  { id: "GBHS26S004", name: "Diana Thompson", avatar: "https://picsum.photos/seed/s4/100/100", class: "Form 3", today: "Biology Lab", status: "At School", gpa: "14.20", attendance: "95%", feeStatus: 40, isHonourRoll: false },
 ];
 
 const PARENT_RECENT_MARKS = [
@@ -263,7 +264,7 @@ const MOCK_STUDENTS_LIST = [
 ];
 
 export default function DashboardPage() {
-  const { user, schools, isLoading: isAuthLoading } = useAuth();
+  const { user, schools, isLoading: isAuthLoading, platformSettings } = useAuth();
   const { t, language } = useI18n();
   const { toast } = useToast();
 
@@ -1016,7 +1017,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <Card className="lg:col-span-7 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+          <Card className="lg:col-span-7 border-none shadow-xl overflow-hidden rounded-[2rem] bg-white">
             <CardHeader className="bg-white border-b p-8 flex items-center justify-between">
               <div>
                 <CardTitle className="text-lg font-black text-primary uppercase flex items-center gap-2">
@@ -1191,13 +1192,19 @@ export default function DashboardPage() {
                       <AvatarFallback>{child.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="space-y-0.5">
-                      <p className="text-sm font-black text-primary uppercase leading-none">{child.name}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-black text-primary uppercase leading-none">{child.name}</p>
+                        {child.isHonourRoll && <Trophy className="w-3.5 h-3.5 text-secondary" />}
+                      </div>
                       <p className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1.5">
                         <MapPin className="w-3 h-3 text-secondary" /> {child.today}
                       </p>
                     </div>
                   </div>
-                  <Badge variant="secondary" className="bg-green-100 text-green-700 border-none text-[8px] font-black h-5 px-2">LIVE</Badge>
+                  <div className="flex flex-col items-end gap-1">
+                    <Badge variant="secondary" className="bg-green-100 text-green-700 border-none text-[8px] font-black h-5 px-2">LIVE</Badge>
+                    {child.isHonourRoll && <Badge className="bg-primary text-secondary border-none text-[7px] font-black h-4 uppercase tracking-tighter">HONOUR ROLL</Badge>}
+                  </div>
                 </div>
               ))}
               <div className="p-6 bg-accent/20">
