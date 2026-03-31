@@ -60,7 +60,8 @@ import {
   Book,
   Archive,
   ArrowDownCircle,
-  Receipt
+  Receipt,
+  Printer
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -1045,7 +1046,7 @@ export default function DashboardPage() {
             </CardContent>
             <CardFooter className="bg-accent/10 p-4 border-t flex justify-center">
                <Button asChild variant="ghost" className="text-[10px] font-black uppercase gap-2 hover:bg-white transition-all">
-                 <Link href="/dashboard/grades">Access Full Report Card <ChevronRight className="w-3 h-3"/></Link>
+                 <Link href="/dashboard/grades">Access Full Report Card <ChevronRight className="w-3.5 h-3.5"/></Link>
                </Button>
             </CardFooter>
           </Card>
@@ -1729,7 +1730,7 @@ export default function DashboardPage() {
               <h3 className="text-xl font-black text-primary uppercase tracking-tighter leading-none">Verified Identity</h3>
               <p className="text-xs text-muted-foreground mt-2 leading-relaxed">Your account is secured with a unique institutional matricule. All actions are logged for integrity.</p>
             </div>
-            <div className="flex justify-center gap-6 relative z-10">
+            <div className="pt-6 border-t border-white/10 flex justify-center gap-6 relative z-10">
                 <div className="flex flex-col items-center gap-1 opacity-40">
                    <QrCode className="w-8 h-8" />
                    <span className="text-[7px] font-black uppercase tracking-widest">ID Scan</span>
