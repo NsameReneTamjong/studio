@@ -62,7 +62,8 @@ import {
   ArrowDownCircle,
   Receipt,
   Printer,
-  Heart
+  Heart,
+  Plus
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -415,11 +416,11 @@ export default function DashboardPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={activeChartData}>
                   <defs>
-                    <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="colorRev" x1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#264D73" stopOpacity={0.15}/>
                       <stop offset="95%" stopColor="#264D73" stopOpacity={0}/>
                     </linearGradient>
-                    <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="colorUsers" x1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#67D0E4" stopOpacity={0.15}/>
                       <stop offset="95%" stopColor="#67D0E4" stopOpacity={0}/>
                     </linearGradient>
@@ -848,7 +849,7 @@ export default function DashboardPage() {
                           <span className="text-sm font-black text-primary">{grade.score}</span>
                           <span className={cn(
                             "text-[8px] font-bold uppercase",
-                            grade.status === 'Excellent' ? "text-green-600" : grade.status === 'Failed' ? "text-red-600" : "text-primary/60"
+                            grade.status === 'Excellent' ? "text-green-600" : grade.status === 'Good' ? "text-blue-600" : "text-primary/60"
                           )}>{grade.status}</span>
                         </div>
                       </TableCell>
@@ -925,7 +926,7 @@ export default function DashboardPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={DATA_PERIODS.monthly}>
                   <defs>
-                    <linearGradient id="colorStudentPerf" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="colorStudentPerf" x1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#264D73" stopOpacity={0.15}/>
                       <stop offset="95%" stopColor="#264D73" stopOpacity={0}/>
                     </linearGradient>
@@ -1307,7 +1308,7 @@ export default function DashboardPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={DATA_PERIODS.monthly}>
                   <defs>
-                    <linearGradient id="colorLoan" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="colorLoan" x1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#264D73" stopOpacity={0.15}/>
                       <stop offset="95%" stopColor="#264D73" stopOpacity={0}/>
                     </linearGradient>
