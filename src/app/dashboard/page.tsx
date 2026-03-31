@@ -55,7 +55,11 @@ import {
   FileText,
   ShieldAlert,
   BarChart3,
-  UserCheck
+  UserCheck,
+  Library,
+  Book,
+  Archive,
+  ArrowDownCircle
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -86,35 +90,55 @@ import { cn } from "@/lib/utils";
 
 const DATA_PERIODS = {
   weekly: [
-    { name: 'Mon', users: 120, revenue: 45000 },
-    { name: 'Tue', users: 150, revenue: 52000 },
-    { name: 'Wed', users: 180, revenue: 48000 },
-    { name: 'Thu', users: 210, revenue: 61000 },
-    { name: 'Fri', users: 250, revenue: 55000 },
-    { name: 'Sat', users: 190, revenue: 32000 },
-    { name: 'Sun', users: 110, revenue: 28000 },
+    { name: 'Mon', users: 120, revenue: 45000, loans: 12 },
+    { name: 'Tue', users: 150, revenue: 52000, loans: 18 },
+    { name: 'Wed', users: 180, revenue: 48000, loans: 15 },
+    { name: 'Thu', users: 210, revenue: 61000, loans: 24 },
+    { name: 'Fri', users: 250, revenue: 55000, loans: 30 },
+    { name: 'Sat', users: 190, revenue: 32000, loans: 8 },
+    { name: 'Sun', users: 110, revenue: 28000, loans: 5 },
   ],
   monthly: [
-    { name: 'Week 1', users: 1200, revenue: 245000, performance: 14.2 },
-    { name: 'Week 2', users: 1450, revenue: 280000, performance: 15.5 },
-    { name: 'Week 3', users: 1100, revenue: 210000, performance: 13.8 },
-    { name: 'Week 4', users: 1800, revenue: 350000, performance: 16.1 },
+    { name: 'Week 1', users: 1200, revenue: 245000, performance: 14.2, loans: 85 },
+    { name: 'Week 2', users: 1450, revenue: 280000, performance: 15.5, loans: 110 },
+    { name: 'Week 3', users: 1100, revenue: 210000, performance: 13.8, loans: 95 },
+    { name: 'Week 4', users: 1800, revenue: 350000, performance: 16.1, loans: 140 },
   ],
   yearly: [
-    { name: 'Jan', users: 4500, revenue: 1200000 },
-    { name: 'Feb', users: 5200, revenue: 1450000 },
-    { name: 'Mar', users: 4800, revenue: 1100000 },
-    { name: 'Apr', users: 6100, revenue: 1800000 },
-    { name: 'May', users: 7500, revenue: 2100000 },
-    { name: 'Jun', users: 6900, revenue: 1950000 },
-    { name: 'Jul', users: 7200, revenue: 2300000 },
-    { name: 'Aug', users: 8100, revenue: 2500000 },
-    { name: 'Sep', users: 9500, revenue: 3100000 },
-    { name: 'Oct', users: 10200, revenue: 3400000 },
-    { name: 'Nov', users: 11500, revenue: 3800000 },
-    { name: 'Dec', users: 12400, revenue: 4200000 },
+    { name: 'Jan', users: 4500, revenue: 1200000, loans: 420 },
+    { name: 'Feb', users: 5200, revenue: 1450000, loans: 480 },
+    { name: 'Mar', users: 4800, revenue: 1100000, loans: 450 },
+    { name: 'Apr', users: 6100, revenue: 1800000, loans: 520 },
+    { name: 'May', users: 7500, revenue: 2100000, loans: 610 },
+    { name: 'Jun', users: 6900, revenue: 1950000, loans: 580 },
+    { name: 'Jul', users: 7200, revenue: 2300000, loans: 400 },
+    { name: 'Aug', users: 8100, revenue: 2500000, loans: 350 },
+    { name: 'Sep', users: 9500, revenue: 3100000, loans: 780 },
+    { name: 'Oct', users: 10200, revenue: 3400000, loans: 820 },
+    { name: 'Nov', users: 11500, revenue: 3800000, loans: 850 },
+    { name: 'Dec', users: 12400, revenue: 4200000, loans: 900 },
   ]
 };
+
+const LIBRARIAN_CATEGORY_DATA = [
+  { name: 'Science', count: 450, color: '#264D73' },
+  { name: 'Math', count: 320, color: '#67D0E4' },
+  { name: 'Literature', count: 280, color: '#FCD116' },
+  { name: 'History', count: 150, color: '#CE1126' },
+  { name: 'Arts', count: 120, color: '#10B981' },
+];
+
+const LIBRARIAN_RECENT_LOANS = [
+  { student: "Alice Thompson", class: "Form 5", book: "Advanced Physics", due: "Today", status: "Active", avatar: "https://picsum.photos/seed/s1/100/100" },
+  { student: "Bob Richards", class: "Upper Sixth", book: "Calculus II", due: "Tomorrow", status: "Active", avatar: "https://picsum.photos/seed/s2/100/100" },
+  { student: "Charlie Davis", class: "Form 3", book: "Organic Chemistry", due: "28 May", status: "Overdue", avatar: "https://picsum.photos/seed/s3/100/100" },
+];
+
+const LIBRARIAN_LOW_STOCK = [
+  { title: "General Chemistry", author: "Dr. White", available: 0, total: 10 },
+  { title: "English Grammar", author: "Ms. Bennet", available: 1, total: 15 },
+  { title: "Modern History", author: "Prof. Smith", available: 2, total: 8 },
+];
 
 const ADMIN_CLASS_SUMMARY = [
   { class: "Form 1", students: 45, average: 14.2, attendance: 92, revenue: 85 },
@@ -157,11 +181,6 @@ const USER_DISTRIBUTION = [
 const UPCOMING_TASKS = [
   { id: "T1", title: "Physics Seq 2 Entry", class: "Form 5", deadline: "Today, 4PM", status: "Urgent", icon: PenTool },
   { id: "T2", title: "Lab Report Review", class: "Form 3", deadline: "Tomorrow", status: "Upcoming", icon: FileEdit },
-];
-
-const STUDENT_TASKS = [
-  { id: "S1", title: "Newton's Laws Report", subject: "Physics", deadline: "In 2 Days", status: "Pending", icon: FileEdit },
-  { id: "S2", title: "Algebra Worksheet", subject: "Maths", deadline: "Today", status: "Urgent", icon: PenTool },
 ];
 
 const RECENT_GRADES = [
@@ -233,6 +252,7 @@ export default function DashboardPage() {
   const isTeacher = user.role === "TEACHER";
   const isStudent = user.role === "STUDENT";
   const isParent = user.role === "PARENT";
+  const isLibrarian = user.role === "LIBRARIAN";
   const isAdmin = user.role === "SCHOOL_ADMIN" || user.role === "SUB_ADMIN";
 
   // 1. PLATFORM EXECUTIVE VIEW
@@ -300,7 +320,7 @@ export default function DashboardPage() {
             </Card>
 
             <Card className="border-none shadow-sm bg-white overflow-hidden group">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                 <CardTitle className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Students</CardTitle>
                 <GraduationCap className="w-4 h-4 text-primary/40 group-hover:text-primary transition-colors" />
               </CardHeader>
@@ -311,7 +331,7 @@ export default function DashboardPage() {
             </Card>
 
             <Card className="border-none shadow-sm bg-white overflow-hidden group">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                 <CardTitle className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Teachers</CardTitle>
                 <Users className="w-4 h-4 text-primary/40 group-hover:text-primary transition-colors" />
               </CardHeader>
@@ -322,7 +342,7 @@ export default function DashboardPage() {
             </Card>
 
             <Card className="border-none shadow-sm bg-white overflow-hidden group">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                 <CardTitle className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Founders</CardTitle>
                 <Crown className="w-4 h-4 text-secondary group-hover:scale-110 transition-transform" />
               </CardHeader>
@@ -372,7 +392,7 @@ export default function DashboardPage() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeights: 'bold' }} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
                   <RechartsTooltip 
                     contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
@@ -396,7 +416,7 @@ export default function DashboardPage() {
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={USER_DISTRIBUTION} layout="vertical">
                   <XAxis type="number" hide />
-                  <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} width={80} />
+                  <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeights: 'bold' }} width={80} />
                   <RechartsTooltip />
                   <Bar dataKey="value" radius={[0, 10, 10, 0]} barSize={30}>
                     {USER_DISTRIBUTION.map((entry, index) => (
@@ -497,7 +517,7 @@ export default function DashboardPage() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeights: 'bold' }} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
                   <RechartsTooltip contentStyle={{ borderRadius: '1rem', border: 'none', shadow: 'none' }} />
                   <Area name="Node Mean" type="monotone" dataKey="performance" stroke="#264D73" strokeWidth={4} fill="url(#colorAdminPerf)" />
@@ -679,7 +699,7 @@ export default function DashboardPage() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeights: 'bold' }} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
                   <RechartsTooltip 
                     contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
@@ -701,7 +721,7 @@ export default function DashboardPage() {
             <CardContent className="flex-1 pt-10">
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={TEACHER_CLASS_DATA}>
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeights: 'bold' }} />
                   <YAxis hide />
                   <RechartsTooltip />
                   <Bar dataKey="attendance" radius={[10, 10, 0, 0]} barSize={25} fill="#67D0E4" />
@@ -878,7 +898,7 @@ export default function DashboardPage() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeights: 'bold' }} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
                   <RechartsTooltip 
                     contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
@@ -900,7 +920,7 @@ export default function DashboardPage() {
             <CardContent className="flex-1 pt-10">
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={STUDENT_SUBJECT_PERF}>
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 9, fontWeight: 'bold', fill: '#fff' }} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 9, fontWeights: 'bold', fill: '#fff' }} />
                   <YAxis hide />
                   <RechartsTooltip />
                   <Bar dataKey="score" radius={[10, 10, 0, 0]} barSize={20} fill="#67D0E4" />
@@ -1069,7 +1089,7 @@ export default function DashboardPage() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeights: 'bold' }} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
                   <RechartsTooltip contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
                   <Area name="Family Avg" type="monotone" dataKey="performance" stroke="#264D73" strokeWidth={4} fill="url(#colorParentPerf)" />
@@ -1191,7 +1211,216 @@ export default function DashboardPage() {
     );
   }
 
-  // 6. STANDARD OVERVIEW (BURSAR / LIBRARIAN / OTHER)
+  // 6. LIBRARIAN DASHBOARD VIEW
+  if (isLibrarian) {
+    return (
+      <div className="space-y-8 pb-20 animate-in fade-in duration-500">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-primary rounded-[1.5rem] shadow-xl border-2 border-white">
+              <Library className="w-8 h-8 text-secondary" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-primary font-headline tracking-tighter uppercase leading-none">Library Command Center</h1>
+              <div className="flex items-center gap-2 mt-2">
+                <Badge className="bg-secondary text-primary border-none font-black h-5 px-3 text-[9px] tracking-widest uppercase">Node Curator</Badge>
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">• Verified Registry Sync</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button asChild variant="outline" className="h-11 px-6 rounded-xl font-bold border-primary/10 bg-white gap-2 shadow-sm">
+              <Link href="/dashboard/library"><Book className="w-4 h-4 text-primary" /> Manage Catalog</Link>
+            </Button>
+            <Button className="h-11 px-8 shadow-xl font-black uppercase tracking-widest text-[10px] gap-2 rounded-xl">
+              <Plus className="w-4 h-4" /> Issue Loan
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { label: "Total Volumes", value: "1,420 Items", icon: BookMarked, color: "text-blue-600", bg: "bg-blue-50" },
+            { label: "Active Loans", value: "85 Checked Out", icon: Clock, color: "text-purple-600", bg: "bg-purple-50" },
+            { label: "Overdue Items", value: "12 Alerts", icon: AlertCircle, color: "text-red-600", bg: "bg-red-50" },
+            { label: "Node Capacity", value: "92% Utilized", icon: LayoutGrid, color: "text-emerald-600", bg: "bg-emerald-50" },
+          ].map((stat, i) => (
+            <Card key={i} className="border-none shadow-sm group hover:shadow-md transition-all">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{stat.label}</CardTitle>
+                <div className={cn("p-2 rounded-lg", stat.bg)}>
+                  <stat.icon className={cn("w-4 h-4", stat.color)} />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-black text-primary">{stat.value}</div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <Card className="lg:col-span-8 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+            <CardHeader className="bg-primary/5 p-8 border-b flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <CardTitle className="text-xl font-black text-primary uppercase tracking-tighter flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-secondary"/> Circulation Velocity
+                </CardTitle>
+                <CardDescription>Aggregate borrowing trends for current session.</CardDescription>
+              </div>
+              <Badge variant="outline" className="border-primary/10 text-primary font-bold h-7 px-4">REGISTRY ACTIVE</Badge>
+            </CardHeader>
+            <CardContent className="h-[350px] pt-10">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={DATA_PERIODS.monthly}>
+                  <defs>
+                    <linearGradient id="colorLoan" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#264D73" stopOpacity={0.15}/>
+                      <stop offset="95%" stopColor="#264D73" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeights: 'bold' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
+                  <RechartsTooltip contentStyle={{ borderRadius: '1rem', border: 'none', shadow: 'none' }} />
+                  <Area name="Loan Volume" type="monotone" dataKey="loans" stroke="#264D73" strokeWidth={4} fill="url(#colorLoan)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-4 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white flex flex-col">
+            <CardHeader className="bg-primary p-8 text-white">
+              <CardTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-2">
+                <PieChart className="w-5 h-5 text-secondary" />
+                Collection Density
+              </CardTitle>
+              <CardDescription className="text-white/60 text-xs">Distribution by volume category.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1 pt-10">
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={LIBRARIAN_CATEGORY_DATA}>
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeights: 'bold' }} />
+                  <YAxis hide />
+                  <RechartsTooltip />
+                  <Bar dataKey="count" radius={[10, 10, 0, 0]} barSize={25}>
+                    {LIBRARIAN_CATEGORY_DATA.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+              
+              <div className="mt-6 space-y-3">
+                {LIBRARIAN_CATEGORY_DATA.slice(0, 3).map((item, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-accent/20 border border-accent">
+                    <span className="text-xs font-bold text-primary uppercase">{item.name}</span>
+                    <Badge variant="outline" className="border-primary/10 text-primary font-black">{item.count}</Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <Card className="lg:col-span-7 border-none shadow-xl overflow-hidden rounded-[2rem] bg-white">
+            <CardHeader className="bg-white border-b p-8 flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg font-black text-primary uppercase flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-secondary" />
+                  Active Circulation Registry
+                </CardTitle>
+                <CardDescription>Live tracking of checked-out pedagogical materials.</CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest">
+                  <TableRow>
+                    <TableHead className="pl-8 py-4">Borrower</TableHead>
+                    <TableHead>Requested Volume</TableHead>
+                    <TableHead className="text-center">Due Date</TableHead>
+                    <TableHead className="text-right pr-8">Lifecycle</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {LIBRARIAN_RECENT_LOANS.map((loan, i) => (
+                    <TableRow key={i} className="hover:bg-primary/5 transition-colors border-b last:border-0 h-16">
+                      <TableCell className="pl-8">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-8 w-8 border shadow-sm">
+                            <AvatarImage src={loan.avatar} />
+                            <AvatarFallback>{loan.student.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex flex-col">
+                            <span className="font-bold text-xs md:text-sm text-primary uppercase leading-none">{loan.student}</span>
+                            <span className="text-[8px] font-black uppercase text-muted-foreground">{loan.class}</span>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-black text-primary text-xs uppercase">{loan.book}</TableCell>
+                      <TableCell className="text-center font-mono text-[10px] font-bold text-muted-foreground">{loan.due}</TableCell>
+                      <TableCell className="text-right pr-8">
+                        <Badge className={cn(
+                          "text-[8px] font-black uppercase px-2 h-5 border-none",
+                          loan.status === 'Overdue' ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
+                        )}>
+                          {loan.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-5 border-none shadow-xl overflow-hidden rounded-[2rem] bg-white">
+            <CardHeader className="bg-white border-b p-8">
+              <CardTitle className="text-lg font-black text-primary uppercase flex items-center gap-2">
+                <ArrowDownCircle className="w-5 h-5 text-secondary" />
+                Inventory Alerts
+              </CardTitle>
+              <CardDescription>Critical stock levels for high-demand curriculum.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableBody>
+                  {LIBRARIAN_LOW_STOCK.map((item, i) => (
+                    <TableRow key={i} className="hover:bg-primary/5 border-b last:border-0 h-16">
+                      <TableCell className="pl-8">
+                        <div className="space-y-0.5">
+                          <p className="text-[11px] font-black text-primary uppercase leading-none">{item.title}</p>
+                          <p className="text-[9px] font-bold text-muted-foreground uppercase">By {item.author}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <div className="flex flex-col items-end">
+                          <span className={cn("text-sm font-black", item.available === 0 ? "text-red-600" : "text-amber-600")}>
+                            {item.available} <span className="text-[10px] opacity-40">/ {item.total}</span>
+                          </span>
+                          <span className="text-[8px] font-bold uppercase opacity-40">Stock Level</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+            <CardFooter className="bg-accent/10 p-4 flex justify-center border-t">
+               <div className="flex items-center gap-2 text-muted-foreground italic">
+                  <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                  <p className="text-[9px] font-black uppercase tracking-widest opacity-40">Verified Institutional Inventory</p>
+               </div>
+            </CardFooter>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // 7. STANDARD OVERVIEW (BURSAR / OTHER)
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -1267,6 +1496,16 @@ export default function DashboardPage() {
               <h3 className="text-xl font-black text-primary uppercase tracking-tighter leading-none">Verified Identity</h3>
               <p className="text-xs text-muted-foreground mt-2 leading-relaxed">Your account is secured with a unique institutional matricule. All actions are logged for integrity.</p>
             </div>
+            <div className="flex justify-center gap-6 relative z-10">
+                <div className="flex flex-col items-center gap-1 opacity-40">
+                   <QrCode className="w-8 h-8" />
+                   <span className="text-[7px] font-black uppercase tracking-widest">ID Scan</span>
+                </div>
+                <div className="flex flex-col items-center gap-1 opacity-40">
+                   <Lock className="w-8 h-8" />
+                   <span className="text-[7px] font-black uppercase tracking-widest">Vault</span>
+                </div>
+             </div>
             <Button asChild variant="outline" className="w-full rounded-xl font-bold border-primary/10 bg-white">
               <Link href="/dashboard/profile">View Secure Profile</Link>
             </Button>
