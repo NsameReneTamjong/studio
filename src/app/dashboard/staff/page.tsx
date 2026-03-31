@@ -172,13 +172,6 @@ const MOCK_STAFF = [
   { id: "GBHS26L001", uid: "L1", name: "Mr. Ebong Paul", role: "LIBRARIAN", section: "Cross-Sectional", avatar: "https://picsum.photos/seed/l1/100/100", status: "active", employmentType: "Permanent", dob: "10/03/1982", region: "South West", email: "ebong@school.edu", phone: "+237 600 77 88 99" },
 ];
 
-const STAFF_MEMBERS = [
-  { id: "GBHS26T001", name: "Dr. Aris Tesla", role: "TEACHER" },
-  { id: "GBHS26T002", name: "Prof. Sarah Smith", role: "TEACHER" },
-  { id: "GBHS26B001", name: "Mme. Celine Njoh", role: "BURSAR" },
-  { id: "GBHS26L001", name: "Mr. Ebong", role: "LIBRARIAN" },
-];
-
 export default function StaffManagementPage() {
   const { user, platformSettings, addStaffRemark } = useAuth();
   const { t, language } = useI18n();
@@ -714,7 +707,7 @@ export default function StaffManagementPage() {
       </Dialog>
 
       {/* COMPREHENSIVE ONBOARDING DIALOG */}
-      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+      <Dialog open={isAddModalOpen} onOpenChange={() => setIsAddModalOpen(false)}>
         <DialogContent className="sm:max-w-4xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
           <DialogHeader className="bg-primary p-8 text-white relative shrink-0">
             <div className="flex items-center gap-4">
