@@ -49,7 +49,13 @@ import {
   Smartphone,
   MessageCircle,
   Baby,
-  Scale
+  Scale,
+  Signature as SignatureIcon,
+  FileDown,
+  FileText,
+  ShieldAlert,
+  BarChart3,
+  UserCheck
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -110,6 +116,21 @@ const DATA_PERIODS = {
   ]
 };
 
+const ADMIN_CLASS_SUMMARY = [
+  { class: "Form 1", students: 45, average: 14.2, attendance: 92, revenue: 85 },
+  { class: "Form 2", students: 40, average: 12.8, attendance: 85, revenue: 60 },
+  { class: "Form 3", students: 38, average: 15.5, attendance: 96, revenue: 95 },
+  { class: "Form 4", students: 42, average: 13.1, attendance: 88, revenue: 78 },
+  { class: "Form 5", students: 42, average: 16.4, attendance: 98, revenue: 98 },
+];
+
+const ADMIN_GOVERNANCE_LOGS = [
+  { action: "Verified Sequence 1 Marks", actor: "VP Academics", time: "10:30 AM", status: "Success" },
+  { action: "Authorized Fee Receipt Batch", actor: "Bursar Office", time: "09:12 AM", status: "Pending" },
+  { action: "Updated Library Policy", actor: "Head Librarian", time: "Yesterday", status: "Success" },
+  { action: "Class Stream Promotion Sync", actor: "System Node", time: "Yesterday", status: "Success" },
+];
+
 const TEACHER_CLASS_DATA = [
   { name: 'Form 1', attendance: 92, performance: 12.5 },
   { name: 'Form 2', attendance: 85, performance: 11.8 },
@@ -160,7 +181,6 @@ const STUDENT_TODAY_SCHEDULE = [
   { time: "01:30 PM", subject: "Literature", room: "Library B", teacher: "Ms. Bennet" },
 ];
 
-// PARENT SPECIFIC MOCK DATA
 const PARENT_CHILDREN_LEDGER = [
   { id: "GBHS26S001", name: "Alice Thompson", avatar: "https://picsum.photos/seed/s1/100/100", class: "Form 5", today: "Math Exam (Hall A)", status: "At School", gpa: "16.45", attendance: "98%", feeStatus: 85 },
   { id: "GBHS26S004", name: "Diana Thompson", avatar: "https://picsum.photos/seed/s4/100/100", class: "Form 3", today: "Biology Lab", status: "At School", gpa: "14.20", attendance: "95%", feeStatus: 40 },
@@ -213,8 +233,9 @@ export default function DashboardPage() {
   const isTeacher = user.role === "TEACHER";
   const isStudent = user.role === "STUDENT";
   const isParent = user.role === "PARENT";
+  const isAdmin = user.role === "SCHOOL_ADMIN" || user.role === "SUB_ADMIN";
 
-  // PLATFORM EXECUTIVE VIEW
+  // 1. PLATFORM EXECUTIVE VIEW
   if (isPlatformExecutive) {
     return (
       <div className="space-y-8 pb-20 animate-in fade-in duration-500">
@@ -403,7 +424,193 @@ export default function DashboardPage() {
     );
   }
 
-  // TEACHER DASHBOARD VIEW
+  // 2. SCHOOL ADMIN / SUB ADMIN VIEW
+  if (isAdmin) {
+    return (
+      <div className="space-y-8 pb-20 animate-in fade-in duration-500">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 bg-primary rounded-[1.5rem] shadow-xl border-4 border-white flex items-center justify-center p-3">
+              {user.school?.logo ? (
+                <img src={user.school.logo} alt="School" className="w-full h-full object-contain" />
+              ) : (
+                <Building2 className="w-full h-full text-secondary" />
+              )}
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-primary font-headline tracking-tighter uppercase leading-none">{user.school?.name || "Institution Dashboard"}</h1>
+              <div className="flex items-center gap-2 mt-2">
+                <Badge className="bg-secondary text-primary border-none font-black h-5 px-3 text-[9px] tracking-widest uppercase">Admin Node</Badge>
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">• Principal: {user.school?.principal}</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" className="h-11 px-6 rounded-xl font-bold border-primary/10 bg-white gap-2 shadow-sm">
+              <FileDown className="w-4 h-4 text-primary" /> Reports
+            </Button>
+            <Button className="h-11 px-8 shadow-xl font-black uppercase tracking-widest text-[10px] gap-2 rounded-xl">
+              <ShieldCheck className="w-4 h-4" /> Verify Node
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { label: "Active Enrollment", value: "2,500+", icon: GraduationCap, color: "text-blue-600", bg: "bg-blue-50" },
+            { label: "Staff Registry", value: "120 Active", icon: Users, color: "text-purple-600", bg: "bg-purple-50" },
+            { label: "Collection Velocity", value: "82.4%", icon: Coins, color: "text-emerald-600", bg: "bg-emerald-50" },
+            { label: "System Integrity", value: "Optimal", icon: ShieldCheck, color: "text-primary", bg: "bg-primary/5" },
+          ].map((stat, i) => (
+            <Card key={i} className="border-none shadow-sm group hover:shadow-md transition-all">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{stat.label}</CardTitle>
+                <div className={cn("p-2 rounded-lg", stat.bg)}>
+                  <stat.icon className={cn("w-4 h-4", stat.color)} />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-black text-primary">{stat.value}</div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <Card className="lg:col-span-8 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
+            <CardHeader className="bg-primary/5 p-8 border-b flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <CardTitle className="text-xl font-black text-primary uppercase tracking-tighter flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-secondary"/> Pedagogical Velocity
+                </CardTitle>
+                <CardDescription>Aggregate performance trends across all class streams.</CardDescription>
+              </div>
+              <Badge variant="outline" className="border-primary/10 text-primary font-bold h-7 px-4">NODE SYNC ACTIVE</Badge>
+            </CardHeader>
+            <CardContent className="h-[350px] pt-10">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={DATA_PERIODS.monthly}>
+                  <defs>
+                    <linearGradient id="colorAdminPerf" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#264D73" stopOpacity={0.15}/>
+                      <stop offset="95%" stopColor="#264D73" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 'bold' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
+                  <RechartsTooltip contentStyle={{ borderRadius: '1rem', border: 'none', shadow: 'none' }} />
+                  <Area name="Node Mean" type="monotone" dataKey="performance" stroke="#264D73" strokeWidth={4} fill="url(#colorAdminPerf)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-4 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white flex flex-col">
+            <CardHeader className="bg-primary p-8 text-white">
+              <CardTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-2">
+                <Coins className="w-5 h-5 text-secondary" />
+                Revenue Matrix
+              </CardTitle>
+              <CardDescription className="text-white/60 text-xs">Financial intake by class level.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1 pt-10 px-8 space-y-6">
+              {ADMIN_CLASS_SUMMARY.slice(0, 4).map((item, i) => (
+                <div key={i} className="space-y-2">
+                  <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-primary/60">
+                    <span>{item.class}</span>
+                    <span>{item.revenue}%</span>
+                  </div>
+                  <Progress value={item.revenue} className="h-1.5 rounded-full" />
+                </div>
+              ))}
+              <div className="pt-4 border-t">
+                 <Button asChild variant="ghost" className="w-full text-[10px] font-black uppercase tracking-widest gap-2 hover:bg-primary/5">
+                   <Link href="/dashboard/fees">Global Ledger Audit <ChevronRight className="w-3.5 h-3.5"/></Link>
+                 </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <Card className="lg:col-span-7 border-none shadow-xl overflow-hidden rounded-[2rem] bg-white">
+            <CardHeader className="bg-white border-b p-8">
+              <CardTitle className="text-lg font-black text-primary uppercase flex items-center gap-2">
+                <LayoutGrid className="w-5 h-5 text-secondary" />
+                Class Stream Registry
+              </CardTitle>
+              <CardDescription>Pedagogical health summary per academic level.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader className="bg-accent/10 uppercase text-[9px] font-black tracking-widest">
+                  <TableRow>
+                    <TableHead className="pl-8 py-4">Stream</TableHead>
+                    <TableHead className="text-center">Students</TableHead>
+                    <TableHead className="text-center">Average</TableHead>
+                    <TableHead className="text-right pr-8">Presence</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {ADMIN_CLASS_SUMMARY.map((cls, i) => (
+                    <TableRow key={i} className="hover:bg-primary/5 transition-colors border-b last:border-0 h-16">
+                      <TableCell className="pl-8 font-black text-primary uppercase text-xs">{cls.class}</TableCell>
+                      <TableCell className="text-center font-bold text-xs">{cls.students}</TableCell>
+                      <TableCell className="text-center font-black text-primary">{cls.average.toFixed(2)}</TableCell>
+                      <TableCell className="text-right pr-8">
+                        <Badge variant="secondary" className="bg-green-100 text-green-700 border-none font-black h-5">{cls.attendance}%</Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-5 border-none shadow-xl overflow-hidden rounded-[2rem] bg-white">
+            <CardHeader className="bg-white border-b p-8">
+              <CardTitle className="text-lg font-black text-primary uppercase flex items-center gap-2">
+                <ShieldAlert className="w-5 h-5 text-secondary" />
+                Governance Audit Logs
+              </CardTitle>
+              <CardDescription>Latest administrative actions across the node.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableBody>
+                  {ADMIN_GOVERNANCE_LOGS.map((log, i) => (
+                    <TableRow key={i} className="hover:bg-primary/5 border-b last:border-0 h-16">
+                      <TableCell className="pl-8">
+                        <div className="space-y-0.5">
+                          <p className="text-[11px] font-black text-primary uppercase leading-none">{log.action}</p>
+                          <p className="text-[9px] font-bold text-muted-foreground uppercase">Actor: {log.actor}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <div className="flex flex-col items-end">
+                          <Badge variant="outline" className="text-[8px] font-black uppercase h-4 px-2 border-primary/10 text-primary">{log.status}</Badge>
+                          <span className="text-[9px] text-muted-foreground mt-1 italic">{log.time}</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+            <CardFooter className="bg-accent/10 p-4 flex justify-center border-t">
+               <div className="flex items-center gap-2 text-muted-foreground italic">
+                  <ShieldCheck className="w-4 h-4 text-primary opacity-40" />
+                  <p className="text-[9px] font-black uppercase tracking-widest opacity-40">Verified Institutional Registry</p>
+               </div>
+            </CardFooter>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // 3. TEACHER DASHBOARD VIEW
   if (isTeacher) {
     return (
       <div className="space-y-8 pb-20 animate-in fade-in duration-500">
@@ -603,7 +810,7 @@ export default function DashboardPage() {
     );
   }
 
-  // STUDENT DASHBOARD VIEW
+  // 4. STUDENT DASHBOARD VIEW
   if (isStudent) {
     return (
       <div className="space-y-8 pb-20 animate-in fade-in duration-500">
@@ -796,7 +1003,7 @@ export default function DashboardPage() {
     );
   }
 
-  // PARENT DASHBOARD VIEW
+  // 5. PARENT DASHBOARD VIEW
   if (isParent) {
     return (
       <div className="space-y-8 pb-20 animate-in fade-in duration-500">
@@ -820,7 +1027,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* FAMILY QUICK STATS */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { label: "Children Enrolled", value: "2 Students", icon: GraduationCap, color: "text-blue-600", bg: "bg-blue-50" },
@@ -828,7 +1034,7 @@ export default function DashboardPage() {
             { label: "Attendance Avg", value: "96.5%", icon: ClipboardCheck, color: "text-purple-600", bg: "bg-purple-50" },
             { label: "Compliance Status", value: "Active Node", icon: ShieldCheck, color: "text-green-600", bg: "bg-green-50" },
           ].map((stat, i) => (
-            <Card key={i} className="border-none shadow-sm group hover:shadow-md transition-shadow">
+            <Card key={i} className="border-none shadow-sm group hover:shadow-md transition-all">
               <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                 <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{stat.label}</CardTitle>
                 <div className={cn("p-2 rounded-lg", stat.bg)}>
@@ -842,7 +1048,6 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        {/* ANALYTICS & STATUS ROW */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <Card className="lg:col-span-8 border-none shadow-xl overflow-hidden rounded-[2.5rem] bg-white">
             <CardHeader className="bg-primary/5 p-8 border-b flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -908,7 +1113,6 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        {/* RESULTS & FINANCIAL ROW */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <Card className="lg:col-span-7 border-none shadow-xl overflow-hidden rounded-[2rem] bg-white">
             <CardHeader className="bg-white border-b p-8 flex items-center justify-between">
@@ -987,7 +1191,7 @@ export default function DashboardPage() {
     );
   }
 
-  // STANDARD OVERVIEW (BURSAR / LIBRARIAN / OTHER)
+  // 6. STANDARD OVERVIEW (BURSAR / LIBRARIAN / OTHER)
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
