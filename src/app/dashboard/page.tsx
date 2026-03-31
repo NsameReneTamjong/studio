@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
@@ -44,7 +43,8 @@ import {
   MapPin,
   Timer,
   BookMarked,
-  TrendingDown
+  TrendingDown,
+  QrCode
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -508,7 +508,7 @@ export default function DashboardPage() {
               <Table>
                 <TableBody>
                   {UPCOMING_TASKS.map((task) => (
-                    <TableRow key={task.id} className="hover:bg-primary/5 transition-colors border-b last:border-0">
+                    <TableRow key={task.id} className="hover:bg-primary/5 transition-colors border-b last:border-0 h-16">
                       <TableCell className="pl-8 py-4">
                         <div className="flex items-center gap-4">
                           <div className="p-2.5 rounded-xl bg-accent/30 text-primary">
@@ -871,7 +871,7 @@ export default function DashboardPage() {
           { label: "Matricule", value: user.id, icon: GraduationCap, color: "text-purple-600" },
           { label: "AI Requests", value: user.aiRequestCount || 0, icon: Activity, color: "text-amber-600" },
         ].map((stat, i) => (
-          <Card key={i} className="border-none shadow-sm group hover:shadow-md transition-shadow">
+          <Card key={i} className="border-none shadow-sm group hover:shadow-md transition-all">
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{stat.label}</CardTitle>
               <stat.icon className={cn("w-4 h-4 transition-transform group-hover:scale-110", stat.color)} />
