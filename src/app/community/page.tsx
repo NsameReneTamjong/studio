@@ -32,14 +32,6 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription,
-  DialogFooter
-} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/hooks/use-toast";
@@ -92,7 +84,6 @@ export default function CommunityTestimonyPage() {
   const { toast } = useToast();
   
   const [isSubmitting, setIsProcessing] = useState(false);
-  const [viewingBlog, setViewingBlog] = useState<any>(null);
   const [formData, setFormData] = useState({
     fullName: "",
     occupation: "",
@@ -239,10 +230,12 @@ export default function CommunityTestimonyPage() {
                   </CardHeader>
                   <CardFooter className="p-6 pt-0 mt-auto">
                     <Button 
+                      asChild
                       className="w-full h-11 rounded-xl bg-primary/5 text-primary hover:bg-primary hover:text-white font-black uppercase text-[10px] tracking-widest gap-2 shadow-sm transition-all"
-                      onClick={() => setViewingBlog(blog)}
                     >
-                      Open Strategic Log <ChevronRight className="w-3.5 h-3.5" />
+                      <Link href={`/community/logs/${blog.id}`}>
+                        Open Strategic Log <ChevronRight className="w-3.5 h-3.5" />
+                      </Link>
                     </Button>
                   </CardFooter>
                 </Card>
@@ -427,75 +420,6 @@ export default function CommunityTestimonyPage() {
         </section>
       </main>
 
-      {/* FULL BLOG POST DIALOG */}
-      <Dialog open={!!viewingBlog} onOpenChange={() => setViewingBlog(null)}>
-        <DialogContent className="sm:max-w-4xl max-h-[95vh] p-0 border-none shadow-2xl rounded-[3rem] overflow-hidden flex flex-col bg-[#F0F2F5]">
-          <DialogHeader className="bg-primary p-8 text-white relative shrink-0">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-white/10 rounded-2xl text-secondary">
-                <PenTool className="w-8 h-8" />
-              </div>
-              <div>
-                <DialogTitle className="text-2xl font-black uppercase tracking-tight">Strategic Node Audit</DialogTitle>
-                <DialogDescription className="text-white/60 text-xs">Official vision statement from the platform leadership.</DialogDescription>
-              </div>
-            </div>
-            <Button variant="ghost" size="icon" onClick={() => setViewingBlog(null)} className="absolute top-4 right-4 text-white hover:bg-white/10 rounded-full">
-              <X className="w-6 h-6" />
-            </Button>
-          </DialogHeader>
-          <div className="flex-1 overflow-y-auto p-8 md:p-12 space-y-10 scrollbar-thin bg-white">
-            <div className="space-y-6">
-              <h2 className="text-3xl md:text-5xl font-black text-primary uppercase tracking-tighter leading-tight">
-                {viewingBlog?.title}
-              </h2>
-              <div className="flex items-center gap-4 text-xs font-bold text-muted-foreground border-b pb-6">
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-secondary" />
-                  {viewingBlog?.createdAt && new Date(viewingBlog.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
-                </div>
-                <span className="opacity-30">|</span>
-                <Badge variant="outline" className="text-primary/40 border-primary/10 font-black uppercase text-[9px] tracking-widest">Strategic Record</Badge>
-              </div>
-            </div>
-
-            {viewingBlog?.image && (
-              <div className="aspect-[21/9] w-full rounded-[2.5rem] overflow-hidden shadow-xl border-4 border-white ring-1 ring-primary/5">
-                <img src={viewingBlog.image} className="w-full h-full object-cover" alt="Log Media" />
-              </div>
-            )}
-
-            <div className="space-y-8 max-w-3xl">
-              {viewingBlog?.paragraphs.map((p: string, i: number) => (
-                <p key={i} className="text-xl text-muted-foreground leading-relaxed font-medium first-letter:text-4xl first-letter:font-black first-letter:text-primary first-letter:mr-1">
-                  {p}
-                </p>
-              ))}
-            </div>
-
-            <div className="pt-12 mt-12 border-t flex flex-col md:flex-row md:items-center justify-between gap-8">
-              <div className="flex items-center gap-5">
-                <Avatar className="h-20 w-20 border-4 border-white shadow-2xl ring-1 ring-primary/5">
-                  <AvatarImage src={viewingBlog?.senderAvatar} />
-                  <AvatarFallback className="bg-primary text-white font-bold">{viewingBlog?.senderName.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-black text-primary text-2xl uppercase leading-none mb-1">{viewingBlog?.senderName}</p>
-                  <p className="text-xs font-bold text-secondary uppercase tracking-widest">{viewingBlog?.senderRole} • {platformSettings.name} Board</p>
-                </div>
-              </div>
-              <div className="flex flex-col items-center gap-2 text-center opacity-20">
-                 <ShieldCheck className="w-12 h-12 text-primary" />
-                 <span className="text-[8px] font-black uppercase tracking-widest">Verified Log</span>
-              </div>
-            </div>
-          </div>
-          <DialogFooter className="bg-accent/10 p-6 border-t border-accent shrink-0">
-            <Button onClick={() => setViewingBlog(null)} className="w-full md:w-auto px-12 h-12 rounded-xl font-black uppercase text-xs tracking-widest bg-primary text-white">Close Strategic Dossier</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       <footer className="w-full py-20 border-t border-primary/5 bg-white">
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-8 text-[10px] font-black uppercase tracking-widest text-primary/40">
           <div className="flex items-center gap-4">
@@ -565,7 +489,7 @@ function TestimonyCard({ test }: { test: any }) {
             <div className="overflow-hidden">
               <p className="font-black text-primary text-lg truncate uppercase tracking-tight leading-none mb-1">{test.name}</p>
               <div className="flex items-center gap-2 overflow-hidden">
-                <Badge variant="secondary" className="bg-secondary text-primary border-none text-[9px] font-black h-5 px-3 shrink-0">
+                <Badge variant="secondary" className="bg-secondary text-primary border-none text-[8px] font-black h-5 px-3 shrink-0">
                   {test.role}
                 </Badge>
                 <span className="text-[10px] text-muted-foreground font-bold truncate opacity-60">@ {test.schoolName}</span>
