@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -19,7 +20,8 @@ import {
   CheckCircle2,
   FileText,
   Eye,
-  ShieldCheck
+  ShieldCheck,
+  Type
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -31,6 +33,7 @@ export default function LogPostPage() {
   const { toast } = useToast();
   
   const [isProcessing, setIsProcessing] = useState(false);
+  const [title, setTitle] = useState("");
   const [image, setImage] = useState("");
   const [paragraphs, setParagraphs] = useState<string[]>([""]);
 
@@ -51,6 +54,10 @@ export default function LogPostPage() {
 
   const handlePublish = async () => {
     if (!user) return;
+    if (!title.trim()) {
+      toast({ variant: "destructive", title: "Missing Title", description: "Every log requires a subject/title." });
+      return;
+    }
     if (paragraphs.some(p => !p.trim())) {
       toast({ variant: "destructive", title: "Empty Paragraphs", description: "Please fill in all content fields or remove empty ones." });
       return;
@@ -61,6 +68,7 @@ export default function LogPostPage() {
     // Prototype Delay
     setTimeout(() => {
       addCommunityBlog({
+        title,
         senderName: user.name,
         senderRole: user.role,
         senderAvatar: user.avatar || "",
@@ -70,6 +78,7 @@ export default function LogPostPage() {
       
       setIsProcessing(false);
       toast({ title: "Log Published", description: "Your post is now visible on the community portal." });
+      setTitle("");
       setImage("");
       setParagraphs([""]);
     }, 1500);
@@ -97,6 +106,19 @@ export default function LogPostPage() {
               <CardDescription className="text-white/60">Craft your message with optional media and multiple paragraphs.</CardDescription>
             </CardHeader>
             <CardContent className="p-8 space-y-8">
+              {/* Subject Title */}
+              <div className="space-y-3">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
+                  <Type className="w-3.5 h-3.5" /> Subject / Title
+                </Label>
+                <Input 
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g. Q3 Pedagogical Goals"
+                  className="h-12 bg-accent/30 border-none rounded-xl font-bold text-primary"
+                />
+              </div>
+
               {/* Optional Image */}
               <div className="space-y-3">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
@@ -149,7 +171,7 @@ export default function LogPostPage() {
               <Button 
                 className="w-full h-16 rounded-2xl shadow-xl font-black uppercase text-sm gap-3 bg-primary text-white hover:bg-primary/90 transition-all active:scale-95" 
                 onClick={handlePublish}
-                disabled={isProcessing || paragraphs.every(p => !p.trim())}
+                disabled={isProcessing || !title.trim() || paragraphs.every(p => !p.trim())}
               >
                 {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                 Publish to Community Feed
@@ -179,6 +201,7 @@ export default function LogPostPage() {
                 </div>
 
                 <div className="space-y-4">
+                  {title && <h2 className="text-xl font-black text-primary uppercase">{title}</h2>}
                   {image && (
                     <div className="aspect-video w-full rounded-2xl overflow-hidden bg-accent shadow-inner border border-accent">
                       <img src={image} className="w-full h-full object-cover" alt="Preview" />

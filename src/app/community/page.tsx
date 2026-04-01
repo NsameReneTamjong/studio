@@ -22,7 +22,9 @@ import {
   Bookmark,
   MessageSquare,
   X,
-  FileText
+  FileText,
+  Clock,
+  ChevronRight
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -90,6 +92,7 @@ export default function CommunityTestimonyPage() {
   const { toast } = useToast();
   
   const [isSubmitting, setIsProcessing] = useState(false);
+  const [viewingBlog, setViewingBlog] = useState<any>(null);
   const [formData, setFormData] = useState({
     fullName: "",
     occupation: "",
@@ -187,7 +190,7 @@ export default function CommunityTestimonyPage() {
           </div>
         </section>
 
-        {/* 2. EXECUTIVE STRATEGIC LOGS (BLOG SECTION) */}
+        {/* 2. EXECUTIVE STRATEGIC LOGS (COMPACT BLOG SECTION) */}
         {communityBlogs.length > 0 && (
           <section id="logs" className="space-y-16 animate-in fade-in slide-in-from-bottom-10 duration-1000">
             <div className="text-center space-y-4">
@@ -203,51 +206,44 @@ export default function CommunityTestimonyPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {communityBlogs.map((blog) => (
-                <Card key={blog.id} className="border-none shadow-2xl rounded-[3rem] overflow-hidden bg-white group transition-all duration-500 hover:shadow-primary/10 flex flex-col">
-                  {blog.image && (
-                    <div className="aspect-video w-full overflow-hidden relative">
-                      <img src={blog.image} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" alt="Strategic update" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/20 to-transparent" />
-                      <div className="absolute bottom-6 left-8">
-                        <Badge className="bg-secondary text-primary border-none font-black uppercase text-[10px] h-7 px-4 shadow-xl">Official Update</Badge>
+                <Card key={blog.id} className="border-none shadow-xl rounded-[2.5rem] overflow-hidden bg-white group transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 flex flex-col">
+                  <div className="aspect-[16/10] w-full overflow-hidden relative">
+                    {blog.image ? (
+                      <img src={blog.image} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" alt="Strategic update" />
+                    ) : (
+                      <div className="w-full h-full bg-primary/5 flex items-center justify-center">
+                        <FileText className="w-12 h-12 text-primary/10" />
                       </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-primary/60 via-transparent to-transparent opacity-60" />
+                    <div className="absolute top-4 left-4">
+                      <Badge className="bg-secondary text-primary border-none font-black uppercase text-[8px] h-6 px-3 shadow-lg">OFFICIAL</Badge>
                     </div>
-                  )}
-                  <CardHeader className="p-8 md:p-12 pb-0">
-                    <div className="flex items-center gap-5 mb-8">
-                      <Avatar className="h-20 w-20 border-4 border-white shadow-2xl ring-1 ring-primary/5">
+                  </div>
+                  <CardHeader className="p-6 space-y-4">
+                    <h3 className="font-black text-primary text-xl uppercase leading-tight line-clamp-2 min-h-[3rem] tracking-tight">
+                      {blog.title || "Platform Update"}
+                    </h3>
+                    <div className="flex items-center gap-3 pt-2 border-t border-accent/50">
+                      <Avatar className="h-10 w-10 border-2 border-white shadow-md">
                         <AvatarImage src={blog.senderAvatar} />
                         <AvatarFallback className="bg-primary text-white font-bold">{blog.senderName.charAt(0)}</AvatarFallback>
                       </Avatar>
-                      <div>
-                        <div className="flex items-center gap-3">
-                          <h3 className="font-black text-primary text-2xl uppercase leading-none tracking-tight">{blog.senderName}</h3>
-                          <Badge variant="outline" className="text-primary/40 border-primary/10 text-[9px] h-5 font-black uppercase tracking-widest">{blog.senderRole}</Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground font-bold flex items-center gap-1.5 mt-2 opacity-60">
-                          <Calendar className="w-4 h-4" /> {new Date(blog.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
-                        </p>
+                      <div className="overflow-hidden">
+                        <p className="font-black text-primary text-xs uppercase truncate">{blog.senderName}</p>
+                        <p className="text-[9px] text-muted-foreground font-bold uppercase opacity-60">{blog.senderRole}</p>
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-8 md:p-12 pt-4 space-y-6 flex-1">
-                    {blog.paragraphs.map((p, i) => (
-                      <p key={i} className="text-lg text-muted-foreground leading-relaxed font-medium first-letter:text-3xl first-letter:font-black first-letter:text-primary first-letter:mr-1">
-                        {p}
-                      </p>
-                    ))}
-                  </CardContent>
-                  <CardFooter className="bg-primary/5 p-10 border-t border-primary/5 flex justify-between items-center relative overflow-hidden">
-                     <div className="absolute top-0 right-0 p-4 opacity-[0.03] rotate-12"><ShieldCheck className="w-32 h-32" /></div>
-                     <div className="flex items-center gap-3 text-primary/40 italic relative z-10">
-                        <ShieldCheck className="w-5 h-5 text-secondary" />
-                        <span className="text-xs font-black uppercase tracking-widest">Verified Strategic Record</span>
-                     </div>
-                     <div className="p-3 bg-white rounded-2xl shadow-sm border border-primary/5 relative z-10">
-                        <Bookmark className="w-5 h-5 text-primary/20" />
-                     </div>
+                  <CardFooter className="p-6 pt-0 mt-auto">
+                    <Button 
+                      className="w-full h-11 rounded-xl bg-primary/5 text-primary hover:bg-primary hover:text-white font-black uppercase text-[10px] tracking-widest gap-2 shadow-sm transition-all"
+                      onClick={() => setViewingBlog(blog)}
+                    >
+                      Open Strategic Log <ChevronRight className="w-3.5 h-3.5" />
+                    </Button>
                   </CardFooter>
                 </Card>
               ))}
@@ -430,6 +426,75 @@ export default function CommunityTestimonyPage() {
           </Card>
         </section>
       </main>
+
+      {/* FULL BLOG POST DIALOG */}
+      <Dialog open={!!viewingBlog} onOpenChange={() => setViewingBlog(null)}>
+        <DialogContent className="sm:max-w-4xl max-h-[95vh] p-0 border-none shadow-2xl rounded-[3rem] overflow-hidden flex flex-col bg-[#F0F2F5]">
+          <DialogHeader className="bg-primary p-8 text-white relative shrink-0">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/10 rounded-2xl text-secondary">
+                <PenTool className="w-8 h-8" />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-black uppercase tracking-tight">Strategic Node Audit</DialogTitle>
+                <DialogDescription className="text-white/60 text-xs">Official vision statement from the platform leadership.</DialogDescription>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setViewingBlog(null)} className="absolute top-4 right-4 text-white hover:bg-white/10 rounded-full">
+              <X className="w-6 h-6" />
+            </Button>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto p-8 md:p-12 space-y-10 scrollbar-thin bg-white">
+            <div className="space-y-6">
+              <h2 className="text-3xl md:text-5xl font-black text-primary uppercase tracking-tighter leading-tight">
+                {viewingBlog?.title}
+              </h2>
+              <div className="flex items-center gap-4 text-xs font-bold text-muted-foreground border-b pb-6">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-secondary" />
+                  {viewingBlog?.createdAt && new Date(viewingBlog.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
+                </div>
+                <span className="opacity-30">|</span>
+                <Badge variant="outline" className="text-primary/40 border-primary/10 font-black uppercase text-[9px] tracking-widest">Strategic Record</Badge>
+              </div>
+            </div>
+
+            {viewingBlog?.image && (
+              <div className="aspect-[21/9] w-full rounded-[2.5rem] overflow-hidden shadow-xl border-4 border-white ring-1 ring-primary/5">
+                <img src={viewingBlog.image} className="w-full h-full object-cover" alt="Log Media" />
+              </div>
+            )}
+
+            <div className="space-y-8 max-w-3xl">
+              {viewingBlog?.paragraphs.map((p: string, i: number) => (
+                <p key={i} className="text-xl text-muted-foreground leading-relaxed font-medium first-letter:text-4xl first-letter:font-black first-letter:text-primary first-letter:mr-1">
+                  {p}
+                </p>
+              ))}
+            </div>
+
+            <div className="pt-12 mt-12 border-t flex flex-col md:flex-row md:items-center justify-between gap-8">
+              <div className="flex items-center gap-5">
+                <Avatar className="h-20 w-20 border-4 border-white shadow-2xl ring-1 ring-primary/5">
+                  <AvatarImage src={viewingBlog?.senderAvatar} />
+                  <AvatarFallback className="bg-primary text-white font-bold">{viewingBlog?.senderName.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-black text-primary text-2xl uppercase leading-none mb-1">{viewingBlog?.senderName}</p>
+                  <p className="text-xs font-bold text-secondary uppercase tracking-widest">{viewingBlog?.senderRole} • {platformSettings.name} Board</p>
+                </div>
+              </div>
+              <div className="flex flex-col items-center gap-2 text-center opacity-20">
+                 <ShieldCheck className="w-12 h-12 text-primary" />
+                 <span className="text-[8px] font-black uppercase tracking-widest">Verified Log</span>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="bg-accent/10 p-6 border-t border-accent shrink-0">
+            <Button onClick={() => setViewingBlog(null)} className="w-full md:w-auto px-12 h-12 rounded-xl font-black uppercase text-xs tracking-widest bg-primary text-white">Close Strategic Dossier</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <footer className="w-full py-20 border-t border-primary/5 bg-white">
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-8 text-[10px] font-black uppercase tracking-widest text-primary/40">

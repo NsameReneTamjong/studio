@@ -86,6 +86,7 @@ export interface Testimony {
 
 export interface CommunityBlog {
   id: string;
+  title: string;
   senderName: string;
   senderRole: string;
   senderAvatar: string;
@@ -247,6 +248,7 @@ const INITIAL_EVENTS: PublicEvent[] = [
 const INITIAL_BLOGS: CommunityBlog[] = [
   {
     id: "BLOG-CEO-1",
+    title: "Global Node Expansion Milestone",
     senderName: "EduIgnite CEO",
     senderRole: "CEO",
     senderAvatar: "https://picsum.photos/seed/ceo/150/150",
