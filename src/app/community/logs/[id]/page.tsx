@@ -8,16 +8,15 @@ import {
   ArrowLeft, 
   PenTool, 
   Calendar, 
-  Badge, 
-  Avatar, 
-  AvatarImage, 
-  AvatarFallback, 
   ShieldCheck,
   Building2,
   ChevronLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 export default function BlogDetailPage() {
   const params = useParams();
@@ -129,7 +128,7 @@ export default function BlogDetailPage() {
             className="h-14 px-10 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-xs gap-3 shadow-2xl"
             onClick={() => router.push('/community#order')}
            >
-             Join the Regional Node Network <ChevronRight className="w-4 h-4" />
+             Join the Regional Node Network <ChevronLeft className="w-4 h-4 rotate-180" />
            </Button>
         </section>
       </main>
