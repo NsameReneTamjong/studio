@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -24,7 +23,8 @@ import {
   X,
   FileText,
   Clock,
-  ChevronRight
+  ChevronRight,
+  Heart
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -429,21 +429,30 @@ export default function CommunityTestimonyPage() {
       </main>
 
       <footer className="w-full py-20 border-t border-primary/5 bg-white">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-8 text-[10px] font-black uppercase tracking-widest text-primary/40">
-          <div className="flex items-center gap-4">
-            <div className="p-2 bg-primary/5 rounded-lg border border-primary/5">
-              <Building2 className="w-6 h-6" />
-            </div>
-            <div className="space-y-1">
-              <p>{platformSettings.name} SECURE INFRASTRUCTURE</p>
-              <p className="opacity-60">Verified Node Cluster Registry</p>
-            </div>
-          </div>
-          <div className="text-center md:text-right space-y-1">
-            <p>© 2024 EDUIGNITE SAAS GLOBAL OPERATIONS</p>
-            <p className="flex items-center justify-center md:justify-end gap-2 text-secondary opacity-100">
-              <ShieldCheck className="w-3 h-3" /> HIGH FIDELITY PEDAGOGY
+        <div className="max-w-7xl mx-auto px-4 flex flex-col items-center gap-12 text-center">
+          <div className="space-y-2">
+            <p className="text-xl md:text-2xl font-black text-primary uppercase tracking-tighter flex items-center justify-center gap-3">
+              {platformSettings.name} Community Love You Dearly <Heart className="w-6 h-6 text-red-500 fill-red-500" />
             </p>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.4em] opacity-40">Together for pedagogical excellence</p>
+          </div>
+
+          <div className="w-full flex flex-col md:flex-row justify-between items-center gap-8 text-[10px] font-black uppercase tracking-widest text-primary/40 border-t pt-12 border-primary/5">
+            <div className="flex items-center gap-4">
+              <div className="p-2 bg-primary/5 rounded-lg border border-primary/5">
+                <Building2 className="w-6 h-6" />
+              </div>
+              <div className="text-left space-y-1">
+                <p>{platformSettings.name} SECURE INFRASTRUCTURE</p>
+                <p className="opacity-60">Verified Node Cluster Registry</p>
+              </div>
+            </div>
+            <div className="text-center md:text-right space-y-1">
+              <p>© 2024 EDUIGNITE SAAS GLOBAL OPERATIONS</p>
+              <p className="flex items-center justify-center md:justify-end gap-2 text-secondary opacity-100">
+                <ShieldCheck className="w-3 h-3" /> HIGH FIDELITY PEDAGOGY
+              </p>
+            </div>
           </div>
         </div>
       </footer>
